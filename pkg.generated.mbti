@@ -6,7 +6,7 @@ import {
 }
 
 // Values
-pub fn apply_layout(String, String, String) -> String
+pub fn apply_layout(String, String, String, description? : String) -> String
 
 pub fn build_site(String, String) -> Int raise
 
@@ -19,6 +19,8 @@ pub fn digest_text(String) -> String
 pub fn escape_html(String) -> String
 
 pub fn page_title(String, String) -> String
+
+pub fn parse_document(String, String, filename? : String) -> Document raise
 
 pub fn parse_manifest(String) -> Manifest raise
 
@@ -62,6 +64,13 @@ pub fn Dependency::equal(Self, Self) -> Bool
 pub fn Dependency::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Dependency::not_equal(Self, Self) -> Bool
 pub fn Dependency::to_json(Self) -> Json
+
+pub(all) struct Document {
+  title : String
+  description : String
+  tags : Array[String]
+  body : String
+}
 
 pub(all) struct Manifest {
   schema : Int

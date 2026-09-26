@@ -122,7 +122,7 @@ pub fn compile_site(
   let events : Array[String] = []
   let mut pages = 0
   let layout_digest = digest_text(layout)
-  let compiler_digest = digest_text("moonpress-renderer-v1")
+  let compiler_digest = digest_text("moonpress-renderer-v2")
   for name in names {
     if name.has_suffix(".md") {
       let path = input + "/content/" + name
@@ -131,6 +131,7 @@ pub fn compile_site(
       }
       let source = @fs.read_file_to_string(path)
       let stem = name[:name.length() - 3].to_owned()
+      let document = parse_document(source, stem, filename=path)
       let deps : Array[Dependency] = [
         { name: "compiler", digest: compiler_digest, },
         { name: "layout.html", digest: layout_digest, },
@@ -146,8 +147,9 @@ pub fn compile_site(
             @utf8.encode(
               apply_layout(
                 layout,
-                page_title(source, stem),
-                render_markdown(source),
+                document.title,
+                render_markdown(document.body),
+                description=document.description,
               ),
             )
           },
