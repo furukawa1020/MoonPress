@@ -20,7 +20,8 @@ expect_failure() {
   test ! -s "$tmp/stdout"
   test -s "$tmp/stderr"
 }
-expect_failure 1 build site "$tmp/first"
+mkdir "$tmp/unmanaged"
+expect_failure 1 build site "$tmp/unmanaged"
 expect_failure 1 build "$tmp/missing" "$tmp/absent"
 test ! -e "$tmp/absent"
 expect_failure 2 bogus

@@ -19,7 +19,9 @@ _build/native/release/build/cmd/main/main.exe build site dist-new
 
 The CLI reads `content/*.md`, `layout.html`, and `style.css` from the input
 directory. It generates one `.html` per page, copies CSS, and adds `.nojekyll`.
-Output must be a **new directory**. It never recursively deletes your files.
+A fresh output directory is initialized with `.moonpress.json`. Subsequent builds
+update only changed artifacts and remove tracked outputs whose sources were deleted.
+Unmanaged directories, unknown files, edited outputs and symlinks are rejected.
 Templates are trusted project files; Markdown content and titles are escaped.
 
 Supported Markdown: ATX headings 1–6, paragraphs, and triple-backtick code
@@ -54,3 +56,26 @@ Work in small issue-linked branches and PRs; merge after checks pass.
 “Ultra-lightweight” is a goal, not a verified comparative performance claim.
 
 Apache-2.0. See LICENSE.
+
+## Incremental builds and explanations
+
+```sh
+moonpress build site dist
+moonpress explain site dist   # dry-run: no directories/files written
+moonpress build site dist     # unchanged artifacts keep their mtime
+```
+
+Each output records explicit SHA-256 dependencies: a page depends on its source,
+layout and renderer revision; CSS depends only on its source. Builds still read
+and hash inputs and verify output integrity, but skip rendering/writing unchanged
+pages. Changed pages are rendered; rename/delete removes tracked stale output.
+The report names changed dependencies. Clean and incremental outputs are tested
+for byte-for-byte equality, including the manifest.
+
+Do not edit generated files or run concurrent builds into the same directory.
+This version is not transactional across filesystem failures: after a partial
+write failure, generate into a fresh directory. The manifest is written last.
+A tiny POSIX C shim provides `lstat` checks; all dependency and compiler logic
+is MoonBit. Linux x86_64 is the tested platform. Unmanaged contents are never
+recursively removed. These checks are for trusted local projects, not a sandbox
+against a concurrent hostile process changing filesystem paths.

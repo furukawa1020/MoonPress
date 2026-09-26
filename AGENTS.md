@@ -19,14 +19,15 @@ Do not use Node-based GitHub Actions; use shell and GitHub APIs.
 - `bash scripts/setup.sh` then add `$HOME/.moon/bin` to PATH.
 - `bash scripts/check.sh` checks, tests, compiles and tests the executable.
 - `moon info --target native && moon fmt` before submitting changes.
-- `moon run cmd/main --target native -- build site dist` (dist must not exist).
+- `moon run cmd/main --target native -- build site dist` (new or MoonPress-managed output).
 
 ## Architecture and correctness
 - Root library: pure render functions and site compilation.
 - `cmd/main`: argument handling only; keep business logic in the library.
 - Markdown is an explicitly documented subset, not CommonMark compatibility.
 - Escape untrusted content, never evaluate source templates or shell commands.
-- Do not delete or overwrite existing user directories.
+- Only update/delete tracked generated files inside a validated MoonPress-managed
+  output. Refuse foreign files, manual edits and symlinks before any mutation.
 - Deterministic ordering/output. Incremental output must equal a clean build.
 - Generated `.mbti` interfaces must be committed and reviewed.
 - Measure size and performance; do not claim superiority without evidence.
