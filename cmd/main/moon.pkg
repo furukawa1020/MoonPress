@@ -1,0 +1,6 @@
+import {
+  "furukawa1020/moonpress" @lib,
+  "moonbitlang/core/env",
+}
+
+pkgtype(kind: "executable")
