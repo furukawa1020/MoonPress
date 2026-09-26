@@ -1,0 +1,228 @@
+///|
+#borrow(path)
+extern "C" fn native_path_kind(path : Bytes) -> Int = "moonpress_path_kind"
+
+///|
+fn path_kind(path : String) -> Int raise {
+  if path.contains("\u0000") {
+    raise InvalidInput("NUL in filesystem path")
+  }
+  native_path_kind(@utf8.encode(path) + b"\x00")
+}
+
+///|
+pub(all) struct BuildReport {
+  pages : Int
+  written : Int
+  skipped : Int
+  deleted : Int
+  events : Array[String]
+}
+
+///|
+priv struct Pending {
+  artifact : Artifact
+  content : Bytes?
+}
+
+///|
+fn load_previous(output : String) -> Map[String, Artifact] raise {
+  let result : Map[String, Artifact] = Map([])
+  let kind = path_kind(output)
+  if kind == 0 {
+    return result
+  }
+  if kind != 2 {
+    raise InvalidInput("Output must be a real directory, not a symlink")
+  }
+  let marker = output + "/.moonpress.json"
+  if path_kind(marker) != 1 {
+    raise InvalidInput("Existing output is not managed by MoonPress")
+  }
+  let state = parse_manifest(@fs.read_file_to_string(marker))
+  for artifact in state.artifacts {
+    result[artifact.name] = artifact
+  }
+  // Refuse unknown files and edited outputs before ANY writes or deletions.
+  for name in @fs.read_dir(output) {
+    let file = output + "/" + name
+    if path_kind(file) != 1 {
+      raise InvalidInput("Output contains a non-regular file: " + name)
+    }
+    if name != ".moonpress.json" {
+      match result.get(name) {
+        None => raise InvalidInput("Unmanaged output file: " + name)
+        Some(artifact) =>
+          if digest_bytes(@fs.read_file_to_bytes(file)) != artifact.digest {
+            raise InvalidInput("Output was edited outside MoonPress: " + name)
+          }
+      }
+    }
+  }
+  result
+}
+
+///|
+fn plan_artifact(
+  name : String,
+  dependencies : Array[Dependency],
+  previous : Map[String, Artifact],
+  output : String,
+  render : () -> Bytes,
+  events : Array[String],
+) -> Pending raise {
+  if !safe_output_name(name) {
+    raise InvalidInput("Invalid output name: " + name)
+  }
+  let old = previous.get(name)
+  let reason = match rebuild_reason(old, dependencies) {
+    Some(reason) => Some(reason)
+    None =>
+      if path_kind(output + "/" + name) == 0 {
+        Some("output missing")
+      } else {
+        None
+      }
+  }
+  if reason is None && old is Some(artifact) {
+    events.push("KEEP " + name + " — dependencies unchanged")
+    return { artifact, content: None, }
+  }
+  let content = render()
+  let artifact : Artifact = {
+    name,
+    digest: digest_bytes(content),
+    dependencies,
+  }
+  events.push(
+    "WRITE " + name + " — " + reason.unwrap_or("dependency changed"),
+  )
+  { artifact, content: Some(content), }
+}
+
+///|
+pub fn compile_site(
+  input : String,
+  output : String,
+  dry_run? : Bool = false,
+) -> BuildReport raise {
+  let output = output.trim_end(chars="/").to_owned()
+  if output.is_empty() {
+    raise InvalidInput("Root output directory is not allowed")
+  }
+  let previous = load_previous(output)
+  let layout = @fs.read_file_to_string(input + "/layout.html")
+  if !layout.contains("{{content}}") {
+    raise InvalidInput("layout.html must contain {{content}}")
+  }
+  let css = @fs.read_file_to_bytes(input + "/style.css")
+  let names = @fs.read_dir(input + "/content").to_owned()
+  names.sort()
+  let pending : Array[Pending] = []
+  let events : Array[String] = []
+  let mut pages = 0
+  let layout_digest = digest_text(layout)
+  let compiler_digest = digest_text("moonpress-renderer-v1")
+  for name in names {
+    if name.has_suffix(".md") {
+      let path = input + "/content/" + name
+      if path_kind(path) != 1 {
+        raise InvalidInput("Expected regular source file: " + path)
+      }
+      let source = @fs.read_file_to_string(path)
+      let stem = name[:name.length() - 3].to_owned()
+      let deps : Array[Dependency] = [
+        { name: "compiler", digest: compiler_digest, },
+        { name: "layout.html", digest: layout_digest, },
+        { name: "content/" + name, digest: digest_text(source), },
+      ]
+      pending.push(
+        plan_artifact(
+          stem + ".html",
+          deps,
+          previous,
+          output,
+          () => {
+            @utf8.encode(
+              apply_layout(
+                layout,
+                page_title(source, stem),
+                render_markdown(source),
+              ),
+            )
+          },
+          events,
+        ),
+      )
+      pages += 1
+    }
+  }
+  if pages == 0 {
+    raise InvalidInput("No .md pages found")
+  }
+  pending.push(
+    plan_artifact(
+      "style.css",
+      [{ name: "style.css", digest: digest_bytes(css), }],
+      previous,
+      output,
+      () => css,
+      events,
+    ),
+  )
+  pending.push(
+    plan_artifact(".nojekyll", [], previous, output, () => b"", events),
+  )
+  let current : Map[String, Bool] = Map([])
+  let artifacts : Array[Artifact] = []
+  let mut written = 0
+  for item in pending {
+    current[item.artifact.name] = true
+    artifacts.push(item.artifact)
+    if item.content is Some(_) {
+      written += 1
+    }
+  }
+  let removed : Array[String] = []
+  for name, _ in previous {
+    if !current.contains(name) {
+      removed.push(name)
+    }
+  }
+  removed.sort()
+  for name in removed {
+    events.push("DELETE " + name + " — source removed")
+  }
+  let manifest = serialize_manifest(artifacts)
+  if !dry_run {
+    if path_kind(output) == 0 {
+      @fs.create_dir(output)
+    }
+    for item in pending {
+      if item.content is Some(bytes) {
+        @fs.write_bytes_to_file(output + "/" + item.artifact.name, bytes)
+      }
+    }
+    for name in removed {
+      if path_kind(output + "/" + name) == 1 {
+        @fs.remove_file(output + "/" + name)
+      }
+    }
+    let marker = output + "/.moonpress.json"
+    if !@fs.path_exists(marker) || @fs.read_file_to_string(marker) != manifest {
+      @fs.write_string_to_file(marker, manifest)
+    }
+  }
+  {
+    pages,
+    written,
+    skipped: pending.length() - written,
+    deleted: removed.length(),
+    events,
+  }
+}
+
+///|
+pub fn build_site(input : String, output : String) -> Int raise {
+  compile_site(input, output).pages
+}

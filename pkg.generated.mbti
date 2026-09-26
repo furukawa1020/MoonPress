@@ -10,6 +10,8 @@ pub fn apply_layout(String, String, String) -> String
 
 pub fn build_site(String, String) -> Int raise
 
+pub fn compile_site(String, String, dry_run? : Bool) -> BuildReport raise
+
 pub fn digest_bytes(Bytes) -> String
 
 pub fn digest_text(String) -> String
@@ -43,6 +45,14 @@ pub fn Artifact::equal(Self, Self) -> Bool
 pub fn Artifact::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Artifact::not_equal(Self, Self) -> Bool
 pub fn Artifact::to_json(Self) -> Json
+
+pub(all) struct BuildReport {
+  pages : Int
+  written : Int
+  skipped : Int
+  deleted : Int
+  events : Array[String]
+}
 
 pub(all) struct Dependency {
   name : String
