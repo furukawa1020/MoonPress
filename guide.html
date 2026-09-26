@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="MoonPress — a small static site compiler written in MoonBit.">
+<title>Getting started · MoonPress</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><a class="brand" href="index.html"><span aria-hidden="true">◒</span> MoonPress</a><nav><a href="guide.html">Guide</a><a href="https://github.com/furukawa1020/MoonPress">Source ↗</a></nav></header>
+<main><div class="eyebrow">MOONBIT NATIVE / EXPERIMENTAL 0.1</div><h1>Getting started</h1>
+<h2>Prerequisites</h2>
+<p>Linux x86_64、Cコンパイラ、MoonBitの検証済みツールチェーンを使用します。</p>
+<pre><code>bash scripts/setup.sh
+export PATH=&quot;$HOME/.moon/bin:$PATH&quot;
+bash scripts/check.sh
+moon run cmd/main --target native -- build site dist
+</code></pre>
+<h2>Input contract</h2>
+<p>site/content直下の.mdファイルを、同名の.htmlへ変換します。layout.htmlの{{title}}と{{content}}を置換し、style.cssをコピーします。</p>
+<p>最初のH1をページタイトルとして使います。本文中のHTMLはエスケープします。レイアウトとCSSは制作者が管理する信頼済みファイルです。</p>
+<h2>Supported Markdown</h2>
+<p>1〜6段階の見出し、空行で区切る段落、バッククォート3個のコードフェンスに対応します。リンク・リスト・強調・frontmatter・ネストしたディレクトリは未対応です。CommonMark完全互換ではありません。</p>
+<h2>Safe output</h2>
+<p>既存の出力ディレクトリは上書きしません。毎回新しい出力先を指定してください。差分ビルドはIssue #4で実装予定です。</p>
+</main>
+<footer>Compiled by MoonPress. Served as HTML + CSS.<a href="https://github.com/furukawa1020/MoonPress/issues">Follow the build ↗</a></footer>
+</body>
+</html>
