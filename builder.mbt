@@ -111,6 +111,7 @@ pub fn compile_site(
     raise InvalidInput("Root output directory is not allowed")
   }
   let previous = load_previous(output)
+  let base_url = read_base_url(input)
   let layout = @fs.read_file_to_string(input + "/layout.html")
   if !layout.contains("{{content}}") {
     raise InvalidInput("layout.html must contain {{content}}")
@@ -123,7 +124,7 @@ pub fn compile_site(
   let documents : Array[Page] = []
   let mut pages = 0
   let layout_digest = digest_text(layout)
-  let compiler_digest = digest_text("moonpress-renderer-v2")
+  let compiler_digest = digest_text("moonpress-renderer-v3")
   for name in names {
     if name.has_suffix(".md") {
       let path = input + "/content/" + name
@@ -221,6 +222,48 @@ pub fn compile_site(
   pending.push(
     plan_artifact(".nojekyll", [], previous, output, () => b"", events),
   )
+  let routes = pending.map(item => item.artifact.name)
+  if base_url is Some(_) {
+    routes.push("sitemap.xml")
+  }
+  let base_path = match base_url {
+    Some(url) => site_base_path(url)
+    None => "/"
+  }
+  for page in documents {
+    validate_links(
+      markdown_links(page.document.body),
+      routes,
+      base_path~,
+      source=page.output,
+    )
+  }
+  validate_links(
+    template_links(layout),
+    routes,
+    base_path~,
+    source="layout.html",
+  )
+  if base_url is Some(url) {
+    let sitemap_routes = routes.filter(name => name.has_suffix(".html"))
+    pending.push(
+      plan_artifact(
+        "sitemap.xml",
+        [
+          { name: "site.json/base_url", digest: digest_text(url), },
+          {
+            name: "routes",
+            digest: digest_text(sitemap_routes.to_json().stringify()),
+          },
+          { name: "sitemap-renderer", digest: digest_text("sitemap-v1"), },
+        ],
+        previous,
+        output,
+        () => @utf8.encode(render_sitemap(url, sitemap_routes)),
+        events,
+      ),
+    )
+  }
   let current : Map[String, Bool] = Map([])
   let artifacts : Array[Artifact] = []
   let mut written = 0
