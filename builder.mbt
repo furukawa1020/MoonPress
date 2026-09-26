@@ -120,6 +120,7 @@ pub fn compile_site(
   names.sort()
   let pending : Array[Pending] = []
   let events : Array[String] = []
+  let documents : Array[Page] = []
   let mut pages = 0
   let layout_digest = digest_text(layout)
   let compiler_digest = digest_text("moonpress-renderer-v2")
@@ -132,6 +133,7 @@ pub fn compile_site(
       let source = @fs.read_file_to_string(path)
       let stem = name[:name.length() - 3].to_owned()
       let document = parse_document(source, stem, filename=path)
+      documents.push({ output: stem + ".html", document, })
       let deps : Array[Dependency] = [
         { name: "compiler", digest: compiler_digest, },
         { name: "layout.html", digest: layout_digest, },
@@ -164,6 +166,50 @@ pub fn compile_site(
   }
   pending.push(
     plan_artifact(
+      "articles.html",
+      collection_dependencies(documents, layout_digest),
+      previous,
+      output,
+      () => {
+        @utf8.encode(
+          apply_layout(
+            layout,
+            "Articles",
+            render_collection("Articles", documents),
+          ),
+        )
+      },
+      events,
+    ),
+  )
+  let tags : Array[String] = []
+  for page in documents {
+    for tag in page.document.tags {
+      if !tags.contains(tag) {
+        tags.push(tag)
+      }
+    }
+  }
+  tags.sort()
+  for tag in tags {
+    let members = documents.filter(page => page.document.tags.contains(tag))
+    pending.push(
+      plan_artifact(
+        tag_filename(tag),
+        collection_dependencies(members, layout_digest),
+        previous,
+        output,
+        () => {
+          @utf8.encode(
+            apply_layout(layout, tag, render_collection(tag, members)),
+          )
+        },
+        events,
+      ),
+    )
+  }
+  pending.push(
+    plan_artifact(
       "style.css",
       [{ name: "style.css", digest: digest_bytes(css), }],
       previous,
@@ -179,6 +225,9 @@ pub fn compile_site(
   let artifacts : Array[Artifact] = []
   let mut written = 0
   for item in pending {
+    if current.contains(item.artifact.name) {
+      raise InvalidInput("Output collision: " + item.artifact.name)
+    }
     current[item.artifact.name] = true
     artifacts.push(item.artifact)
     if item.content is Some(_) {
