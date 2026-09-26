@@ -1,0 +1,37 @@
+name: Publish Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Fetch exact revision
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+      - name: Set up MoonBit
+        run: |
+          bash scripts/setup.sh
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Verify native compiler
+        run: bash scripts/check.sh
+      - name: Compile own website
+        run: _build/native/release/build/cmd/main/main.exe build site dist
+      - name: Publish generated files and request Pages build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/deploy-pages.sh dist
