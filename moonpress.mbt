@@ -68,9 +68,12 @@ pub fn render_markdown(source : String) -> String {
 
 ///|
 pub fn page_title(source : String, fallback : String) -> String {
+  let mut fenced = false
   for line in source.split("\n") {
     let text = line.to_owned()
-    if text.has_prefix("# ") {
+    if text.has_prefix("```") {
+      fenced = !fenced
+    } else if !fenced && text.has_prefix("# ") {
       return text[2:].to_owned().trim().to_owned()
     }
   }
@@ -78,19 +81,41 @@ pub fn page_title(source : String, fallback : String) -> String {
 }
 
 ///|
-pub fn apply_layout(layout : String, title : String, body : String) -> String {
-  // Substitute in one pass: placeholders inside source content remain literal.
-  let parts = layout.split("{{content}}")
+pub fn apply_layout(
+  layout : String,
+  title : String,
+  body : String,
+  description? : String = "",
+) -> String {
+  // One pass over the template; inserted values are never parsed again.
   let out = StringBuilder()
-  let mut first = true
-  for part in parts {
-    if !first {
-      out.write_string(body)
+  let mut remainder = layout
+  while true {
+    match remainder.split_once("{{") {
+      None => {
+        out.write_string(remainder)
+        break
+      }
+      Some((before, tail)) => {
+        out.write_string(before.to_owned())
+        match tail.to_owned().split_once("}}") {
+          None => {
+            out.write_string("{{" + tail.to_owned())
+            break
+          }
+          Some((key, after)) => {
+            let value = match key.to_owned() {
+              "title" => escape_html(title)
+              "description" => escape_html(description)
+              "content" => body
+              other => "{{" + other + "}}"
+            }
+            out.write_string(value)
+            remainder = after.to_owned()
+          }
+        }
+      }
     }
-    out.write_string(
-      part.to_owned().replace_all(old="{{title}}", new=escape_html(title)),
-    )
-    first = false
   }
   out.to_string()
 }
