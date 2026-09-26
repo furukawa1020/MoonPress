@@ -55,8 +55,10 @@ pub fn parse_document(
           match item {
             String(tag) => {
               let tag = tag.trim().to_owned()
-              if tag.is_empty() {
-                raise InvalidInput(filename + ":2: tags must not be empty")
+              if tag.is_empty() || @utf8.encode(tag).length() > 96 {
+                raise InvalidInput(
+                  filename + ":2: tags must contain 1–96 UTF-8 bytes",
+                )
               }
               if !tags.contains(tag) {
                 tags.push(tag)

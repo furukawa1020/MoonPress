@@ -124,3 +124,13 @@ pub fn apply_layout(
 pub suberror BuildError {
   InvalidInput(String)
 }
+
+///|
+pub impl Show for BuildError with fn output(self, logger) {
+  match self {
+    InvalidInput(message) => logger.write_string(message)
+  }
+}
+
+///|
+pub extend BuildError with Show::{to_string, output}
