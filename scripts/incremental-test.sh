@@ -6,6 +6,7 @@ cli="$PWD/_build/native/release/build/cmd/main/main.exe"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 cp -a site "$tmp/site"
+printf '<title>{{title}}</title>{{content}}' > "$tmp/site/layout.html"
 "$cli" explain "$tmp/site" "$tmp/out" > "$tmp/plan"
 test ! -e "$tmp/out"
 "$cli" build "$tmp/site" "$tmp/out" > /dev/null

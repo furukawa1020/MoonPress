@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn allowed_href(String) -> Bool
+
 pub fn apply_layout(String, String, String, description? : String) -> String
 
 pub fn build_site(String, String) -> Int raise
@@ -18,7 +20,11 @@ pub fn digest_text(String) -> String
 
 pub fn escape_html(String) -> String
 
+pub fn markdown_links(String) -> Array[String]
+
 pub fn metadata_digest(Page) -> String
+
+pub fn normalize_base_url(String) -> String raise
 
 pub fn page_title(String, String) -> String
 
@@ -30,15 +36,25 @@ pub fn rebuild_reason(Artifact?, Array[Dependency]) -> String?
 
 pub fn render_collection(String, Array[Page]) -> String
 
+pub fn render_inline(String) -> String
+
 pub fn render_markdown(String) -> String
+
+pub fn render_sitemap(String, Array[String]) -> String
 
 pub fn safe_output_name(String) -> Bool
 
 pub fn serialize_manifest(Array[Artifact]) -> String
 
+pub fn site_base_path(String) -> String
+
 pub fn tag_filename(String) -> String
 
+pub fn template_links(String) -> Array[String] raise
+
 pub fn url_component(String) -> String
+
+pub fn validate_links(Array[String], Array[String], base_path? : String, source? : String) -> Unit raise
 
 // Errors
 pub suberror BuildError {

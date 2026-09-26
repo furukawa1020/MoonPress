@@ -43,7 +43,7 @@ pub fn render_markdown(source : String) -> String {
         }
         out.write_string(
           "<h\{level}>" +
-          escape_html(line[level + 1:].to_owned()) +
+          render_inline(line[level + 1:].to_owned()) +
           "</h\{level}>\n",
         )
       } else {
@@ -53,7 +53,7 @@ pub fn render_markdown(source : String) -> String {
           out.write_string("<p>")
           paragraph = true
         }
-        out.write_string(escape_html(line))
+        out.write_string(render_inline(line))
       }
     }
   }

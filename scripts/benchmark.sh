@@ -29,7 +29,7 @@ done
 for n in 10 100 1000; do
   input="$tmp/site-$n"
   mkdir -p "$input/content"
-  cp site/layout.html "$input/layout.html"
+  printf '<title>{{title}}</title>{{content}}' > "$input/layout.html"
   cp site/style.css "$input/style.css"
   for ((i=1; i<=n; i++)); do
     printf '# Page %s\n\nA deterministic synthetic page for MoonPress.\n\n## Section\n\nSmall builds, explicit dependencies.\n\n```text\nhello world\n```\n' "$i" > "$input/content/page-$i.md"
