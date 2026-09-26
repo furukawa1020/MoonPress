@@ -1,16 +1,32 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "furukawa1020/moonpress"
 
+import {
+  "moonbitlang/core/json",
+}
+
 // Values
 pub fn apply_layout(String, String, String) -> String
 
 pub fn build_site(String, String) -> Int raise
 
+pub fn digest_bytes(Bytes) -> String
+
+pub fn digest_text(String) -> String
+
 pub fn escape_html(String) -> String
 
 pub fn page_title(String, String) -> String
 
+pub fn parse_manifest(String) -> Manifest raise
+
+pub fn rebuild_reason(Artifact?, Array[Dependency]) -> String?
+
 pub fn render_markdown(String) -> String
+
+pub fn safe_output_name(String) -> Bool
+
+pub fn serialize_manifest(Array[Artifact]) -> String
 
 // Errors
 pub suberror BuildError {
@@ -18,6 +34,34 @@ pub suberror BuildError {
 }
 
 // Types and methods
+pub(all) struct Artifact {
+  name : String
+  digest : String
+  dependencies : Array[Dependency]
+} derive(Eq, ToJson, @json.FromJson)
+pub fn Artifact::equal(Self, Self) -> Bool
+pub fn Artifact::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Artifact::not_equal(Self, Self) -> Bool
+pub fn Artifact::to_json(Self) -> Json
+
+pub(all) struct Dependency {
+  name : String
+  digest : String
+} derive(Eq, ToJson, @json.FromJson)
+pub fn Dependency::equal(Self, Self) -> Bool
+pub fn Dependency::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Dependency::not_equal(Self, Self) -> Bool
+pub fn Dependency::to_json(Self) -> Json
+
+pub(all) struct Manifest {
+  schema : Int
+  compiler : String
+  artifacts : Array[Artifact]
+} derive(Eq, ToJson, @json.FromJson)
+pub fn Manifest::equal(Self, Self) -> Bool
+pub fn Manifest::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Manifest::not_equal(Self, Self) -> Bool
+pub fn Manifest::to_json(Self) -> Json
 
 // Type aliases
 
