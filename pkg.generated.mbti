@@ -1,0 +1,24 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "furukawa1020/moonpress"
+
+// Values
+pub fn apply_layout(String, String, String) -> String
+
+pub fn build_site(String, String) -> Int raise
+
+pub fn escape_html(String) -> String
+
+pub fn page_title(String, String) -> String
+
+pub fn render_markdown(String) -> String
+
+// Errors
+pub suberror BuildError {
+  InvalidInput(String)
+}
+
+// Types and methods
+
+// Type aliases
+
+// Traits

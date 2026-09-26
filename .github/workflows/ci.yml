@@ -1,0 +1,28 @@
+name: Native CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Fetch exact revision without Node actions
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+      - name: Set up verified MoonBit toolchain
+        run: |
+          bash scripts/setup.sh
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Check, test, compile and exercise CLI
+        run: bash scripts/check.sh
