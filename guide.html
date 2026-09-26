@@ -23,7 +23,11 @@ moon run cmd/main --target native -- build site dist
 <h2>Supported Markdown</h2>
 <p>1〜6段階の見出し、空行で区切る段落、バッククォート3個のコードフェンスに対応します。リンク・リスト・強調・frontmatter・ネストしたディレクトリは未対応です。CommonMark完全互換ではありません。</p>
 <h2>Safe output</h2>
-<p>既存の出力ディレクトリは上書きしません。毎回新しい出力先を指定してください。差分ビルドはIssue #4で実装予定です。</p>
+<p>初回に生成した管理情報をもとに、変更されたページだけを再生成します。削除・リネームされた記事の古い出力は除去します。管理外のファイル、手動編集、シンボリックリンクを検出した場合は更新を中止します。</p>
+<pre><code>moonpress explain site dist
+moonpress build site dist
+</code></pre>
+<p>explainは変更せずに更新予定と理由を表示します。同じ出力先への同時ビルドは未対応です。</p>
 </main>
 <footer>Compiled by MoonPress. Served as HTML + CSS.<a href="https://github.com/furukawa1020/MoonPress/issues">Follow the build ↗</a></footer>
 </body>
