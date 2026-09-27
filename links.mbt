@@ -90,12 +90,8 @@ pub fn render_inline(text : String) -> String {
 ///|
 pub fn markdown_links(source : String) -> Array[String] {
   let links : Array[String] = []
-  let mut fenced = false
-  for line in source.split("\n") {
-    let line = line.to_owned()
-    if line.has_prefix("```") {
-      fenced = !fenced
-    } else if !fenced {
+  for block in parse_blocks(source) {
+    for line in inline_lines(block) {
       for part in parse_inline(line) {
         if part is Link(_, href) {
           links.push(href)
