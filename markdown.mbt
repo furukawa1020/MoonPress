@@ -125,10 +125,21 @@ fn inline_lines(block : Block) -> Array[String] {
 ///|
 fn render_blocks(blocks : Array[Block]) -> String {
   let out = StringBuilder()
+  let outline = block_headings(blocks)
+  let mut heading_index = 0
   for block in blocks {
     match block {
-      Heading(level, text) =>
-        out.write_string("<h\{level}>" + render_inline(text) + "</h\{level}>\n")
+      Heading(level, text) => {
+        let id = outline[heading_index].id
+        heading_index += 1
+        out.write_string(
+          "<h\{level} id=\"" +
+          escape_html(id) +
+          "\">" +
+          render_inline(text) +
+          "</h\{level}>\n",
+        )
+      }
       Paragraph(lines) =>
         out.write_string("<p>" + lines.map(render_inline).join("\n") + "</p>\n")
       UnorderedList(items) =>

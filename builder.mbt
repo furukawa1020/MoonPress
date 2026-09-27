@@ -124,7 +124,7 @@ pub fn compile_site(
   let documents : Array[Page] = []
   let mut pages = 0
   let layout_digest = digest_text(layout)
-  let compiler_digest = digest_text("moonpress-renderer-v6")
+  let compiler_digest = digest_text("moonpress-renderer-v7")
   for name in names {
     if name.has_suffix(".md") {
       let path = input + "/content/" + name

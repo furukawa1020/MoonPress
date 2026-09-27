@@ -41,7 +41,7 @@ for attempt in $(seq 1 30); do
   if [[ "$deployed" == "$expected" && "$state" == built ]]; then
     url="$(jq -r .html_url "$work/pages.json")"
     curl --fail --silent --show-error --retry 3 "$url" -o "$work/live.html"
-    grep -q '<h1>MoonPress</h1>' "$work/live.html"
+    grep -Eq '<h1( [^>]*)?>MoonPress</h1>' "$work/live.html"
     echo "Published: $url"
     exit 0
   fi

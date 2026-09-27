@@ -407,3 +407,15 @@ fn url_scheme(url : String) -> String? {
   }
   None
 }
+
+///|
+fn inline_text(text : String) -> String {
+  let out = StringBuilder()
+  for part in parse_inline(text) {
+    match part {
+      Text(text) | Code(text) | Link(text, _) | Image(text, _) =>
+        out.write_string(text)
+    }
+  }
+  out.to_string()
+}
