@@ -154,3 +154,17 @@ hex digits are case-insensitive, while filenames remain case-sensitive.
 A colon inside a query or fragment is not a URL scheme. Scheme names are
 case-insensitive (`HTTPS://` is accepted, mixed-case `javascript:` rejected).
 The build creates one route index shared by page, image and template validation.
+
+## Heading anchors
+
+Markdown headings receive deterministic `id` attributes prefixed with `mp-`.
+IDs use visible inline text (link labels, code text and image alt text), lowercase
+letters, digits, underscores and non-ASCII non-whitespace characters. Other
+characters collapse into hyphens; empty results use `mp-section`. Duplicates get
+`-2`, `-3`, etc., skipping IDs already used by earlier headings, including natural
+suffix-like names. Changing heading order/text can change duplicate suffixes.
+
+For example, `## Getting started` produces `id="mp-getting-started"`, which can be
+linked as `[Start](#mp-getting-started)`. Code fences do not create anchors. Reserve
+the `mp-` ID prefix for MoonPress in templates; arbitrary template IDs are not
+checked for collisions. Fragment target validation is not yet implemented.

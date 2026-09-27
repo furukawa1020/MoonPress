@@ -20,6 +20,8 @@ pub fn digest_text(String) -> String
 
 pub fn escape_html(String) -> String
 
+pub fn headings(String) -> Array[HeadingInfo]
+
 pub fn markdown_images(String) -> Array[String]
 
 pub fn markdown_links(String) -> Array[String]
@@ -104,6 +106,14 @@ pub(all) struct Document {
   tags : Array[String]
   body : String
 }
+
+pub(all) struct HeadingInfo {
+  level : Int
+  text : String
+  id : String
+} derive(Eq)
+pub fn HeadingInfo::equal(Self, Self) -> Bool
+pub fn HeadingInfo::not_equal(Self, Self) -> Bool
 
 pub(all) struct Manifest {
   schema : Int

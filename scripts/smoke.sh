@@ -8,7 +8,7 @@ trap 'rm -rf "$tmp"' EXIT
 "$cli" build site "$tmp/first"
 "$cli" build site "$tmp/second"
 diff -r "$tmp/first" "$tmp/second"
-grep -q '<h1>MoonPress</h1>' "$tmp/first/index.html"
+grep -q '<h1 id="mp-moonpress">MoonPress</h1>' "$tmp/first/index.html"
 grep -q 'href="style.css"' "$tmp/first/index.html"
 test -s "$tmp/first/style.css"
 expect_failure() {

@@ -10,7 +10,7 @@ test "escape untrusted HTML" {
 test "headings paragraphs and CRLF" {
   assert_eq(
     @moonpress.render_markdown("# Hello\r\n\nworld\nagain"),
-    "<h1>Hello</h1>\n<p>world\nagain</p>\n",
+    "<h1 id=\"mp-hello\">Hello</h1>\n<p>world\nagain</p>\n",
   )
 }
 
