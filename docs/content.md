@@ -143,3 +143,14 @@ fragment IDs or external URL reachability. srcset and CSS url() remain unchecked
 Changing image bytes updates only that asset; removing a referenced image fails
 the build even when the previous output still exists. No image optimization,
 network fetching, dimension inference or automatic loading attributes are added.
+
+### URL normalization
+
+Percent encodings for unreserved ASCII characters (letters, digits, `-._~`) are
+normalized before route lookup: `%67uide%2Ehtml` resolves to `guide.html`.
+Other encoded bytes retain their identity; encoded slashes do not become path
+separators, and literal percent signs in filenames need `%25`. Unicode percent
+hex digits are case-insensitive, while filenames remain case-sensitive.
+A colon inside a query or fragment is not a URL scheme. Scheme names are
+case-insensitive (`HTTPS://` is accepted, mixed-case `javascript:` rejected).
+The build creates one route index shared by page, image and template validation.

@@ -69,10 +69,11 @@ pub fn allowed_href(href : String) -> Bool {
       return false
     }
   }
-  if href.contains(":") {
-    return href.has_prefix("https://") ||
-      href.has_prefix("http://") ||
-      href.has_prefix("mailto:")
+  if url_scheme(href) is Some(_) {
+    let lower = href.to_lower()
+    return lower.has_prefix("https://") ||
+      lower.has_prefix("http://") ||
+      lower.has_prefix("mailto:")
   }
   true
 }
@@ -142,11 +143,22 @@ fn normalized_url_path(path : String) -> String raise {
         !part[:2].to_owned().all(c => c.is_ascii_hexdigit()) {
         raise InvalidInput("Invalid percent escape in link: " + path)
       }
-      out.write_string(
-        "%" +
-        part[:2].to_owned().to_upper() +
-        url_component(part[2:].to_owned()),
-      )
+      let hex = part[:2].to_owned().to_upper()
+      let digits = "0123456789ABCDEF"
+      let high = digits.find(hex[:1].to_owned()).unwrap()
+      let low = digits.find(hex[1:2].to_owned()).unwrap()
+      let c = (high * 16 + low).unsafe_to_char()
+      if c.is_ascii_alphabetic() ||
+        c.is_ascii_digit() ||
+        c == '-' ||
+        c == '_' ||
+        c == '.' ||
+        c == '~' {
+        out.write_char(c)
+      } else {
+        out.write_string("%" + hex)
+      }
+      out.write_string(url_component(part[2:].to_owned()))
     }
   }
   out.to_string()
@@ -159,15 +171,34 @@ pub fn validate_links(
   base_path? : String = "/",
   source? : String = "document",
 ) -> Unit raise {
+  validate_route_links(links, index_routes(outputs), base_path~, source~)
+}
+
+///|
+fn index_routes(outputs : Array[String]) -> Map[String, Bool] {
   let routes : Map[String, Bool] = Map([])
   for name in outputs {
     routes[url_component(name)] = true
   }
+  routes
+}
+
+///|
+fn validate_route_links(
+  links : Array[String],
+  routes : Map[String, Bool],
+  base_path? : String = "/",
+  source? : String = "document",
+  sources? : Bool = false,
+) -> Unit raise {
   for href in links {
+    if sources && !allowed_src(href) {
+      raise InvalidInput(source + ": disallowed source URL: " + href)
+    }
     if !allowed_href(href) {
       raise InvalidInput(source + ": disallowed link: " + href)
     }
-    if href.contains(":") {
+    if url_scheme(href) is Some(_) {
       continue
     }
     let path = href
@@ -315,7 +346,7 @@ fn html_space(text : String, index : Int) -> Bool {
 ///|
 fn allowed_src(src : String) -> Bool {
   allowed_href(src) &&
-  !src.has_prefix("mailto:") &&
+  url_scheme(src) != Some("mailto") &&
   !src.has_prefix("#") &&
   !src.has_prefix("?")
 }
@@ -352,10 +383,27 @@ pub fn validate_sources(
   base_path? : String = "/",
   source? : String = "document",
 ) -> Unit raise {
-  for src in sources {
-    if !allowed_src(src) {
-      raise InvalidInput(source + ": disallowed source URL: " + src)
+  validate_route_links(
+    sources,
+    index_routes(outputs),
+    base_path~,
+    source~,
+    sources=true,
+  )
+}
+
+///|
+// A colon is a scheme delimiter only before path/query/fragment delimiters.
+fn url_scheme(url : String) -> String? {
+  let prefix = StringBuilder()
+  for c in url {
+    if c == '/' || c == '?' || c == '#' {
+      return None
     }
+    if c == ':' {
+      return Some(prefix.to_string().to_lower())
+    }
+    prefix.write_char(c)
   }
-  validate_links(sources, outputs, base_path~, source~)
+  None
 }

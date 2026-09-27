@@ -69,3 +69,58 @@ test "sitemap uses normalized base and escaped Unicode URL" {
     assert_true(rejected)
   }
 }
+
+///|
+test "unreserved percent encodings identify the same route" {
+  @moonpress.validate_links(
+    ["%67uide%2ehtml", "%7e%2D%5f%41.html", "%e6%9c%88.html"],
+    ["guide.html", "~-_A.html", "月.html"],
+  )
+  for
+    href in [
+      "%", "%G0", "guide%2F.html", "%2e%2e%2Fguide.html", "%00guide.html", "%2567uide.html",
+    ] {
+    let rejected = try {
+      @moonpress.validate_links([href], ["guide.html"])
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(rejected)
+  }
+  // A percent sign in the literal filename is a different route.
+  @moonpress.validate_links(["%2567uide.html"], ["%67uide.html"])
+}
+
+///|
+test "scheme parsing does not bypass local checks through query colons" {
+  @moonpress.validate_links(
+    [
+      "guide.html?at=12:30#note:x", "#note:x", "HTTPS://example.org", "MAILTO:x@y",
+    ],
+    ["guide.html"],
+  )
+  @moonpress.validate_sources(["HTTP://example.org/x.png", "x.png?q=12:30"], [
+    "x.png",
+  ])
+  for
+    href in [
+      "missing.html?q=https://example.org", "missing.html#note:x", "JaVaScRiPt:x",
+      "data:x",
+    ] {
+    let rejected = try {
+      @moonpress.validate_links([href], ["guide.html"])
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(rejected)
+  }
+  let rejected = try {
+    @moonpress.validate_sources(["MAILTO:x@y"], [])
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(rejected)
+}
