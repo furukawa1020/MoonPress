@@ -74,3 +74,11 @@ fragments and dot path segments are rejected. Unknown config keys are errors.
 No lastmod timestamp is invented. URL and route membership are sitemap dependencies:
 body changes do not rewrite the sitemap. Removing site.json removes the tracked
 sitemap on the next build. The site remains relative-link based and portable.
+
+## Markdown compiler core
+
+One block parser defines headings, paragraphs and fenced code. HTML rendering,
+title discovery and Markdown link extraction consume that same block model.
+Inline parsing remains line-scoped. Fences begin/end on any line starting with
+three backticks; language annotations are currently ignored. An unclosed fence
+runs to EOF. CRLF is normalized and raw HTML is always escaped.
