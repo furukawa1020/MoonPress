@@ -3,6 +3,18 @@ fn main {
   let args = @env.args()
   if args.length() == 2 && args[1] == "--version" {
     println("moonpress 0.1.0")
+  } else if args.length() == 3 && args[1] == "check" {
+    try {
+      let report = @lib.check_site(args[2])
+      println(
+        "Checked: \{report.pages} pages, \{report.outputs} outputs; no files written",
+      )
+    } catch {
+      error => {
+        eprintln("moonpress: \{error}")
+        @sys.exit(1)
+      }
+    }
   } else if args.length() == 4 && (args[1] == "build" || args[1] == "explain") {
     try {
       let report = @lib.compile_site(
@@ -23,7 +35,7 @@ fn main {
       }
     }
   } else {
-    let usage = "Usage: moonpress <build|explain> <site-directory> <output-directory>\n       moonpress --version"
+    let usage = "Usage: moonpress <build|explain> <site-directory> <output-directory>\n       moonpress check <site-directory>\n       moonpress --version"
     if args.length() == 1 {
       println(usage)
     } else {

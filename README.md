@@ -82,3 +82,21 @@ A tiny POSIX C shim provides `lstat` checks; all dependency and compiler logic
 is MoonBit. Linux x86_64 is the tested platform. Unmanaged contents are never
 recursively removed. These checks are for trusted local projects, not a sandbox
 against a concurrent hostile process changing filesystem paths.
+
+## Check before building
+
+```sh
+moonpress check site
+```
+
+`check` compiles and validates the site in memory, without an output path or a
+temporary directory. It checks metadata, planned route/asset references, output
+name collisions and all other source validations shared with `build`. The report
+counts source pages and planned output files (excluding the internal manifest).
+It stops at the first error. Exit status is 0 for success, 1 for validation/I/O
+failure and 2 for incorrect arguments.
+
+No generated files are written. This still reads and renders the complete site;
+it is not a syntax-only or zero-allocation check. Existing output directories are
+not inspected. Use `explain site dist` to inspect output integrity and incremental
+changes. Neither command checks external URL reachability or fragment targets.
