@@ -79,8 +79,11 @@ sitemap on the next build. The site remains relative-link based and portable.
 
 One block parser defines headings, paragraphs, fenced code, lists and quotes. HTML rendering,
 title discovery and Markdown link extraction consume that same block model.
-Inline parsing remains line-scoped. Fences begin/end on any line starting with
-three backticks; language annotations are currently ignored. An unclosed fence
+Inline parsing remains line-scoped. Fences start at column zero with at least three backticks or tildes. They close
+only with the same character repeated at least as many times, followed only by
+spaces/tabs. Shorter runs, a different fence character and trailing text remain
+code. Backtick opening info strings cannot contain backticks. Language annotations
+are ignored. An unclosed fence
 runs to EOF. CRLF is normalized and raw HTML is always escaped.
 
 
