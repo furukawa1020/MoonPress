@@ -12,6 +12,8 @@ pub fn apply_layout(String, String, String, description? : String, toc? : String
 
 pub fn build_site(String, String) -> Int raise
 
+pub fn check_site(String) -> CheckReport raise
+
 pub fn compile_site(String, String, dry_run? : Bool) -> BuildReport raise
 
 pub fn digest_bytes(Bytes) -> String
@@ -91,6 +93,11 @@ pub(all) struct BuildReport {
   skipped : Int
   deleted : Int
   events : Array[String]
+}
+
+pub(all) struct CheckReport {
+  pages : Int
+  outputs : Int
 }
 
 pub(all) struct Dependency {

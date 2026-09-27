@@ -67,7 +67,7 @@ fn plan_artifact(
   name : String,
   dependencies : Array[Dependency],
   previous : Map[String, Artifact],
-  output : String,
+  output : String?,
   render : () -> Bytes,
   events : Array[String],
 ) -> Pending raise {
@@ -78,10 +78,14 @@ fn plan_artifact(
   let reason = match rebuild_reason(old, dependencies) {
     Some(reason) => Some(reason)
     None =>
-      if path_kind(output + "/" + name) == 0 {
-        Some("output missing")
-      } else {
-        None
+      match output {
+        Some(directory) =>
+          if path_kind(directory + "/" + name) == 0 {
+            Some("output missing")
+          } else {
+            None
+          }
+        None => Some("validation only")
       }
   }
   if reason is None && old is Some(artifact) {
@@ -119,7 +123,7 @@ pub fn compile_site(
     raise InvalidInput("Root output directory is not allowed")
   }
   let previous = load_previous(output)
-  let plan = plan_site(input, previous, output)
+  let plan = plan_site(input, previous, Some(output))
   if !dry_run {
     apply_plan(output, plan)
   }
@@ -130,7 +134,7 @@ pub fn compile_site(
 fn plan_site(
   input : String,
   previous : Map[String, Artifact],
-  output : String,
+  output : String?,
 ) -> BuildPlan raise {
   let base_url = read_base_url(input)
   let layout = @fs.read_file_to_string(input + "/layout.html")
@@ -409,4 +413,17 @@ fn allowed_asset_name(name : String) -> Bool {
     ".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".ico", ".svg", ".css", ".woff",
     ".woff2", ".ttf", ".otf", ".pdf", ".txt", ".xml", ".json", ".webmanifest",
   ].any(suffix => lower.has_suffix(suffix))
+}
+
+///|
+pub(all) struct CheckReport {
+  pages : Int
+  outputs : Int
+}
+
+///|
+pub fn check_site(input : String) -> CheckReport raise {
+  // No output path, prior manifest, temporary directory, or filesystem mutation.
+  let plan = plan_site(input, Map([]), None)
+  { pages: plan.report.pages, outputs: plan.pending.length(), }
 }
