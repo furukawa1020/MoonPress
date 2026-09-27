@@ -25,7 +25,8 @@ Unmanaged directories, unknown files, edited outputs and symlinks are rejected.
 Templates are trusted project files; Markdown content and titles are escaped.
 
 Supported Markdown: ATX headings 1–6, paragraphs, and triple-backtick code
-fences. Unsupported syntax is plain text. Simple links and inline code are supported; no lists, inline emphasis,
+fences, flat unordered/ordered lists and block quotes. Unsupported syntax is plain text.
+Simple links and inline code are supported; no inline emphasis,
 nested content directories or arbitrary asset copying yet. JSON frontmatter,
 article lists, tag pages, sitemap and preflight link checks are supported; see [content model](docs/content.md).
 This is not a CommonMark implementation.

@@ -77,8 +77,25 @@ sitemap on the next build. The site remains relative-link based and portable.
 
 ## Markdown compiler core
 
-One block parser defines headings, paragraphs and fenced code. HTML rendering,
+One block parser defines headings, paragraphs, fenced code, lists and quotes. HTML rendering,
 title discovery and Markdown link extraction consume that same block model.
 Inline parsing remains line-scoped. Fences begin/end on any line starting with
 three backticks; language annotations are currently ignored. An unclosed fence
 runs to EOF. CRLF is normalized and raw HTML is always escaped.
+
+
+### Lists and quotes
+
+At column zero, `- `, `* ` and `+ ` introduce an unordered list item. Consecutive
+items form one list even when the bullet changes. `1. ` through nine-digit ASCII
+number markers introduce ordered items (`0. ` is also allowed); the first number
+sets the HTML start attribute, and following item numbers do not reset numbering.
+Leading zeroes are normalized. `> ` introduces a quote line; a bare `>` is an empty
+quote line. Consecutive quote lines form one paragraph inside a blockquote.
+
+A blank line, heading, fence, different block kind or EOF closes the group. Each
+list item is one line. Unmarked continuation lines become ordinary paragraphs.
+Indented/nested lists, nested quote parsing, loose multi-paragraph items and
+recursive Markdown inside quotes are unsupported and stay literal. Inline links
+and code work inside all these blocks, and their links receive the same preflight
+validation as paragraph links. Code fences suppress all list/quote syntax.

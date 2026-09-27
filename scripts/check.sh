@@ -8,3 +8,5 @@ bash scripts/smoke.sh
 bash scripts/incremental-test.sh
 bash scripts/content-test.sh
 bash scripts/navigation-test.sh
+
+bash scripts/markdown-test.sh
