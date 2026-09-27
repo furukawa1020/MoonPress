@@ -24,7 +24,7 @@ update only changed artifacts and remove tracked outputs whose sources were dele
 Unmanaged directories, unknown files, edited outputs and symlinks are rejected.
 Templates are trusted project files; Markdown content and titles are escaped.
 
-Supported Markdown: ATX headings 1–6 with unique anchors, paragraphs, and triple-backtick code
+Supported Markdown: ATX headings 1–6 with unique anchors and an optional `{{toc}}` table of contents, paragraphs, and triple-backtick code
 fences, flat unordered/ordered lists and block quotes. Unsupported syntax is plain text.
 Simple links, images and inline code are supported; no inline emphasis,
 nested content directories yet. Optional `public/` assets are copied as bytes with

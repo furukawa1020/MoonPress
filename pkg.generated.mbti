@@ -8,7 +8,7 @@ import {
 // Values
 pub fn allowed_href(String) -> Bool
 
-pub fn apply_layout(String, String, String, description? : String) -> String
+pub fn apply_layout(String, String, String, description? : String, toc? : String) -> String
 
 pub fn build_site(String, String) -> Int raise
 
@@ -45,6 +45,8 @@ pub fn render_inline(String) -> String
 pub fn render_markdown(String) -> String
 
 pub fn render_sitemap(String, Array[String]) -> String
+
+pub fn render_toc(String) -> String
 
 pub fn safe_output_name(String) -> Bool
 

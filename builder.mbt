@@ -124,7 +124,7 @@ pub fn compile_site(
   let documents : Array[Page] = []
   let mut pages = 0
   let layout_digest = digest_text(layout)
-  let compiler_digest = digest_text("moonpress-renderer-v7")
+  let compiler_digest = digest_text("moonpress-renderer-v8")
   for name in names {
     if name.has_suffix(".md") {
       let path = input + "/content/" + name
@@ -147,12 +147,19 @@ pub fn compile_site(
           previous,
           output,
           () => {
+            let blocks = parse_blocks(document.body)
+            let outline = block_headings(blocks)
             @utf8.encode(
               apply_layout(
                 layout,
                 document.title,
-                render_markdown(document.body),
+                render_blocks_with_headings(blocks, outline),
                 description=document.description,
+                toc=if layout.contains("{{toc}}") {
+                  render_outline(outline)
+                } else {
+                  ""
+                },
               ),
             )
           },

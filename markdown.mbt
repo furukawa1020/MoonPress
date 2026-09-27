@@ -124,8 +124,15 @@ fn inline_lines(block : Block) -> Array[String] {
 
 ///|
 fn render_blocks(blocks : Array[Block]) -> String {
+  render_blocks_with_headings(blocks, block_headings(blocks))
+}
+
+///|
+fn render_blocks_with_headings(
+  blocks : Array[Block],
+  outline : Array[HeadingInfo],
+) -> String {
   let out = StringBuilder()
-  let outline = block_headings(blocks)
   let mut heading_index = 0
   for block in blocks {
     match block {

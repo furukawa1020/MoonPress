@@ -38,3 +38,29 @@ test "anchor generation is deterministic and escapes heading markup" {
   assert_true(html.contains("&lt;img onerror=&quot;x&quot;&gt;"))
   assert_eq(@moonpress.headings(source)[1].id, "mp-upper_case")
 }
+
+///|
+test "TOC uses the same unique IDs and plain escaped text" {
+  let source = "# [Moon](guide.html) & `<x>`\n### 日本語\n# [Moon](guide.html) & `<x>`"
+  let toc = @moonpress.render_toc(source)
+  assert_true(toc.contains("href=\"#mp-moon-x\">Moon &amp; &lt;x&gt;</a>"))
+  assert_true(toc.contains("class=\"toc-level-3\""))
+  assert_true(toc.contains("href=\"#mp-%E6%97%A5%E6%9C%AC%E8%AA%9E\""))
+  assert_true(toc.contains("href=\"#mp-moon-x-2\""))
+  assert_false(toc.contains("href=\"guide.html\""))
+  assert_eq(@moonpress.render_toc("Text\n```\n# Example\n```"), "")
+}
+
+///|
+test "TOC layout expansion is optional and single-pass" {
+  assert_eq(@moonpress.apply_layout("{{toc}}{{content}}", "T", "Body"), "Body")
+  let toc = @moonpress.render_toc("# {{content}}")
+  let result = @moonpress.apply_layout(
+    "{{toc}}<main>{{content}}</main>",
+    "T",
+    "Body",
+    toc~,
+  )
+  assert_true(result.contains(">{{content}}</a>"))
+  assert_true(result.contains("<main>Body</main>"))
+}
