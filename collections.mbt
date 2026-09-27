@@ -50,7 +50,7 @@ fn collection_dependencies(
   layout_digest : String,
 ) -> Array[Dependency] {
   let deps : Array[Dependency] = [
-    { name: "collection-renderer", digest: digest_text("collection-v1"), },
+    { name: "collection-renderer", digest: digest_text("collection-v2"), },
     { name: "layout.html", digest: layout_digest, },
     {
       name: "members",

@@ -58,3 +58,30 @@ fn block_headings(blocks : Array[Block]) -> Array[HeadingInfo] {
   }
   result
 }
+
+///|
+pub fn render_toc(source : String) -> String {
+  render_outline(headings(source))
+}
+
+///|
+fn render_outline(outline : Array[HeadingInfo]) -> String {
+  if outline.is_empty() {
+    return ""
+  }
+  let out = StringBuilder()
+  out.write_string(
+    "<nav class=\"toc\" aria-label=\"Table of contents\">\n<ol>\n",
+  )
+  for heading in outline {
+    out.write_string(
+      "<li class=\"toc-level-\{heading.level}\"><a href=\"#" +
+      url_component(heading.id) +
+      "\">" +
+      escape_html(heading.text) +
+      "</a></li>\n",
+    )
+  }
+  out.write_string("</ol>\n</nav>\n")
+  out.to_string()
+}

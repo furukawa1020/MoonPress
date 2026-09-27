@@ -21,7 +21,7 @@ syntax errors also include the parser's position inside the header.
 Without frontmatter, title is the first H1 outside code fences, or the filename
 stem. Metadata is removed before Markdown rendering.
 
-Layout placeholders: `{{title}}`, `{{description}}`, `{{content}}`.
+Layout placeholders: `{{title}}`, `{{description}}`, `{{content}}`, `{{toc}}`.
 Title/description are escaped; content is generated HTML. Inserted values are
 never expanded again, so text containing another placeholder remains literal.
 Unknown template placeholders are preserved for forward compatibility.
@@ -168,3 +168,18 @@ For example, `## Getting started` produces `id="mp-getting-started"`, which can 
 linked as `[Start](#mp-getting-started)`. Code fences do not create anchors. Reserve
 the `mp-` ID prefix for MoonPress in templates; arbitrary template IDs are not
 checked for collisions. Fragment target validation is not yet implemented.
+
+## Table of contents
+
+Add `{{toc}}` to layout.html to insert a static navigation list. It includes all
+H1–H6 headings in source order, with classes `toc-level-1` through `toc-level-6`.
+The list is flat, so skipped heading levels do not invent a document hierarchy;
+CSS may indent entries by level. Links percent-encode the exact generated IDs,
+and labels are escaped plain text without nested links, images or inline markup.
+
+The TOC and article HTML share one parsed block/heading model during rendering.
+Pages without headings and generated article/tag collections receive an empty
+TOC. Omitting the placeholder suppresses TOC markup while preserving heading IDs.
+The template is expanded once: placeholders appearing inside heading text remain
+literal. A body-only heading edit updates that article and its TOC together,
+without rebuilding unrelated pages/collections. No browser scripting is needed.
