@@ -9,20 +9,20 @@
 </head>
 <body>
 <header><a class="brand" href="index.html"><span aria-hidden="true">◒</span> MoonPress</a><nav><a href="articles.html">Articles</a><a href="guide.html">Guide</a><a href="https://github.com/furukawa1020/MoonPress">Source ↗</a></nav></header>
-<main><div class="eyebrow">MOONBIT NATIVE / EXPERIMENTAL 0.1</div><h1>Getting started</h1>
-<h2>Prerequisites</h2>
+<main><div class="eyebrow">MOONBIT NATIVE / EXPERIMENTAL 0.1</div><h1 id="mp-getting-started">Getting started</h1>
+<h2 id="mp-prerequisites">Prerequisites</h2>
 <p>Linux x86_64、Cコンパイラ、MoonBitの検証済みツールチェーンを使用します。</p>
 <pre><code>bash scripts/setup.sh
 export PATH=&quot;$HOME/.moon/bin:$PATH&quot;
 bash scripts/check.sh
 moon run cmd/main --target native -- build site dist
 </code></pre>
-<h2>Input contract</h2>
+<h2 id="mp-input-contract">Input contract</h2>
 <p>site/content直下の.mdファイルを、同名の.htmlへ変換します。layout.htmlの{{title}}と{{content}}を置換し、style.cssをコピーします。</p>
 <p>最初のH1をページタイトルとして使います。本文中のHTMLはエスケープします。レイアウトとCSSは制作者が管理する信頼済みファイルです。</p>
-<h2>Supported Markdown</h2>
+<h2 id="mp-supported-markdown">Supported Markdown</h2>
 <p>1〜6段階の見出し、空行で区切る段落、バッククォート3個のコードフェンスに対応します。リンク・リスト・強調・frontmatter・ネストしたディレクトリは未対応です。CommonMark完全互換ではありません。</p>
-<h2>Safe output</h2>
+<h2 id="mp-safe-output">Safe output</h2>
 <p>初回に生成した管理情報をもとに、変更されたページだけを再生成します。削除・リネームされた記事の古い出力は除去します。管理外のファイル、手動編集、シンボリックリンクを検出した場合は更新を中止します。</p>
 <pre><code>moonpress explain site dist
 moonpress build site dist
