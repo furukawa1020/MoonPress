@@ -10,3 +10,4 @@ bash scripts/content-test.sh
 bash scripts/navigation-test.sh
 
 bash scripts/markdown-test.sh
+bash scripts/assets-test.sh

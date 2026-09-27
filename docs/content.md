@@ -99,3 +99,27 @@ Indented/nested lists, nested quote parsing, loose multi-paragraph items and
 recursive Markdown inside quotes are unsupported and stay literal. Inline links
 and code work inside all these blocks, and their links receive the same preflight
 validation as paragraph links. Code fences suppress all list/quote syntax.
+
+
+## Static assets
+
+Place files directly in the optional `public/` directory. They are copied to the
+output root as bytes, without decoding or transforming their contents. Supported
+extensions (case-insensitive): png, jpg, jpeg, gif, webp, avif, ico, svg, css, woff,
+woff2, ttf, otf, pdf, txt, xml, json, webmanifest. Other extensions, including
+JS/TS, are rejected. These are trusted project assets, not sanitized uploads;
+extensions select supported files, not a content security boundary.
+
+For example, `public/manual.pdf` is available as `manual.pdf` and can be linked
+with `[Download](manual.pdf)`. Percent-encode special characters in filenames.
+Nested directories and symlinks (including a symlink for public itself) are
+rejected. Output names cannot collide with generated pages, style.css, sitemap.xml
+or MoonPress management files. All checks happen before output changes.
+
+Every asset has its own content-hash dependency: editing it does not rebuild
+pages or collections. Deletions and renames remove old tracked outputs; missing
+outputs are restored. Removing public/ removes its tracked assets, provided no
+remaining links refer to them. `explain` reports the same plan without writing.
+Only generated HTML routes enter the sitemap. There is no image optimization,
+Markdown image syntax or recursive asset support yet; templates may use static
+image tags, whose src attributes are not checked by the link validator.

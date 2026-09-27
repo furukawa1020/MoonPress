@@ -222,6 +222,37 @@ pub fn compile_site(
   pending.push(
     plan_artifact(".nojekyll", [], previous, output, () => b"", events),
   )
+  let public_dir = input + "/public"
+  let public_kind = path_kind(public_dir)
+  if public_kind != 0 {
+    if public_kind != 2 {
+      raise InvalidInput("public must be a real directory, not a symlink")
+    }
+    let assets = @fs.read_dir(public_dir).to_owned()
+    assets.sort()
+    for name in assets {
+      let path = public_dir + "/" + name
+      if path_kind(path) != 1 {
+        raise InvalidInput(
+          "Expected regular public asset (no subdirectories): " + path,
+        )
+      }
+      if !safe_output_name(name) || !allowed_asset_name(name) {
+        raise InvalidInput("Unsupported public asset name: " + name)
+      }
+      let bytes = @fs.read_file_to_bytes(path)
+      pending.push(
+        plan_artifact(
+          name,
+          [{ name: "public/" + name, digest: digest_bytes(bytes), }],
+          previous,
+          output,
+          () => bytes,
+          events,
+        ),
+      )
+    }
+  }
   let routes = pending.map(item => item.artifact.name)
   if base_url is Some(_) {
     routes.push("sitemap.xml")
@@ -319,4 +350,13 @@ pub fn compile_site(
 ///|
 pub fn build_site(input : String, output : String) -> Int raise {
   compile_site(input, output).pages
+}
+
+///|
+fn allowed_asset_name(name : String) -> Bool {
+  let lower = name.to_lower()
+  [
+    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".ico", ".svg", ".css", ".woff",
+    ".woff2", ".ttf", ".otf", ".pdf", ".txt", ".xml", ".json", ".webmanifest",
+  ].any(suffix => lower.has_suffix(suffix))
 }
