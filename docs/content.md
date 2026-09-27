@@ -54,10 +54,10 @@ ignored for file existence checks; fragment IDs and external URLs are not fetche
 or validated. Root-relative links must stay under the configured site base path.
 With no site config the root base path is `/`.
 
-Static, quoted `href` attributes in layout.html are also checked. The attribute
+Static, quoted `href` and `src` attributes in layout.html are also checked. The attribute
 tokenizer respects quotes/comments, but it is not a full HTML validator. Dynamic
-href placeholders are unsupported and rejected. Only `&amp;` entity decoding is
-supported in these URLs; percent-encode other special characters. CSS url(), src,
+href/src placeholders are unsupported and rejected. Only `&amp;` entity decoding is
+supported in these URLs; percent-encode other special characters. CSS url(), srcset,
 JavaScript-generated links and arbitrary HTML fragments are outside this checker.
 
 ## Site URL and sitemap
@@ -121,5 +121,25 @@ pages or collections. Deletions and renames remove old tracked outputs; missing
 outputs are restored. Removing public/ removes its tracked assets, provided no
 remaining links refer to them. `explain` reports the same plan without writing.
 Only generated HTML routes enter the sitemap. There is no image optimization,
-Markdown image syntax or recursive asset support yet; templates may use static
-image tags, whose src attributes are not checked by the link validator.
+recursive asset support yet.
+
+
+## Images
+
+`![alt](src)` renders an image in headings, paragraphs, list items and quotes.
+Alt text is plain text, and both alt and src are HTML-escaped. Empty alt text is
+allowed for decorative images. Inline/fenced code stays literal. The syntax has
+the same simple-label/destination restrictions as links; nested labels, titles
+and literal parentheses in URLs are unsupported.
+
+Local image references and static quoted `src` attributes in the layout are
+checked against planned output files before any writes, including during explain.
+Use `![Moon](moon.svg)` with `public/moon.svg`. Root-relative paths follow the
+configured base path. Only relative/root paths and HTTP(S) source URLs are
+allowed; mailto, data, script, protocol-relative and query/fragment-only sources
+are rejected. Validation checks local existence, not MIME types, image decoding,
+fragment IDs or external URL reachability. srcset and CSS url() remain unchecked.
+
+Changing image bytes updates only that asset; removing a referenced image fails
+the build even when the previous output still exists. No image optimization,
+network fetching, dimension inference or automatic loading attributes are added.

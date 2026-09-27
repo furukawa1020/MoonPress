@@ -11,3 +11,4 @@ bash scripts/navigation-test.sh
 
 bash scripts/markdown-test.sh
 bash scripts/assets-test.sh
+bash scripts/images-test.sh

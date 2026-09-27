@@ -124,7 +124,7 @@ pub fn compile_site(
   let documents : Array[Page] = []
   let mut pages = 0
   let layout_digest = digest_text(layout)
-  let compiler_digest = digest_text("moonpress-renderer-v4")
+  let compiler_digest = digest_text("moonpress-renderer-v5")
   for name in names {
     if name.has_suffix(".md") {
       let path = input + "/content/" + name
@@ -262,6 +262,12 @@ pub fn compile_site(
     None => "/"
   }
   for page in documents {
+    validate_sources(
+      markdown_images(page.document.body),
+      routes,
+      base_path~,
+      source=page.output,
+    )
     validate_links(
       markdown_links(page.document.body),
       routes,
@@ -269,6 +275,12 @@ pub fn compile_site(
       source=page.output,
     )
   }
+  validate_sources(
+    template_sources(layout),
+    routes,
+    base_path~,
+    source="layout.html",
+  )
   validate_links(
     template_links(layout),
     routes,
