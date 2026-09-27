@@ -101,6 +101,14 @@ fn plan_artifact(
 }
 
 ///|
+priv struct BuildPlan {
+  pending : Array[Pending]
+  removed : Array[String]
+  manifest : String
+  report : BuildReport
+}
+
+///|
 pub fn compile_site(
   input : String,
   output : String,
@@ -111,6 +119,19 @@ pub fn compile_site(
     raise InvalidInput("Root output directory is not allowed")
   }
   let previous = load_previous(output)
+  let plan = plan_site(input, previous, output)
+  if !dry_run {
+    apply_plan(output, plan)
+  }
+  plan.report
+}
+
+///|
+fn plan_site(
+  input : String,
+  previous : Map[String, Artifact],
+  output : String,
+) -> BuildPlan raise {
   let base_url = read_base_url(input)
   let layout = @fs.read_file_to_string(input + "/layout.html")
   if !layout.contains("{{content}}") {
@@ -340,32 +361,39 @@ pub fn compile_site(
   for name in removed {
     events.push("DELETE " + name + " — source removed")
   }
-  let manifest = serialize_manifest(artifacts)
-  if !dry_run {
-    if path_kind(output) == 0 {
-      @fs.create_dir(output)
-    }
-    for item in pending {
-      if item.content is Some(bytes) {
-        @fs.write_bytes_to_file(output + "/" + item.artifact.name, bytes)
-      }
-    }
-    for name in removed {
-      if path_kind(output + "/" + name) == 1 {
-        @fs.remove_file(output + "/" + name)
-      }
-    }
-    let marker = output + "/.moonpress.json"
-    if !@fs.path_exists(marker) || @fs.read_file_to_string(marker) != manifest {
-      @fs.write_string_to_file(marker, manifest)
+  {
+    pending,
+    removed,
+    manifest: serialize_manifest(artifacts),
+    report: {
+      pages,
+      written,
+      skipped: pending.length() - written,
+      deleted: removed.length(),
+      events,
+    },
+  }
+}
+
+///|
+fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
+  if path_kind(output) == 0 {
+    @fs.create_dir(output)
+  }
+  for item in plan.pending {
+    if item.content is Some(bytes) {
+      @fs.write_bytes_to_file(output + "/" + item.artifact.name, bytes)
     }
   }
-  {
-    pages,
-    written,
-    skipped: pending.length() - written,
-    deleted: removed.length(),
-    events,
+  for name in plan.removed {
+    if path_kind(output + "/" + name) == 1 {
+      @fs.remove_file(output + "/" + name)
+    }
+  }
+  let marker = output + "/.moonpress.json"
+  if !@fs.path_exists(marker) ||
+    @fs.read_file_to_string(marker) != plan.manifest {
+    @fs.write_string_to_file(marker, plan.manifest)
   }
 }
 
