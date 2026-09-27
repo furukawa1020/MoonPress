@@ -30,13 +30,15 @@ fn parse_inline(text : String) -> Array[Inline] {
     }
     let tail = rest[start + (if is_image { 2 } else { 1 }):].to_owned()
     if code < link {
-      if tail.split_once("`") is Some((content, after)) {
-        result.push(Code(content.to_owned()))
-        rest = after.to_owned()
+      let length = backtick_run(rest, start)
+      if close_code_span(rest, start + length, length) is Some(end) {
+        let content = rest[start + length:end].to_owned()
+        result.push(Code(normalize_code_span(content)))
+        rest = rest[end + length:].to_owned()
         continue
       }
-      result.push(Text("`"))
-      rest = tail
+      result.push(Text(rest[start:start + length].to_owned()))
+      rest = rest[start + length:].to_owned()
     } else {
       if tail.split_once("](") is Some((label, destination)) {
         if !label.to_owned().contains("[") &&
@@ -418,4 +420,44 @@ fn inline_text(text : String) -> String {
     }
   }
   out.to_string()
+}
+
+///|
+fn backtick_run(text : String, start : Int) -> Int {
+  let mut end = start
+  while end < text.length() && text[end:end + 1] == "`" {
+    end += 1
+  }
+  end - start
+}
+
+///|
+fn close_code_span(text : String, start : Int, length : Int) -> Int? {
+  let mut offset = start
+  while offset < text.length() {
+    match text[offset:].to_owned().find("`") {
+      None => return None
+      Some(relative) => {
+        offset += relative
+        let run = backtick_run(text, offset)
+        if run == length {
+          return Some(offset)
+        }
+        offset += run
+      }
+    }
+  }
+  None
+}
+
+///|
+fn normalize_code_span(text : String) -> String {
+  if text.length() >= 2 &&
+    text.has_prefix(" ") &&
+    text.has_suffix(" ") &&
+    !text.all(c => c == ' ') {
+    text[1:text.length() - 1].to_owned()
+  } else {
+    text
+  }
 }

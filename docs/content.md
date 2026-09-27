@@ -40,7 +40,7 @@ whose output collides with a generated collection are rejected before writes.
 
 ## Links and inline code
 
-The Markdown subset now includes single-backtick inline code and simple
+The Markdown subset now includes backtick-delimited inline code and simple
 `[label](href)` links in paragraphs/headings. Nested labels, escaping and URLs
 with literal parentheses are not yet CommonMark-compatible. Link text is plain
 text and escaped. Raw HTML remains escaped. HTTP(S) and mailto links are allowed;
@@ -186,3 +186,14 @@ TOC. Omitting the placeholder suppresses TOC markup while preserving heading IDs
 The template is expanded once: placeholders appearing inside heading text remain
 literal. A body-only heading edit updates that article and its TOC together,
 without rebuilding unrelated pages/collections. No browser scripting is needed.
+
+
+### Inline code delimiters
+
+Inline code opens and closes with backtick runs of exactly the same length.
+Different-length runs inside it are literal, so double-backtick delimiters can
+contain a single backtick. Links, images and HTML inside code are escaped text,
+not references. When content begins and ends with an ASCII space, one space at
+each end is removed unless all content is spaces. Unclosed delimiter runs remain
+literal. Spans are limited to one source line; multiline spans are unsupported.
+Headings and TOC labels use the same normalized code text.
