@@ -14,3 +14,4 @@ bash scripts/assets-test.sh
 bash scripts/images-test.sh
 bash scripts/url-test.sh
 bash scripts/toc-test.sh
+bash scripts/fences-test.sh

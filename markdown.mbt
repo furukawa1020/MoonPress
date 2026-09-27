@@ -61,22 +61,24 @@ fn parse_blocks(source : String) -> Array[Block] {
   let mut lines : Array[String] = []
   let mut kind = 0
   let mut start = ""
-  let mut fenced = false
+  let mut fence : (String, Int)? = None
   let mut code = StringBuilder()
   for raw in source.split("\n") {
     let line = raw.to_owned().trim_end(chars="\r").to_owned()
-    if line.has_prefix("```") {
+    if fence is Some((marker, length)) {
+      if closes_fence(line, marker, length) {
+        blocks.push(CodeBlock(code.to_string()))
+        code = StringBuilder()
+        fence = None
+      } else {
+        code.write_string(line + "\n")
+      }
+    } else if opens_fence(line) is Some(opening) {
       if !lines.is_empty() {
         blocks.push(group_block(kind, start, lines))
         lines = []
       }
-      if fenced {
-        blocks.push(CodeBlock(code.to_string()))
-        code = StringBuilder()
-      }
-      fenced = !fenced
-    } else if fenced {
-      code.write_string(line + "\n")
+      fence = Some(opening)
     } else {
       let level = heading_level(line)
       if line.trim().is_empty() || level > 0 {
@@ -104,7 +106,7 @@ fn parse_blocks(source : String) -> Array[Block] {
   if !lines.is_empty() {
     blocks.push(group_block(kind, start, lines))
   }
-  if fenced {
+  if fence is Some(_) {
     blocks.push(CodeBlock(code.to_string()))
   }
   blocks
@@ -171,4 +173,42 @@ fn render_blocks_with_headings(
 ///|
 fn render_items(items : Array[String]) -> String {
   items.map(item => "<li>" + render_inline(item) + "</li>\n").join("")
+}
+
+///|
+fn fence_run(line : String) -> (String, Int)? {
+  if !line.has_prefix("```") && !line.has_prefix("~~~") {
+    return None
+  }
+  let marker = line[:1].to_owned()
+  let mut length = 0
+  while length < line.length() && line[length:length + 1] == marker {
+    length += 1
+  }
+  Some((marker, length))
+}
+
+///|
+fn opens_fence(line : String) -> (String, Int)? {
+  match fence_run(line) {
+    Some((marker, length)) =>
+      // Backticks in a backtick fence's info string are not an opener.
+      if marker == "`" && line[length:].to_owned().contains("`") {
+        None
+      } else {
+        Some((marker, length))
+      }
+    None => None
+  }
+}
+
+///|
+fn closes_fence(line : String, marker : String, minimum : Int) -> Bool {
+  match fence_run(line) {
+    Some((actual, length)) =>
+      actual == marker &&
+      length >= minimum &&
+      line[length:].to_owned().all(c => c == ' ' || c == '\t')
+    None => false
+  }
 }
