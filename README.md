@@ -26,7 +26,7 @@ Templates are trusted project files; Markdown content and titles are escaped.
 
 Supported Markdown: ATX headings 1–6, paragraphs, and triple-backtick code
 fences, flat unordered/ordered lists and block quotes. Unsupported syntax is plain text.
-Simple links and inline code are supported; no inline emphasis,
+Simple links, images and inline code are supported; no inline emphasis,
 nested content directories yet. Optional `public/` assets are copied as bytes with
 per-file incremental dependencies. JSON frontmatter,
 article lists, tag pages, sitemap and preflight link checks are supported; see [content model](docs/content.md).

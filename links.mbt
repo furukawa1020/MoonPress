@@ -3,6 +3,7 @@ priv enum Inline {
   Text(String)
   Code(String)
   Link(String, String)
+  Image(String, String)
 }
 
 ///|
@@ -12,7 +13,14 @@ fn parse_inline(text : String) -> Array[Inline] {
   while !rest.is_empty() {
     let code = rest.find("`").unwrap_or(rest.length())
     let link = rest.find("[").unwrap_or(rest.length())
-    let start = if code < link { code } else { link }
+    let is_image = link > 0 && link < code && rest[link - 1:link] == "!"
+    let start = if code < link {
+      code
+    } else if is_image {
+      link - 1
+    } else {
+      link
+    }
     if start == rest.length() {
       result.push(Text(rest))
       break
@@ -20,7 +28,7 @@ fn parse_inline(text : String) -> Array[Inline] {
     if start > 0 {
       result.push(Text(rest[:start].to_owned()))
     }
-    let tail = rest[start + 1:].to_owned()
+    let tail = rest[start + (if is_image { 2 } else { 1 }):].to_owned()
     if code < link {
       if tail.split_once("`") is Some((content, after)) {
         result.push(Code(content.to_owned()))
@@ -33,12 +41,18 @@ fn parse_inline(text : String) -> Array[Inline] {
       if tail.split_once("](") is Some((label, destination)) {
         if !label.to_owned().contains("[") &&
           destination.to_owned().split_once(")") is Some((href, after)) {
-          result.push(Link(label.to_owned(), href.to_owned()))
+          result.push(
+            if is_image {
+              Image(label.to_owned(), href.to_owned())
+            } else {
+              Link(label.to_owned(), href.to_owned())
+            },
+          )
           rest = after.to_owned()
           continue
         }
       }
-      result.push(Text("["))
+      result.push(Text(if is_image { "![" } else { "[" }))
       rest = tail
     }
   }
@@ -70,6 +84,18 @@ pub fn render_inline(text : String) -> String {
     match part {
       Text(text) => out.write_string(escape_html(text))
       Code(text) => out.write_string("<code>" + escape_html(text) + "</code>")
+      Image(alt, src) =>
+        if allowed_src(src) {
+          out.write_string(
+            "<img src=\"" +
+            escape_html(src) +
+            "\" alt=\"" +
+            escape_html(alt) +
+            "\">",
+          )
+        } else {
+          out.write_string(escape_html("![" + alt + "](" + src + ")"))
+        }
       Link(label, href) =>
         if allowed_href(href) {
           out.write_string(
@@ -176,7 +202,7 @@ pub fn validate_links(
 }
 
 ///|
-pub fn template_links(layout : String) -> Array[String] raise {
+fn template_urls(layout : String, attribute : String) -> Array[String] raise {
   let links : Array[String] = []
   let mut offset = 0
   while offset < layout.length() {
@@ -260,13 +286,17 @@ pub fn template_links(layout : String) -> Array[String] raise {
         }
         offset += 1
       }
-      if name == "href" {
+      if name == attribute {
         if !quoted {
-          raise InvalidInput("layout.html: href values must be quoted")
+          raise InvalidInput(
+            "layout.html: " + attribute + " values must be quoted",
+          )
         }
         if value.contains("{{") {
           raise InvalidInput(
-            "layout.html: dynamic href placeholders are not supported",
+            "layout.html: dynamic " +
+            attribute +
+            " placeholders are not supported",
           )
         }
         links.push(value.replace_all(old="&amp;", new="&"))
@@ -280,4 +310,52 @@ pub fn template_links(layout : String) -> Array[String] raise {
 fn html_space(text : String, index : Int) -> Bool {
   let c = text[index].to_int()
   c == 32 || c == 9 || c == 10 || c == 13 || c == 12
+}
+
+///|
+fn allowed_src(src : String) -> Bool {
+  allowed_href(src) &&
+  !src.has_prefix("mailto:") &&
+  !src.has_prefix("#") &&
+  !src.has_prefix("?")
+}
+
+///|
+pub fn markdown_images(source : String) -> Array[String] {
+  let images : Array[String] = []
+  for block in parse_blocks(source) {
+    for line in inline_lines(block) {
+      for part in parse_inline(line) {
+        if part is Image(_, src) {
+          images.push(src)
+        }
+      }
+    }
+  }
+  images
+}
+
+///|
+pub fn template_links(layout : String) -> Array[String] raise {
+  template_urls(layout, "href")
+}
+
+///|
+pub fn template_sources(layout : String) -> Array[String] raise {
+  template_urls(layout, "src")
+}
+
+///|
+pub fn validate_sources(
+  sources : Array[String],
+  outputs : Array[String],
+  base_path? : String = "/",
+  source? : String = "document",
+) -> Unit raise {
+  for src in sources {
+    if !allowed_src(src) {
+      raise InvalidInput(source + ": disallowed source URL: " + src)
+    }
+  }
+  validate_links(sources, outputs, base_path~, source~)
 }
