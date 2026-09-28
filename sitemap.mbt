@@ -42,9 +42,10 @@ pub fn site_base_path(base_url : String) -> String {
 ///|
 fn read_base_url(input : String) -> String? raise {
   let path = input + "/site.json"
-  if !@fs.path_exists(path) {
+  if path_kind(path) == 0 {
     return None
   }
+  require_input_kind(path, 1)
   let fields = match @json.parse(@fs.read_file_to_string(path)) {
     Object(fields) => fields
     _ => raise InvalidInput("site.json must be an object")

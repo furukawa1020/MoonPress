@@ -137,6 +137,15 @@ fn plan_site(
   output : String?,
   include_drafts? : Bool = false,
 ) -> BuildPlan raise {
+  if input.is_empty() {
+    raise InvalidInput("Input directory must not be empty")
+  }
+  let trimmed = input.trim_end(chars="/").to_owned()
+  let input = if trimmed.is_empty() { "/" } else { trimmed }
+  require_input_kind(input, 2)
+  require_input_kind(input + "/content", 2)
+  require_input_kind(input + "/layout.html", 1)
+  require_input_kind(input + "/style.css", 1)
   let base_url = read_base_url(input)
   let layout = @fs.read_file_to_string(input + "/layout.html")
   if !layout.contains("{{content}}") {
@@ -152,11 +161,9 @@ fn plan_site(
   let layout_digest = digest_text(layout)
   let compiler_digest = digest_text("moonpress-renderer-v10")
   for name in names {
+    let path = input + "/content/" + name
+    require_input_kind(path, 1)
     if name.has_suffix(".md") {
-      let path = input + "/content/" + name
-      if path_kind(path) != 1 {
-        raise InvalidInput("Expected regular source file: " + path)
-      }
       let source = @fs.read_file_to_string(path)
       let stem = name[:name.length() - 3].to_owned()
       let document = parse_document(source, stem, filename=path)
@@ -467,3 +474,16 @@ pub extend BuildReport with ToJson::{to_json}
 
 ///|
 pub extend CheckReport with ToJson::{to_json}
+
+///|
+fn require_input_kind(path : String, expected : Int) -> Unit raise {
+  if path_kind(path) != expected {
+    let kind = if expected == 2 { "directory" } else { "file" }
+    raise InvalidInput(
+      "Expected regular input " +
+      kind +
+      " (no symlinks or special files): " +
+      path,
+    )
+  }
+}
