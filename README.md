@@ -111,3 +111,30 @@ moonpress build site preview --include-drafts
 
 Default builds exclude drafts. Preview output contains them; keep it separate
 from the directory you deploy. See [draft semantics](docs/content.md#draft-articles).
+
+## JSON reports for automation
+
+```sh
+moonpress build site dist --json > build-report.json
+moonpress explain site dist --json
+moonpress check site --json --include-drafts
+```
+
+Success prints one JSON object to stdout with `schema: 1`, `command`,
+`include_drafts` and `report`. Options follow the directory arguments; each may
+appear once, in either order. Without `--json`, the existing text format remains.
+Errors still use stderr and exit status 1 (validation/I/O) or 2 (arguments);
+stdout is empty on failure. Save redirected reports outside the output directory.
+
+Build/explain reports contain `pages`, `written`, `skipped` (kept output count),
+`deleted`, human-readable `events`, and structured `changes`. Each change has
+`action` (`write`, `keep`, `delete`, `skip`), `path`, and `reason`.
+Paths are output-relative except excluded drafts, which use `content/<name>.md`.
+A draft `skip` event does not increment the kept-output count. Reasons and text
+events are explanatory text, not stable machine identifiers. Internal manifest
+writes are excluded from counts/events. For `explain`, all changes and counts
+describe a plan; no files are written. Check reports contain only `pages` and
+`outputs`. JSON serialization and the compiler remain native MoonBit.
+
+The development integration suite additionally requires `jq` to validate JSON
+reports (available on the CI Ubuntu runner); the MoonPress executable does not.

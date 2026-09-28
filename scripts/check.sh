@@ -19,3 +19,5 @@ bash scripts/code-spans-test.sh
 bash scripts/site-check-test.sh
 bash scripts/drafts-test.sh
 bash scripts/draft-preview-test.sh
+
+bash scripts/json-report-test.sh
