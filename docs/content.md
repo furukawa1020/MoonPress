@@ -258,3 +258,17 @@ These are checks at named input boundaries, not a sandbox: ancestor path
 components, concurrent changes and trusted template/asset contents are outside
 this protection. Build only trusted local projects; do not change their files
 while a build is running. Validation failures occur before output mutations.
+
+### Text encoding and file reads
+
+Layout, Markdown, site configuration and the incremental manifest must be valid
+UTF-8. Invalid, truncated, overlong and surrogate encodings produce an error
+naming the affected file, before any output changes. A UTF-8 BOM is preserved as
+U+FEFF; existing JSON/frontmatter parsing rules still apply. Valid Unicode,
+including supplementary characters, is preserved.
+
+CSS and public assets are read as exact bytes and receive no text decoding.
+File handles are closed before text decoding and on read/seek/size errors.
+The compiler loads file contents into memory; files above the native byte-buffer
+limit of 2,147,483,647 bytes are rejected before allocation. Available memory can
+impose a lower practical limit. Sources must remain unchanged during a build.

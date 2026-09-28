@@ -40,7 +40,7 @@ fn load_previous(output : String) -> Map[String, Artifact] raise {
   if path_kind(marker) != 1 {
     raise InvalidInput("Existing output is not managed by MoonPress")
   }
-  let state = parse_manifest(@fs.read_file_to_string(marker))
+  let state = parse_manifest(read_text(marker))
   for artifact in state.artifacts {
     result[artifact.name] = artifact
   }
@@ -60,7 +60,7 @@ fn load_previous(output : String) -> Map[String, Artifact] raise {
       match result.get(name) {
         None => raise InvalidInput("Unmanaged output file: " + name)
         Some(artifact) =>
-          if digest_bytes(@fs.read_file_to_bytes(file)) != artifact.digest {
+          if digest_bytes(read_bytes(file)) != artifact.digest {
             raise InvalidInput("Output was edited outside MoonPress: " + name)
           }
       }
@@ -155,11 +155,11 @@ fn plan_site(
   require_input_kind(input + "/layout.html", 1)
   require_input_kind(input + "/style.css", 1)
   let base_url = read_base_url(input)
-  let layout = @fs.read_file_to_string(input + "/layout.html")
+  let layout = read_text(input + "/layout.html")
   if !layout.contains("{{content}}") {
     raise InvalidInput("layout.html must contain {{content}}")
   }
-  let css = @fs.read_file_to_bytes(input + "/style.css")
+  let css = read_bytes(input + "/style.css")
   let names = @fs.read_dir(input + "/content").to_owned()
   names.sort()
   let pending : Array[Pending] = []
@@ -172,7 +172,7 @@ fn plan_site(
     let path = input + "/content/" + name
     require_input_kind(path, 1)
     if name.has_suffix(".md") {
-      let source = @fs.read_file_to_string(path)
+      let source = read_text(path)
       let stem = name[:name.length() - 3].to_owned()
       let document = parse_document(source, stem, filename=path)
       if document.draft && !include_drafts {
@@ -290,7 +290,7 @@ fn plan_site(
       if !safe_output_name(name) || !allowed_asset_name(name) {
         raise InvalidInput("Unsupported public asset name: " + name)
       }
-      let bytes = @fs.read_file_to_bytes(path)
+      let bytes = read_bytes(path)
       pending.push(
         plan_artifact(
           name,
@@ -402,8 +402,7 @@ fn plan_site(
 fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
   let fresh = path_kind(output) == 0
   let marker = output + "/.moonpress.json"
-  let manifest_changed = fresh ||
-    @fs.read_file_to_string(marker) != plan.manifest
+  let manifest_changed = fresh || read_text(marker) != plan.manifest
   if plan.report.written == 0 && plan.removed.is_empty() && !manifest_changed {
     return
   }

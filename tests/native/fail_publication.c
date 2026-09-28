@@ -98,3 +98,35 @@ int fclose(FILE *stream) {
   if (fail) { errno = EIO; return EOF; }
   return result;
 }
+
+size_t fread(void *data, size_t size, size_t count, FILE *stream) {
+  size_t (*real_read)(void *, size_t, size_t, FILE *) = dlsym(RTLD_NEXT, "fread");
+  if (!real_read) _exit(98);
+  if (count > 1 && stream_matches("MOONPRESS_TEST_FAIL_READ", stream)) {
+    size_t result = real_read(data, size, count / 2, stream);
+    errno = EIO;
+    return result;
+  }
+  return real_read(data, size, count, stream);
+}
+
+int fseek(FILE *stream, long offset, int whence) {
+  int (*real_seek)(FILE *, long, int) = dlsym(RTLD_NEXT, "fseek");
+  if (!real_seek) _exit(99);
+  if (stream_matches("MOONPRESS_TEST_FAIL_SEEK", stream)) {
+    errno = EIO;
+    return -1;
+  }
+  return real_seek(stream, offset, whence);
+}
+
+long ftell(FILE *stream) {
+  long (*real_tell)(FILE *) = dlsym(RTLD_NEXT, "ftell");
+  if (!real_tell) _exit(100);
+  if (stream_matches("MOONPRESS_TEST_SIZE_LIMIT", stream)) return 2147483648L;
+  if (stream_matches("MOONPRESS_TEST_FAIL_SIZE", stream)) {
+    errno = EIO;
+    return -1;
+  }
+  return real_tell(stream);
+}
