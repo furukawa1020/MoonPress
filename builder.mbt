@@ -402,10 +402,17 @@ fn plan_site(
 fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
   let fresh = path_kind(output) == 0
   let marker = output + "/.moonpress.json"
-  let manifest_changed = fresh || read_text(marker) != plan.manifest
+  let previous = if fresh { None } else { Some(read_text(marker)) }
+  let manifest_changed = previous != Some(plan.manifest)
   if plan.report.written == 0 && plan.removed.is_empty() && !manifest_changed {
     return
   }
+  let present = if fresh {
+    []
+  } else {
+    @fs.read_dir(output).filter(name => name != ".moonpress.json")
+  }
+  present.sort()
   if fresh {
     @fs.create_dir(output)
   }
@@ -429,6 +436,7 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
   let backed : Array[String] = []
   let applied : Array[String] = []
   let mut backup_created = false
+  let mut journal_created = false
   let mut publishing = false
   let mut committed = false
   try {
@@ -452,6 +460,24 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
     for name in plan.removed {
       backup_file(output, backup, name, backed)
     }
+    let writes = plan.pending.filter_map(item => {
+      if item.content is Some(_) {
+        Some(item.artifact.name)
+      } else {
+        None
+      }
+    })
+    let journal : PublicationJournal = {
+      schema: 1,
+      previous,
+      next: plan.manifest,
+      present,
+      writes,
+    }
+    let text = ToJson::to_json(journal).stringify() + "\n"
+    parse_journal(text) |> ignore
+    journal_created = true
+    write_text(stage + "/journal", text)
     publishing = true
     for item in plan.pending {
       if item.content is Some(_) {
@@ -472,7 +498,7 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
       replace_staged_file(stage + "/.moonpress.json", marker)
     }
     committed = true
-    cleanup_stage(stage, staged, backed, backup_created)
+    cleanup_stage(stage, staged, backed, backup_created, journal_created)
   } catch {
     error => {
       let rollback_error = if publishing && !committed {
@@ -490,7 +516,7 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
         false
       } else {
         try {
-          cleanup_stage(stage, staged, backed, backup_created)
+          cleanup_stage(stage, staged, backed, backup_created, journal_created)
           if fresh && !committed {
             @fs.remove_dir(output)
           }
@@ -522,6 +548,7 @@ fn cleanup_stage(
   names : Array[String],
   backed : Array[String],
   backup_created : Bool,
+  journal_created : Bool,
 ) -> Unit raise {
   for name in names {
     let path = stage + "/" + name
@@ -538,6 +565,9 @@ fn cleanup_stage(
       }
     }
     @fs.remove_dir(backup)
+  }
+  if journal_created && path_kind(stage + "/journal") == 1 {
+    @fs.remove_file(stage + "/journal")
   }
   // Never recursively delete unknown entries.
   @fs.remove_dir(stage)

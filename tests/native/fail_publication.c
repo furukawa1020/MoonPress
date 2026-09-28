@@ -7,10 +7,18 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <signal.h>
 
 static int matches(const char *key, const char *path) {
   const char *wanted = getenv(key);
   return wanted && strcmp(wanted, path) == 0;
+}
+
+static void crash_if(const char *key, const char *path) {
+  if (matches(key, path)) {
+    kill(getpid(), SIGKILL);
+    _exit(102);
+  }
 }
 
 FILE *fopen(const char *path, const char *mode) {
@@ -44,12 +52,15 @@ size_t fwrite(const void *data, size_t size, size_t count, FILE *stream) {
 int rename(const char *source, const char *target) {
   int (*real_rename)(const char *, const char *) = dlsym(RTLD_NEXT, "rename");
   if (!real_rename) _exit(93);
+  crash_if("MOONPRESS_TEST_KILL_BEFORE_RENAME", target);
   if (matches("MOONPRESS_TEST_FAIL_RENAME", target) ||
       (strstr(source, "/backup/") && matches("MOONPRESS_TEST_FAIL_ROLLBACK", target))) {
     errno = EIO;
     return -1;
   }
-  return real_rename(source, target);
+  int result = real_rename(source, target);
+  if (result == 0) crash_if("MOONPRESS_TEST_KILL_AFTER_RENAME", target);
+  return result;
 }
 
 int remove(const char *path) {
@@ -59,7 +70,9 @@ int remove(const char *path) {
     errno = EIO;
     return -1;
   }
-  return real_remove(path);
+  int result = real_remove(path);
+  if (result == 0) crash_if("MOONPRESS_TEST_KILL_AFTER_REMOVE", path);
+  return result;
 }
 
 int mkdir(const char *path, mode_t mode) {
