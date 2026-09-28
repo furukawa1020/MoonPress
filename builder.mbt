@@ -122,6 +122,8 @@ pub fn compile_site(
   if output.is_empty() {
     raise InvalidInput("Root output directory is not allowed")
   }
+  let lock = lock_output(output, shared=dry_run)
+  defer native_unlock_output(lock)
   let previous = load_previous(output)
   let plan = plan_site(input, previous, Some(output), include_drafts~)
   if !dry_run {

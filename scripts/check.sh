@@ -25,3 +25,5 @@ bash scripts/json-report-test.sh
 bash scripts/manifest-preflight-test.sh
 
 bash scripts/source-preflight-test.sh
+
+bash scripts/locking-test.sh
