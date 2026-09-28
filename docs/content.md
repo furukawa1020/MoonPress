@@ -239,3 +239,22 @@ same managed output is switched back to normal mode, draft artifacts are removed
 on a successful build. The Pages workflow keeps the default publication mode.
 The CLI accepts the option only once, at the end; use `./` for paths beginning
 with `--` to distinguish them from options.
+
+## Input filesystem contract
+
+The site root and its required `content/` directory must be real directories.
+Required `layout.html` and `style.css`, optional existing `site.json`, and every
+entry directly inside `content/` must be regular files. Symlinks (including
+dangling links), FIFOs and other special entries are rejected before their data
+is read. Trailing slashes on the site root do not bypass this check.
+
+Content is flat: subdirectories are errors, so nested articles cannot silently
+disappear from publication. Ordinary non-`.md` files directly inside `content/`
+are ignored. Markdown extension matching is case-sensitive. An absent
+`site.json` is allowed; an invalid existing entry is not treated as absent.
+The same rules apply to check, explain, build and draft previews.
+
+These are checks at named input boundaries, not a sandbox: ancestor path
+components, concurrent changes and trusted template/asset contents are outside
+this protection. Build only trusted local projects; do not change their files
+while a build is running. Validation failures occur before output mutations.
