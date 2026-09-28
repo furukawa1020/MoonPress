@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <errno.h>
 #include "moonbit.h"
 MOONBIT_FFI_EXPORT int moonpress_path_kind(moonbit_bytes_t path) {
@@ -57,4 +58,9 @@ MOONBIT_FFI_EXPORT int moonpress_lock_output(moonbit_bytes_t path, int shared) {
 
 MOONBIT_FFI_EXPORT void moonpress_unlock_output(int fd) {
   close(fd);
+}
+
+/* Same-filesystem per-file publication; transaction decisions stay in MoonBit. */
+MOONBIT_FFI_EXPORT int moonpress_replace_file(moonbit_bytes_t source, moonbit_bytes_t target) {
+  return rename((const char *)source, (const char *)target) == 0 ? 0 : errno;
 }

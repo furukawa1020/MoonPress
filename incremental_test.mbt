@@ -10,7 +10,8 @@ test "SHA256 UTF8 known vector" {
 test "flat output path validation" {
   for
     name in [
-      "../x", "a/b", "a\\b", ".", "..", "", ".moonpress.json", "a\nb", "C:x",
+      "../x", "a/b", "a\\b", ".", "..", "", ".moonpress.json", ".moonpress-stage",
+      "a\nb", "C:x",
     ] {
     assert_false(@moonpress.safe_output_name(name))
   }

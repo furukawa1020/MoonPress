@@ -27,3 +27,5 @@ bash scripts/manifest-preflight-test.sh
 bash scripts/source-preflight-test.sh
 
 bash scripts/locking-test.sh
+
+bash scripts/publication-test.sh

@@ -46,6 +46,12 @@ fn load_previous(output : String) -> Map[String, Artifact] raise {
   }
   // Refuse unknown files and edited outputs before ANY writes or deletions.
   for name in @fs.read_dir(output) {
+    if name == ".moonpress-stage" {
+      raise InvalidInput(
+        "Output contains an unfinished or foreign staging entry; use a fresh output directory: " +
+        output,
+      )
+    }
     let file = output + "/" + name
     if path_kind(file) != 1 {
       raise InvalidInput("Output contains a non-regular file: " + name)
@@ -394,24 +400,94 @@ fn plan_site(
 
 ///|
 fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
-  if path_kind(output) == 0 {
+  let fresh = path_kind(output) == 0
+  let marker = output + "/.moonpress.json"
+  let manifest_changed = fresh ||
+    @fs.read_file_to_string(marker) != plan.manifest
+  if plan.report.written == 0 && plan.removed.is_empty() && !manifest_changed {
+    return
+  }
+  if fresh {
     @fs.create_dir(output)
   }
-  for item in plan.pending {
-    if item.content is Some(bytes) {
-      @fs.write_bytes_to_file(output + "/" + item.artifact.name, bytes)
+  let stage = output + "/.moonpress-stage"
+  // mkdir must succeed exclusively before this build owns the staging area.
+  @fs.create_dir(stage) catch {
+    error => {
+      if fresh {
+        @fs.remove_dir(output) catch {
+          _ => ()
+        }
+      }
+      let cause : Error = error
+      raise InvalidInput(
+        "Cannot create staging directory " + stage + ": \{cause}",
+      )
     }
   }
-  for name in plan.removed {
-    if path_kind(output + "/" + name) == 1 {
-      @fs.remove_file(output + "/" + name)
+  let staged : Array[String] = []
+  let mut publishing = false
+  try {
+    for item in plan.pending {
+      if item.content is Some(bytes) {
+        staged.push(item.artifact.name)
+        @fs.write_bytes_to_file(stage + "/" + item.artifact.name, bytes)
+      }
+    }
+    if manifest_changed {
+      staged.push(".moonpress.json")
+      @fs.write_string_to_file(stage + "/.moonpress.json", plan.manifest)
+    }
+    publishing = true
+    for item in plan.pending {
+      if item.content is Some(_) {
+        replace_staged_file(
+          stage + "/" + item.artifact.name,
+          output + "/" + item.artifact.name,
+        )
+      }
+    }
+    for name in plan.removed {
+      if path_kind(output + "/" + name) == 1 {
+        @fs.remove_file(output + "/" + name)
+      }
+    }
+    if manifest_changed {
+      replace_staged_file(stage + "/.moonpress.json", marker)
+    }
+    cleanup_stage(stage, staged)
+  } catch {
+    error => {
+      let cleaned = try {
+        cleanup_stage(stage, staged)
+        if fresh && !publishing {
+          @fs.remove_dir(output)
+        }
+        true
+      } catch {
+        _ => false
+      }
+      let phase = if publishing {
+        "Publication failed; output may be partially updated; rebuild into a fresh directory"
+      } else {
+        "Staging failed before existing artifacts were changed"
+      }
+      let cleanup = if cleaned { "" } else { "; staging cleanup incomplete" }
+      raise InvalidInput(phase + " for " + output + ": \{error}" + cleanup)
     }
   }
-  let marker = output + "/.moonpress.json"
-  if !@fs.path_exists(marker) ||
-    @fs.read_file_to_string(marker) != plan.manifest {
-    @fs.write_string_to_file(marker, plan.manifest)
+}
+
+///|
+fn cleanup_stage(stage : String, names : Array[String]) -> Unit raise {
+  for name in names {
+    let path = stage + "/" + name
+    if path_kind(path) == 1 {
+      @fs.remove_file(path)
+    }
   }
+  // Never recursively delete unknown entries.
+  @fs.remove_dir(stage)
 }
 
 ///|
