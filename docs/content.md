@@ -202,7 +202,12 @@ The list is flat, so skipped heading levels do not invent a document hierarchy;
 CSS may indent entries by level. Links percent-encode the exact generated IDs,
 and labels are escaped plain text without nested links, images or inline markup.
 
-The TOC and article HTML share one parsed block/heading model during rendering.
+Site planning shares each selected body’s parsed blocks and heading outline
+between rendering, TOC generation and reference extraction. Link/image references
+are collected in one inline walk; later cross-page validation retains only those
+references and heading IDs, not a second site-wide block tree. Frontmatter/title
+discovery remains a separate pass. The public standalone Markdown helpers keep
+their existing APIs.
 Pages without headings and generated article/tag collections receive an empty
 TOC. Omitting the placeholder suppresses TOC markup while preserving heading IDs.
 The template is expanded once: placeholders appearing inside heading text remain

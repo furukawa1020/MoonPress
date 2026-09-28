@@ -1,17 +1,12 @@
 ///|
-fn test_heading_targets() -> Map[String, Map[String, Bool]] raise {
-  index_heading_targets(
-    ["index.html", "guide.html", "articles.html", "image.svg"],
-    [
-      { output: "index.html", document: parse_document("# Home", "index"), },
-      {
-        output: "guide.html",
-        document: parse_document(
-          "# Guide\n## Repeat\n## Repeat\n## Repeat-2\n## 月🌙", "guide",
-        ),
-      },
-    ],
+fn test_heading_targets() -> Map[String, Map[String, Bool]] {
+  let targets : Map[String, Map[String, Bool]] = Map([])
+  targets["index.html"] = index_heading_ids(headings("# Home"))
+  targets["guide.html"] = index_heading_ids(
+    headings("# Guide\n## Repeat\n## Repeat\n## Repeat-2\n## 月🌙"),
   )
+  targets["articles.html"] = Map([])
+  targets
 }
 
 ///|
