@@ -87,18 +87,28 @@ pub fn Artifact::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeE
 pub fn Artifact::not_equal(Self, Self) -> Bool
 pub fn Artifact::to_json(Self) -> Json
 
+pub(all) struct BuildEvent {
+  action : String
+  path : String
+  reason : String
+} derive(ToJson)
+pub fn BuildEvent::to_json(Self) -> Json
+
 pub(all) struct BuildReport {
   pages : Int
   written : Int
   skipped : Int
   deleted : Int
   events : Array[String]
-}
+  changes : Array[BuildEvent]
+} derive(ToJson)
+pub fn BuildReport::to_json(Self) -> Json
 
 pub(all) struct CheckReport {
   pages : Int
   outputs : Int
-}
+} derive(ToJson)
+pub fn CheckReport::to_json(Self) -> Json
 
 pub(all) struct Dependency {
   name : String
