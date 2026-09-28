@@ -84,9 +84,10 @@ for byte-for-byte equality, including the manifest.
 
 Do not edit generated files. Concurrent MoonPress build/explain access is
 coordinated by directory locks; see [concurrency](docs/concurrency.md).
-This version is not transactional across filesystem failures: after a partial
-write failure, generate into a fresh directory. The manifest is written last.
-A small POSIX C shim provides `lstat` checks and directory locks; all dependency and compiler logic
+Changed artifacts are [staged before publication](docs/publication.md) and each
+file is replaced atomically. The whole build is not transactional: after a
+publication failure, generate into a fresh directory. The manifest is replaced last.
+A small POSIX C shim provides `lstat` checks, directory locks and file rename; all dependency and compiler logic
 is MoonBit. Linux x86_64 is the tested platform. Unmanaged contents are never
 recursively removed. These checks are for trusted local projects, not a sandbox
 against a concurrent hostile process changing filesystem paths.

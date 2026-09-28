@@ -34,7 +34,8 @@ pub fn safe_output_name(name : String) -> Bool {
     @utf8.encode(name).length() > 255 ||
     name == "." ||
     name == ".." ||
-    name == ".moonpress.json" {
+    name == ".moonpress.json" ||
+    name == ".moonpress-stage" {
     return false
   }
   for c in name {

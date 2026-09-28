@@ -36,12 +36,13 @@ trees during a build. Local Linux is tested; network/distributed filesystem
 locking semantics are not supported by this contract.
 
 Locking does not make multi-file publication transactional. A process killed
-*during writes* or a filesystem failure can still leave partial output; rebuild
+*during publication* or a filesystem failure can still leave partial output; rebuild
 into a fresh directory in that case. [Recovery work](https://github.com/furukawa1020/MoonPress/issues/49)
 tracks that separate problem. Crash-release tests terminate a writer before
 publication and do not claim crash consistency during publication.
 
-The native boundary only resolves/open-locks/closes directory descriptors.
+The native boundary resolves/open-locks/closes directory descriptors and performs
+per-file rename. [Staging semantics](publication.md) describe publication separately.
 Planning, validation, report generation and artifact decisions remain MoonBit.
 The tests use a separate LD_PRELOAD fixture to pause a real CLI after locking;
 no test hooks or environment switches are linked into the product.
