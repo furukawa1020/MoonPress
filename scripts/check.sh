@@ -15,6 +15,7 @@ bash scripts/assets-test.sh
 bash scripts/images-test.sh
 bash scripts/url-test.sh
 bash scripts/toc-test.sh
+bash scripts/heading-links-test.sh
 bash scripts/fences-test.sh
 bash scripts/code-spans-test.sh
 bash scripts/site-check-test.sh

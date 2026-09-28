@@ -50,8 +50,8 @@ at build time. Link-looking text inside inline or fenced code is ignored.
 Before any output changes, builds and `explain` validate relative links against
 the planned output routes, not stale files on disk. Use generated `.html` paths
 (not `.md`); Unicode and percent-encoded filenames work. Query/fragment parts are
-ignored for file existence checks; fragment IDs and external URLs are not fetched
-or validated. Root-relative links must stay under the configured site base path.
+ignored for file existence checks. Generated `mp-` heading fragments receive
+additional validation as described below; external URLs are not fetched. Root-relative links must stay under the configured site base path.
 With no site config the root base path is `/`.
 
 Static, quoted `href` and `src` attributes in layout.html are also checked. The attribute
@@ -170,7 +170,29 @@ suffix-like names. Changing heading order/text can change duplicate suffixes.
 For example, `## Getting started` produces `id="mp-getting-started"`, which can be
 linked as `[Start](#mp-getting-started)`. Code fences do not create anchors. Reserve
 the `mp-` ID prefix for MoonPress in templates; arbitrary template IDs are not
-checked for collisions. Fragment target validation is not yet implemented.
+checked for collisions.
+
+`check`, `explain` and `build` validate local `href` fragments in the reserved
+`mp-` namespace against the destination page's generated IDs. Same-page
+`#mp-title`, query-only `?mode=x#mp-title`, cross-page and configured base-path
+links share the route normalizer. Percent-encoded ASCII/Unicode spelling is
+normalized; matching remains case-sensitive. Malformed percent escapes in local
+HTML fragments are errors. Empty fragments and custom IDs outside `mp-` remain
+unchecked. External URLs and non-HTML asset fragments (for example SVG/PDF)
+are excluded, and text-fragment directives are not interpreted.
+
+Validation uses the current selected sources on every invocation, even if the
+linking page would be kept by incremental compilation. Removing a referenced
+heading fails before output mutation. Excluded draft bodies are skipped; preview
+mode includes and validates their headings/links. Inline/fenced code is ignored.
+
+Static layout hrefs are checked in the context of every generated HTML page.
+Article/tag collections have no generated heading IDs, so a shared layout with
+`href="#mp-title"` fails on those pages. Use an explicit destination such as
+`href="guide.html#mp-title"`, or use `{{toc}}` for page-specific navigation. Layout
+URLs retain the documented quoted-attribute and `&amp;`-only entity rules.
+The public `validate_links` helper remains route-only; site compilation adds
+heading validation using the complete source index.
 
 ## Table of contents
 

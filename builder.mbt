@@ -308,6 +308,7 @@ fn plan_site(
     routes.push("sitemap.xml")
   }
   let route_lookup = index_routes(routes)
+  let heading_targets = index_heading_targets(routes, documents)
   let base_path = match base_url {
     Some(url) => site_base_path(url)
     None => "/"
@@ -320,11 +321,14 @@ fn plan_site(
       base_path~,
       source=page.output,
     )
-    validate_route_links(
-      markdown_links(page.document.body),
-      route_lookup,
-      base_path~,
-      source=page.output,
+    let links = markdown_links(page.document.body)
+    validate_route_links(links, route_lookup, base_path~, source=page.output)
+    validate_heading_links(
+      links,
+      heading_targets,
+      page.output,
+      base_path,
+      page.output,
     )
   }
   validate_route_links(
@@ -334,12 +338,24 @@ fn plan_site(
     base_path~,
     source="layout.html",
   )
+  let layout_links = template_links(layout)
   validate_route_links(
-    template_links(layout),
+    layout_links,
     route_lookup,
     base_path~,
     source="layout.html",
   )
+  for route in routes {
+    if route.has_suffix(".html") {
+      validate_heading_links(
+        layout_links,
+        heading_targets,
+        route,
+        base_path,
+        "layout.html (" + route + ")",
+      )
+    }
+  }
   if base_url is Some(url) {
     let sitemap_routes = routes.filter(name => name.has_suffix(".html"))
     pending.push(
