@@ -100,3 +100,14 @@ No generated files are written. This still reads and renders the complete site;
 it is not a syntax-only or zero-allocation check. Existing output directories are
 not inspected. Use `explain site dist` to inspect output integrity and incremental
 changes. Neither command checks external URL reachability or fragment targets.
+
+
+Draft preview uses the same compiler and validators:
+
+```sh
+moonpress check site --include-drafts
+moonpress build site preview --include-drafts
+```
+
+Default builds exclude drafts. Preview output contains them; keep it separate
+from the directory you deploy. See [draft semantics](docs/content.md#draft-articles).

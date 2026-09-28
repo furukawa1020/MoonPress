@@ -212,8 +212,30 @@ article to draft deletes its tracked HTML and obsolete tag pages on a successful
 build. Switching back to false restores them. A draft-only body edit leaves
 outputs unchanged. check, explain and build use the same publication selection.
 
-At least one published Markdown page is required. An all-draft site fails before
+In normal mode at least one published Markdown page is required. An all-draft site fails before
 any output changes. The public/ directory is independent: its assets are still
 copied even if only a draft refers to them. This flag controls generated pages,
-not access to source files in a public repository. There is no include-drafts
-preview mode yet.
+not access to source files in a public repository. Use the explicit preview option below to include drafts.
+
+
+### Preview drafts explicitly
+
+Append `--include-drafts` to any of these commands:
+
+```sh
+moonpress check site --include-drafts
+moonpress explain site preview --include-drafts
+moonpress build site preview --include-drafts
+```
+
+In this mode drafts participate in HTML, collections, tags, sitemap and reference
+validation just like published pages. An all-draft site is permitted. Broken
+references and output collisions in drafts are errors. API users can pass
+`include_drafts=true` to `compile_site` or `check_site`; defaults remain false.
+
+Use a separate preview output directory. Preview files contain draft content and
+are ordinary static files; there is no access control or draft watermark. If the
+same managed output is switched back to normal mode, draft artifacts are removed
+on a successful build. The Pages workflow keeps the default publication mode.
+The CLI accepts the option only once, at the end; use `./` for paths beginning
+with `--` to distinguish them from options.
