@@ -54,6 +54,8 @@ Tests inject a partial staged write, staged-manifest creation failure, artifact
 rename failure, stale-file deletion failure and manifest rename failure into the
 real native CLI. They verify preservation before publication, complete per-file
 contents and uncommitted old manifests on failures, cleanup, and rejection of
-partial state. Test injection code is separate from the shipped executable. Repeated I/O
-failures in long-lived library callers also need a dependency handle-cleanup
-audit, tracked in [#54](https://github.com/furukawa1020/MoonPress/issues/54).
+partial state. Test injection code is separate from the shipped executable. The staged writer owns its stdio handle in MoonBit and closes it on every
+raised-error path. Fault probes reproduce 16 leaked descriptors after 16 legacy
+short-write/flush failures; the new writer shows zero growth for write, flush
+and close failures. Reader cleanup remains tracked in
+[#54](https://github.com/furukawa1020/MoonPress/issues/54).

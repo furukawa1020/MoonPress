@@ -29,3 +29,5 @@ bash scripts/source-preflight-test.sh
 bash scripts/locking-test.sh
 
 bash scripts/publication-test.sh
+
+bash scripts/io-cleanup-test.sh

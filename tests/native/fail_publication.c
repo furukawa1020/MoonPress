@@ -70,3 +70,31 @@ int mkdir(const char *path, mode_t mode) {
   }
   return real_mkdir(path, mode);
 }
+
+static int stream_matches(const char *key, FILE *stream) {
+  char fdpath[64], path[4096];
+  snprintf(fdpath, sizeof fdpath, "/proc/self/fd/%d", fileno(stream));
+  ssize_t n = readlink(fdpath, path, sizeof path - 1);
+  if (n < 0) return 0;
+  path[n] = '\0';
+  return matches(key, path);
+}
+
+int fflush(FILE *stream) {
+  int (*real_flush)(FILE *) = dlsym(RTLD_NEXT, "fflush");
+  if (!real_flush) _exit(96);
+  if (stream && stream_matches("MOONPRESS_TEST_FAIL_FLUSH", stream)) {
+    errno = ENOSPC;
+    return EOF;
+  }
+  return real_flush(stream);
+}
+
+int fclose(FILE *stream) {
+  int (*real_close)(FILE *) = dlsym(RTLD_NEXT, "fclose");
+  if (!real_close) _exit(97);
+  int fail = stream_matches("MOONPRESS_TEST_FAIL_CLOSE", stream);
+  int result = real_close(stream);
+  if (fail) { errno = EIO; return EOF; }
+  return result;
+}
