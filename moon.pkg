@@ -5,6 +5,10 @@ import {
   "moonbitlang/core/json",
 }
 
+import {
+  "moonbitlang/core/env",
+} for "wbtest"
+
 options(
-  "native-stub": [ "path_guard.c" ],
+  "native-stub": [ "path_guard.c", "io_native.c" ],
 )

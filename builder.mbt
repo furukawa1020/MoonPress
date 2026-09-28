@@ -431,12 +431,12 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
     for item in plan.pending {
       if item.content is Some(bytes) {
         staged.push(item.artifact.name)
-        @fs.write_bytes_to_file(stage + "/" + item.artifact.name, bytes)
+        write_bytes(stage + "/" + item.artifact.name, bytes)
       }
     }
     if manifest_changed {
       staged.push(".moonpress.json")
-      @fs.write_string_to_file(stage + "/.moonpress.json", plan.manifest)
+      write_text(stage + "/.moonpress.json", plan.manifest)
     }
     publishing = true
     for item in plan.pending {
