@@ -17,7 +17,8 @@ pub(all) struct BuildReport {
   skipped : Int
   deleted : Int
   events : Array[String]
-}
+  changes : Array[BuildEvent]
+} derive(ToJson)
 
 ///|
 priv struct Pending {
@@ -69,7 +70,7 @@ fn plan_artifact(
   previous : Map[String, Artifact],
   output : String?,
   render : () -> Bytes,
-  events : Array[String],
+  log : BuildLog,
 ) -> Pending raise {
   if !safe_output_name(name) {
     raise InvalidInput("Invalid output name: " + name)
@@ -89,7 +90,7 @@ fn plan_artifact(
       }
   }
   if reason is None && old is Some(artifact) {
-    events.push("KEEP " + name + " — dependencies unchanged")
+    record_event(log, "keep", name, "dependencies unchanged")
     return { artifact, content: None, }
   }
   let content = render()
@@ -98,9 +99,7 @@ fn plan_artifact(
     digest: digest_bytes(content),
     dependencies,
   }
-  events.push(
-    "WRITE " + name + " — " + reason.unwrap_or("dependency changed"),
-  )
+  record_event(log, "write", name, reason.unwrap_or("dependency changed"))
   { artifact, content: Some(content), }
 }
 
@@ -147,7 +146,7 @@ fn plan_site(
   let names = @fs.read_dir(input + "/content").to_owned()
   names.sort()
   let pending : Array[Pending] = []
-  let events : Array[String] = []
+  let log : BuildLog = { events: [], changes: [], }
   let documents : Array[Page] = []
   let mut pages = 0
   let layout_digest = digest_text(layout)
@@ -162,7 +161,7 @@ fn plan_site(
       let stem = name[:name.length() - 3].to_owned()
       let document = parse_document(source, stem, filename=path)
       if document.draft && !include_drafts {
-        events.push("SKIP content/" + name + " — draft")
+        record_event(log, "skip", "content/" + name, "draft")
         continue
       }
       documents.push({ output: stem + ".html", document, })
@@ -194,7 +193,7 @@ fn plan_site(
               ),
             )
           },
-          events,
+          log,
         ),
       )
       pages += 1
@@ -218,7 +217,7 @@ fn plan_site(
           ),
         )
       },
-      events,
+      log,
     ),
   )
   let tags : Array[String] = []
@@ -243,7 +242,7 @@ fn plan_site(
             apply_layout(layout, tag, render_collection(tag, members)),
           )
         },
-        events,
+        log,
       ),
     )
   }
@@ -254,12 +253,10 @@ fn plan_site(
       previous,
       output,
       () => css,
-      events,
+      log,
     ),
   )
-  pending.push(
-    plan_artifact(".nojekyll", [], previous, output, () => b"", events),
-  )
+  pending.push(plan_artifact(".nojekyll", [], previous, output, () => b"", log))
   let public_dir = input + "/public"
   let public_kind = path_kind(public_dir)
   if public_kind != 0 {
@@ -286,7 +283,7 @@ fn plan_site(
           previous,
           output,
           () => bytes,
-          events,
+          log,
         ),
       )
     }
@@ -344,7 +341,7 @@ fn plan_site(
         previous,
         output,
         () => @utf8.encode(render_sitemap(url, sitemap_routes)),
-        events,
+        log,
       ),
     )
   }
@@ -369,7 +366,7 @@ fn plan_site(
   }
   removed.sort()
   for name in removed {
-    events.push("DELETE " + name + " — source removed")
+    record_event(log, "delete", name, "source removed")
   }
   {
     pending,
@@ -380,7 +377,8 @@ fn plan_site(
       written,
       skipped: pending.length() - written,
       deleted: removed.length(),
-      events,
+      events: log.events,
+      changes: log.changes,
     },
   }
 }
@@ -425,7 +423,7 @@ fn allowed_asset_name(name : String) -> Bool {
 pub(all) struct CheckReport {
   pages : Int
   outputs : Int
-}
+} derive(ToJson)
 
 ///|
 pub fn check_site(
@@ -436,3 +434,36 @@ pub fn check_site(
   let plan = plan_site(input, Map([]), None, include_drafts~)
   { pages: plan.report.pages, outputs: plan.pending.length(), }
 }
+
+///|
+pub(all) struct BuildEvent {
+  action : String
+  path : String
+  reason : String
+} derive(ToJson)
+
+///|
+priv struct BuildLog {
+  events : Array[String]
+  changes : Array[BuildEvent]
+}
+
+///|
+fn record_event(
+  log : BuildLog,
+  action : String,
+  path : String,
+  reason : String,
+) -> Unit {
+  log.changes.push({ action, path, reason, })
+  log.events.push(action.to_upper() + " " + path + " — " + reason)
+}
+
+///|
+pub extend BuildEvent with ToJson::{to_json}
+
+///|
+pub extend BuildReport with ToJson::{to_json}
+
+///|
+pub extend CheckReport with ToJson::{to_json}
