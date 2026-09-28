@@ -21,3 +21,5 @@ bash scripts/drafts-test.sh
 bash scripts/draft-preview-test.sh
 
 bash scripts/json-report-test.sh
+
+bash scripts/manifest-preflight-test.sh

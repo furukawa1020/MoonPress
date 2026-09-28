@@ -30,7 +30,11 @@ pub fn digest_text(text : String) -> String {
 
 ///|
 pub fn safe_output_name(name : String) -> Bool {
-  if name.is_empty() || name == "." || name == ".." || name == ".moonpress.json" {
+  if name.is_empty() ||
+    @utf8.encode(name).length() > 255 ||
+    name == "." ||
+    name == ".." ||
+    name == ".moonpress.json" {
     return false
   }
   for c in name {
@@ -51,6 +55,26 @@ pub fn parse_manifest(text : String) -> Manifest raise {
   for artifact in state.artifacts {
     if !safe_output_name(artifact.name) || seen.contains(artifact.name) {
       raise InvalidInput("Invalid or duplicate output path in manifest")
+    }
+    if !valid_digest(artifact.digest) {
+      raise InvalidInput("Invalid output digest in manifest: " + artifact.name)
+    }
+    let dependencies : Map[String, Bool] = Map([])
+    for dep in artifact.dependencies {
+      if dep.name.is_empty() || dependencies.contains(dep.name) {
+        raise InvalidInput(
+          "Empty or duplicate dependency in manifest: " + artifact.name,
+        )
+      }
+      if !valid_digest(dep.digest) {
+        raise InvalidInput(
+          "Invalid dependency digest in manifest: " +
+          artifact.name +
+          " / " +
+          dep.name,
+        )
+      }
+      dependencies[dep.name] = true
     }
     seen[artifact.name] = true
   }
@@ -114,3 +138,9 @@ pub extend Manifest with ToJson::{to_json}
 
 ///|
 pub extend Manifest with @json.FromJson::{from_json}
+
+///|
+fn valid_digest(digest : String) -> Bool {
+  digest.length() == 64 &&
+  digest.all(c => (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))
+}
