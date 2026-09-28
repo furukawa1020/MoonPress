@@ -1,23 +1,10 @@
 ///|
-fn index_heading_targets(
-  outputs : Array[String],
-  pages : Array[Page],
-) -> Map[String, Map[String, Bool]] {
-  let targets : Map[String, Map[String, Bool]] = Map([])
-  // Collections have no generated heading IDs, but are still HTML destinations.
-  for name in outputs {
-    if name.has_suffix(".html") {
-      targets[url_component(name)] = Map([])
-    }
+fn index_heading_ids(outline : Array[HeadingInfo]) -> Map[String, Bool] {
+  let ids : Map[String, Bool] = Map([])
+  for heading in outline {
+    ids[url_component(heading.id)] = true
   }
-  for page in pages {
-    let ids : Map[String, Bool] = Map([])
-    for heading in headings(page.document.body) {
-      ids[url_component(heading.id)] = true
-    }
-    targets[url_component(page.output)] = ids
-  }
-  targets
+  ids
 }
 
 ///|

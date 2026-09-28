@@ -27,6 +27,13 @@ priv struct Pending {
 }
 
 ///|
+priv struct PageReferences {
+  output : String
+  links : Array[String]
+  images : Array[String]
+}
+
+///|
 fn load_previous(output : String) -> Map[String, Artifact] raise {
   let result : Map[String, Artifact] = Map([])
   let kind = path_kind(output)
@@ -165,6 +172,8 @@ fn plan_site(
   let pending : Array[Pending] = []
   let log : BuildLog = { events: [], changes: [], }
   let documents : Array[Page] = []
+  let references : Array[PageReferences] = []
+  let heading_targets : Map[String, Map[String, Bool]] = Map([])
   let mut pages = 0
   let layout_digest = digest_text(layout)
   let compiler_digest = digest_text("moonpress-renderer-v10")
@@ -180,6 +189,13 @@ fn plan_site(
         continue
       }
       documents.push({ output: stem + ".html", document, })
+      let blocks = parse_blocks(document.body)
+      let outline = block_headings(blocks)
+      let (links, images) = block_references(blocks)
+      references.push({ output: stem + ".html", links, images, })
+      heading_targets[url_component(stem + ".html")] = index_heading_ids(
+        outline,
+      )
       let deps : Array[Dependency] = [
         { name: "compiler", digest: compiler_digest, },
         { name: "layout.html", digest: layout_digest, },
@@ -192,8 +208,6 @@ fn plan_site(
           previous,
           output,
           () => {
-            let blocks = parse_blocks(document.body)
-            let outline = block_headings(blocks)
             @utf8.encode(
               apply_layout(
                 layout,
@@ -308,20 +322,25 @@ fn plan_site(
     routes.push("sitemap.xml")
   }
   let route_lookup = index_routes(routes)
-  let heading_targets = index_heading_targets(routes, documents)
+  for route in routes {
+    let key = url_component(route)
+    if route.has_suffix(".html") && !heading_targets.contains(key) {
+      heading_targets[key] = Map([])
+    }
+  }
   let base_path = match base_url {
     Some(url) => site_base_path(url)
     None => "/"
   }
-  for page in documents {
+  for page in references {
     validate_route_links(
-      markdown_images(page.document.body),
+      page.images,
       route_lookup,
       sources=true,
       base_path~,
       source=page.output,
     )
-    let links = markdown_links(page.document.body)
+    let links = page.links
     validate_route_links(links, route_lookup, base_path~, source=page.output)
     validate_heading_links(
       links,

@@ -118,17 +118,25 @@ pub fn render_inline(text : String) -> String {
 
 ///|
 pub fn markdown_links(source : String) -> Array[String] {
+  block_references(parse_blocks(source)).0
+}
+
+///|
+fn block_references(blocks : Array[Block]) -> (Array[String], Array[String]) {
   let links : Array[String] = []
-  for block in parse_blocks(source) {
+  let images : Array[String] = []
+  for block in blocks {
     for line in inline_lines(block) {
       for part in parse_inline(line) {
-        if part is Link(_, href) {
-          links.push(href)
+        match part {
+          Link(_, href) => links.push(href)
+          Image(_, src) => images.push(src)
+          _ => ()
         }
       }
     }
   }
-  links
+  (links, images)
 }
 
 ///|
@@ -367,17 +375,7 @@ fn allowed_src(src : String) -> Bool {
 
 ///|
 pub fn markdown_images(source : String) -> Array[String] {
-  let images : Array[String] = []
-  for block in parse_blocks(source) {
-    for line in inline_lines(block) {
-      for part in parse_inline(line) {
-        if part is Image(_, src) {
-          images.push(src)
-        }
-      }
-    }
-  }
-  images
+  block_references(parse_blocks(source)).1
 }
 
 ///|
