@@ -14,6 +14,7 @@ for name in a z obsolete; do printf '# %s\n\nOriginal\n' "$name" > "$tmp/site/co
 cp -a "$tmp/out" "$tmp/old"
 for name in a z; do printf '\nChanged\n' >> "$tmp/site/content/$name.md"; done
 rm "$tmp/site/content/obsolete.md"
+printf "# New\n" > "$tmp/site/content/n.md"
 "$cli" build "$tmp/site" "$tmp/clean" >/dev/null
 reset_output() {
   rm -rf "$tmp/out"
@@ -38,29 +39,73 @@ for injection in \
   "$cli" build "$tmp/site" "$tmp/out" >/dev/null
   diff -r "$tmp/out" "$tmp/clean"
 done
-# Each rename exposes a complete old or new file, but the batch is not atomic.
+# Ordinary publication failures restore exact previous files and metadata.
+metadata() {
+  find "$tmp/out" -maxdepth 1 -type f -printf '%f %i %m %T@\n' | sort
+}
+for injection in \
+  "MOONPRESS_TEST_FAIL_RENAME=$tmp/out/z.html" \
+  "MOONPRESS_TEST_FAIL_REMOVE=$tmp/out/obsolete.html" \
+  "MOONPRESS_TEST_FAIL_RENAME=$tmp/out/.moonpress.json"; do
+  reset_output
+  chmod 640 "$tmp/out/a.html"
+  metadata > "$tmp/metadata"
+  fail "$injection"
+  grep -q 'Publication failed; previous output restored' "$tmp/error"
+  diff -r "$tmp/out" "$tmp/old"
+  metadata > "$tmp/after-metadata"
+  cmp "$tmp/metadata" "$tmp/after-metadata"
+  test ! -e "$tmp/out/n.html"
+  "$cli" build "$tmp/site" "$tmp/out" >/dev/null
+  diff -r "$tmp/out" "$tmp/clean"
+done
+# Missing previously tracked artifacts must remain absent after rollback.
 reset_output
-fail "MOONPRESS_TEST_FAIL_RENAME=$tmp/out/z.html"
-grep -q 'Publication failed' "$tmp/error"
-cmp "$tmp/out/a.html" "$tmp/clean/a.html"
-cmp "$tmp/out/z.html" "$tmp/old/z.html"
+rm "$tmp/out/style.css"
+cp -a "$tmp/out" "$tmp/missing-before"
+fail "MOONPRESS_TEST_FAIL_RENAME=$tmp/out/.moonpress.json"
+diff -r "$tmp/out" "$tmp/missing-before"
+# Backup errors cannot modify originals, including earlier successfully-linked files.
+reset_output
+metadata > "$tmp/metadata"
+fail "MOONPRESS_TEST_FAIL_LINK=$tmp/out/.moonpress-stage/backup/z.html"
+grep -q 'Staging failed' "$tmp/error"
+diff -r "$tmp/out" "$tmp/old"
+metadata > "$tmp/after-metadata"
+cmp "$tmp/metadata" "$tmp/after-metadata"
+# If restoration itself fails, keep the evidence instead of discarding backups.
+reset_output
+status=0
+env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_FAIL_RENAME="$tmp/out/.moonpress.json" \
+  MOONPRESS_TEST_FAIL_ROLLBACK="$tmp/out/a.html" \
+  "$cli" build "$tmp/site" "$tmp/out" --json >"$tmp/log" 2>"$tmp/error" || status=$?
+test "$status" -eq 1
+test ! -s "$tmp/log"
+grep -q 'rollback incomplete' "$tmp/error"
+cmp "$tmp/out/.moonpress-stage/backup/a.html" "$tmp/old/a.html"
 cmp "$tmp/out/.moonpress.json" "$tmp/old/.moonpress.json"
-test -f "$tmp/out/obsolete.html"
+cmp "$tmp/out/a.html" "$tmp/clean/a.html"
 cp -a "$tmp/out" "$tmp/partial"
 if "$cli" build "$tmp/site" "$tmp/out" >/dev/null 2>"$tmp/error"; then exit 1; fi
-grep -q 'Output was edited outside MoonPress' "$tmp/error"
 diff -r "$tmp/out" "$tmp/partial"
-# Failure deleting stale output also leaves the previous manifest uncommitted.
+# A failure after manifest commit must not restore files behind the new manifest.
 reset_output
-fail "MOONPRESS_TEST_FAIL_REMOVE=$tmp/out/obsolete.html"
-test -f "$tmp/out/obsolete.html"
-cmp "$tmp/out/.moonpress.json" "$tmp/old/.moonpress.json"
-# A failed manifest rename cannot truncate the previously committed state.
-reset_output
-fail "MOONPRESS_TEST_FAIL_RENAME=$tmp/out/.moonpress.json"
-cmp "$tmp/out/.moonpress.json" "$tmp/old/.moonpress.json"
+status=0
+env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_FAIL_REMOVE="$tmp/out/.moonpress-stage/backup/a.html" \
+  "$cli" build "$tmp/site" "$tmp/out" --json >"$tmp/log" 2>"$tmp/error" || status=$?
+test "$status" -eq 1
+grep -q 'Publication committed; staging cleanup failed' "$tmp/error"
+cmp "$tmp/out/.moonpress.json" "$tmp/clean/.moonpress.json"
 cmp "$tmp/out/a.html" "$tmp/clean/a.html"
+test -f "$tmp/out/n.html"
 test ! -e "$tmp/out/obsolete.html"
+test -f "$tmp/out/.moonpress-stage/backup/a.html"
+# An ordinary failure on a fresh output returns it to absence.
+status=0
+env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_FAIL_RENAME="$tmp/fresh/z.html" \
+  "$cli" build "$tmp/site" "$tmp/fresh" >/dev/null 2>"$tmp/error" || status=$?
+test "$status" -eq 1
+test ! -e "$tmp/fresh"
 # Never delete a preexisting staging entry, even if it resembles crash debris.
 reset_output
 mkdir "$tmp/out/.moonpress-stage"
@@ -89,4 +134,4 @@ env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_FAIL_OPEN="$tmp/out/.moonpress-sta
 test "$(stat -c %Y "$tmp/out/a.html")" -eq 946684800
 test "$(stat -c %Y "$tmp/out/.moonpress.json")" -eq 946684800
 test ! -e "$tmp/out/.moonpress-stage"
-echo 'Publication tests passed: short-write preservation, retry, rename/delete/manifest faults, owned cleanup, no-op and clean parity.'
+echo 'Publication tests passed: staging preservation, inode/mode/mtime rollback, new/missing/deleted files, backup/rollback/commit-cleanup faults, retry and clean parity.'

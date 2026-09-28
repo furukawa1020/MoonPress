@@ -425,7 +425,12 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
     }
   }
   let staged : Array[String] = []
+  let backup = stage + "/backup"
+  let backed : Array[String] = []
+  let applied : Array[String] = []
+  let mut backup_created = false
   let mut publishing = false
+  let mut committed = false
   try {
     for item in plan.pending {
       if item.content is Some(bytes) {
@@ -437,6 +442,16 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
       staged.push(".moonpress.json")
       write_text(stage + "/.moonpress.json", plan.manifest)
     }
+    @fs.create_dir(backup)
+    backup_created = true
+    for item in plan.pending {
+      if item.content is Some(_) {
+        backup_file(output, backup, item.artifact.name, backed)
+      }
+    }
+    for name in plan.removed {
+      backup_file(output, backup, name, backed)
+    }
     publishing = true
     for item in plan.pending {
       if item.content is Some(_) {
@@ -444,30 +459,54 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
           stage + "/" + item.artifact.name,
           output + "/" + item.artifact.name,
         )
+        applied.push(item.artifact.name)
       }
     }
     for name in plan.removed {
       if path_kind(output + "/" + name) == 1 {
         @fs.remove_file(output + "/" + name)
+        applied.push(name)
       }
     }
     if manifest_changed {
       replace_staged_file(stage + "/.moonpress.json", marker)
     }
-    cleanup_stage(stage, staged)
+    committed = true
+    cleanup_stage(stage, staged, backed, backup_created)
   } catch {
     error => {
-      let cleaned = try {
-        cleanup_stage(stage, staged)
-        if fresh && !publishing {
-          @fs.remove_dir(output)
+      let rollback_error = if publishing && !committed {
+        try {
+          rollback_publication(output, backup, applied, backed)
+          None
+        } catch {
+          cause => Some("\{cause}")
         }
-        true
-      } catch {
-        _ => false
+      } else {
+        None
       }
-      let phase = if publishing {
-        "Publication failed; output may be partially updated; rebuild into a fresh directory"
+      // Failed rollback keeps remaining backups for inspection; never discard them.
+      let cleaned = if rollback_error is Some(_) {
+        false
+      } else {
+        try {
+          cleanup_stage(stage, staged, backed, backup_created)
+          if fresh && !committed {
+            @fs.remove_dir(output)
+          }
+          true
+        } catch {
+          _ => false
+        }
+      }
+      let phase = if committed {
+        "Publication committed; staging cleanup failed"
+      } else if rollback_error is Some(cause) {
+        "Publication failed; rollback incomplete (" +
+        cause +
+        "); backups retained; use a fresh output directory"
+      } else if publishing {
+        "Publication failed; previous output restored"
       } else {
         "Staging failed before existing artifacts were changed"
       }
@@ -478,12 +517,27 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
 }
 
 ///|
-fn cleanup_stage(stage : String, names : Array[String]) -> Unit raise {
+fn cleanup_stage(
+  stage : String,
+  names : Array[String],
+  backed : Array[String],
+  backup_created : Bool,
+) -> Unit raise {
   for name in names {
     let path = stage + "/" + name
     if path_kind(path) == 1 {
       @fs.remove_file(path)
     }
+  }
+  if backup_created {
+    let backup = stage + "/backup"
+    for name in backed {
+      let path = backup + "/" + name
+      if path_kind(path) == 1 {
+        @fs.remove_file(path)
+      }
+    }
+    @fs.remove_dir(backup)
   }
   // Never recursively delete unknown entries.
   @fs.remove_dir(stage)
