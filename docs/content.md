@@ -12,7 +12,7 @@ Body text.
 ```
 
 Optional keys: `title` (nonempty string), `description` (string), `tags` (array
-of nonempty strings). Unknown keys and wrong types are errors, not silently
+of nonempty strings), `draft` (boolean, default false). Unknown keys and wrong types are errors, not silently
 ignored typos. Tags are trimmed, deduplicated and deterministically sorted.
 The closing delimiter is a line containing `---`. CRLF is accepted. Metadata
 errors include the source filename and the frontmatter starting line; JSON
@@ -197,3 +197,23 @@ not references. When content begins and ends with an ASCII space, one space at
 each end is removed unless all content is spaces. Unclosed delimiter runs remain
 literal. Spans are limited to one source line; multiline spans are unsupported.
 Headings and TOC labels use the same normalized code text.
+
+## Draft articles
+
+Set `"draft": true` in JSON frontmatter to exclude an article from publication.
+The default is false; other value types are errors. Drafts produce no HTML and
+appear in no article/tag collection or sitemap. `build` and `explain` report a
+SKIP event; page counts include only published source pages.
+
+Draft metadata is still parsed and validated, but unfinished body links/images
+are not checked until publication. Published content or templates linking to a
+draft fail validation because it has no output route. Switching a published
+article to draft deletes its tracked HTML and obsolete tag pages on a successful
+build. Switching back to false restores them. A draft-only body edit leaves
+outputs unchanged. check, explain and build use the same publication selection.
+
+At least one published Markdown page is required. An all-draft site fails before
+any output changes. The public/ directory is independent: its assets are still
+copied even if only a draft refers to them. This flag controls generated pages,
+not access to source files in a public repository. There is no include-drafts
+preview mode yet.

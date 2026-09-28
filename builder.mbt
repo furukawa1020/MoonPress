@@ -159,6 +159,10 @@ fn plan_site(
       let source = @fs.read_file_to_string(path)
       let stem = name[:name.length() - 3].to_owned()
       let document = parse_document(source, stem, filename=path)
+      if document.draft {
+        events.push("SKIP content/" + name + " — draft")
+        continue
+      }
       documents.push({ output: stem + ".html", document, })
       let deps : Array[Dependency] = [
         { name: "compiler", digest: compiler_digest, },
@@ -195,7 +199,7 @@ fn plan_site(
     }
   }
   if pages == 0 {
-    raise InvalidInput("No .md pages found")
+    raise InvalidInput("No published .md pages found")
   }
   pending.push(
     plan_artifact(

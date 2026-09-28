@@ -49,3 +49,27 @@ test "template substitutions are single pass" {
     "{{description}}|&lt;x&gt;|{{title}}|{{unknown}}",
   )
 }
+
+///|
+test "draft metadata is strictly boolean and defaults to published" {
+  assert_false(@moonpress.parse_document("# Public", "x").draft)
+  assert_false(
+    @moonpress.parse_document("---\n{\"draft\":false}\n---\n# Public", "x").draft,
+  )
+  assert_true(
+    @moonpress.parse_document("---\n{\"draft\":true}\n---\n# Draft", "x").draft,
+  )
+  for value in ["null", "1", "\"true\"", "[]"] {
+    let rejected = try {
+      @moonpress.parse_document(
+        "---\n{\"draft\":" + value + "}\n---\n# Draft",
+        "x",
+      )
+      |> ignore
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(rejected)
+  }
+}

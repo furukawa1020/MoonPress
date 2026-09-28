@@ -114,6 +114,7 @@ pub(all) struct Document {
   description : String
   tags : Array[String]
   body : String
+  draft : Bool
 }
 
 pub(all) struct HeadingInfo {
