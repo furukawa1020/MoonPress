@@ -44,7 +44,8 @@ size_t fwrite(const void *data, size_t size, size_t count, FILE *stream) {
 int rename(const char *source, const char *target) {
   int (*real_rename)(const char *, const char *) = dlsym(RTLD_NEXT, "rename");
   if (!real_rename) _exit(93);
-  if (matches("MOONPRESS_TEST_FAIL_RENAME", target)) {
+  if (matches("MOONPRESS_TEST_FAIL_RENAME", target) ||
+      (strstr(source, "/backup/") && matches("MOONPRESS_TEST_FAIL_ROLLBACK", target))) {
     errno = EIO;
     return -1;
   }
@@ -129,4 +130,14 @@ long ftell(FILE *stream) {
     return -1;
   }
   return real_tell(stream);
+}
+
+int link(const char *source, const char *target) {
+  int (*real_link)(const char *, const char *) = dlsym(RTLD_NEXT, "link");
+  if (!real_link) _exit(101);
+  if (matches("MOONPRESS_TEST_FAIL_LINK", target)) {
+    errno = EIO;
+    return -1;
+  }
+  return real_link(source, target);
 }

@@ -35,9 +35,10 @@ older binaries without locking or hostile processes. Do not modify source/output
 trees during a build. Local Linux is tested; network/distributed filesystem
 locking semantics are not supported by this contract.
 
-Locking does not make multi-file publication transactional. A process killed
-*during publication* or a filesystem failure can still leave partial output; rebuild
-into a fresh directory in that case. [Recovery work](https://github.com/furukawa1020/MoonPress/issues/49)
+Locking does not make multi-file publication transactional. Caught publication
+errors before commit attempt rollback. A process killed during publication or an
+interrupted/failed rollback can still leave partial output; use a fresh directory
+in that case. [Recovery work](https://github.com/furukawa1020/MoonPress/issues/49)
 tracks that separate problem. Crash-release tests terminate a writer before
 publication and do not claim crash consistency during publication.
 

@@ -59,7 +59,7 @@ repeat the implementation.
 | Content | `document.mbt`, `markdown.mbt`, `links.mbt`, `headings.mbt` | Metadata, shared parsers, references, rendering and anchors |
 | Site outputs | `collections.mbt`, `sitemap.mbt`, `moonpress.mbt` | Lists, sitemap, escaping and one-pass layout substitution |
 | CLI | `cmd/main/main.mbt` | Arguments, report format and exit status |
-| Native boundary | `path_guard.c`, `io_native.c`, `io.mbt` | Thin POSIX/stdio operations; handle ownership and errors in MoonBit |
+| Native boundary | `path_guard.c`, `io_native.c`, `io.mbt` | Thin POSIX/stdio operations (including backup hard links); handle ownership and errors in MoonBit |
 | Verification | `*_test.mbt`, `scripts/*-test.sh` | Pure-function tests and real CLI/filesystem regressions |
 
 Keep compiler behavior in MoonBit and argument handling in the CLI. Shell handles

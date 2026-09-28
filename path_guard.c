@@ -64,3 +64,8 @@ MOONBIT_FFI_EXPORT void moonpress_unlock_output(int fd) {
 MOONBIT_FFI_EXPORT int moonpress_replace_file(moonbit_bytes_t source, moonbit_bytes_t target) {
   return rename((const char *)source, (const char *)target) == 0 ? 0 : errno;
 }
+
+/* Preserve an existing regular-file inode without copying or changing contents. */
+MOONBIT_FFI_EXPORT int moonpress_link_file(moonbit_bytes_t source, moonbit_bytes_t target) {
+  return link((const char *)source, (const char *)target) == 0 ? 0 : errno;
+}

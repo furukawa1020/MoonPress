@@ -1,64 +1,80 @@
-# Staged publication and failure semantics
+# Publication and ordinary-error rollback
 
-After source/output validation and planning, MoonPress prepares every changed
-artifact and the next manifest inside a newly-created `.moonpress-stage/`
-directory in the output. It does not replace or delete an existing artifact until
-all these writes succeed. Preparation is implemented in MoonBit using native
-filesystem I/O.
+After source/output validation and planning, MoonPress writes changed artifacts
+and the next manifest into a newly-created `.moonpress-stage/` directory.
+Before publication, it preserves existing files that will be changed or deleted
+as hard links in `.moonpress-stage/backup/`. The filesystem must support hard
+links within the output directory; backup failures abort before publication.
 
-Publication then renames each changed file to its final path, removes stale
-tracked files, and replaces `.moonpress.json` last. Rename is within the same
-filesystem: readers of an individual file see its complete old or new contents,
-not truncation while new content is written. A reader following multiple files
-can still observe a mixed version.
+MoonBit records each successful artifact rename or stale-file deletion.
+The manifest is replaced last. Its successful replacement is the commit point;
+when the manifest bytes are unchanged, completion of the artifact operations
+is the commit point.
 
-## Ordinary failures
+## Caught failures before commit
 
-If preparation fails (for example a short write or failure writing the staged
-manifest), existing artifact contents and manifest stay unchanged. MoonPress
-attempts to remove only the staging files it created and then the empty staging
-directory. For a newly-created output, it also attempts to remove the empty output
-directory. A cleaned preparation failure can be retried.
+A preparation/backup failure leaves existing artifact contents unchanged.
+A rename, deletion or manifest replacement error triggers reverse-order rollback:
+old files are renamed back from backup, and newly-created files are removed.
+Previously missing tracked files return to absence. The old manifest is untouched.
 
-If rename, stale-file deletion or final manifest replacement fails after
-publication starts, some artifacts may already have changed. There is no rollback.
-The diagnostic reports possible partial publication and directs the caller to a
-fresh output directory. Output-integrity checks reject mismatched artifacts on
-later builds rather than silently trusting them.
+Successful rollback preserves the old files' contents, inode, mode and mtime.
+Hard-link creation/removal can change link counts and ctime; directory timestamps
+are not preserved. The original error is still returned with exit code 1, but the
+diagnostic states that the previous output was restored. After the underlying
+failure is resolved, a normal build can be retried.
 
-Cleanup is best-effort after an error and never recursively removes unknown
-entries. A preexisting `.moonpress-stage` entry is always rejected without
-deletion, whether it is genuine crash debris or unrelated user data. Investigate
-it separately and rebuild into a fresh directory. Do not delete a staging entry
+Cleanup removes only staging entries owned by that invocation, then empty staging
+directories. A fresh output is removed if preparation or rollback completes
+before commit. Unknown entries are never recursively removed.
+
+## Failed rollback and post-commit cleanup
+
+If rollback itself fails, remaining backups and staging entries are retained.
+The diagnostic includes the original publication error and rollback failure.
+The next build/explain refuses the staging entry; use a fresh output directory
+and retain the old directory for investigation. There is no automatic restart
+recovery yet.
+
+If the manifest has committed, a cleanup failure **does not trigger rollback**:
+the generated files and committed manifest describe the new build. The command
+still fails with an explicit committed/cleanup diagnostic. Staging remnants are
+not silently removed on a later invocation.
+
+Any preexisting `.moonpress-stage` entry is rejected without deletion, whether
+it is genuine crash debris or unrelated data. Do not remove staging directories
 while another build could be running.
 
-## Guarantees and remaining work
+## Limits and resource behavior
 
-- Unchanged files keep their inode and mtime. A completely unchanged build creates
-  no staging directory and rewrites no manifest.
-- Successful output contains no staging directory and remains byte-identical to a
-  clean build, including the manifest.
-- Changed files receive the normal permissions/ownership of newly-created files
-  under the invoking user's umask. Manually changed mode bits on replaced files
-  are not preserved; unchanged files retain theirs.
-- Staging requires additional disk space for all changed artifacts and the next
-  manifest. Only generated output, not source files, is staged.
-- This is **not a multi-file transaction**, a durable commit protocol or automatic
-  crash recovery. No fsync/power-loss guarantee is made. SIGKILL or power loss may
-  leave staging entries or partial publication. [#49](https://github.com/furukawa1020/MoonPress/issues/49)
-  remains open for recovery.
-- Directory locks protect cooperating build/explain processes; they do not make
-  external readers observe a whole-build snapshot. See [concurrency](concurrency.md).
+This is rollback for caught runtime errors, **not a multi-file transaction** or
+a durable crash-recovery protocol. An individual rename exposes complete old or
+new file contents, but readers of several files can observe mixed versions, even
+during rollback. SIGKILL, power loss or interruption during rollback can leave
+partial output. No fsync/power-loss guarantee is made.
+[#49](https://github.com/furukawa1020/MoonPress/issues/49) tracks restart recovery.
 
-Tests inject a partial staged write, staged-manifest creation failure, artifact
-rename failure, stale-file deletion failure and manifest rename failure into the
-real native CLI. They verify preservation before publication, complete per-file
-contents and uncommitted old manifests on failures, cleanup, and rejection of
-partial state. Test injection code is separate from the shipped executable.
+Directory locks coordinate cooperating build/explain processes. External edits,
+old binaries without locking and hostile concurrent path changes are outside
+the contract. See [concurrency](concurrency.md).
+
+Unchanged files keep their inode and mtime; a no-op creates no staging directory.
+Changed files receive new-file permissions/ownership under the invoking user's
+umask on a successful build. Preparation needs space for changed artifacts and
+the new manifest; backups preserve old inodes without copying their bytes, and
+keep replaced/deleted data allocated until commit cleanup.
+
+Successful output has no staging directory and remains byte-identical to a clean
+build, including the manifest.
+
+## Verification
+
+Real-CLI fault injection covers partial staged writes, staging/backup failures,
+artifact rename, stale deletion, manifest rename, rollback failure and cleanup
+after commit. Tests compare previous bytes and inode/mode/mtime, verify new-file
+removal and deleted/missing-file restoration, and exercise a normal retry.
 
 File readers and staged writers own their stdio handles in MoonBit and close them
-on raised-error paths. Fault probes reproduce 16 leaked descriptors after 16
-legacy short-write/flush/read/seek/size failures; the new I/O layer shows zero
-growth for these failures and for close errors. Cleanup errors preserve the
-original diagnostic, and fclose is never retried after consuming a handle.
-See [#54](https://github.com/furukawa1020/MoonPress/issues/54) for the audit.
+on raised-error paths. The fault probes from [#54](https://github.com/furukawa1020/MoonPress/issues/54)
+show zero descriptor growth across repeated I/O failures. Test injection code is
+separate from the shipped executable.
