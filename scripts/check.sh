@@ -31,3 +31,5 @@ bash scripts/locking-test.sh
 bash scripts/publication-test.sh
 
 bash scripts/io-cleanup-test.sh
+
+bash scripts/utf8-input-test.sh

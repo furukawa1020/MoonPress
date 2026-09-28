@@ -46,7 +46,7 @@ fn read_base_url(input : String) -> String? raise {
     return None
   }
   require_input_kind(path, 1)
-  let fields = match @json.parse(@fs.read_file_to_string(path)) {
+  let fields = match @json.parse(read_text(path)) {
     Object(fields) => fields
     _ => raise InvalidInput("site.json must be an object")
   }

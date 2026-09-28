@@ -63,3 +63,56 @@ fn write_bytes(path : String, bytes : Bytes) -> Unit raise {
 fn write_text(path : String, text : String) -> Unit raise {
   write_bytes(path, @utf8.encode(text))
 }
+
+///|
+extern "C" fn io_seek(file : NativeFile, whence : Int) -> Int = "moonpress_io_seek"
+
+///|
+extern "C" fn io_size(file : NativeFile) -> Int64 = "moonpress_io_size"
+
+///|
+#borrow(data)
+extern "C" fn io_read(file : NativeFile, data : Bytes, length : Int) -> Int = "moonpress_io_read"
+
+///|
+fn read_bytes(path : String) -> Bytes raise {
+  let file = open_file(path, 0)
+  let mut closed = false
+  defer (if !closed { io_close(file) |> ignore })
+  if io_seek(file, 2) != 0 {
+    raise io_failure("seek", path)
+  }
+  let size = io_size(file)
+  if size < 0 {
+    raise io_failure("size", path)
+  }
+  if size > 2147483647L {
+    raise InvalidInput("File exceeds supported byte-buffer length: " + path)
+  }
+  if io_seek(file, 0) != 0 {
+    raise io_failure("rewind", path)
+  }
+  let bytes = Bytes::make(size.to_int(), 0)
+  if io_read(file, bytes, bytes.length()) != bytes.length() {
+    raise io_failure("read (short input)", path)
+  }
+  let result = io_close(file)
+  closed = true
+  if result != 0 {
+    raise io_failure("close", path)
+  }
+  bytes
+}
+
+///|
+fn decode_text(bytes : Bytes, path : String) -> String raise {
+  @utf8.decode(bytes, ignore_bom=false) catch {
+    _ => raise InvalidInput("Invalid UTF-8 text: " + path)
+  }
+}
+
+///|
+fn read_text(path : String) -> String raise {
+  // The descriptor is already closed before decoding can raise.
+  decode_text(read_bytes(path), path)
+}
