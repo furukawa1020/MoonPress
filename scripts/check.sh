@@ -31,6 +31,7 @@ bash scripts/locking-test.sh
 
 bash scripts/publication-test.sh
 bash scripts/journal-test.sh
+bash scripts/recovery-test.sh
 
 bash scripts/io-cleanup-test.sh
 

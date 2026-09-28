@@ -1,4 +1,4 @@
-# Publication and ordinary-error rollback
+# Publication and recovery
 
 After source/output validation and planning, MoonPress writes changed artifacts
 and the next manifest into a newly-created `.moonpress-stage/` directory.
@@ -40,27 +40,70 @@ before commit. Unknown entries are never recursively removed.
 
 If rollback itself fails, remaining backups and staging entries are retained.
 The diagnostic includes the original publication error and rollback failure.
-The next build/explain refuses the staging entry; use a fresh output directory
-and retain the old directory for investigation. There is no automatic restart
-recovery yet.
+The next build/explain refuses the staging entry. Run `moonpress recover` as
+described below; retain the directory for investigation if preflight rejects it.
 
 If the manifest has committed, a cleanup failure **does not trigger rollback**:
 the generated files and committed manifest describe the new build. The command
 still fails with an explicit committed/cleanup diagnostic. Staging remnants are
 not silently removed on a later invocation.
 
-Any preexisting `.moonpress-stage` entry is rejected without deletion, whether
-it is genuine crash debris or unrelated data. Do not remove staging directories
-while another build could be running.
+Build/explain reject any preexisting `.moonpress-stage` entry without deletion.
+They never run recovery automatically. Do not remove staging directories while
+another build or recovery could be running.
+
+## Explicit restart recovery
+
+```sh
+moonpress recover dist
+moonpress recover dist --json
+```
+
+Recovery requires no source directory. It holds the same exclusive parent lock
+as build and first validates the entire journal, output tree, remaining staged
+payloads and backups. Unknown entries, modified bytes, symlinks, non-regular
+files, invalid manifests and missing required backup data cause failure before
+any mutation. A journal does not authenticate deliberately forged state.
+
+Before commit, recovery restores prior files from their preserved inodes and
+removes artifacts that were previously absent. Missing tracked artifacts return
+to absence; a fresh unpublished output returns to absence. If the next manifest
+has committed and **every** new artifact matches with no stale outputs, recovery
+only removes owned staging data. It never rolls a committed new manifest back.
+When old and new manifest bytes are identical (for example, missing-file repair),
+a fully matching new tree is finalized; otherwise prior presence is restored.
+
+Recovery can be retried after a process interruption or an I/O error while the
+complete journal remains: already restored files are recognized by their old
+digests and remaining backups are checked before more changes. Successful
+restoration preserves content, inode, mode and mtime; ctime and directory times
+are excluded. Once cleanup starts, the selected state is already complete.
+
+Reports use `action`: `rolled_back`, `finalized`, `clean` (managed output with no
+stage), or `absent` (no output directory). `restored` counts backup renames and
+`removed` counts newly-created artifacts removed by this invocation, not staging
+cleanup. The JSON envelope uses schema 1, command `recover`, `include_drafts:
+false`, and `report`. `--include-drafts` is not accepted. Exit codes match other
+commands: 0 success, 1 validation/I/O error, 2 invalid arguments. On failure,
+stdout is empty; errors go to stderr. Resolve I/O errors before retrying.
+
+**Limits:** recovery refuses a missing, partial or unsupported journal. A kill
+before journal completion, after its final removal but before staging `rmdir`,
+or during final fresh-output directory removal can leave remnants with no
+sufficient ownership record. Use a fresh output directory and keep the old one
+for inspection in those cases. Legacy pre-journal builds are also unsupported.
+There is no automatic cleanup of unrecognized remnants and no fsync guarantee.
+The supported contract is process interruption on the tested local Linux
+filesystem, not filesystem corruption or power loss.
 
 ## Limits and resource behavior
 
-This is rollback for caught runtime errors, **not a multi-file transaction** or
-a durable crash-recovery protocol. An individual rename exposes complete old or
+This is **not a multi-file transaction** or a power-loss durability protocol. An individual rename exposes complete old or
 new file contents, but readers of several files can observe mixed versions, even
 during rollback. SIGKILL, power loss or interruption during rollback can leave
 partial output. No fsync/power-loss guarantee is made.
-[#49](https://github.com/furukawa1020/MoonPress/issues/49) tracks restart recovery.
+[#49](https://github.com/furukawa1020/MoonPress/issues/49) tracks the remaining
+pre-journal/final-cleanup windows and durability work.
 
 Directory locks coordinate cooperating build/explain processes. External edits,
 old binaries without locking and hostile concurrent path changes are outside
@@ -88,3 +131,8 @@ File readers and staged writers own their stdio handles in MoonBit and close the
 on raised-error paths. The fault probes from [#54](https://github.com/furukawa1020/MoonPress/issues/54)
 show zero descriptor growth across repeated I/O failures. Test injection code is
 separate from the shipped executable.
+
+Recovery tests kill actual processes around artifact writes, stale deletion,
+manifest replacement, backup cleanup and recovery itself. They cover prior file
+metadata, repeated recovery, equal manifests, fresh outputs, clean-build parity,
+preflight rejection without mutation and real competing recovery locks.

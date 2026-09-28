@@ -4,7 +4,8 @@ On the supported local Linux filesystem, `build` acquires an exclusive advisory
 lock before reading previous output state and holds it until publication returns
 or raises an error. `explain` uses a shared lock for the same interval: multiple
 explain operations can coexist, but they cannot overlap a writer. `check` has no
-output state and acquires no lock.
+output state and acquires no lock. `recover` uses the same exclusive lock as
+build for validation, restoration and cleanup.
 
 Acquisition is nonblocking. Conflicting access exits with code 1 and a diagnostic
 on stderr; no report is printed to stdout and no output is changed. Retry after
@@ -37,10 +38,10 @@ locking semantics are not supported by this contract.
 
 Locking does not make multi-file publication transactional. Caught publication
 errors before commit attempt rollback. A process killed during publication or an
-interrupted/failed rollback can still leave partial output; use a fresh directory
-in that case. [Recovery work](https://github.com/furukawa1020/MoonPress/issues/49)
-tracks that separate problem. Crash-release tests terminate a writer before
-publication and do not claim crash consistency during publication.
+interrupted/failed rollback can still leave partial output. `recover` restores
+validated journaled interruptions or finalizes a fully committed build. Missing
+or invalid journals still need a fresh directory. [Recovery limits](publication.md)
+describe preparation/final-cleanup gaps and the absence of power-loss guarantees.
 
 The native boundary resolves/open-locks/closes directory descriptors and performs
 per-file rename. [Staging semantics](publication.md) describe publication separately.

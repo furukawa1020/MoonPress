@@ -12,8 +12,8 @@ CommonMark compatibility or superiority to other site generators.
 - Preflight local reference checks and guarded incremental output ownership.
 - Deterministic clean/incremental output, explain/check modes and versioned JSON reports.
 - Output filename byte limits, manifest validation and source file-kind checks.
-- Staged preparation, per-file replacement and caught-error rollback; restart recovery remains open.
-- Cooperative build/explain locking on local Linux filesystems, including new outputs.
+- Staged preparation, per-file replacement and caught-error rollback; explicit recovery of journaled interruptions.
+- Cooperative build/explain/recover locking on local Linux filesystems, including new outputs.
 - Native tests and shell-only GitHub Actions workflows.
 
 See [content semantics](content.md), [contributing](../CONTRIBUTING.md) and
@@ -25,13 +25,14 @@ See [content semantics](content.md), [contributing](../CONTRIBUTING.md) and
 | --- | --- | --- |
 | Reproducible toolchain | Fixed official archive or permitted mirror, pinned checksums, clean-environment rebuild and mismatch tests | [#11](https://github.com/furukawa1020/MoonPress/issues/11) |
 | Verified example deployment | Pages enabled and generated HTML/CSS retrieved from the public URL | [#3](https://github.com/furukawa1020/MoonPress/issues/3) |
-| Filesystem failure recovery | Staging and caught-error rollback implemented; restart recovery and crash consistency remain open | [#49](https://github.com/furukawa1020/MoonPress/issues/49), [#53](https://github.com/furukawa1020/MoonPress/issues/53), [contract](publication.md) |
+| Filesystem failure recovery | Journaled restart recovery implemented; pre-journal/final-cleanup gaps and power-loss durability remain open | [#49](https://github.com/furukawa1020/MoonPress/issues/49), [#53](https://github.com/furukawa1020/MoonPress/issues/53), [contract](publication.md) |
 | Concurrent writer protection | Implemented for cooperative local Linux builds; parent-directory scope and tested limits documented | [#50](https://github.com/furukawa1020/MoonPress/issues/50), [contract](concurrency.md) |
 | Distribution and compatibility | Versioned native artifact/checksum process, install smoke test, supported-platform statement and API/schema migration policy | Plan after the reproducible toolchain gate |
 
 Current builds are not transactional. Cooperative writers use directory locks;
 external tools and old MoonPress versions that do not lock remain unsupported.
-After a partial filesystem failure, use a fresh output directory. Neither
+After an interrupted publication, use explicit recovery with a complete journal;
+unsupported remnants require a fresh output directory. Neither
 source/output checks nor the manifest authenticate untrusted projects or defend
 against concurrent hostile path changes.
 
