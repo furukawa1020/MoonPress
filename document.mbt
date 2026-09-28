@@ -4,6 +4,7 @@ pub(all) struct Document {
   description : String
   tags : Array[String]
   body : String
+  draft : Bool
 }
 
 ///|
@@ -40,6 +41,7 @@ pub fn parse_document(
   }
   let mut title = page_title(body, fallback)
   let mut description = ""
+  let mut draft = false
   let tags : Array[String] = []
   for key, value in fields {
     match (key, value) {
@@ -50,6 +52,8 @@ pub fn parse_document(
         title = text
       }
       ("description", String(text)) => description = text
+      ("draft", True) => draft = true
+      ("draft", False) => draft = false
       ("tags", Array(items)) =>
         for item in items {
           match item {
@@ -70,12 +74,12 @@ pub fn parse_document(
               )
           }
         }
-      ("title" | "description" | "tags", _) =>
+      ("title" | "description" | "tags" | "draft", _) =>
         raise InvalidInput(filename + ":2: wrong type for " + key)
       (_, _) =>
         raise InvalidInput(filename + ":2: unknown metadata key: " + key)
     }
   }
   tags.sort()
-  { title, description, tags, body, }
+  { title, description, tags, body, draft, }
 }

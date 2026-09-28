@@ -21,7 +21,13 @@ test "URL encoding preserves Unicode filenames and encodes delimiters" {
 test "collections escape metadata and URLs" {
   let page : @moonpress.Page = {
     output: "a\".html",
-    document: { title: "<x>", description: "&", tags: [], body: "", },
+    document: {
+      title: "<x>",
+      description: "&",
+      tags: [],
+      body: "",
+      draft: false,
+    },
   }
   let html = @moonpress.render_collection("<list>", [page])
   assert_true(html.contains("&lt;list&gt;"))
