@@ -117,13 +117,14 @@ pub fn compile_site(
   input : String,
   output : String,
   dry_run? : Bool = false,
+  include_drafts? : Bool = false,
 ) -> BuildReport raise {
   let output = output.trim_end(chars="/").to_owned()
   if output.is_empty() {
     raise InvalidInput("Root output directory is not allowed")
   }
   let previous = load_previous(output)
-  let plan = plan_site(input, previous, Some(output))
+  let plan = plan_site(input, previous, Some(output), include_drafts~)
   if !dry_run {
     apply_plan(output, plan)
   }
@@ -135,6 +136,7 @@ fn plan_site(
   input : String,
   previous : Map[String, Artifact],
   output : String?,
+  include_drafts? : Bool = false,
 ) -> BuildPlan raise {
   let base_url = read_base_url(input)
   let layout = @fs.read_file_to_string(input + "/layout.html")
@@ -159,7 +161,7 @@ fn plan_site(
       let source = @fs.read_file_to_string(path)
       let stem = name[:name.length() - 3].to_owned()
       let document = parse_document(source, stem, filename=path)
-      if document.draft {
+      if document.draft && !include_drafts {
         events.push("SKIP content/" + name + " — draft")
         continue
       }
@@ -426,8 +428,11 @@ pub(all) struct CheckReport {
 }
 
 ///|
-pub fn check_site(input : String) -> CheckReport raise {
+pub fn check_site(
+  input : String,
+  include_drafts? : Bool = false,
+) -> CheckReport raise {
   // No output path, prior manifest, temporary directory, or filesystem mutation.
-  let plan = plan_site(input, Map([]), None)
+  let plan = plan_site(input, Map([]), None, include_drafts~)
   { pages: plan.report.pages, outputs: plan.pending.length(), }
 }
