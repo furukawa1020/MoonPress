@@ -2,13 +2,16 @@
 
 A small static-site compiler written in **MoonBit**. Native executable in,
 HTML + CSS out. No TypeScript, JavaScript, Node.js or npm in the application
-or CI workflow. Experimental bootstrap, not a production-ready SSG.
+or CI workflow. Experimental; see the [release-readiness roadmap](docs/roadmap.md).
 
 ## Quick start
 
-Prerequisites: Linux x86_64, a C compiler, curl, Git and Bash.
+Prerequisites: Linux x86_64, a C compiler, curl, Git, Bash, jq and standard GNU
+command-line tools. See [CONTRIBUTING.md](CONTRIBUTING.md) for the tested environment.
 
 ```sh
+git clone https://github.com/furukawa1020/MoonPress.git
+cd MoonPress
 bash scripts/setup.sh
 export PATH="$HOME/.moon/bin:$PATH"
 bash scripts/check.sh
@@ -33,6 +36,10 @@ article lists, tag pages, sitemap and preflight link checks are supported; see [
 This is not a CommonMark implementation.
 
 ## Development
+
+Start with [the contribution guide](CONTRIBUTING.md) for setup, architecture,
+bug reports and compatibility checks. [Release gates](docs/roadmap.md) track
+what remains before a stable distribution.
 
 `moon check`, `moon test`, and `moon build --release` use the native target
 configured in moon.mod. Run `moon info --target native && moon fmt` before PRs.
@@ -82,6 +89,13 @@ A tiny POSIX C shim provides `lstat` checks; all dependency and compiler logic
 is MoonBit. Linux x86_64 is the tested platform. Unmanaged contents are never
 recursively removed. These checks are for trusted local projects, not a sandbox
 against a concurrent hostile process changing filesystem paths.
+
+Output filenames are limited to 255 UTF-8 bytes, including generated suffixes.
+Long names fail during planning, before any output is written. The incremental
+manifest must contain lowercase SHA-256 digests and unique, nonempty dependency
+names per output. Corrupt/unsupported state is rejected; rebuild into a fresh
+directory rather than manually repairing compiler state. The manifest provides
+integrity checks for accidental changes, not authentication against tampering.
 
 ## Check before building
 
@@ -138,10 +152,3 @@ describe a plan; no files are written. Check reports contain only `pages` and
 
 The development integration suite additionally requires `jq` to validate JSON
 reports (available on the CI Ubuntu runner); the MoonPress executable does not.
-
-Output filenames are limited to 255 UTF-8 bytes, including generated suffixes.
-Long names fail during planning, before any output is written. The incremental
-manifest must contain lowercase SHA-256 digests and unique, nonempty dependency
-names per output. Corrupt/unsupported state is rejected; rebuild into a fresh
-directory rather than manually repairing compiler state. The manifest provides
-integrity checks for accidental changes, not authentication against tampering.
