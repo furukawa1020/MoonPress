@@ -40,6 +40,8 @@ pub fn parse_manifest(String) -> Manifest raise
 
 pub fn rebuild_reason(Artifact?, Array[Dependency]) -> String?
 
+pub fn recover_output(String) -> RecoveryReport raise
+
 pub fn render_collection(String, Array[Page]) -> String
 
 pub fn render_inline(String) -> String
@@ -149,6 +151,13 @@ pub(all) struct Page {
   output : String
   document : Document
 }
+
+pub(all) struct RecoveryReport {
+  action : String
+  restored : Int
+  removed : Int
+} derive(ToJson)
+pub fn RecoveryReport::to_json(Self) -> Json
 
 // Type aliases
 

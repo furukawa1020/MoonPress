@@ -36,6 +36,12 @@ fn load_previous(output : String) -> Map[String, Artifact] raise {
   if kind != 2 {
     raise InvalidInput("Output must be a real directory, not a symlink")
   }
+  if path_kind(output + "/.moonpress-stage") != 0 {
+    raise InvalidInput(
+      "Output contains an unfinished or foreign staging entry; try moonpress recover or use a fresh output directory: " +
+      output,
+    )
+  }
   let marker = output + "/.moonpress.json"
   if path_kind(marker) != 1 {
     raise InvalidInput("Existing output is not managed by MoonPress")
@@ -46,12 +52,6 @@ fn load_previous(output : String) -> Map[String, Artifact] raise {
   }
   // Refuse unknown files and edited outputs before ANY writes or deletions.
   for name in @fs.read_dir(output) {
-    if name == ".moonpress-stage" {
-      raise InvalidInput(
-        "Output contains an unfinished or foreign staging entry; use a fresh output directory: " +
-        output,
-      )
-    }
     let file = output + "/" + name
     if path_kind(file) != 1 {
       raise InvalidInput("Output contains a non-regular file: " + name)
@@ -530,7 +530,7 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
       } else if rollback_error is Some(cause) {
         "Publication failed; rollback incomplete (" +
         cause +
-        "); backups retained; use a fresh output directory"
+        "); backups retained; try moonpress recover or use a fresh output directory"
       } else if publishing {
         "Publication failed; previous output restored"
       } else {

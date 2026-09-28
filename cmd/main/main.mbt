@@ -24,12 +24,16 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
-  value == "build" || value == "check" || value == "explain"
+  value == "build" ||
+  value == "check" ||
+  value == "explain" ||
+  value == "recover"
 }
 
 ///|
 fn usage(command : String) -> String {
   match command {
+    "recover" => "Usage: moonpress recover <output-directory> [--json]"
     "build" =>
       "Usage: moonpress build <site-directory> <output-directory> [--include-drafts] [--json]"
     "explain" =>
@@ -37,13 +41,15 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress [--help|-h|--version]\n       moonpress <build|check|explain> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <build|check|explain|recover> [--help|-h]"
   }
 }
 
 ///|
 fn help_text(command : String) -> String {
   let description = match command {
+    "recover" =>
+      "Recover interrupted publication using its validated staging journal.\nRestore the previous output before commit; finalize cleanup after commit.\nReject edited files and incomplete journals before any change. No site input needed."
     "build" =>
       "Compile the site and update a new or MoonPress-managed output directory.\nRefuse unmanaged files, edited output and symlinks before publication."
     "check" =>
@@ -51,7 +57,13 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+  }
+  if command == "recover" {
+    return description +
+      "\n\n" +
+      usage(command) +
+      "\n\n--json prints one schema-1 report. No --include-drafts option.\nExit status: 0 success, 1 validation/I/O failure, 2 incorrect arguments.\nErrors go to stderr; stdout is empty on failure."
   }
   description +
   "\n\n" +
@@ -75,7 +87,7 @@ fn main {
     return
   }
   let command = args[1]
-  let required = if command == "check" { 3 } else { 4 }
+  let required = if command == "check" || command == "recover" { 3 } else { 4 }
   let mut valid = is_command(command)
   if args.length() < required {
     valid = false
@@ -90,7 +102,8 @@ fn main {
   let mut json = false
   for index = required; index < args.length(); index = index + 1 {
     match args[index] {
-      "--include-drafts" if !include_drafts => include_drafts = true
+      "--include-drafts" if !include_drafts && command != "recover" =>
+        include_drafts = true
       "--json" if !json => json = true
       _ => valid = false
     }
@@ -101,7 +114,16 @@ fn main {
     return
   }
   try {
-    if command == "check" {
+    if command == "recover" {
+      let report = @lib.recover_output(args[2])
+      if json {
+        print_report(command, false, report.to_json())
+      } else {
+        println(
+          "Recovery: \{report.action}, restored: \{report.restored}, removed: \{report.removed}",
+        )
+      }
+    } else if command == "check" {
       let report = @lib.check_site(args[2], include_drafts~)
       if json {
         print_report(command, include_drafts, report.to_json())

@@ -94,7 +94,9 @@ coordinated by directory locks; see [concurrency](docs/concurrency.md).
 Changed artifacts are [staged before publication](docs/publication.md) and each
 file is replaced atomically. Caught failures before manifest commit attempt to
 restore the previous output. The whole build is not transactional: interrupted
-or failed rollback still requires a fresh directory. The manifest is replaced last.
+or failed rollback may leave partial output. Use `moonpress recover dist` to
+restore a journaled interruption, then retry the build. Missing/invalid journals
+still require a fresh directory; see the recovery limits below. The manifest is replaced last.
 A small POSIX C shim provides `lstat` checks, directory locks, hard links and file rename; all dependency and compiler logic
 is MoonBit. Linux x86_64 is the tested platform. Unmanaged contents are never
 recursively removed. These checks are for trusted local projects, not a sandbox
@@ -162,3 +164,22 @@ describe a plan; no files are written. Check reports contain only `pages` and
 
 The development integration suite additionally requires `jq` to validate JSON
 reports (available on the CI Ubuntu runner); the MoonPress executable does not.
+
+## Recover interrupted publication
+
+```sh
+moonpress recover dist
+moonpress recover dist --json
+```
+
+Recovery validates the recorded state and all remaining files before changing
+anything. Before commit it restores the previous output; after a verified commit
+it completes staging cleanup. It needs no source directory and uses the same
+exclusive lock as build. Edited files, unknown entries and missing required
+backups are refused. A completed recovery can be followed by a normal build.
+
+Recovery requires a complete journal. Interruption before that record is ready,
+or in the final directory cleanup window after its removal, still needs a fresh
+output directory. This does not provide whole-site atomic visibility or power-loss
+durability. See [publication and recovery](docs/publication.md) for exact limits,
+report fields and exit statuses.
