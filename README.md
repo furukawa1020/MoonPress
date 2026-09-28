@@ -138,3 +138,10 @@ describe a plan; no files are written. Check reports contain only `pages` and
 
 The development integration suite additionally requires `jq` to validate JSON
 reports (available on the CI Ubuntu runner); the MoonPress executable does not.
+
+Output filenames are limited to 255 UTF-8 bytes, including generated suffixes.
+Long names fail during planning, before any output is written. The incremental
+manifest must contain lowercase SHA-256 digests and unique, nonempty dependency
+names per output. Corrupt/unsupported state is rejected; rebuild into a fresh
+directory rather than manually repairing compiler state. The manifest provides
+integrity checks for accidental changes, not authentication against tampering.
