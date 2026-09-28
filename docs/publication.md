@@ -6,6 +6,14 @@ Before publication, it preserves existing files that will be changed or deleted
 as hard links in `.moonpress-stage/backup/`. The filesystem must support hard
 links within the output directory; backup failures abort before publication.
 
+After preparation, MoonPress writes a versioned `journal` in the staging
+directory, containing exact old/next manifests, planned writes and prior file
+presence. The journal is validated and fully closed before any public artifact
+is changed. Journal write failures abort publication; owned cleanup removes the
+journal last. A journal is a recovery prerequisite, not permission for `build`
+to overwrite crash remnants. Journals are integrity records, not authenticated
+proof of ownership against deliberate tampering.
+
 MoonBit records each successful artifact rename or stale-file deletion.
 The manifest is replaced last. Its successful replacement is the commit point;
 when the manifest bytes are unchanged, completion of the artifact operations
@@ -73,6 +81,8 @@ Real-CLI fault injection covers partial staged writes, staging/backup failures,
 artifact rename, stale deletion, manifest rename, rollback failure and cleanup
 after commit. Tests compare previous bytes and inode/mode/mtime, verify new-file
 removal and deleted/missing-file restoration, and exercise a normal retry.
+SIGKILL tests also verify complete journals immediately before and after the
+first public rename, including fresh outputs and missing tracked files.
 
 File readers and staged writers own their stdio handles in MoonBit and close them
 on raised-error paths. The fault probes from [#54](https://github.com/furukawa1020/MoonPress/issues/54)
