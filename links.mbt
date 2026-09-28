@@ -186,6 +186,44 @@ fn index_routes(outputs : Array[String]) -> Map[String, Bool] {
 }
 
 ///|
+// None denotes an external URL or a reference to the current document.
+fn local_route(
+  href : String,
+  base_path : String,
+  source : String,
+) -> String? raise {
+  if url_scheme(href) is Some(_) {
+    return None
+  }
+  let path = href
+    .split("#")
+    .next()
+    .unwrap_or("")
+    .to_owned()
+    .split("?")
+    .next()
+    .unwrap_or("")
+    .to_owned()
+  let mut path = path
+  if path.is_empty() {
+    return None
+  }
+  if path.has_prefix("/") {
+    if !path.has_prefix(base_path) {
+      raise InvalidInput(source + ": link is outside site base path: " + href)
+    }
+    path = path[base_path.length():].to_owned()
+  }
+  if path.has_prefix("./") {
+    path = path[2:].to_owned()
+  }
+  if path.is_empty() {
+    path = "index.html"
+  }
+  Some(normalized_url_path(path))
+}
+
+///|
 fn validate_route_links(
   links : Array[String],
   routes : Map[String, Bool],
@@ -200,36 +238,10 @@ fn validate_route_links(
     if !allowed_href(href) {
       raise InvalidInput(source + ": disallowed link: " + href)
     }
-    if url_scheme(href) is Some(_) {
-      continue
-    }
-    let path = href
-      .split("#")
-      .next()
-      .unwrap_or("")
-      .to_owned()
-      .split("?")
-      .next()
-      .unwrap_or("")
-      .to_owned()
-    let mut path = path
-    if path.is_empty() {
-      continue
-    }
-    if path.has_prefix("/") {
-      if !path.has_prefix(base_path) {
-        raise InvalidInput(source + ": link is outside site base path: " + href)
+    if local_route(href, base_path, source) is Some(path) {
+      if !routes.contains(path) {
+        raise InvalidInput(source + ": broken internal link: " + href)
       }
-      path = path[base_path.length():].to_owned()
-    }
-    if path.has_prefix("./") {
-      path = path[2:].to_owned()
-    }
-    if path.is_empty() {
-      path = "index.html"
-    }
-    if !routes.contains(normalized_url_path(path)) {
-      raise InvalidInput(source + ": broken internal link: " + href)
     }
   }
 }

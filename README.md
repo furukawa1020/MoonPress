@@ -125,7 +125,9 @@ failure and 2 for incorrect arguments.
 No generated files are written. This still reads and renders the complete site;
 it is not a syntax-only or zero-allocation check. Existing output directories are
 not inspected. Use `explain site dist` to inspect output integrity and incremental
-changes. Neither command checks external URL reachability or fragment targets.
+changes. Neither command checks external URL reachability. Local links to generated
+`mp-` heading IDs are checked against the selected source pages, including
+unchanged incremental pages. Custom HTML IDs and asset fragments remain unchecked.
 
 
 Draft preview uses the same compiler and validators:
