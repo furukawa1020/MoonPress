@@ -18,7 +18,14 @@ bash scripts/check.sh
 moon run cmd/main --target native -- build site dist
 # Or after release compilation:
 _build/native/release/build/cmd/main/main.exe build site dist-new
+_build/native/release/build/cmd/main/main.exe --help
 ```
+
+Run `moonpress --help` (or `-h`) for commands, options and exit codes, or
+`moonpress build --help`, `moonpress check --help`, and `moonpress explain --help`
+for command details. No arguments also prints help. Help/version requests are
+standalone: do not combine them with paths or report options. They do not read
+site files or create output directories.
 
 The CLI reads `content/*.md`, `layout.html`, and `style.css` from the input
 directory. It generates one `.html` per page, copies CSS, and adds `.nojekyll`.
