@@ -12,7 +12,7 @@ Body text.
 ```
 
 Optional keys: `title` (nonempty string), `description` (string), `tags` (array
-of nonempty strings), `draft` (boolean, default false), `layout` (safe `.html` filename). Unknown keys and wrong types are errors, not silently
+of nonempty strings), `draft` (boolean, default false), `layout` (safe `.html` filename), `date` (calendar date string). Unknown keys and wrong types are errors, not silently
 ignored typos. Tags are trimmed, deduplicated and deterministically sorted.
 The closing delimiter is a line containing `---`. CRLF is accepted. Metadata
 errors include the source filename and the frontmatter starting line; JSON
@@ -26,7 +26,7 @@ H1 does not replace an empty first H1. Explicit metadata titles remain literal
 strings and skip automatic title discovery. Metadata is removed before rendering.
 Titles are escaped when inserted into layouts and collection labels.
 
-Layout placeholders: `{{title}}`, `{{description}}`, `{{content}}`, `{{toc}}`.
+Layout placeholders: `{{title}}`, `{{description}}`, `{{content}}`, `{{toc}}`, `{{date}}`.
 Title/description are escaped; content is generated HTML. Inserted values are
 never expanded again, so text containing another placeholder remains literal.
 Unknown template placeholders are preserved for forward compatibility.
@@ -80,15 +80,47 @@ public struct directly must add `layout: None` (or `Some(filename)`); users of
 
 ## Collections
 
-`articles.html` lists all source pages in deterministic filename order. Every
+`articles.html` lists all selected source pages in publication-date order (newest
+first), followed by undated pages. Equal dates and undated pages use the existing
+MoonBit filename comparison (length first, then code-unit order), not locale
+collation. Tag pages use the same ordering. Every
 nonempty tag produces `tag-<UTF-8 bytes in hex>.html`. Tags may use Unicode and
 are limited to 96 UTF-8 bytes so generated filenames fit POSIX limits. Links
 percent-encode source filenames; title/description/tag text is HTML-escaped.
 
-Body edits rebuild the article only. Title/description/tag edits rebuild the
+Body edits rebuild the article only. Title/description/tag/date edits rebuild the
 article and affected collections. Removed tags delete their obsolete generated
 pages. Membership changes and metadata are separate dependencies. Source pages
 whose output collides with a generated collection are rejected before writes.
+
+## Publication dates
+
+Optional `"date":"2026-09-29"` metadata supplies a publication date. Values must
+use exactly ASCII `YYYY-MM-DD`, with years 0001–9999 and a valid Gregorian month
+and day. Leap years include 2000 and 2024; 1900 and 2100 are not leap years.
+Whitespace, timestamps, timezones, empty strings, null and other types are errors,
+even in excluded drafts. Omit the key when the date is unknown.
+
+Dated collection entries include `<time datetime="2026-09-29">2026-09-29</time>`.
+The default and named layouts can insert escaped `{{date}}`; it expands to an
+empty string for undated pages and generated collections. Inserted values are
+never expanded again. Dates affect article/tag order and collection dependencies;
+changing a date updates that page and its collections but not the sitemap.
+Body-only changes do not update collections.
+
+Dates are descriptive metadata, not scheduled publication. Future dates are
+accepted and do not hide a page; use `draft` for publication control. The compiler
+never consults the clock, file timestamps or locale, and does not infer sitemap
+`lastmod` from a publication date. Source-page processing/report order stays in
+filename order; only rendered collections use chronological order.
+
+Library API: `Document` additionally has `date : String?`; direct struct callers
+must supply `date: None` or a validated date. `parse_document` validates this field.
+`apply_layout` adds an optional `date` argument. `render_collection` now sorts a
+copy of its input, leaving the caller's array intact. Public rendering helpers
+escape supplied values but do not validate manually constructed metadata.
+Renderer dependencies advance to rebuild existing page/collection caches once;
+manifest and CLI report schemas remain unchanged.
 
 ## Links and inline code
 

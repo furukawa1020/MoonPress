@@ -8,7 +8,7 @@ import {
 // Values
 pub fn allowed_href(String) -> Bool
 
-pub fn apply_layout(String, String, String, description? : String, toc? : String) -> String
+pub fn apply_layout(String, String, String, description? : String, toc? : String, date? : String) -> String
 
 pub fn build_site(String, String) -> Int raise
 
@@ -128,6 +128,7 @@ pub(all) struct Document {
   body : String
   draft : Bool
   layout : String?
+  date : String?
 }
 
 pub(all) struct HeadingInfo {

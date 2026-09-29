@@ -28,6 +28,7 @@ test "collections escape metadata and URLs" {
       body: "",
       draft: false,
       layout: None,
+      date: None,
     },
   }
   let html = @moonpress.render_collection("<list>", [page])

@@ -6,6 +6,7 @@ pub(all) struct Document {
   body : String
   draft : Bool
   layout : String?
+  date : String?
 }
 
 ///|
@@ -43,6 +44,7 @@ pub fn parse_document(
   let mut explicit_title : String? = None
   let mut description = ""
   let mut layout : String? = None
+  let mut date : String? = None
   let mut draft = false
   let tags : Array[String] = []
   for key, value in fields {
@@ -60,6 +62,15 @@ pub fn parse_document(
           )
         }
         layout = Some(name)
+      }
+      ("date", String(value)) => {
+        if !valid_publication_date(value) {
+          raise InvalidInput(
+            filename +
+            ":2: date must be a valid YYYY-MM-DD calendar date (0001-9999)",
+          )
+        }
+        date = Some(value)
       }
       ("description", String(text)) => description = text
       ("draft", True) => draft = true
@@ -84,7 +95,7 @@ pub fn parse_document(
               )
           }
         }
-      ("title" | "description" | "tags" | "draft" | "layout", _) =>
+      ("title" | "description" | "tags" | "draft" | "layout" | "date", _) =>
         raise InvalidInput(filename + ":2: wrong type for " + key)
       (_, _) =>
         raise InvalidInput(filename + ":2: unknown metadata key: " + key)
@@ -95,5 +106,5 @@ pub fn parse_document(
     Some(text) => text
     None => page_title(body, fallback)
   }
-  { title, description, tags, body, draft, layout, }
+  { title, description, tags, body, draft, layout, date, }
 }

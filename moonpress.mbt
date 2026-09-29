@@ -31,6 +31,7 @@ pub fn apply_layout(
   body : String,
   description? : String = "",
   toc? : String = "",
+  date? : String = "",
 ) -> String {
   // One pass over the template; inserted values are never parsed again.
   let out = StringBuilder()
@@ -54,6 +55,7 @@ pub fn apply_layout(
               "description" => escape_html(description)
               "content" => body
               "toc" => toc
+              "date" => escape_html(date)
               other => "{{" + other + "}}"
             }
             out.write_string(value)

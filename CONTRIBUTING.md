@@ -60,7 +60,7 @@ repeat the implementation.
 | Publication and recovery | `publication.mbt`, `journal.mbt`, `recovery.mbt`, `locking.mbt` | Apply a validated plan with staging/rollback; recover journaled interruptions under locks |
 | Reports | `reports.mbt` | Public build/check report and event schemas |
 | Incremental state | `incremental.mbt` | Hashes, dependencies, manifest validation and rebuild reasons |
-| Content | `document.mbt`, `markdown.mbt`, `links.mbt`, `headings.mbt` | Metadata, shared parsers, references, rendering and anchors |
+| Content | `document.mbt`, `dates.mbt`, `markdown.mbt`, `links.mbt`, `headings.mbt` | Metadata, shared parsers, references, rendering and anchors |
 | Layout selection | `layouts.mbt` | Cache selected templates, track source/digest identity, validate template references per consumer |
 | Site outputs | `collections.mbt`, `sitemap.mbt`, `moonpress.mbt` | Lists, sitemap, escaping and one-pass layout substitution |
 | CLI | `cmd/main/main.mbt` | Arguments, report format and exit status |
