@@ -8,6 +8,7 @@ bash scripts/smoke.sh
 bash scripts/cli-help-test.sh
 bash scripts/incremental-test.sh
 bash scripts/content-test.sh
+bash scripts/layouts-test.sh
 bash scripts/title-test.sh
 bash scripts/emphasis-test.sh
 bash scripts/thematic-break-test.sh

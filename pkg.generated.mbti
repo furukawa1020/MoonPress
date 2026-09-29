@@ -127,6 +127,7 @@ pub(all) struct Document {
   tags : Array[String]
   body : String
   draft : Bool
+  layout : String?
 }
 
 pub(all) struct HeadingInfo {

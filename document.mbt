@@ -5,6 +5,7 @@ pub(all) struct Document {
   tags : Array[String]
   body : String
   draft : Bool
+  layout : String?
 }
 
 ///|
@@ -41,6 +42,7 @@ pub fn parse_document(
   }
   let mut explicit_title : String? = None
   let mut description = ""
+  let mut layout : String? = None
   let mut draft = false
   let tags : Array[String] = []
   for key, value in fields {
@@ -50,6 +52,14 @@ pub fn parse_document(
           raise InvalidInput(filename + ":2: title must not be empty")
         }
         explicit_title = Some(text)
+      }
+      ("layout", String(name)) => {
+        if !valid_layout_name(name) {
+          raise InvalidInput(
+            filename + ":2: layout must be a safe .html filename",
+          )
+        }
+        layout = Some(name)
       }
       ("description", String(text)) => description = text
       ("draft", True) => draft = true
@@ -74,7 +84,7 @@ pub fn parse_document(
               )
           }
         }
-      ("title" | "description" | "tags" | "draft", _) =>
+      ("title" | "description" | "tags" | "draft" | "layout", _) =>
         raise InvalidInput(filename + ":2: wrong type for " + key)
       (_, _) =>
         raise InvalidInput(filename + ":2: unknown metadata key: " + key)
@@ -85,5 +95,5 @@ pub fn parse_document(
     Some(text) => text
     None => page_title(body, fallback)
   }
-  { title, description, tags, body, draft, }
+  { title, description, tags, body, draft, layout, }
 }
