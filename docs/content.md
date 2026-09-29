@@ -65,6 +65,26 @@ href/src placeholders are unsupported and rejected. Only `&amp;` entity decoding
 supported in these URLs; percent-encode other special characters. CSS url(), srcset,
 JavaScript-generated links and arbitrary HTML fragments are outside this checker.
 
+### Emphasis and strong emphasis
+
+Exact single and double asterisk runs produce `*emphasis*` (`<em>`) and
+`**strong emphasis**` (`<strong>`). Different-length spans can nest, such as
+`**outer *inner* end**`, and may contain inline code, links and images.
+The shared parser removes matched delimiters from automatic titles, TOC labels
+and heading IDs. Links and images inside emphasis receive normal preflight checks.
+
+This is an explicit subset, not CommonMark delimiter resolution. An opener must
+have non-whitespace/non-control content immediately after it and either a line
+boundary, whitespace or ASCII punctuation (excluding underscore) before it.
+A closer uses the reverse rule. Intraword asterisks, runs of three or more,
+underscores and unmatched delimiters remain literal. Only the most recent open
+span can close; mismatched delimiters are not rearranged. Delimiters cannot span
+lines. Non-ASCII punctuation is not an outer boundary unless it is whitespace.
+
+Code and fenced code stay literal. Link labels and image alt text remain plain
+text, so `[*label*](guide.html)` does not emphasize the label; use
+`*[label](guide.html)*` to emphasize the whole link. Raw HTML stays escaped.
+
 ## Site URL and sitemap
 
 Optional site.json:

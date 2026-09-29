@@ -36,8 +36,8 @@ Templates are trusted project files; Markdown content and titles are escaped.
 
 Supported Markdown: ATX headings 1–6 with unique anchors and an optional `{{toc}}` table of contents, paragraphs, and backtick/tilde code
 fences, flat unordered/ordered lists and block quotes. Unsupported syntax is plain text.
-Simple links, images and inline code are supported; no inline emphasis,
-nested content directories yet. Optional `public/` assets are copied as bytes with
+Simple links, images, inline code and asterisk emphasis/strong emphasis are
+supported. Nested content directories are not supported yet. Optional `public/` assets are copied as bytes with
 per-file incremental dependencies. JSON frontmatter with draft exclusion,
 article lists, tag pages, sitemap and preflight link checks are supported; see [content model](docs/content.md).
 This is not a CommonMark implementation.

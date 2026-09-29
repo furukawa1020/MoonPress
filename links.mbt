@@ -4,12 +4,15 @@ priv enum Inline {
   Code(String)
   Link(String, String)
   Image(String, String)
+  EmphasisStart(String)
+  EmphasisEnd(String)
 }
 
 ///|
 fn parse_inline(text : String) -> Array[Inline] {
   let result : Array[Inline] = []
   let mut rest = text
+  let openers : Array[(String, Int)] = []
   while !rest.is_empty() {
     let code = rest.find("`").unwrap_or(rest.length())
     let link = rest.find("[").unwrap_or(rest.length())
@@ -21,12 +24,42 @@ fn parse_inline(text : String) -> Array[Inline] {
     } else {
       link
     }
+    let star = rest.find("*").unwrap_or(rest.length())
+    let start = if star < start { star } else { start }
     if start == rest.length() {
       result.push(Text(rest))
       break
     }
     if start > 0 {
       result.push(Text(rest[:start].to_owned()))
+    }
+    if start == star {
+      let mut end = start + 1
+      while end < rest.length() && rest[end:end + 1] == "*" {
+        end += 1
+      }
+      let marker = rest[start:end].to_owned()
+      let offset = text.length() - rest.length() + start
+      let before = text[:offset].rev_iter().next()
+      let after = rest[end:].iter().next()
+      let can_open = emphasis_boundary(before) && emphasis_content(after)
+      let can_close = emphasis_content(before) && emphasis_boundary(after)
+      if marker.length() <= 2 &&
+        can_close &&
+        !openers.is_empty() &&
+        openers[openers.length() - 1].0 == marker {
+        let (_, index) = openers.pop().unwrap()
+        let tag = if marker == "*" { "em" } else { "strong" }
+        result[index] = EmphasisStart(tag)
+        result.push(EmphasisEnd(tag))
+      } else {
+        if marker.length() <= 2 && can_open {
+          openers.push((marker, result.length()))
+        }
+        result.push(Text(marker))
+      }
+      rest = rest[end:].to_owned()
+      continue
     }
     let tail = rest[start + (if is_image { 2 } else { 1 }):].to_owned()
     if code < link {
@@ -62,6 +95,31 @@ fn parse_inline(text : String) -> Array[Inline] {
 }
 
 ///|
+// Keep intraword asterisks literal, including beside Unicode letters.
+// This deliberately uses a smaller boundary grammar than CommonMark.
+fn emphasis_boundary(value : Char?) -> Bool {
+  match value {
+    None => true
+    Some(c) =>
+      c.is_whitespace() ||
+      (
+        c.is_ascii() &&
+        !c.is_ascii_alphabetic() &&
+        !c.is_ascii_digit() &&
+        c != '_'
+      )
+  }
+}
+
+///|
+fn emphasis_content(value : Char?) -> Bool {
+  match value {
+    Some(c) => !c.is_whitespace() && !c.is_control()
+    None => false
+  }
+}
+
+///|
 pub fn allowed_href(href : String) -> Bool {
   if href.is_empty() || href.has_prefix("//") {
     return false
@@ -85,6 +143,8 @@ pub fn render_inline(text : String) -> String {
   let out = StringBuilder()
   for part in parse_inline(text) {
     match part {
+      EmphasisStart(tag) => out.write_string("<" + tag + ">")
+      EmphasisEnd(tag) => out.write_string("</" + tag + ">")
       Text(text) => out.write_string(escape_html(text))
       Code(text) => out.write_string("<code>" + escape_html(text) + "</code>")
       Image(alt, src) =>
@@ -425,6 +485,7 @@ fn inline_text(text : String) -> String {
   let out = StringBuilder()
   for part in parse_inline(text) {
     match part {
+      EmphasisStart(_) | EmphasisEnd(_) => ()
       Text(text) | Code(text) | Link(text, _) | Image(text, _) =>
         out.write_string(text)
     }
