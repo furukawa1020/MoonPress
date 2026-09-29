@@ -54,13 +54,25 @@ repeat the implementation.
 
 | Area | Files | Responsibility |
 | --- | --- | --- |
-| Build orchestration | `builder.mbt` | Validate inputs/output ownership, plan all artifacts, then apply changes |
+| Build orchestration | `builder.mbt` | Public entry points: lock, load previous output, plan, then publish |
+| Planning | `site_plan.mbt`, `planning.mbt` | Read/validate sources and references, compute artifact dependencies and a complete build plan; never mutate output |
+| Output ownership | `output_state.mbt` | Reject foreign, edited or non-regular previous output before planning |
+| Publication and recovery | `publication.mbt`, `journal.mbt`, `recovery.mbt`, `locking.mbt` | Apply a validated plan with staging/rollback; recover journaled interruptions under locks |
+| Reports | `reports.mbt` | Public build/check report and event schemas |
 | Incremental state | `incremental.mbt` | Hashes, dependencies, manifest validation and rebuild reasons |
 | Content | `document.mbt`, `markdown.mbt`, `links.mbt`, `headings.mbt` | Metadata, shared parsers, references, rendering and anchors |
 | Site outputs | `collections.mbt`, `sitemap.mbt`, `moonpress.mbt` | Lists, sitemap, escaping and one-pass layout substitution |
 | CLI | `cmd/main/main.mbt` | Arguments, report format and exit status |
-| Native boundary | `path_guard.c`, `io_native.c`, `io.mbt` | Thin POSIX/stdio operations (including backup hard links); handle ownership and errors in MoonBit |
+| Native boundary | `path_guard.c`, `io_native.c`, `io.mbt` | Input path-kind checks and thin POSIX/stdio operations (including backup hard links); handle ownership and errors in MoonBit |
 | Verification | `*_test.mbt`, `scripts/*-test.sh` | Pure-function tests and real CLI/filesystem regressions |
+
+These are responsibility boundaries inside one MoonBit package, not enforced
+package isolation. `BuildPlan` carries planned bytes/dependencies and removals
+from planning to publication; publication does not parse sources or render HTML.
+Planning may read sources and output existence, but must not write files. `check`
+uses the same planner without an output directory. Extend source features in the
+planner/content helpers, and keep filesystem mutation in publication/recovery.
+Preserve report ordering and dependency identities during structural refactors.
 
 Keep compiler behavior in MoonBit and argument handling in the CLI. Shell handles
 setup, CI and deployment. Do not introduce JavaScript, TypeScript, Node/npm,

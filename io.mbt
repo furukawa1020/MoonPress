@@ -116,3 +116,28 @@ fn read_text(path : String) -> String raise {
   // The descriptor is already closed before decoding can raise.
   decode_text(read_bytes(path), path)
 }
+
+///|
+#borrow(path)
+extern "C" fn native_path_kind(path : Bytes) -> Int = "moonpress_path_kind"
+
+///|
+fn path_kind(path : String) -> Int raise {
+  if path.contains("\u0000") {
+    raise InvalidInput("NUL in filesystem path")
+  }
+  native_path_kind(@utf8.encode(path) + b"\x00")
+}
+
+///|
+fn require_input_kind(path : String, expected : Int) -> Unit raise {
+  if path_kind(path) != expected {
+    let kind = if expected == 2 { "directory" } else { "file" }
+    raise InvalidInput(
+      "Expected regular input " +
+      kind +
+      " (no symlinks or special files): " +
+      path,
+    )
+  }
+}
