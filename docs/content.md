@@ -112,6 +112,21 @@ are ignored. An unclosed fence
 runs to EOF. CRLF is normalized and raw HTML is always escaped.
 
 
+### Thematic breaks
+
+At column zero, three or more identical `-`, `*` or `_` markers form a horizontal
+rule (`<hr>`). Spaces and tabs may separate or follow the markers: `---`, `* * *`
+and `_ _ _` work. Indented lines, mixed markers and other trailing content follow
+the existing paragraph/list rules. Thematic breaks interrupt paragraphs, lists
+and quotes and take precedence over list markers. Fenced code stays literal.
+They add no heading, title, TOC entry or reference.
+
+The frontmatter contract is unchanged: a source beginning with `---` followed by
+a newline starts JSON frontmatter, not a horizontal rule. Use `***` or `___` for
+a rule at the beginning of a page without frontmatter. After the frontmatter
+closing delimiter, `---` is a normal thematic break. Setext headings remain
+unsupported: `Title` followed by `---` renders a paragraph and a rule.
+
 ### Lists and quotes
 
 At column zero, `- `, `* ` and `+ ` introduce an unordered list item. Consecutive

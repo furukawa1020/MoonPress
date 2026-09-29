@@ -3,9 +3,29 @@ priv enum Block {
   Heading(Int, String)
   Paragraph(Array[String])
   CodeBlock(String)
+  ThematicBreak
   UnorderedList(Array[String])
   OrderedList(String, Array[String])
   Quote(Array[String])
+}
+
+///|
+fn is_thematic_break(line : String) -> Bool {
+  let marker = match line.get_char(0) {
+    Some('-') => '-'
+    Some('*') => '*'
+    Some('_') => '_'
+    _ => return false
+  }
+  let mut count = 0
+  for c in line {
+    if c == marker {
+      count += 1
+    } else if c != ' ' && c != '\t' {
+      return false
+    }
+  }
+  count >= 3
 }
 
 ///|
@@ -81,12 +101,15 @@ fn parse_blocks(source : String) -> Array[Block] {
       fence = Some(opening)
     } else {
       let level = heading_level(line)
-      if line.trim().is_empty() || level > 0 {
+      let separator = is_thematic_break(line)
+      if line.trim().is_empty() || level > 0 || separator {
         if !lines.is_empty() {
           blocks.push(group_block(kind, start, lines))
           lines = []
         }
-        if level > 0 {
+        if separator {
+          blocks.push(ThematicBreak)
+        } else if level > 0 {
           blocks.push(Heading(level, line[level + 1:].to_owned()))
         }
       } else {
@@ -120,7 +143,7 @@ fn inline_lines(block : Block) -> Array[String] {
     | UnorderedList(lines)
     | OrderedList(_, lines)
     | Quote(lines) => lines
-    CodeBlock(_) => []
+    CodeBlock(_) | ThematicBreak => []
   }
 }
 
@@ -163,6 +186,7 @@ fn render_blocks_with_headings(
           lines.map(render_inline).join("\n") +
           "</p>\n</blockquote>\n",
         )
+      ThematicBreak => out.write_string("<hr>\n")
       CodeBlock(code) =>
         out.write_string("<pre><code>" + escape_html(code) + "</code></pre>\n")
     }
