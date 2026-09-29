@@ -39,7 +39,7 @@ pub fn parse_document(
     Object(fields) => fields
     _ => raise InvalidInput(filename + ":2: frontmatter must be a JSON object")
   }
-  let mut title = page_title(body, fallback)
+  let mut explicit_title : String? = None
   let mut description = ""
   let mut draft = false
   let tags : Array[String] = []
@@ -49,7 +49,7 @@ pub fn parse_document(
         if text.trim().is_empty() {
           raise InvalidInput(filename + ":2: title must not be empty")
         }
-        title = text
+        explicit_title = Some(text)
       }
       ("description", String(text)) => description = text
       ("draft", True) => draft = true
@@ -81,5 +81,9 @@ pub fn parse_document(
     }
   }
   tags.sort()
+  let title = match explicit_title {
+    Some(text) => text
+    None => page_title(body, fallback)
+  }
   { title, description, tags, body, draft, }
 }

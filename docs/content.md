@@ -18,8 +18,13 @@ The closing delimiter is a line containing `---`. CRLF is accepted. Metadata
 errors include the source filename and the frontmatter starting line; JSON
 syntax errors also include the parser's position inside the header.
 
-Without frontmatter, title is the first H1 outside code fences, or the filename
-stem. Metadata is removed before Markdown rendering.
+Without an explicit title, the first H1 outside code fences supplies plain inline
+text: link labels, normalized code text and image alt text, with outer whitespace
+trimmed. Supported inline delimiters and link destinations do not enter the title.
+If that H1 has no visible text, or no H1 exists, the filename stem is used; a later
+H1 does not replace an empty first H1. Explicit metadata titles remain literal
+strings and skip automatic title discovery. Metadata is removed before rendering.
+Titles are escaped when inserted into layouts and collection labels.
 
 Layout placeholders: `{{title}}`, `{{description}}`, `{{content}}`, `{{toc}}`.
 Title/description are escaped; content is generated HTML. Inserted values are
