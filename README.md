@@ -35,7 +35,7 @@ Unmanaged directories, unknown files, edited outputs and symlinks are rejected.
 Templates are trusted project files; Markdown content and titles are escaped.
 
 Supported Markdown: ATX headings 1–6 with unique anchors and an optional `{{toc}}` table of contents, paragraphs, and backtick/tilde code
-fences, flat unordered/ordered lists and block quotes. Unsupported syntax is plain text.
+fences, thematic breaks, flat unordered/ordered lists and block quotes. Unsupported syntax is plain text.
 Simple links, images, inline code and asterisk emphasis/strong emphasis are
 supported. Nested content directories are not supported yet. Optional `public/` assets are copied as bytes with
 per-file incremental dependencies. JSON frontmatter with draft exclusion,
