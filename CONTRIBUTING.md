@@ -54,6 +54,7 @@ repeat the implementation.
 
 | Area | Files | Responsibility |
 | --- | --- | --- |
+| Project initialization | `init.mbt`, `starter.mbt` | Exclusively create a deterministic source project; clean up owned entries on caught failures |
 | Build orchestration | `builder.mbt` | Public entry points: lock, load previous output, plan, then publish |
 | Planning | `site_plan.mbt`, `planning.mbt` | Read/validate sources and references, compute artifact dependencies and a complete build plan; never mutate output |
 | Output ownership | `output_state.mbt` | Reject foreign, edited or non-regular previous output before planning |

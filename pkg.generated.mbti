@@ -24,6 +24,8 @@ pub fn escape_html(String) -> String
 
 pub fn headings(String) -> Array[HeadingInfo]
 
+pub fn init_site(String) -> InitReport raise
+
 pub fn markdown_images(String) -> Array[String]
 
 pub fn markdown_links(String) -> Array[String]
@@ -138,6 +140,12 @@ pub(all) struct HeadingInfo {
 } derive(Eq)
 pub fn HeadingInfo::equal(Self, Self) -> Bool
 pub fn HeadingInfo::not_equal(Self, Self) -> Bool
+
+pub(all) struct InitReport {
+  directory : String
+  files : Array[String]
+} derive(ToJson)
+pub fn InitReport::to_json(Self) -> Json
 
 pub(all) struct Manifest {
   schema : Int

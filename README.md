@@ -15,14 +15,19 @@ cd MoonPress
 bash scripts/setup.sh
 export PATH="$HOME/.moon/bin:$PATH"
 bash scripts/check.sh
-moon run cmd/main --target native -- build site dist
-# Or after release compilation:
-_build/native/release/build/cmd/main/main.exe build site dist-new
-_build/native/release/build/cmd/main/main.exe --help
+moonpress="$PWD/_build/native/release/build/cmd/main/main.exe"
+"$moonpress" init ../my-site
+"$moonpress" check ../my-site
+"$moonpress" build ../my-site ../my-site/dist
+# Open ../my-site/dist/index.html in a browser.
 ```
 
+The variable above uses the freshly compiled executable directly. For an optional
+PATH installation and the complete edit/build workflow, see [getting started](docs/getting-started.md).
+The bundled example can still be built with `"$moonpress" build site dist`.
+
 Run `moonpress --help` (or `-h`) for commands, options and exit codes, or
-`moonpress build --help`, `moonpress check --help`, and `moonpress explain --help`
+`moonpress init --help`, `moonpress build --help`, `moonpress check --help`, and `moonpress explain --help`
 for command details. No arguments also prints help. Help/version requests are
 standalone: do not combine them with paths or report options. They do not read
 site files or create output directories.

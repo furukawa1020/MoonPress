@@ -5,7 +5,9 @@ lock before reading previous output state and holds it until publication returns
 or raises an error. `explain` uses a shared lock for the same interval: multiple
 explain operations can coexist, but they cannot overlap a writer. `check` has no
 output state and acquires no lock. `recover` uses the same exclusive lock as
-build for validation, restoration and cleanup.
+build for validation, restoration and cleanup. `init` exclusively locks the new
+site parent during creation and caught-error cleanup; it conflicts with builds
+and other initializers sharing that parent.
 
 Acquisition is nonblocking. Conflicting access exits with code 1 and a diagnostic
 on stderr; no report is printed to stdout and no output is changed. Retry after
