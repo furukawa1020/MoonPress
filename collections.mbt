@@ -38,6 +38,7 @@ pub fn metadata_digest(page : Page) -> String {
       page.document.title,
       page.document.description,
       page.document.tags.to_json().stringify(),
+      page.document.date.to_json().stringify(),
     ]
     .to_json()
     .stringify(),
@@ -50,7 +51,7 @@ fn collection_dependencies(
   layout_digest : String,
 ) -> Array[Dependency] {
   let deps : Array[Dependency] = [
-    { name: "collection-renderer", digest: digest_text("collection-v2"), },
+    { name: "collection-renderer", digest: digest_text("collection-v3"), },
     { name: "layout.html", digest: layout_digest, },
     {
       name: "members",
@@ -72,7 +73,7 @@ pub fn render_collection(title : String, pages : Array[Page]) -> String {
   out.write_string(
     "<h1>" + escape_html(title) + "</h1>\n<ul class=\"articles\">\n",
   )
-  for page in pages {
+  for page in chronological_pages(pages) {
     out.write_string(
       "<li><a href=\"" +
       url_component(page.output) +
@@ -80,6 +81,15 @@ pub fn render_collection(title : String, pages : Array[Page]) -> String {
       escape_html(page.document.title) +
       "</a>",
     )
+    if page.document.date is Some(date) {
+      out.write_string(
+        " <time datetime=\"" +
+        escape_html(date) +
+        "\">" +
+        escape_html(date) +
+        "</time>",
+      )
+    }
     if !page.document.description.is_empty() {
       out.write_string("<p>" + escape_html(page.document.description) + "</p>")
     }

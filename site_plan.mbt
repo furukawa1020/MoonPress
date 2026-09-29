@@ -35,7 +35,7 @@ fn plan_site(
   let heading_targets : Map[String, Map[String, Bool]] = Map([])
   let mut pages = 0
   let layout_digest = layouts.default.digest
-  let compiler_digest = digest_text("moonpress-renderer-v13")
+  let compiler_digest = digest_text("moonpress-renderer-v14")
   for name in names {
     let path = input + "/content/" + name
     require_input_kind(path, 1)
@@ -75,6 +75,7 @@ fn plan_site(
                 document.title,
                 render_blocks_with_headings(blocks, outline),
                 description=document.description,
+                date=document.date.unwrap_or(""),
                 toc=if template.content.contains("{{toc}}") {
                   render_outline(outline)
                 } else {
