@@ -22,10 +22,9 @@ fn plan_site(
   require_input_kind(input + "/layout.html", 1)
   require_input_kind(input + "/style.css", 1)
   let base_url = read_base_url(input)
-  let layout = read_text(input + "/layout.html")
-  if !layout.contains("{{content}}") {
-    raise InvalidInput("layout.html must contain {{content}}")
-  }
+  let layouts = load_layouts(input)
+  let layout = layouts.default.content
+  let page_layouts : Map[String, LayoutTemplate] = Map([])
   let css = read_bytes(input + "/style.css")
   let names = @fs.read_dir(input + "/content").to_owned()
   names.sort()
@@ -35,7 +34,7 @@ fn plan_site(
   let references : Array[PageReferences] = []
   let heading_targets : Map[String, Map[String, Bool]] = Map([])
   let mut pages = 0
-  let layout_digest = digest_text(layout)
+  let layout_digest = layouts.default.digest
   let compiler_digest = digest_text("moonpress-renderer-v13")
   for name in names {
     let path = input + "/content/" + name
@@ -48,6 +47,8 @@ fn plan_site(
         record_event(log, "skip", "content/" + name, "draft")
         continue
       }
+      let template = select_layout(layouts, input, document.layout)
+      page_layouts[stem + ".html"] = template
       documents.push({ output: stem + ".html", document, })
       let blocks = parse_blocks(document.body)
       let outline = block_headings(blocks)
@@ -58,7 +59,7 @@ fn plan_site(
       )
       let deps : Array[Dependency] = [
         { name: "compiler", digest: compiler_digest, },
-        { name: "layout.html", digest: layout_digest, },
+        { name: template.source, digest: template.digest, },
         { name: "content/" + name, digest: digest_text(source), },
       ]
       pending.push(
@@ -70,11 +71,11 @@ fn plan_site(
           () => {
             @utf8.encode(
               apply_layout(
-                layout,
+                template.content,
                 document.title,
                 render_blocks_with_headings(blocks, outline),
                 description=document.description,
-                toc=if layout.contains("{{toc}}") {
+                toc=if template.content.contains("{{toc}}") {
                   render_outline(outline)
                 } else {
                   ""
@@ -210,31 +211,9 @@ fn plan_site(
       page.output,
     )
   }
-  validate_route_links(
-    template_sources(layout),
-    route_lookup,
-    sources=true,
-    base_path~,
-    source="layout.html",
+  validate_layouts(
+    layouts, page_layouts, routes, route_lookup, heading_targets, base_path,
   )
-  let layout_links = template_links(layout)
-  validate_route_links(
-    layout_links,
-    route_lookup,
-    base_path~,
-    source="layout.html",
-  )
-  for route in routes {
-    if route.has_suffix(".html") {
-      validate_heading_links(
-        layout_links,
-        heading_targets,
-        route,
-        base_path,
-        "layout.html (" + route + ")",
-      )
-    }
-  }
   if base_url is Some(url) {
     let sitemap_routes = routes.filter(name => name.has_suffix(".html"))
     pending.push(

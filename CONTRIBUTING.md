@@ -61,6 +61,7 @@ repeat the implementation.
 | Reports | `reports.mbt` | Public build/check report and event schemas |
 | Incremental state | `incremental.mbt` | Hashes, dependencies, manifest validation and rebuild reasons |
 | Content | `document.mbt`, `markdown.mbt`, `links.mbt`, `headings.mbt` | Metadata, shared parsers, references, rendering and anchors |
+| Layout selection | `layouts.mbt` | Cache selected templates, track source/digest identity, validate template references per consumer |
 | Site outputs | `collections.mbt`, `sitemap.mbt`, `moonpress.mbt` | Lists, sitemap, escaping and one-pass layout substitution |
 | CLI | `cmd/main/main.mbt` | Arguments, report format and exit status |
 | Native boundary | `path_guard.c`, `io_native.c`, `io.mbt` | Input path-kind checks and thin POSIX/stdio operations (including backup hard links); handle ownership and errors in MoonBit |

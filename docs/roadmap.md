@@ -8,7 +8,7 @@ CommonMark compatibility or superiority to other site generators.
 ## Available and covered
 
 - Markdown subset, JSON metadata, draft preview, heading anchors and TOC.
-- Article/tag collections, optional sitemap and flat static assets.
+- Per-page named layouts, article/tag collections, optional sitemap and flat static assets.
 - Preflight local route/generated-heading reference checks and guarded incremental output ownership.
 - Deterministic clean/incremental output, explain/check modes and versioned JSON reports.
 - Output filename byte limits, manifest validation and source file-kind checks.

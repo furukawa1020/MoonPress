@@ -12,7 +12,7 @@ Body text.
 ```
 
 Optional keys: `title` (nonempty string), `description` (string), `tags` (array
-of nonempty strings), `draft` (boolean, default false). Unknown keys and wrong types are errors, not silently
+of nonempty strings), `draft` (boolean, default false), `layout` (safe `.html` filename). Unknown keys and wrong types are errors, not silently
 ignored typos. Tags are trimmed, deduplicated and deterministically sorted.
 The closing delimiter is a line containing `---`. CRLF is accepted. Metadata
 errors include the source filename and the frontmatter starting line; JSON
@@ -30,6 +30,53 @@ Layout placeholders: `{{title}}`, `{{description}}`, `{{content}}`, `{{toc}}`.
 Title/description are escaped; content is generated HTML. Inserted values are
 never expanded again, so text containing another placeholder remains literal.
 Unknown template placeholders are preserved for forward compatibility.
+
+## Per-page layouts
+
+The required root `layout.html` is the default for source pages and all generated
+article/tag collections. To select a different template for a source page, put
+it in `layouts/post.html` and add metadata:
+
+```text
+---
+{"layout":"post.html","title":"An article"}
+---
+# Article
+```
+
+The value is one literal, case-sensitive filename ending in `.html`, up to 255
+UTF-8 bytes. Unicode names work. Empty stems, leading dots, slashes, backslashes,
+colons, whitespace and control characters are rejected. It is not a URL or a
+path: use `post.html`, not `layouts/post.html`. Omit the field to use the default;
+null and other types are errors. Each selected template must be a valid UTF-8
+regular file containing `{{content}}`; it supports the same placeholders and
+single-pass escaping as the default. No includes, inheritance or template code.
+
+An existing `layouts/` must be a real directory, not a symlink. Only selected
+named files are loaded and validated; unused files/subdirectories are ignored.
+Selected symlinks, directories, FIFOs and missing files are errors. Draft metadata
+is always validated, but an excluded draft's layout is not loaded until it is
+included by preview or published. Default `layout.html` is always required for
+collections, even when all source pages use named layouts.
+
+Static quoted href/src values are relative to generated output routes, not the
+`layouts/` source directory. They receive the same URL checks as the default.
+Generated `mp-` fragments are validated separately against every page using that
+template. A named template's same-page anchor need not exist in unrelated pages
+or collections. All checks run before output mutation, including on no-op builds.
+
+Each selected template is read/hashed and its references parsed once per build.
+A page depends on its selected template only. Editing a named template rebuilds
+its consumers; editing the default rebuilds default pages and collections.
+Unused template changes do not affect output. Switching a page's selection
+rebuilds that page without changing collection metadata. Templates are not copied
+to output. Removing a still-selected layout is an error; remove/change its
+consumers first. Existing projects without this field keep the same dependencies
+and output bytes; no manifest schema or renderer revision change is needed.
+
+Library API: `Document` now has `layout : String?`. Callers constructing the
+public struct directly must add `layout: None` (or `Some(filename)`); users of
+`parse_document` need no change. CLI options and report schemas are unchanged.
 
 ## Collections
 
