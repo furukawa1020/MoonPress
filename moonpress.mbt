@@ -17,7 +17,8 @@ pub fn render_markdown(source : String) -> String {
 pub fn page_title(source : String, fallback : String) -> String {
   for block in parse_blocks(source) {
     if block is Heading(1, text) {
-      return text.trim().to_owned()
+      let title = inline_text(text).trim().to_owned()
+      return if title.is_empty() { fallback } else { title }
     }
   }
   fallback

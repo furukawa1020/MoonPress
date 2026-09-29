@@ -21,6 +21,32 @@ test "code fences cannot set page title" {
 }
 
 ///|
+test "automatic titles share visible inline heading text" {
+  let source = "~~~\n# Hidden\n~~~\n## Not H1\n# [月](guide.html) `` code ` x `` ![絵](image.svg) & <b>\n# Later"
+  assert_eq(@moonpress.page_title(source, "fallback"), "月 code ` x 絵 & <b>")
+  assert_eq(
+    @moonpress.parse_document(source, "fallback").title,
+    "月 code ` x 絵 & <b>",
+  )
+}
+
+///|
+test "empty automatic title uses fallback without selecting a later H1" {
+  for source in ["#   \n# Later", "# ![](image.svg)\n# Later", "No heading"] {
+    assert_eq(@moonpress.page_title(source, "filename"), "filename")
+  }
+}
+
+///|
+test "explicit titles stay literal and override automatic inline text" {
+  let doc = @moonpress.parse_document(
+    "---\n{\"title\":\"[literal](url) `code` {{content}}\"}\n---\n# [Auto](guide.html)",
+    "fallback",
+  )
+  assert_eq(doc.title, "[literal](url) `code` {{content}}")
+}
+
+///|
 test "invalid metadata is rejected" {
   for
     header in [
