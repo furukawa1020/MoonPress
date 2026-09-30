@@ -51,7 +51,7 @@ fn collection_dependencies(
   layout_digest : String,
 ) -> Array[Dependency] {
   let deps : Array[Dependency] = [
-    { name: "collection-renderer", digest: digest_text("collection-v4"), },
+    { name: "collection-renderer", digest: digest_text("collection-v5"), },
     { name: "layout.html", digest: layout_digest, },
     {
       name: "members",
