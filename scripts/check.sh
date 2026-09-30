@@ -17,6 +17,7 @@ bash scripts/emphasis-test.sh
 bash scripts/escapes-test.sh
 bash scripts/thematic-break-test.sh
 bash scripts/navigation-test.sh
+bash scripts/feed-test.sh
 
 bash scripts/markdown-test.sh
 bash scripts/assets-test.sh
