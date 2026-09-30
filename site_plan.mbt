@@ -122,20 +122,22 @@ fn plan_site(
   tags.sort()
   for tag in tags {
     let members = listed.filter(page => page.document.tags.contains(tag))
-    pending.push(
-      plan_artifact(
-        tag_filename(tag),
-        collection_dependencies(members, layout_digest),
-        previous,
-        output,
-        () => {
-          @utf8.encode(
-            apply_layout(layout, tag, render_collection(tag, members)),
-          )
-        },
-        log,
-      ),
-    )
+    for archive in tag_archives(members, config.tag_page_size, tag) {
+      pending.push(
+        plan_artifact(
+          archive.output,
+          archive_dependencies(archive, layout_digest),
+          previous,
+          output,
+          () => {
+            @utf8.encode(
+              apply_layout(layout, archive.title, render_archive(archive)),
+            )
+          },
+          log,
+        ),
+      )
+    }
   }
   pending.push(
     plan_artifact(
