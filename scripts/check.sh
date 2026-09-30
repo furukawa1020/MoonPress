@@ -13,6 +13,7 @@ bash scripts/dates-test.sh
 bash scripts/layouts-test.sh
 bash scripts/title-test.sh
 bash scripts/emphasis-test.sh
+bash scripts/escapes-test.sh
 bash scripts/thematic-break-test.sh
 bash scripts/navigation-test.sh
 

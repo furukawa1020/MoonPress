@@ -125,7 +125,7 @@ manifest and CLI report schemas remain unchanged.
 ## Links and inline code
 
 The Markdown subset now includes backtick-delimited inline code and simple
-`[label](href)` links in paragraphs/headings. Nested labels, escaping and URLs
+`[label](href)` links in paragraphs/headings. Nested labels and URLs
 with literal parentheses are not yet CommonMark-compatible. Link text is plain
 text and escaped. Raw HTML remains escaped. HTTP(S) and mailto links are allowed;
 script/data/protocol-relative URLs, control characters and whitespace are rejected
@@ -143,6 +143,31 @@ tokenizer respects quotes/comments, but it is not a full HTML validator. Dynamic
 href/src placeholders are unsupported and rejected. Only `&amp;` entity decoding is
 supported in these URLs; percent-encode other special characters. CSS url(), srcset,
 JavaScript-generated links and arbitrary HTML fragments are outside this checker.
+
+### Backslash escapes
+
+Backslash followed by ASCII punctuation emits that punctuation literally:
+`\*literal\*`, `` \`code\` `` and `\[text](missing.html)` do not start emphasis,
+inline code or a link. All ASCII punctuation is supported. Backslashes before
+letters, whitespace or Unicode, and a trailing backslash, remain literal.
+Escaped output is never parsed a second time; HTML characters are still escaped.
+
+Link labels and image alt text use the same decoding; escaped brackets remain
+plain label text (`[\[label\]](guide.html)`). Nested unescaped labels remain
+unsupported. Destinations do not decode backslashes and continue to reject them;
+use URL percent encoding where appropriate. To suppress an image reference,
+write `!\[alt](image.png)`. Escaping only `!` leaves a normal link after it:
+`\![alt](guide.html)` renders an exclamation mark followed by a link.
+
+Inline/fenced code preserves backslashes verbatim. Escaped leading block markers
+such as `\# heading`, `\- item` and `\> quote` become paragraph text. Escapes do
+not change JSON frontmatter, template markup or explicit metadata strings.
+Automatic titles, TOC labels and heading IDs use decoded visible text; links to
+old IDs may need updating. Validation catches stale `mp-` links before writes.
+
+Renderer revisions v16 (source pages) and v4 (collections) refresh old caches
+once. Later body-only escape edits rebuild only their page; automatic-title
+changes also update affected collections. Public APIs and schemas are unchanged.
 
 ### Emphasis and strong emphasis
 
