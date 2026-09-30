@@ -215,6 +215,31 @@ code. Backtick opening info strings cannot contain backticks. Language annotatio
 runs to EOF. CRLF is normalized and raw HTML is always escaped.
 
 
+### ATX headings
+
+At column zero, one through six `#` markers followed by an ASCII space, tab or
+end of line introduce H1–H6. Seven or more markers, indentation and a missing
+separator stay paragraph text. Thus `# Title`, `#` and a hash followed by a tab
+are headings; `#Title` is not. Only ASCII spaces/tabs delimit this syntax.
+
+Outer ASCII spaces/tabs are removed from heading content. An optional final run
+of hashes is removed when preceded by an ASCII space/tab, after ignoring trailing
+spaces/tabs: `## Title ###` displays `Title`. Attached hashes (`# C#`), escaped
+hashes and hashes followed by other text stay visible. Remaining content uses
+the normal inline parser. Fenced code is unaffected.
+
+Empty headings produce empty heading elements and TOC labels with deterministic
+`mp-section` IDs (and duplicate suffixes). An empty first H1 keeps the filename
+fallback for automatic titles; a later H1 does not replace it. Explicit metadata
+titles remain literal and unchanged.
+
+The shared block model supplies normalized text to rendering, titles, TOC,
+heading IDs and reference checks. Existing heading IDs can change, particularly
+when previously literal tab/empty headings now enter the outline. Update incoming
+`mp-` links as needed; stale references fail before output mutation.
+Source renderer v17 and collection renderer v5 refresh old caches once. No public
+API or manifest/report schema changes are required.
+
 ### Fenced-code languages
 
 An opening fence such as ` ```moonbit ` or `~~~sh` produces

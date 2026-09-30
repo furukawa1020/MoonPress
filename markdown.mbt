@@ -31,11 +31,27 @@ fn is_thematic_break(line : String) -> Bool {
 ///|
 fn heading_level(line : String) -> Int {
   for n = 1; n <= 6; n = n + 1 {
-    if line.has_prefix(String::make(n, '#') + " ") {
+    let marker = String::make(n, '#')
+    if line == marker ||
+      line.has_prefix(marker + " ") ||
+      line.has_prefix(marker + "\t") {
       return n
     }
   }
   0
+}
+
+///|
+fn heading_content(line : String, level : Int) -> String {
+  let raw = line[level:].to_owned().trim_end(chars=" \t").to_owned()
+  let without_hashes = raw.trim_end(chars="#").to_owned()
+  let content = if without_hashes.length() < raw.length() &&
+    (without_hashes.has_suffix(" ") || without_hashes.has_suffix("\t")) {
+    without_hashes
+  } else {
+    raw
+  }
+  content.trim(chars=" \t").to_owned()
 }
 
 ///|
@@ -112,7 +128,7 @@ fn parse_blocks(source : String) -> Array[Block] {
         if separator {
           blocks.push(ThematicBreak)
         } else if level > 0 {
-          blocks.push(Heading(level, line[level + 1:].to_owned()))
+          blocks.push(Heading(level, heading_content(line, level)))
         }
       } else {
         let (next_kind, next_start, text) = group_line(line)
