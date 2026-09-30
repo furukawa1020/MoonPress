@@ -129,6 +129,7 @@ pub(all) struct Document {
   tags : Array[String]
   body : String
   draft : Bool
+  listed : Bool
   layout : String?
   date : String?
   slug : String?

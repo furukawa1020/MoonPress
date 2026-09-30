@@ -27,6 +27,7 @@ test "collections escape metadata and URLs" {
       tags: [],
       body: "",
       draft: false,
+      listed: true,
       layout: None,
       slug: None,
       date: None,

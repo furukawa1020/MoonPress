@@ -12,7 +12,7 @@ Body text.
 ```
 
 Optional keys: `title` (nonempty string), `description` (string), `tags` (array
-of nonempty strings), `draft` (boolean, default false), `layout` (safe `.html` filename), `date` (calendar date string), `slug` (flat output stem). Unknown keys and wrong types are errors, not silently
+of nonempty strings), `draft` (boolean, default false), `listed` (boolean, default true), `layout` (safe `.html` filename), `date` (calendar date string), `slug` (flat output stem). Unknown keys and wrong types are errors, not silently
 ignored typos. Tags are trimmed, deduplicated and deterministically sorted.
 The closing delimiter is a line containing `---`. CRLF is accepted. Metadata
 errors include the source filename and the frontmatter starting line; JSON
@@ -78,6 +78,32 @@ Library API: `Document` now has `layout : String?`. Callers constructing the
 public struct directly must add `layout: None` (or `Some(filename)`); users of
 `parse_document` need no change. CLI options and report schemas are unchanged.
 
+## Public standalone pages
+
+Use `"listed":false` in frontmatter for home/about/legal pages that should remain
+public but not appear as articles. Their HTML is generated normally, incoming
+links and outgoing links are validated, and they remain in the sitemap and
+reported source-page count. They do not enter article archives/pagination,
+tag membership or RSS. Tags used only by standalone pages create no tag archive.
+
+The default is `true`; only JSON booleans are accepted, including in excluded
+drafts. Draft selection happens first. Explicit `--include-drafts` publishes a
+draft's HTML, but does not override `listed:false`. This is a discovery setting,
+not access control, private publication or search-engine exclusion.
+
+An all-standalone published site is valid. It generates an empty `articles.html`
+and, when configured, an empty RSS channel. Enabled pagination shows page 1 of 1.
+Changing listing state updates aggregate membership, navigation and obsolete
+tracked routes; remaining links to disappearing tags/archive pages must be fixed
+first. Edited generated files remain protected. Standalone title/body edits only
+rebuild that page and do not update article aggregates.
+
+Library API: `Document` adds `listed : Bool`; direct struct callers should use
+`listed: true` for previous behavior. Standalone rendering helpers still render
+the caller-provided pages; discovery filtering belongs to site planning. Existing
+sites without the field preserve their outputs/dependencies, and CLI/report and
+manifest schemas are unchanged.
+
 ## Stable article URLs
 
 Set `"slug":"getting-started"` in JSON frontmatter to generate
@@ -111,7 +137,7 @@ CLI/report/manifest schemas are unchanged.
 
 ## Collections
 
-`articles.html` lists all selected source pages in publication-date order (newest
+`articles.html` lists selected source pages with `listed:true` in publication-date order (newest
 first), followed by undated pages. Equal dates and undated pages use the existing
 MoonBit filename comparison (length first, then code-unit order), not locale
 collation. Tag pages use the same ordering. Every
@@ -143,7 +169,7 @@ position. There is no JavaScript or client-side pagination.
 Omit the setting to keep the original single archive, HTML and dependencies.
 Zero, negative, fractional, out-of-range and non-number values are errors. As
 before, a present `site.json` requires `base_url`. Tag archives remain single
-pages. RSS includes all selected source pages, independently of archive size.
+pages. RSS includes all listed, selected source pages, independently of archive size.
 The source-page count in reports is unchanged by generated archive pages.
 
 All archive routes enter the sitemap and route/anchor checks. A source page
@@ -284,7 +310,7 @@ Add `<link rel="alternate" type="application/rss+xml" title="Updates" href="rss.
 to your layout head for discovery, or an ordinary RSS link. These references are
 validated against the generated route like any other link.
 
-The RSS 2.0 summary feed includes every selected source page in the same date
+The RSS 2.0 summary feed includes every listed, selected source page in the same date
 order as collections, including undated pages after dated ones. Generated
 collections are excluded. Each item has its metadata title, plain-text metadata
 description, tags as categories, and absolute encoded link/GUID. The channel link
