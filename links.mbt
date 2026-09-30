@@ -26,12 +26,24 @@ fn parse_inline(text : String) -> Array[Inline] {
     }
     let star = rest.find("*").unwrap_or(rest.length())
     let start = if star < start { star } else { start }
+    let slash = rest.find("\\").unwrap_or(rest.length())
+    let start = if slash < start { slash } else { start }
     if start == rest.length() {
       result.push(Text(rest))
       break
     }
     if start > 0 {
       result.push(Text(rest[:start].to_owned()))
+    }
+    if start == slash {
+      let width = escape_width(rest, start)
+      result.push(
+        Text(
+          rest[start + (if width == 2 { 1 } else { 0 }):start + width].to_owned(),
+        ),
+      )
+      rest = rest[start + width:].to_owned()
+      continue
     }
     if start == star {
       let mut end = start + 1
@@ -73,14 +85,15 @@ fn parse_inline(text : String) -> Array[Inline] {
       result.push(Text(rest[start:start + length].to_owned()))
       rest = rest[start + length:].to_owned()
     } else {
-      if tail.split_once("](") is Some((label, destination)) {
-        if !label.to_owned().contains("[") &&
-          destination.to_owned().split_once(")") is Some((href, after)) {
+      if label_end(tail) is Some(end) {
+        let label = unescape_label(tail[:end].to_owned())
+        let destination = tail[end + 2:].to_owned()
+        if destination.split_once(")") is Some((href, after)) {
           result.push(
             if is_image {
-              Image(label.to_owned(), href.to_owned())
+              Image(label, href.to_owned())
             } else {
-              Link(label.to_owned(), href.to_owned())
+              Link(label, href.to_owned())
             },
           )
           rest = after.to_owned()
