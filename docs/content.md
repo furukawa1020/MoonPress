@@ -12,7 +12,7 @@ Body text.
 ```
 
 Optional keys: `title` (nonempty string), `description` (string), `tags` (array
-of nonempty strings), `draft` (boolean, default false), `layout` (safe `.html` filename), `date` (calendar date string). Unknown keys and wrong types are errors, not silently
+of nonempty strings), `draft` (boolean, default false), `layout` (safe `.html` filename), `date` (calendar date string), `slug` (flat output stem). Unknown keys and wrong types are errors, not silently
 ignored typos. Tags are trimmed, deduplicated and deterministically sorted.
 The closing delimiter is a line containing `---`. CRLF is accepted. Metadata
 errors include the source filename and the frontmatter starting line; JSON
@@ -77,6 +77,37 @@ and output bytes; no manifest schema or renderer revision change is needed.
 Library API: `Document` now has `layout : String?`. Callers constructing the
 public struct directly must add `layout: None` (or `Some(filename)`); users of
 `parse_document` need no change. CLI options and report schemas are unchanged.
+
+## Stable article URLs
+
+Set `"slug":"getting-started"` in JSON frontmatter to generate
+`getting-started.html` independently of the source filename. Without it, the
+filename stem still determines the output. Slugs do not change automatic title
+fallback: use an explicit title to keep both title and URL stable on source rename.
+The `.html` suffix is always appended; `hello.html` therefore produces
+`hello.html.html`. There is no automatic redirect or author-link rewriting.
+
+Values must be nonempty, at most 250 UTF-8 bytes, and cannot start with a dot or
+contain whitespace/control characters, slash, backslash, colon, `?`, `#` or `%`.
+Unicode, hyphens, underscores and embedded dots work. These are literal stems,
+not paths or encoded URLs. Metadata is validated even for excluded drafts.
+
+Selected URLs are used by page links, heading checks, named layouts, article/tag
+collections, pagination, RSS and sitemap. Link to the generated `.html` URL and
+percent-encode Unicode/special characters normally. Duplicate slugs and collisions
+with generated archive routes fail before writes. Changing a slug removes the
+old tracked page after all incoming links are updated, subject to the usual
+edited/unmanaged-output protection.
+
+Collection/feed membership and sitemap source routes use stable output-name
+ordering. Renaming a source with unchanged explicit title/slug rebuilds its page
+because the source dependency changed, while preserving aggregate outputs.
+Source processing/report order remains based on source filenames. Existing sites
+without slugs retain their output bytes and dependencies.
+
+Library API: `Document` adds `slug : String?`; direct struct callers must supply
+`slug: None` or a validated value. `parse_document` performs validation. Public
+CLI/report/manifest schemas are unchanged.
 
 ## Collections
 
