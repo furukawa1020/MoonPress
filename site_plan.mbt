@@ -94,7 +94,8 @@ fn plan_site(
     raise InvalidInput("No published .md pages found")
   }
   documents.sort_by((a, b) => a.output.compare(b.output))
-  for archive in article_archives(documents, config.page_size) {
+  let listed = documents.filter(page => page.document.listed)
+  for archive in article_archives(listed, config.page_size) {
     pending.push(
       plan_artifact(
         archive.output,
@@ -111,7 +112,7 @@ fn plan_site(
     )
   }
   let tags : Array[String] = []
-  for page in documents {
+  for page in listed {
     for tag in page.document.tags {
       if !tags.contains(tag) {
         tags.push(tag)
@@ -120,7 +121,7 @@ fn plan_site(
   }
   tags.sort()
   for tag in tags {
-    let members = documents.filter(page => page.document.tags.contains(tag))
+    let members = listed.filter(page => page.document.tags.contains(tag))
     pending.push(
       plan_artifact(
         tag_filename(tag),
@@ -180,14 +181,14 @@ fn plan_site(
   }
   if config.feed is Some(feed) {
     let url = base_url.unwrap()
-    validate_feed(url, documents)
+    validate_feed(url, listed)
     pending.push(
       plan_artifact(
         "rss.xml",
-        feed_dependencies(url, feed, documents),
+        feed_dependencies(url, feed, listed),
         previous,
         output,
-        () => @utf8.encode(render_feed(url, feed, documents)),
+        () => @utf8.encode(render_feed(url, feed, listed)),
         log,
       ),
     )

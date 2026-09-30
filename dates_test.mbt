@@ -98,6 +98,7 @@ test "date layout substitution is escaped and single pass" {
       tags: [],
       body: "",
       draft: false,
+      listed: true,
       layout: None,
       slug: None,
       date: Some("\"><x>"),

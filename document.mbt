@@ -5,6 +5,7 @@ pub(all) struct Document {
   tags : Array[String]
   body : String
   draft : Bool
+  listed : Bool
   layout : String?
   date : String?
   slug : String?
@@ -48,6 +49,7 @@ pub fn parse_document(
   let mut date : String? = None
   let mut slug : String? = None
   let mut draft = false
+  let mut listed = true
   let tags : Array[String] = []
   for key, value in fields {
     match (key, value) {
@@ -86,6 +88,8 @@ pub fn parse_document(
       ("description", String(text)) => description = text
       ("draft", True) => draft = true
       ("draft", False) => draft = false
+      ("listed", True) => listed = true
+      ("listed", False) => listed = false
       ("tags", Array(items)) =>
         for item in items {
           match item {
@@ -111,6 +115,7 @@ pub fn parse_document(
         | "description"
         | "tags"
         | "draft"
+        | "listed"
         | "layout"
         | "date"
         | "slug",
@@ -125,7 +130,7 @@ pub fn parse_document(
     Some(text) => text
     None => page_title(body, fallback)
   }
-  { title, description, tags, body, draft, layout, date, slug, }
+  { title, description, tags, body, draft, listed, layout, date, slug, }
 }
 
 ///|
