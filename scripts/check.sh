@@ -9,6 +9,7 @@ bash scripts/cli-help-test.sh
 bash scripts/init-test.sh
 bash scripts/incremental-test.sh
 bash scripts/content-test.sh
+bash scripts/slugs-test.sh
 bash scripts/dates-test.sh
 bash scripts/layouts-test.sh
 bash scripts/title-test.sh

@@ -131,6 +131,7 @@ pub(all) struct Document {
   draft : Bool
   layout : String?
   date : String?
+  slug : String?
 }
 
 pub(all) struct HeadingInfo {

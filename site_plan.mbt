@@ -48,16 +48,15 @@ fn plan_site(
         record_event(log, "skip", "content/" + name, "draft")
         continue
       }
+      let route = document.slug.unwrap_or(stem) + ".html"
       let template = select_layout(layouts, input, document.layout)
-      page_layouts[stem + ".html"] = template
-      documents.push({ output: stem + ".html", document, })
+      page_layouts[route] = template
+      documents.push({ output: route, document, })
       let blocks = parse_blocks(document.body)
       let outline = block_headings(blocks)
       let (links, images) = block_references(blocks)
-      references.push({ output: stem + ".html", links, images, })
-      heading_targets[url_component(stem + ".html")] = index_heading_ids(
-        outline,
-      )
+      references.push({ output: route, links, images, })
+      heading_targets[url_component(route)] = index_heading_ids(outline)
       let deps : Array[Dependency] = [
         { name: "compiler", digest: compiler_digest, },
         { name: template.source, digest: template.digest, },
@@ -65,7 +64,7 @@ fn plan_site(
       ]
       pending.push(
         plan_artifact(
-          stem + ".html",
+          route,
           deps,
           previous,
           output,
@@ -94,6 +93,7 @@ fn plan_site(
   if pages == 0 {
     raise InvalidInput("No published .md pages found")
   }
+  documents.sort_by((a, b) => a.output.compare(b.output))
   for archive in article_archives(documents, config.page_size) {
     pending.push(
       plan_artifact(
@@ -229,7 +229,12 @@ fn plan_site(
     layouts, page_layouts, routes, route_lookup, heading_targets, base_path,
   )
   if base_url is Some(url) {
-    let sitemap_routes = routes.filter(name => name.has_suffix(".html"))
+    let sitemap_routes = documents.map(page => page.output)
+    for route in routes {
+      if route.has_suffix(".html") && !page_layouts.contains(route) {
+        sitemap_routes.push(route)
+      }
+    }
     pending.push(
       plan_artifact(
         "sitemap.xml",

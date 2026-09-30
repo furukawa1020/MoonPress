@@ -7,6 +7,7 @@ pub(all) struct Document {
   draft : Bool
   layout : String?
   date : String?
+  slug : String?
 }
 
 ///|
@@ -45,6 +46,7 @@ pub fn parse_document(
   let mut description = ""
   let mut layout : String? = None
   let mut date : String? = None
+  let mut slug : String? = None
   let mut draft = false
   let tags : Array[String] = []
   for key, value in fields {
@@ -72,6 +74,15 @@ pub fn parse_document(
         }
         date = Some(value)
       }
+      ("slug", String(value)) => {
+        if !valid_slug(value) {
+          raise InvalidInput(
+            filename +
+            ":2: slug must be a safe flat output stem (at most 250 UTF-8 bytes)",
+          )
+        }
+        slug = Some(value)
+      }
       ("description", String(text)) => description = text
       ("draft", True) => draft = true
       ("draft", False) => draft = false
@@ -95,8 +106,16 @@ pub fn parse_document(
               )
           }
         }
-      ("title" | "description" | "tags" | "draft" | "layout" | "date", _) =>
-        raise InvalidInput(filename + ":2: wrong type for " + key)
+      (
+        "title"
+        | "description"
+        | "tags"
+        | "draft"
+        | "layout"
+        | "date"
+        | "slug",
+        _,
+      ) => raise InvalidInput(filename + ":2: wrong type for " + key)
       (_, _) =>
         raise InvalidInput(filename + ":2: unknown metadata key: " + key)
     }
@@ -106,5 +125,15 @@ pub fn parse_document(
     Some(text) => text
     None => page_title(body, fallback)
   }
-  { title, description, tags, body, draft, layout, date, }
+  { title, description, tags, body, draft, layout, date, slug, }
+}
+
+///|
+fn valid_slug(value : String) -> Bool {
+  !value.is_empty() &&
+  !value.has_prefix(".") &&
+  safe_output_name(value + ".html") &&
+  !value.any(c => {
+    c.is_whitespace() || c.is_control() || c == '?' || c == '#' || c == '%'
+  })
 }
