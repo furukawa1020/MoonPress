@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+bash scripts/setup-test.sh
 moon check --target native
 moon test --target native
 moon build --target native --release
