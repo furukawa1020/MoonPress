@@ -1,5 +1,7 @@
 ///|
-priv struct ArticleArchive {
+priv struct CollectionArchive {
+  stem : String
+  label : String
   output : String
   title : String
   members : Array[Page]
@@ -9,11 +11,11 @@ priv struct ArticleArchive {
 }
 
 ///|
-fn archive_filename(number : Int) -> String {
+fn archive_filename(number : Int, stem? : String = "articles") -> String {
   if number == 1 {
-    "articles.html"
+    stem + ".html"
   } else {
-    "articles-\{number}.html"
+    stem + "-\{number}.html"
   }
 }
 
@@ -21,12 +23,41 @@ fn archive_filename(number : Int) -> String {
 fn article_archives(
   pages : Array[Page],
   page_size : Int?,
-) -> Array[ArticleArchive] {
+) -> Array[CollectionArchive] {
+  collection_archives(pages, page_size, "articles", "Articles", "Article pages")
+}
+
+///|
+fn tag_archives(
+  pages : Array[Page],
+  page_size : Int?,
+  tag : String,
+) -> Array[CollectionArchive] {
+  let filename = tag_filename(tag)
+  collection_archives(
+    pages,
+    page_size,
+    filename[:filename.length() - 5].to_owned(),
+    tag,
+    "Tag pages",
+  )
+}
+
+///|
+fn collection_archives(
+  pages : Array[Page],
+  page_size : Int?,
+  stem : String,
+  title : String,
+  label : String,
+) -> Array[CollectionArchive] {
   guard page_size is Some(size) else {
     return [
       {
-        output: "articles.html",
-        title: "Articles",
+        stem,
+        label,
+        output: stem + ".html",
+        title,
         members: pages,
         number: 1,
         total: 1,
@@ -40,7 +71,7 @@ fn article_archives(
   } else {
     (ordered.length() - 1) / size + 1
   }
-  let result : Array[ArticleArchive] = []
+  let result : Array[CollectionArchive] = []
   let mut offset = 0
   for number = 1; number <= total; number = number + 1 {
     let members : Array[Page] = []
@@ -49,11 +80,13 @@ fn article_archives(
       offset += 1
     }
     result.push({
-      output: archive_filename(number),
+      stem,
+      label,
+      output: archive_filename(number, stem~),
       title: if number == 1 {
-        "Articles"
+        title
       } else {
-        "Articles — page \{number}"
+        title + " — page \{number}"
       },
       members,
       number,
@@ -66,7 +99,7 @@ fn article_archives(
 
 ///|
 fn archive_dependencies(
-  archive : ArticleArchive,
+  archive : CollectionArchive,
   layout_digest : String,
 ) -> Array[Dependency] {
   let deps = collection_dependencies(archive.members, layout_digest)
@@ -84,17 +117,21 @@ fn archive_dependencies(
 }
 
 ///|
-fn render_archive(archive : ArticleArchive) -> String {
+fn render_archive(archive : CollectionArchive) -> String {
   let body = render_collection(archive.title, archive.members)
   if !archive.paginated {
     return body
   }
   let nav = StringBuilder()
-  nav.write_string("<nav class=\"pagination\" aria-label=\"Article pages\">\n")
+  nav.write_string(
+    "<nav class=\"pagination\" aria-label=\"" +
+    escape_html(archive.label) +
+    "\">\n",
+  )
   if archive.number > 1 {
     nav.write_string(
       "<a rel=\"prev\" href=\"" +
-      archive_filename(archive.number - 1) +
+      archive_filename(archive.number - 1, stem=archive.stem) +
       "\">Previous</a>\n",
     )
   }
@@ -104,7 +141,7 @@ fn render_archive(archive : ArticleArchive) -> String {
   if archive.number < archive.total {
     nav.write_string(
       "<a rel=\"next\" href=\"" +
-      archive_filename(archive.number + 1) +
+      archive_filename(archive.number + 1, stem=archive.stem) +
       "\">Next</a>\n",
     )
   }

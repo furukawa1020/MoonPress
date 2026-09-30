@@ -169,7 +169,7 @@ position. There is no JavaScript or client-side pagination.
 Omit the setting to keep the original single archive, HTML and dependencies.
 Zero, negative, fractional, out-of-range and non-number values are errors. As
 before, a present `site.json` requires `base_url`. Tag archives remain single
-pages. RSS includes all listed, selected source pages, independently of archive size.
+pages unless `tag_page_size` is configured. RSS includes all listed, selected source pages, independently of archive size.
 The source-page count in reports is unchanged by generated archive pages.
 
 All archive routes enter the sitemap and route/anchor checks. A source page
@@ -184,6 +184,23 @@ containing archive. Date or membership changes can move entries across pages;
 page-count changes update navigation throughout. Clean and incremental output
 remain identical. Existing sites without pagination do not need a renderer or
 manifest migration; enabling/disabling it changes explicit dependencies.
+
+## Tag archive pagination
+
+Optional `tag_page_size` in `site.json` accepts an integer from 1 to 1000 and is
+independent of article `page_size`. For example, set `page_size:20` and
+`tag_page_size:10` as JSON fields. Omission preserves existing tag HTML and
+dependencies. The first route stays `tag-<UTF-8 hex>.html`; subsequent pages use
+`tag-<UTF-8 hex>-2.html`, etc. Page titles and navigation use the tag name and page
+number. Unicode and escaped tag text follow the same rules as ordinary tags.
+
+Articles and tags share partitioning, navigation and dependency code. Each tag
+is sorted chronologically before partitioning; each chunk tracks its members'
+metadata and page count. Draft/listed selection is applied before membership.
+Generated routes enter sitemap and link/anchor preflight. Changes in membership,
+preview mode or size delete obsolete tracked pages, protecting manually edited
+outputs and rejecting links to removed routes. Removing the setting restores the
+single tag archive. Article pagination and RSS membership are unaffected.
 
 ## Publication dates
 
