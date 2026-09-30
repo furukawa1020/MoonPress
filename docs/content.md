@@ -93,6 +93,41 @@ article and affected collections. Removed tags delete their obsolete generated
 pages. Membership changes and metadata are separate dependencies. Source pages
 whose output collides with a generated collection are rejected before writes.
 
+## Article archive pagination
+
+Set `page_size` in `site.json` to a numeric integer from 1 to 1000:
+
+```json
+{"base_url":"https://example.org/project/","page_size":20}
+```
+
+The first archive stays at `articles.html`; subsequent pages are
+`articles-2.html`, `articles-3.html`, etc. Source pages are sorted by the same
+publication-date and filename rules before partitioning, so each appears once.
+Archives use the default layout, with titles `Articles` and `Articles — page N`.
+Previous/next links use `rel` attributes inside a labeled navigation element,
+alongside a `Page N of M` indicator. Even a one-page enabled archive shows its
+position. There is no JavaScript or client-side pagination.
+
+Omit the setting to keep the original single archive, HTML and dependencies.
+Zero, negative, fractional, out-of-range and non-number values are errors. As
+before, a present `site.json` requires `base_url`. Tag archives remain single
+pages. RSS includes all selected source pages, independently of archive size.
+The source-page count in reports is unchanged by generated archive pages.
+
+All archive routes enter the sitemap and route/anchor checks. A source page
+named `articles-2.md` collides when that route is generated. Draft previews can
+have more pages; returning to normal mode removes obsolete tracked archives.
+Shrinking/disabling pagination also removes obsolete pages, after validating
+remaining incoming links and protecting edited/unmanaged outputs.
+
+Each archive depends on its own members' metadata, the default layout and page
+number/count. Body edits do not rebuild archives; metadata edits update the
+containing archive. Date or membership changes can move entries across pages;
+page-count changes update navigation throughout. Clean and incremental output
+remain identical. Existing sites without pagination do not need a renderer or
+manifest migration; enabling/disabling it changes explicit dependencies.
+
 ## Publication dates
 
 Optional `"date":"2026-09-29"` metadata supplies a publication date. Values must
