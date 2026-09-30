@@ -120,8 +120,10 @@ fn plan_site(
     }
   }
   tags.sort()
+  let tag_summaries : Array[TagSummary] = []
   for tag in tags {
     let members = listed.filter(page => page.document.tags.contains(tag))
+    tag_summaries.push({ name: tag, count: members.length(), })
     for archive in tag_archives(members, config.tag_page_size, tag) {
       pending.push(
         plan_artifact(
@@ -138,6 +140,22 @@ fn plan_site(
         ),
       )
     }
+  }
+  if config.tag_index {
+    pending.push(
+      plan_artifact(
+        "tags.html",
+        tag_index_dependencies(tag_summaries, layout_digest),
+        previous,
+        output,
+        () => {
+          @utf8.encode(
+            apply_layout(layout, "Tags", render_tag_index(tag_summaries)),
+          )
+        },
+        log,
+      ),
+    )
   }
   pending.push(
     plan_artifact(

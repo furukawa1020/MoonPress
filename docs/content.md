@@ -202,6 +202,27 @@ preview mode or size delete obsolete tracked pages, protecting manually edited
 outputs and rejecting links to removed routes. Removing the setting restores the
 single tag archive. Article pagination and RSS membership are unaffected.
 
+## Tag index
+
+Set `"tag_index":true` in `site.json` to generate `tags.html` using the default
+layout. Each entry contains an escaped tag name, a link to its first archive page
+and an article count. Tags use the existing deterministic filename/string ordering
+(length then code-unit order). Only listed, selected source pages count; metadata
+deduplication ensures a page contributes once per tag. Draft previews use their
+own selected set. The index remains valid when no tags are present.
+
+The default is false; other types are errors. Add an ordinary `tags.html` link to
+your layout/navigation if desired. The route participates in sitemap generation,
+link/anchor validation, collision checks and protected stale deletion. Remove
+incoming links before disabling it. A source page using the same output collides
+while the index is enabled. Generated index headings have no `mp-` anchor IDs,
+matching other generated collection pages.
+
+Index dependencies are tag names/counts, default layout and index renderer only.
+Article body/title/date edits, pagination-size changes and source renames with
+unchanged membership do not rewrite it. It works alongside RSS and independent
+article/tag pagination. No browser runtime or dependencies are introduced.
+
 ## Publication dates
 
 Optional `"date":"2026-09-29"` metadata supplies a publication date. Values must
