@@ -10,6 +10,7 @@ priv struct SiteConfig {
   feed : FeedConfig?
   page_size : Int?
   tag_page_size : Int?
+  tag_index : Bool
 }
 
 ///|
@@ -22,7 +23,8 @@ fn parse_site_config(source : String) -> SiteConfig raise {
     if key != "base_url" &&
       key != "feed" &&
       key != "page_size" &&
-      key != "tag_page_size" {
+      key != "tag_page_size" &&
+      key != "tag_index" {
       raise InvalidInput("site.json: unknown key " + key)
     }
   }
@@ -52,7 +54,12 @@ fn parse_site_config(source : String) -> SiteConfig raise {
     fields.get("tag_page_size"),
     "tag_page_size",
   )
-  { base_url: Some(base_url), feed, page_size, tag_page_size, }
+  let tag_index = match fields.get("tag_index") {
+    None | Some(False) => false
+    Some(True) => true
+    _ => raise InvalidInput("site.json: tag_index must be a boolean")
+  }
+  { base_url: Some(base_url), feed, page_size, tag_page_size, tag_index, }
 }
 
 ///|
@@ -86,7 +93,13 @@ fn feed_config_text(value : Json?, field : String) -> String raise {
 fn read_site_config(input : String) -> SiteConfig raise {
   let path = input + "/site.json"
   if path_kind(path) == 0 {
-    return { base_url: None, feed: None, page_size: None, tag_page_size: None, }
+    return {
+      base_url: None,
+      feed: None,
+      page_size: None,
+      tag_page_size: None,
+      tag_index: false,
+    }
   }
   require_input_kind(path, 1)
   parse_site_config(read_text(path))
