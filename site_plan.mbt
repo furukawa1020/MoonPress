@@ -94,24 +94,22 @@ fn plan_site(
   if pages == 0 {
     raise InvalidInput("No published .md pages found")
   }
-  pending.push(
-    plan_artifact(
-      "articles.html",
-      collection_dependencies(documents, layout_digest),
-      previous,
-      output,
-      () => {
-        @utf8.encode(
-          apply_layout(
-            layout,
-            "Articles",
-            render_collection("Articles", documents),
-          ),
-        )
-      },
-      log,
-    ),
-  )
+  for archive in article_archives(documents, config.page_size) {
+    pending.push(
+      plan_artifact(
+        archive.output,
+        archive_dependencies(archive, layout_digest),
+        previous,
+        output,
+        () => {
+          @utf8.encode(
+            apply_layout(layout, archive.title, render_archive(archive)),
+          )
+        },
+        log,
+      ),
+    )
+  }
   let tags : Array[String] = []
   for page in documents {
     for tag in page.document.tags {
