@@ -23,6 +23,7 @@ bash scripts/url-test.sh
 bash scripts/toc-test.sh
 bash scripts/heading-links-test.sh
 bash scripts/fences-test.sh
+bash scripts/fence-languages-test.sh
 bash scripts/code-spans-test.sh
 bash scripts/site-check-test.sh
 bash scripts/drafts-test.sh

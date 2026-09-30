@@ -2,7 +2,7 @@
 priv enum Block {
   Heading(Int, String)
   Paragraph(Array[String])
-  CodeBlock(String)
+  CodeBlock(String, String?)
   ThematicBreak
   UnorderedList(Array[String])
   OrderedList(String, Array[String])
@@ -82,12 +82,13 @@ fn parse_blocks(source : String) -> Array[Block] {
   let mut kind = 0
   let mut start = ""
   let mut fence : (String, Int)? = None
+  let mut language : String? = None
   let mut code = StringBuilder()
   for raw in source.split("\n") {
     let line = raw.to_owned().trim_end(chars="\r").to_owned()
     if fence is Some((marker, length)) {
       if closes_fence(line, marker, length) {
-        blocks.push(CodeBlock(code.to_string()))
+        blocks.push(CodeBlock(code.to_string(), language))
         code = StringBuilder()
         fence = None
       } else {
@@ -99,6 +100,7 @@ fn parse_blocks(source : String) -> Array[Block] {
         lines = []
       }
       fence = Some(opening)
+      language = fence_language(line, opening.1)
     } else {
       let level = heading_level(line)
       let separator = is_thematic_break(line)
@@ -130,7 +132,7 @@ fn parse_blocks(source : String) -> Array[Block] {
     blocks.push(group_block(kind, start, lines))
   }
   if fence is Some(_) {
-    blocks.push(CodeBlock(code.to_string()))
+    blocks.push(CodeBlock(code.to_string(), language))
   }
   blocks
 }
@@ -143,7 +145,7 @@ fn inline_lines(block : Block) -> Array[String] {
     | UnorderedList(lines)
     | OrderedList(_, lines)
     | Quote(lines) => lines
-    CodeBlock(_) | ThematicBreak => []
+    CodeBlock(_, _) | ThematicBreak => []
   }
 }
 
@@ -187,8 +189,15 @@ fn render_blocks_with_headings(
           "</p>\n</blockquote>\n",
         )
       ThematicBreak => out.write_string("<hr>\n")
-      CodeBlock(code) =>
-        out.write_string("<pre><code>" + escape_html(code) + "</code></pre>\n")
+      CodeBlock(code, language) => {
+        let attribute = match language {
+          Some(name) => " class=\"language-" + escape_html(name) + "\""
+          None => ""
+        }
+        out.write_string(
+          "<pre><code" + attribute + ">" + escape_html(code) + "</code></pre>\n",
+        )
+      }
     }
   }
   out.to_string()
@@ -197,6 +206,38 @@ fn render_blocks_with_headings(
 ///|
 fn render_items(items : Array[String]) -> String {
   items.map(item => "<li>" + render_inline(item) + "</li>\n").join("")
+}
+
+///|
+// Only ASCII space/tab delimit info tokens. Reject the entire first token if
+// unsafe; never turn arbitrary info strings into attributes or executable code.
+fn fence_language(line : String, marker_length : Int) -> String? {
+  let info = line[marker_length:].to_owned().trim_start(chars=" \t").to_owned()
+  let token = StringBuilder()
+  let mut length = 0
+  for c in info {
+    if c == ' ' || c == '\t' {
+      break
+    }
+    if !((c >= 'a' && c <= 'z') ||
+      (c >= 'A' && c <= 'Z') ||
+      (c >= '0' && c <= '9') ||
+      c == '_' ||
+      c == '-' ||
+      c == '+') {
+      return None
+    }
+    length += 1
+    if length > 64 {
+      return None
+    }
+    token.write_char(c)
+  }
+  if length == 0 {
+    None
+  } else {
+    Some(token.to_string())
+  }
 }
 
 ///|
