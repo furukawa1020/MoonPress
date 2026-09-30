@@ -4,7 +4,7 @@ test "long fences keep shorter and mixed delimiters literal" {
   let html = @moonpress.render_markdown(source)
   assert_true(
     html.contains(
-      "<pre><code>```\n# Hidden\n[x](missing.html)\n![x](missing.png)\n~~~\n```` text\n</code></pre>",
+      "<pre><code class=\"language-markdown\">```\n# Hidden\n[x](missing.html)\n![x](missing.png)\n~~~\n```` text\n</code></pre>",
     ),
   )
   assert_eq(@moonpress.page_title(source, "fallback"), "Real")
@@ -17,7 +17,7 @@ test "long fences keep shorter and mixed delimiters literal" {
 test "tilde fences support CRLF and trailing closing whitespace" {
   assert_eq(
     @moonpress.render_markdown("~~~html\r\n<b>\r\n~~~ \t\r\ntext"),
-    "<pre><code>&lt;b&gt;\n</code></pre>\n<p>text</p>\n",
+    "<pre><code class=\"language-html\">&lt;b&gt;\n</code></pre>\n<p>text</p>\n",
   )
   assert_eq(
     @moonpress.render_markdown("~~~~\nx\n~~~"),

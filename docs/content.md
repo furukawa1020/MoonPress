@@ -186,10 +186,30 @@ title discovery and Markdown link extraction consume that same block model.
 Inline parsing remains line-scoped. Fences start at column zero with at least three backticks or tildes. They close
 only with the same character repeated at least as many times, followed only by
 spaces/tabs. Shorter runs, a different fence character and trailing text remain
-code. Backtick opening info strings cannot contain backticks. Language annotations
-are ignored. An unclosed fence
+code. Backtick opening info strings cannot contain backticks. Language annotations follow the rules below. An unclosed fence
 runs to EOF. CRLF is normalized and raw HTML is always escaped.
 
+
+### Fenced-code languages
+
+An opening fence such as ` ```moonbit ` or `~~~sh` produces
+`<code class="language-moonbit">` or `<code class="language-sh">`. The first
+info token may contain 1–64 ASCII letters, digits, underscores, hyphens or plus
+signs; spelling and case are preserved (`C++` works). ASCII spaces/tabs before
+that token are skipped; additional space/tab-separated metadata is ignored.
+Empty or invalid tokens, including quotes, HTML, Unicode and `{.language}`
+notation, produce a plain `<code>` element. No partial token is accepted.
+
+This supplies a CSS hook only: MoonPress does not tokenize code, load a highlighter
+or generate JavaScript. Code content remains HTML-escaped and does not create
+headings, titles, TOC entries, links or image references. Both fence styles,
+CRLF, empty blocks and unclosed fences use the same rules. Existing backtick
+opener restrictions and closing-fence rules are unchanged.
+
+Source renderer revision v15 rebuilds cached source pages once. Collections,
+CSS and sitemap retain their dependencies; subsequent builds are no-ops.
+Changing a language annotation rebuilds only its source page. The CLI, manifest
+schema and public library signatures are unchanged.
 
 ### Thematic breaks
 

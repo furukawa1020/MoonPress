@@ -18,7 +18,7 @@ test "headings paragraphs and CRLF" {
 test "code fences preserve syntax and escape HTML" {
   assert_eq(
     @moonpress.render_markdown("```html\n<b>\n```"),
-    "<pre><code>&lt;b&gt;\n</code></pre>\n",
+    "<pre><code class=\"language-html\">&lt;b&gt;\n</code></pre>\n",
   )
 }
 
