@@ -204,6 +204,43 @@ No lastmod timestamp is invented. URL and route membership are sitemap dependenc
 body changes do not rewrite the sitemap. Removing site.json removes the tracked
 sitemap on the next build. The site remains relative-link based and portable.
 
+## RSS subscriptions
+
+To generate `rss.xml`, extend `site.json`:
+
+```json
+{"base_url":"https://example.org/project/","feed":{"title":"My site","description":"Project updates"}}
+```
+
+Both feed fields must be nonempty strings. Unknown fields and wrong types are
+errors; omit `feed` to disable it. A present `site.json` still requires `base_url`.
+Add `<link rel="alternate" type="application/rss+xml" title="Updates" href="rss.xml">`
+to your layout head for discovery, or an ordinary RSS link. These references are
+validated against the generated route like any other link.
+
+The RSS 2.0 summary feed includes every selected source page in the same date
+order as collections, including undated pages after dated ones. Generated
+collections are excluded. Each item has its metadata title, plain-text metadata
+description, tags as categories, and absolute encoded link/GUID. The channel link
+points to `articles.html`. GUIDs change if the base URL or filename changes.
+Descriptions are escaped as HTML inside XML so literal markup remains text in
+readers; article bodies and templates are not embedded. RSS does not require a
+publication timestamp: date-only metadata sorts entries, while `pubDate` and
+`lastBuildDate` are omitted rather than inferring a time/timezone or using a clock.
+Format reference: https://www.rssboard.org/rss-specification
+
+Drafts are excluded unless `--include-drafts` is explicitly selected. Feed metadata
+must contain valid XML 1.0 characters; unsupported controls are rejected before
+writes, including during check/explain and no-op builds. Metadata of excluded
+drafts does not enter the feed.
+
+RSS depends on its settings, membership and article metadata. Body/layout/CSS edits
+do not rewrite it; title/description/tag/date edits do. Removing feed configuration
+removes its tracked output on the next build, after removing incoming references.
+A public asset named `rss.xml` collides while feed generation is enabled. Modified
+or unmanaged outputs receive the same protections as HTML. No network fetching,
+RSS client, full-content feed or browser scripting is added.
+
 ## Markdown compiler core
 
 One block parser defines headings, paragraphs, fenced code, lists and quotes. HTML rendering,

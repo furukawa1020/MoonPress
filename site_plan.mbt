@@ -21,7 +21,8 @@ fn plan_site(
   require_input_kind(input + "/content", 2)
   require_input_kind(input + "/layout.html", 1)
   require_input_kind(input + "/style.css", 1)
-  let base_url = read_base_url(input)
+  let config = read_site_config(input)
+  let base_url = config.base_url
   let layouts = load_layouts(input)
   let layout = layouts.default.content
   let page_layouts : Map[String, LayoutTemplate] = Map([])
@@ -178,6 +179,20 @@ fn plan_site(
         ),
       )
     }
+  }
+  if config.feed is Some(feed) {
+    let url = base_url.unwrap()
+    validate_feed(url, documents)
+    pending.push(
+      plan_artifact(
+        "rss.xml",
+        feed_dependencies(url, feed, documents),
+        previous,
+        output,
+        () => @utf8.encode(render_feed(url, feed, documents)),
+        log,
+      ),
+    )
   }
   let routes = pending.map(item => item.artifact.name)
   if base_url is Some(_) {

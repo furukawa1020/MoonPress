@@ -40,28 +40,6 @@ pub fn site_base_path(base_url : String) -> String {
 }
 
 ///|
-fn read_base_url(input : String) -> String? raise {
-  let path = input + "/site.json"
-  if path_kind(path) == 0 {
-    return None
-  }
-  require_input_kind(path, 1)
-  let fields = match @json.parse(read_text(path)) {
-    Object(fields) => fields
-    _ => raise InvalidInput("site.json must be an object")
-  }
-  for key, _ in fields {
-    if key != "base_url" {
-      raise InvalidInput("site.json: unknown key " + key)
-    }
-  }
-  match fields.get("base_url") {
-    Some(String(url)) => Some(normalize_base_url(url))
-    _ => raise InvalidInput("site.json: base_url must be a string")
-  }
-}
-
-///|
 pub fn render_sitemap(base_url : String, outputs : Array[String]) -> String {
   let out = StringBuilder()
   out.write_string(
