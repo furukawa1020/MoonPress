@@ -120,3 +120,20 @@ The [GitHub Actions deployment guide](deployment.md) describes this repository's
 shell-only example and the necessary one-time Pages setting. The starter does
 not install that workflow into a new repository, and a local build is not proof
 of a successful public deployment.
+
+## Review your posts
+
+Run `moonpress posts my-site` to list source filenames, titles, draft status and
+resolved HTML routes. Use `moonpress posts my-site --json` for the schema-1 report
+with `report.posts`; each entry includes `source`, `output`, `title`, `draft`,
+`listed`, nullable `date` and `tags`. All posts are included, even drafts and
+unlisted pages. Ordering is deterministic by source filename (length then code
+units). Text fields are JSON-quoted to keep embedded newlines on one line.
+
+`ready` means the page is eligible for a normal build; it does not mean deployed.
+This read-only inventory needs only the site and its flat `content/` directory,
+so it works while layouts or configuration are being edited. It uses the same
+strict frontmatter parser as the compiler. No route collision, content-link,
+layout or deployment validation is performed; use `check` before building.
+Invalid input fails without a partial report. The listing is not a snapshot
+against an external editor changing files during the operation.

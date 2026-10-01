@@ -26,6 +26,8 @@ pub fn headings(String) -> Array[HeadingInfo]
 
 pub fn init_site(String) -> InitReport raise
 
+pub fn list_posts(String) -> PostsReport raise
+
 pub fn markdown_images(String) -> Array[String]
 
 pub fn markdown_links(String) -> Array[String]
@@ -163,6 +165,22 @@ pub(all) struct Page {
   output : String
   document : Document
 }
+
+pub(all) struct PostSummary {
+  source : String
+  output : String
+  title : String
+  draft : Bool
+  listed : Bool
+  date : String?
+  tags : Array[String]
+} derive(ToJson)
+pub fn PostSummary::to_json(Self) -> Json
+
+pub(all) struct PostsReport {
+  posts : Array[PostSummary]
+} derive(ToJson)
+pub fn PostsReport::to_json(Self) -> Json
 
 pub(all) struct RecoveryReport {
   action : String
