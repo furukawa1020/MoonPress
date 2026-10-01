@@ -24,6 +24,7 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
+  value == "posts" ||
   value == "init" ||
   value == "build" ||
   value == "check" ||
@@ -34,6 +35,7 @@ fn is_command(value : String) -> Bool {
 ///|
 fn usage(command : String) -> String {
   match command {
+    "posts" => "Usage: moonpress posts <site-directory> [--json]"
     "init" => "Usage: moonpress init <site-directory> [--json]"
     "recover" => "Usage: moonpress recover <output-directory> [--json]"
     "build" =>
@@ -43,13 +45,15 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <init|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <init|posts|build|check|explain|recover> [--help|-h]"
   }
 }
 
 ///|
 fn help_text(command : String) -> String {
   let description = match command {
+    "posts" =>
+      "List all Markdown posts, including drafts and unlisted pages.\nRead metadata only; no layout, output or deployment validation is performed.\nNo files are written. Draft status is not a record of deployment."
     "init" =>
       "Create a ready-to-build Markdown/HTML/CSS starter in a new directory.\nThe parent must exist; existing targets are never overwritten.\nNo network access, Git initialization or hosting setup is performed."
     "recover" =>
@@ -61,9 +65,9 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
-  if command == "recover" || command == "init" {
+  if command == "recover" || command == "init" || command == "posts" {
     return description +
       "\n\n" +
       usage(command) +
@@ -93,7 +97,8 @@ fn main {
   let command = args[1]
   let required = if command == "check" ||
     command == "recover" ||
-    command == "init" {
+    command == "init" ||
+    command == "posts" {
     3
   } else {
     4
@@ -114,7 +119,8 @@ fn main {
     match args[index] {
       "--include-drafts" if !include_drafts &&
         command != "recover" &&
-        command != "init" => include_drafts = true
+        command != "init" &&
+        command != "posts" => include_drafts = true
       "--json" if !json => json = true
       _ => valid = false
     }
@@ -125,7 +131,28 @@ fn main {
     return
   }
   try {
-    if command == "init" {
+    if command == "posts" {
+      let report = @lib.list_posts(args[2])
+      if json {
+        print_report(command, false, report.to_json())
+      } else {
+        for post in report.posts {
+          let state = if post.draft { "draft" } else { "ready" }
+          println(
+            state +
+            "\t" +
+            post.source.to_json().stringify() +
+            "\t" +
+            post.title.to_json().stringify() +
+            "\t" +
+            post.output.to_json().stringify(),
+          )
+        }
+        println(
+          "Posts: \{report.posts.length()} (ready means included in normal builds, not deployed)",
+        )
+      }
+    } else if command == "init" {
       let report = @lib.init_site(args[2])
       if json {
         print_report(command, false, report.to_json())
