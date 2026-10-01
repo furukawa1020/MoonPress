@@ -236,3 +236,9 @@ next normal build removes tracked output, using existing incoming-link and
 manual-edit protections. Resolve those errors before rebuilding; previews still
 include the draft. Upload the successful normal build through your hosting
 workflow separately.
+
+## Work in your browser
+
+Run `moonpress admin my-site 8080` for the local post-management interface.
+See [local administration](admin.md) for creation, editing, status controls and
+the local-only trust boundary. Preview and deployment remain CLI workflows.

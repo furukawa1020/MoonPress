@@ -10,5 +10,5 @@ import {
 } for "wbtest"
 
 options(
-  "native-stub": [ "path_guard.c", "io_native.c" ],
+  "native-stub": [ "path_guard.c", "io_native.c", "admin_native.c" ],
 )
