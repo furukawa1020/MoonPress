@@ -24,7 +24,12 @@ fn plan_site(
   let config = read_site_config(input)
   let base_url = config.base_url
   let layouts = load_layouts(input)
-  let layout = layouts.default.content
+  let collection_template = select_layout(
+    layouts,
+    input,
+    config.collection_layout,
+  )
+  let layout = collection_template.content
   let page_layouts : Map[String, LayoutTemplate] = Map([])
   let css = read_bytes(input + "/style.css")
   let names = @fs.read_dir(input + "/content").to_owned()
@@ -35,7 +40,7 @@ fn plan_site(
   let references : Array[PageReferences] = []
   let heading_targets : Map[String, Map[String, Bool]] = Map([])
   let mut pages = 0
-  let layout_digest = layouts.default.digest
+  let layout_digest = collection_template.digest
   let compiler_digest = digest_text("moonpress-renderer-v17")
   for name in names {
     let path = input + "/content/" + name
@@ -96,10 +101,15 @@ fn plan_site(
   documents.sort_by((a, b) => a.output.compare(b.output))
   let listed = documents.filter(page => page.document.listed)
   for archive in article_archives(listed, config.page_size) {
+    page_layouts[archive.output] = collection_template
     pending.push(
       plan_artifact(
         archive.output,
-        archive_dependencies(archive, layout_digest),
+        archive_dependencies(
+          archive,
+          layout_digest,
+          layout_source=collection_template.source,
+        ),
         previous,
         output,
         () => {
@@ -125,10 +135,15 @@ fn plan_site(
     let members = listed.filter(page => page.document.tags.contains(tag))
     tag_summaries.push({ name: tag, count: members.length(), })
     for archive in tag_archives(members, config.tag_page_size, tag) {
+      page_layouts[archive.output] = collection_template
       pending.push(
         plan_artifact(
           archive.output,
-          archive_dependencies(archive, layout_digest),
+          archive_dependencies(
+            archive,
+            layout_digest,
+            layout_source=collection_template.source,
+          ),
           previous,
           output,
           () => {
@@ -142,10 +157,15 @@ fn plan_site(
     }
   }
   if config.tag_index {
+    page_layouts["tags.html"] = collection_template
     pending.push(
       plan_artifact(
         "tags.html",
-        tag_index_dependencies(tag_summaries, layout_digest),
+        tag_index_dependencies(
+          tag_summaries,
+          layout_digest,
+          layout_source=collection_template.source,
+        ),
         previous,
         output,
         () => {
@@ -251,8 +271,10 @@ fn plan_site(
   )
   if base_url is Some(url) {
     let sitemap_routes = documents.map(page => page.output)
+    let source_routes = index_routes(sitemap_routes)
     for route in routes {
-      if route.has_suffix(".html") && !page_layouts.contains(route) {
+      if route.has_suffix(".html") &&
+        !source_routes.contains(url_component(route)) {
         sitemap_routes.push(route)
       }
     }
