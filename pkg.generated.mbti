@@ -68,6 +68,8 @@ pub fn save_post_from_file(String, String, String, String) -> SavePostReport rai
 
 pub fn serialize_manifest(Array[Artifact]) -> String
 
+pub fn set_post_draft(String, String, String, Bool) -> SavePostReport raise
+
 pub fn site_base_path(String) -> String
 
 pub fn tag_filename(String) -> String

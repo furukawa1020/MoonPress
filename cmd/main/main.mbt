@@ -24,6 +24,7 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
+  value == "status" ||
   value == "read" ||
   value == "save" ||
   value == "new" ||
@@ -38,6 +39,8 @@ fn is_command(value : String) -> Bool {
 ///|
 fn usage(command : String) -> String {
   match command {
+    "status" =>
+      "Usage: moonpress status <site-directory> <filename.md> <expected-digest> <draft|ready> [--json]"
     "read" => "Usage: moonpress read <site-directory> <filename.md> [--json]"
     "save" =>
       "Usage: moonpress save <site-directory> <filename.md> <expected-digest> <replacement-file> [--json]"
@@ -52,13 +55,15 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <init|new|posts|read|save|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <init|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
   }
 }
 
 ///|
 fn help_text(command : String) -> String {
   let description = match command {
+    "status" =>
+      "Set draft or ready-for-build status with source version checks.\nReady includes the article in normal builds; it does not deploy the site."
     "read" =>
       "Read a post source and SHA-256 version for editing; no files written."
     "save" =>
@@ -78,14 +83,15 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
   if command == "recover" ||
     command == "init" ||
     command == "posts" ||
     command == "new" ||
     command == "read" ||
-    command == "save" {
+    command == "save" ||
+    command == "status" {
     return description +
       "\n\n" +
       usage(command) +
@@ -113,7 +119,7 @@ fn main {
     return
   }
   let command = args[1]
-  let required = if command == "save" {
+  let required = if command == "save" || command == "status" {
     6
   } else if command == "new" {
     5
@@ -145,10 +151,17 @@ fn main {
         command != "posts" &&
         command != "new" &&
         command != "read" &&
-        command != "save" => include_drafts = true
+        command != "save" &&
+        command != "status" => include_drafts = true
       "--json" if !json => json = true
       _ => valid = false
     }
+  }
+  if command == "status" &&
+    args.length() >= 6 &&
+    args[5] != "draft" &&
+    args[5] != "ready" {
+    valid = false
   }
   if !valid {
     eprintln(usage(""))
@@ -156,7 +169,24 @@ fn main {
     return
   }
   try {
-    if command == "read" {
+    if command == "status" {
+      let report = @lib.set_post_draft(
+        args[2],
+        args[3],
+        args[4],
+        args[5] == "draft",
+      )
+      if json {
+        print_report(command, false, report.to_json())
+      } else {
+        println(
+          "Status: " +
+          args[5] +
+          " (changed: \{report.changed}); no deployment performed",
+        )
+        println("Version: " + report.digest)
+      }
+    } else if command == "read" {
       let report = @lib.read_post(args[2], args[3])
       if json {
         print_report(command, false, report.to_json())

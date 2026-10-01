@@ -208,3 +208,31 @@ A crash may leave the stage file; a later save refuses to overwrite it. Inspect
 and retain/remove that file manually before retrying. A crash after rename leaves
 the new source committed; there is no fsync/power-loss durability or source
 recovery journal. Caught cleanup failures report the retained path.
+
+## Change draft status
+
+```sh
+version="$(moonpress read my-site hello.md --json | jq -r '.report.digest')"
+moonpress status my-site hello.md "$version" ready --json
+moonpress check my-site
+moonpress build my-site dist
+```
+
+Use `draft` instead of `ready` to exclude the post from normal builds again.
+The only two states are draft and ready-for-build; neither reports that hosting
+has succeeded. This command modifies source only, with the same version checks,
+locking, staging and failure behavior as `save`. The library API is
+`set_post_draft(site, filename, expected_digest, draft)` and returns the same
+`SavePostReport`. Read a fresh version after each changed save/status operation.
+
+Other metadata values and Markdown body semantics are preserved. When changing
+state, JSON frontmatter is reserialized and CRLF line endings normalize to LF,
+matching the compiler parser. A plain Markdown file gains frontmatter when set
+to draft. Same-state requests preserve exact bytes and mtime, but still reject a
+stale version or invalid metadata. No dates are inferred or modified.
+
+Changing a post back to draft does not immediately remove deployed HTML. The
+next normal build removes tracked output, using existing incoming-link and
+manual-edit protections. Resolve those errors before rebuilding; previews still
+include the draft. Upload the successful normal build through your hosting
+workflow separately.
