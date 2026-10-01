@@ -137,3 +137,39 @@ strict frontmatter parser as the compiler. No route collision, content-link,
 layout or deployment validation is performed; use `check` before building.
 Invalid input fails without a partial report. The listing is not a snapshot
 against an external editor changing files during the operation.
+
+## Create a draft article
+
+```sh
+moonpress new my-site hello "My first article"
+moonpress posts my-site
+moonpress build my-site preview --include-drafts
+```
+
+`new <site-directory> <slug> <title> [--json]` creates `content/<slug>.md` with
+JSON frontmatter containing the literal title and `draft:true`. Edit its body in
+your editor, then inspect a separate preview build. Normal builds exclude it.
+Set `draft` to false (or remove that key), run `check`, and build your deployment
+output when the article is ready. This changes build eligibility; it does not
+upload files to a host. No publication date or remote deployment is inferred.
+
+Slug uses the same safe flat stem rules as page metadata, with at most 250 UTF-8
+bytes. Title must not be whitespace-only. Quotes, backslashes and newlines are
+serialized as JSON rather than inserted into frontmatter syntax. The generated
+body is a placeholder; no title Markdown or automatic slug conversion occurs.
+The site and real `content/` directory must already exist. Existing files,
+directories, FIFOs and symlinks are refused; there is no overwrite option.
+
+Creation locks the content directory against other cooperating creators and
+uses exclusive file creation. Caught write/flush/close failures attempt to remove
+the newly created partial file; incomplete cleanup is reported and never silently
+overwritten on retry. A killed process may leave a partial file requiring manual
+inspection. This is not a transaction or a lock against external editors/builds,
+and does not validate the entire site or prevent a slug colliding with other
+pages' custom routes. Run `check --include-drafts` after authoring. Trusted local
+project assumptions apply, as for `init`.
+
+JSON success has `command:"new"` and `report:{source,output,title,draft}` within
+the schema-1 envelope. Invalid arguments exit 2, validation/I/O failures exit 1
+with stderr and no success report. The reusable library entry point is
+`new_post(site, slug, title)`; listing uses `list_posts(site)`.

@@ -9,6 +9,7 @@ bash scripts/smoke.sh
 bash scripts/cli-help-test.sh
 bash scripts/init-test.sh
 bash scripts/posts-test.sh
+bash scripts/new-post-test.sh
 bash scripts/local-config-test.sh
 bash scripts/incremental-test.sh
 bash scripts/content-test.sh

@@ -34,6 +34,8 @@ pub fn markdown_links(String) -> Array[String]
 
 pub fn metadata_digest(Page) -> String
 
+pub fn new_post(String, String, String) -> NewPostReport raise
+
 pub fn normalize_base_url(String) -> String raise
 
 pub fn page_title(String, String) -> String
@@ -160,6 +162,14 @@ pub fn Manifest::equal(Self, Self) -> Bool
 pub fn Manifest::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Manifest::not_equal(Self, Self) -> Bool
 pub fn Manifest::to_json(Self) -> Json
+
+pub(all) struct NewPostReport {
+  source : String
+  output : String
+  title : String
+  draft : Bool
+} derive(ToJson)
+pub fn NewPostReport::to_json(Self) -> Json
 
 pub(all) struct Page {
   output : String

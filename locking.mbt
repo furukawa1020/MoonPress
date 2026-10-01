@@ -20,7 +20,7 @@ fn lock_output(output : String, shared~ : Bool) -> Int raise {
   )
   if fd == -2 {
     raise InvalidInput(
-      "Output parent is busy with another MoonPress init, build, explain or recover; retry after it finishes: " +
+      "Output parent is busy with another MoonPress operation; retry after it finishes: " +
       output,
     )
   }

@@ -42,7 +42,16 @@ fn open_file(path : String, write_mode : Int) -> NativeFile raise {
 
 ///|
 fn write_bytes(path : String, bytes : Bytes) -> Unit raise {
-  let file = open_file(path, 1)
+  write_opened_file(open_file(path, 1), path, bytes)
+}
+
+///|
+// Takes ownership of the stream and closes it on every success/error path.
+fn write_opened_file(
+  file : NativeFile,
+  path : String,
+  bytes : Bytes,
+) -> Unit raise {
   let mut closed = false
   defer (if !closed { io_close(file) |> ignore })
   if io_write(file, bytes, bytes.length()) != bytes.length() {

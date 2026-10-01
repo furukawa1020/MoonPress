@@ -17,6 +17,8 @@ export PATH="$HOME/.moon/bin:$PATH"
 bash scripts/check.sh
 moonpress="$PWD/_build/native/release/build/cmd/main/main.exe"
 "$moonpress" init ../my-site
+"$moonpress" new ../my-site hello "My first article"
+"$moonpress" posts ../my-site
 "$moonpress" check ../my-site
 "$moonpress" build ../my-site ../my-site/dist
 # Open ../my-site/dist/index.html in a browser.

@@ -28,6 +28,12 @@ FILE *fopen(const char *path, const char *mode) {
     errno = ENOSPC;
     return NULL;
   }
+  if (strchr(mode, 'x') && matches("MOONPRESS_TEST_CREATE_BEFORE_OPEN", path)) {
+    FILE *other = real_open(path, "wb");
+    if (!other) _exit(111);
+    fputs("competing writer\n", other);
+    fclose(other);
+  }
   return real_open(path, mode);
 }
 
