@@ -31,7 +31,8 @@ fn parse_site_config(source : String) -> SiteConfig raise {
     }
   }
   let base_url = match fields.get("base_url") {
-    Some(String(url)) => normalize_base_url(url)
+    None => None
+    Some(String(url)) => Some(normalize_base_url(url))
     _ => raise InvalidInput("site.json: base_url must be a string")
   }
   let feed = match fields.get("feed") {
@@ -51,6 +52,9 @@ fn parse_site_config(source : String) -> SiteConfig raise {
     }
     _ => raise InvalidInput("site.json: feed must be an object")
   }
+  if feed is Some(_) && base_url is None {
+    raise InvalidInput("site.json: feed requires base_url")
+  }
   let page_size = parse_page_size(fields.get("page_size"), "page_size")
   let tag_page_size = parse_page_size(
     fields.get("tag_page_size"),
@@ -69,14 +73,7 @@ fn parse_site_config(source : String) -> SiteConfig raise {
         "site.json: collection_layout must be a safe .html filename",
       )
   }
-  {
-    base_url: Some(base_url),
-    feed,
-    page_size,
-    tag_page_size,
-    tag_index,
-    collection_layout,
-  }
+  { base_url, feed, page_size, tag_page_size, tag_index, collection_layout, }
 }
 
 ///|

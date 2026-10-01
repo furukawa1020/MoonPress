@@ -20,13 +20,17 @@ failure() {
   test -s "$tmp/stderr"
 }
 "$cli" init "$tmp/projects/My 月 site/" --json > "$tmp/report"
-jq -e --arg directory "$tmp/projects/My 月 site" '.schema == 1 and .command == "init" and .include_drafts == false and .report.directory == $directory and (.report.files | sort) == ["README.md","content/guide.md","content/index.md","layout.html","layouts/post.html","style.css"]' "$tmp/report" >/dev/null
+jq -e --arg directory "$tmp/projects/My 月 site" '.schema == 1 and .command == "init" and .include_drafts == false and .report.directory == $directory and (.report.files | sort) == ["README.md","content/guide.md","content/index.md","layout.html","layouts/post.html","site.json","style.css"]' "$tmp/report" >/dev/null
 site="$tmp/projects/My 月 site"
 "$cli" init "$tmp/projects/second" > "$tmp/text"
-grep -Fq '6 files' "$tmp/text"
+grep -Fq '7 files' "$tmp/text"
 diff -r "$site" "$tmp/projects/second"
 "$cli" check "$site" --json | jq -e '.report.pages == 2' >/dev/null
 "$cli" build "$site" "$tmp/out" >/dev/null
+test ! -e "$tmp/out/sitemap.xml"
+grep -Fq 'href="tags.html"' "$tmp/out/index.html"
+grep -Fq 'guide</a>' "$tmp/out/tags.html"
+if grep -Fq 'href="index.html">My MoonPress site</a></li>' "$tmp/out/articles.html"; then exit 1; fi
 "$cli" build "$site" "$tmp/clean" >/dev/null
 diff -r "$tmp/out" "$tmp/clean"
 find "$tmp/out" -type f -exec touch -t 200001010000 {} +

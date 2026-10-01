@@ -66,7 +66,7 @@ moonpress init --help
 The parent directory must exist. The target must not exist, even as an empty
 directory, ordinary file or symlink. There is no force/merge/overwrite option.
 Use `./--name` for names beginning with `--`; spaces and Unicode paths work when
-quoted. A successful init creates exactly six deterministic source files and
+quoted. A successful init creates exactly seven deterministic source files and
 prints a report. It does not build output, initialize Git, access the network,
 create credentials or configure hosting. Edit the generated project normally;
 it is not a MoonPress-managed output directory.
@@ -90,13 +90,29 @@ new name. Existing-target refusal prevents a retry from silently overwriting it.
 These guarantees concern trusted local projects, not hostile concurrent changes
 to ancestor directories. Do not edit the project during initialization.
 
+## Configure local navigation
+
+The starter includes `site.json` with a tag index and article/tag pages of 10
+entries. It needs no deployment URL. Its home page uses `"listed":false` so it
+stays accessible without appearing among articles. The writing guide is a listed
+article with a tag and its own page layout.
+
+Change `page_size` and `tag_page_size` (1–1000) to tune pagination. Add
+`"collection_layout":"archive.html"` and create `layouts/archive.html` to style
+listing pages separately. To disable the tag index, remove links to `tags.html`
+from both templates and the home page before setting `tag_index` to false.
+
+Add `"draft":true` to an unfinished article and build to a separate `preview/`
+directory with `--include-drafts`; keep deployment output free of drafts.
+
 ## Publish static output
 
 Publish the generated files using your static hosting provider. For a sitemap,
-add `site.json` containing the actual deployment base URL before building:
+add the actual deployment base URL to the generated `site.json` before building,
+preserving its navigation settings:
 
 ```json
-{"base_url":"https://example.org/my-site/"}
+{"base_url":"https://example.org/my-site/","tag_index":true,"page_size":10,"tag_page_size":10}
 ```
 
 Replace that example with your real URL. No date or hostname is inferred.

@@ -189,7 +189,7 @@ position. There is no JavaScript or client-side pagination.
 
 Omit the setting to keep the original single archive, HTML and dependencies.
 Zero, negative, fractional, out-of-range and non-number values are errors. As
-before, a present `site.json` requires `base_url`. Tag archives remain single
+with other local settings, `base_url` can be omitted. Tag archives remain single
 pages unless `tag_page_size` is configured. RSS includes all listed, selected source pages, independently of archive size.
 The source-page count in reports is unchanged by generated archive pages.
 
@@ -342,7 +342,10 @@ text, so `[*label*](guide.html)` does not emphasize the label; use
 
 ## Site URL and sitemap
 
-Optional site.json:
+Optional `site.json` may contain local settings alone, for example
+`{"tag_index":true,"page_size":10}`. An empty object uses the same defaults as
+an absent file. No sitemap is generated without `base_url`; an explicitly
+provided null, wrong type or invalid URL is rejected. To enable the sitemap:
 
 ```json
 {"base_url":"https://example.org/project/"}
@@ -352,8 +355,9 @@ This generates sitemap.xml for source articles, articles.html and tag pages.
 The HTTP(S) base is normalized to a trailing slash; credentials, query strings,
 fragments and dot path segments are rejected. Unknown config keys are errors.
 No lastmod timestamp is invented. URL and route membership are sitemap dependencies:
-body changes do not rewrite the sitemap. Removing site.json removes the tracked
-sitemap on the next build. The site remains relative-link based and portable.
+body changes do not rewrite the sitemap. Removing `base_url` (and `feed`, if
+enabled) removes the tracked sitemap on the next build. Incoming links to removed
+outputs must be removed too; manually edited outputs remain protected. The site remains relative-link based and portable.
 
 ## RSS subscriptions
 
@@ -364,7 +368,7 @@ To generate `rss.xml`, extend `site.json`:
 ```
 
 Both feed fields must be nonempty strings. Unknown fields and wrong types are
-errors; omit `feed` to disable it. A present `site.json` still requires `base_url`.
+errors; omit `feed` to disable it. Enabling `feed` requires `base_url`; local-only settings do not.
 Add `<link rel="alternate" type="application/rss+xml" title="Updates" href="rss.xml">`
 to your layout head for discovery, or an ordinary RSS link. These references are
 validated against the generated route like any other link.
