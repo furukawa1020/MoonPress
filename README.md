@@ -24,6 +24,9 @@ moonpress="$PWD/_build/native/release/build/cmd/main/main.exe"
 
 The variable above uses the freshly compiled executable directly. For an optional
 PATH installation and the complete edit/build workflow, see [getting started](docs/getting-started.md).
+The starter includes tag navigation, pagination settings and a writing guide.
+No public URL is needed for local authoring; add your real `base_url` when ready
+to generate a sitemap or enable RSS.
 The bundled example can still be built with `"$moonpress" build site dist`.
 
 Run `moonpress --help` (or `-h`) for commands, options and exit codes, or

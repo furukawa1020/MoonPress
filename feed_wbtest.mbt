@@ -5,7 +5,7 @@ test "feed config preserves old config and rejects invalid shapes" {
   )
   for
     source in [
-      "{}", "[]", "{\"base_url\":null}", "{\"base_url\":\"https://example.org\",\"feed\":true}",
+      "[]", "{\"base_url\":null}", "{\"base_url\":\"https://example.org\",\"feed\":true}",
       "{\"base_url\":\"https://example.org\",\"feed\":null}", "{\"base_url\":\"https://example.org\",\"feed\":{\"title\":\"x\"}}",
       "{\"base_url\":\"https://example.org\",\"feed\":{\"title\":\" \",\"description\":\"y\"}}",
       "{\"base_url\":\"https://example.org\",\"feed\":{\"title\":\"x\",\"description\":\"y\",\"typo\":1}}",

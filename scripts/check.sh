@@ -8,6 +8,7 @@ moon build --target native --release
 bash scripts/smoke.sh
 bash scripts/cli-help-test.sh
 bash scripts/init-test.sh
+bash scripts/local-config-test.sh
 bash scripts/incremental-test.sh
 bash scripts/content-test.sh
 bash scripts/slugs-test.sh

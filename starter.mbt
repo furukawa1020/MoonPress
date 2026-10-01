@@ -2,6 +2,9 @@
 fn starter_files() -> Array[(String, String)] {
   [
     (
+      "site.json", "{\"tag_index\":true,\"page_size\":10,\"tag_page_size\":10}\n",
+    ),
+    (
       "layout.html",
       (
         #|<!doctype html>
@@ -14,7 +17,7 @@ fn starter_files() -> Array[(String, String)] {
         #|<link rel="stylesheet" href="style.css">
         #|</head>
         #|<body>
-        #|<header><a href="index.html">My MoonPress site</a><nav aria-label="Main"><a href="guide.html">Guide</a> <a href="articles.html">Articles</a></nav></header>
+        #|<header><a href="index.html">My MoonPress site</a><nav aria-label="Main"><a href="guide.html">Guide</a> <a href="articles.html">Articles</a> <a href="tags.html">Tags</a></nav></header>
         #|<main>{{content}}</main>
         #|<footer>Built with MoonPress.</footer>
         #|</body>
@@ -41,14 +44,14 @@ fn starter_files() -> Array[(String, String)] {
       "content/index.md",
       (
         #|---
-        #|{"title":"My MoonPress site","description":"A native MoonBit static site."}
+        #|{"title":"My MoonPress site","description":"A native MoonBit static site.","listed":false}
         #|---
         #|# Welcome
         #|
         #|Your site is ready to edit. Change this file in `content/index.md`, then run the build again.
         #|
         #|- Read the [writing guide](guide.html).
-        #|- Browse [all articles](articles.html).
+        #|- Browse [all articles](articles.html) or [tags](tags.html).
         #|
         #|No JavaScript is needed to read this site.
         #|
@@ -82,6 +85,8 @@ fn starter_files() -> Array[(String, String)] {
         #|## Customize
         #|
         #|Change `layout.html` for the default design, `layouts/post.html` for this page, and `style.css` for styles.
+        #|Edit `site.json` to change article/tag page sizes or select a `collection_layout` from `layouts/`.
+        #|The home page uses `"listed": false` to stay out of article lists while remaining accessible.
         #|Add a valid `date` such as `2026-01-01` to frontmatter to order articles by publication date.
         #|Use `"draft": true` in JSON frontmatter to exclude an unfinished page; preview it with `--include-drafts`.
         #|
@@ -102,7 +107,7 @@ fn starter_files() -> Array[(String, String)] {
         #|<link rel="stylesheet" href="style.css">
         #|</head>
         #|<body>
-        #|<header><a href="index.html">My MoonPress site</a><nav aria-label="Main"><a href="guide.html">Guide</a> <a href="articles.html">Articles</a></nav></header>
+        #|<header><a href="index.html">My MoonPress site</a><nav aria-label="Main"><a href="guide.html">Guide</a> <a href="articles.html">Articles</a> <a href="tags.html">Tags</a></nav></header>
         #|<main><aside>{{toc}}</aside><article>{{content}}</article></main>
         #|<footer>Built with MoonPress.</footer>
         #|</body>
@@ -131,11 +136,14 @@ fn starter_files() -> Array[(String, String)] {
         #|- `layout.html`: default template and article/tag collection layout.
         #|- `layouts/post.html`: selected by the guide's JSON frontmatter.
         #|- `style.css`: styles shared by all pages.
+        #|- `site.json`: tag navigation and article/tag pagination (10 entries per page).
         #|
         #|Use a separate `preview/` output with `--include-drafts` for unpublished content.
         #|Generated output is static HTML/CSS; it needs no JavaScript runtime or server code.
-        #|To add a sitemap, create `site.json` with your real deployed URL:
-        #|`{"base_url":"https://example.org/project/"}`. Do not use a placeholder URL in a deployed sitemap.
+        #|To add a sitemap, add `"base_url":"https://your-domain.example/project/"` to the existing `site.json`,
+        #|using your real deployed URL. Keep the existing settings, including `tag_index`, because navigation links to it.
+        #|To enable RSS, also add `"feed":{"title":"My site","description":"Latest articles"}`.
+        #|RSS needs `base_url`; local authoring, tags and pagination do not. Do not deploy a placeholder URL.
         #|
         #|This starter does not create a Git repository, remote, deployment credentials or a hosting workflow.
         #|Publish the generated files using your static hosting provider. For MoonPress's shell-only GitHub Actions example,
