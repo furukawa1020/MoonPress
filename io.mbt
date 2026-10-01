@@ -51,9 +51,15 @@ fn write_opened_file(
   file : NativeFile,
   path : String,
   bytes : Bytes,
+  mode_source? : String? = None,
 ) -> Unit raise {
   let mut closed = false
   defer (if !closed { io_close(file) |> ignore })
+  if mode_source is Some(source) {
+    if io_copy_mode(file, @utf8.encode(source) + b"\x00") != 0 {
+      raise io_failure("copy permissions", path)
+    }
+  }
   if io_write(file, bytes, bytes.length()) != bytes.length() {
     raise io_failure("write", path)
   }
@@ -150,3 +156,7 @@ fn require_input_kind(path : String, expected : Int) -> Unit raise {
     )
   }
 }
+
+///|
+#borrow(path)
+extern "C" fn io_copy_mode(file : NativeFile, path : Bytes) -> Int = "moonpress_io_copy_mode"

@@ -122,7 +122,16 @@ int fclose(FILE *stream) {
   int (*real_close)(FILE *) = dlsym(RTLD_NEXT, "fclose");
   if (!real_close) _exit(97);
   int fail = stream_matches("MOONPRESS_TEST_FAIL_CLOSE", stream);
+  int edit = stream_matches("MOONPRESS_TEST_EDIT_ON_CLOSE", stream);
   int result = real_close(stream);
+  if (edit) {
+    const char *target = getenv("MOONPRESS_TEST_EDIT_TARGET");
+    if (!target) _exit(112);
+    FILE *other = fopen(target, "wb");
+    if (!other) _exit(113);
+    fputs("# External edit\n", other);
+    fclose(other);
+  }
   if (fail) { errno = EIO; return EOF; }
   return result;
 }
