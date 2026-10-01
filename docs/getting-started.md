@@ -173,3 +173,38 @@ JSON success has `command:"new"` and `report:{source,output,title,draft}` within
 the schema-1 envelope. Invalid arguments exit 2, validation/I/O failures exit 1
 with stderr and no success report. The reusable library entry point is
 `new_post(site, slug, title)`; listing uses `list_posts(site)`.
+
+## Edit without overwriting another edit
+
+```sh
+moonpress read my-site hello.md --json > snapshot.json
+jq -j '.report.content' snapshot.json > replacement.md
+# Edit replacement.md in your editor.
+version="$(jq -r '.report.digest' snapshot.json)"
+moonpress save my-site hello.md "$version" replacement.md --json
+```
+
+The native APIs are `read_post(site, filename)`, `save_post(site, filename,
+expected_digest, content)` and `save_post_from_file(site, filename,
+expected_digest, replacement_file)`. Filenames are flat `.md` names under
+`content/`, not output slugs. Read returns `{source,content,digest}` and allows
+malformed frontmatter so it can be repaired. Save validates replacement
+frontmatter and returns `{source,digest,changed}`. Neither performs a whole-site
+link/route check; run `check --include-drafts` afterwards. No deployment occurs.
+
+Save rejects a stale version even if its replacement equals the current source.
+An unchanged valid replacement preserves the original mtime. Invalid UTF-8 files,
+nonregular files, symlinks and unsafe names are refused. Replacement bytes retain
+line endings. Writes use an exclusive `content/.moonpress-edit` staging file,
+copy ordinary permission bits (0777 mask), then rename after checking the version
+again. Original bytes/inode/mtime stay intact on caught preparation failures.
+Ownership, ACLs, extended attributes and special mode bits are not preserved.
+
+Cooperating authoring saves/creations lock the content directory. External editors
+and builds do not take this lock: edits detected before the final version check
+are rejected, but this is not an atomic filesystem compare-and-swap against an
+uncooperative concurrent writer. Do not edit sources concurrently in other tools.
+A crash may leave the stage file; a later save refuses to overwrite it. Inspect
+and retain/remove that file manually before retrying. A crash after rename leaves
+the new source committed; there is no fsync/power-loss durability or source
+recovery journal. Caught cleanup failures report the retained path.

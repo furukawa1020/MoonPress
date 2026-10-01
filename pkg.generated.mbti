@@ -44,6 +44,8 @@ pub fn parse_document(String, String, filename? : String) -> Document raise
 
 pub fn parse_manifest(String) -> Manifest raise
 
+pub fn read_post(String, String) -> PostSnapshot raise
+
 pub fn rebuild_reason(Artifact?, Array[Dependency]) -> String?
 
 pub fn recover_output(String) -> RecoveryReport raise
@@ -59,6 +61,10 @@ pub fn render_sitemap(String, Array[String]) -> String
 pub fn render_toc(String) -> String
 
 pub fn safe_output_name(String) -> Bool
+
+pub fn save_post(String, String, String, String) -> SavePostReport raise
+
+pub fn save_post_from_file(String, String, String, String) -> SavePostReport raise
 
 pub fn serialize_manifest(Array[Artifact]) -> String
 
@@ -176,6 +182,13 @@ pub(all) struct Page {
   document : Document
 }
 
+pub(all) struct PostSnapshot {
+  source : String
+  content : String
+  digest : String
+} derive(ToJson)
+pub fn PostSnapshot::to_json(Self) -> Json
+
 pub(all) struct PostSummary {
   source : String
   output : String
@@ -198,6 +211,13 @@ pub(all) struct RecoveryReport {
   removed : Int
 } derive(ToJson)
 pub fn RecoveryReport::to_json(Self) -> Json
+
+pub(all) struct SavePostReport {
+  source : String
+  digest : String
+  changed : Bool
+} derive(ToJson)
+pub fn SavePostReport::to_json(Self) -> Json
 
 // Type aliases
 

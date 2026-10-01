@@ -24,6 +24,8 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
+  value == "read" ||
+  value == "save" ||
   value == "new" ||
   value == "posts" ||
   value == "init" ||
@@ -36,6 +38,9 @@ fn is_command(value : String) -> Bool {
 ///|
 fn usage(command : String) -> String {
   match command {
+    "read" => "Usage: moonpress read <site-directory> <filename.md> [--json]"
+    "save" =>
+      "Usage: moonpress save <site-directory> <filename.md> <expected-digest> <replacement-file> [--json]"
     "new" => "Usage: moonpress new <site-directory> <slug> <title> [--json]"
     "posts" => "Usage: moonpress posts <site-directory> [--json]"
     "init" => "Usage: moonpress init <site-directory> [--json]"
@@ -47,13 +52,17 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <init|new|posts|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <init|new|posts|read|save|build|check|explain|recover> [--help|-h]"
   }
 }
 
 ///|
 fn help_text(command : String) -> String {
   let description = match command {
+    "read" =>
+      "Read a post source and SHA-256 version for editing; no files written."
+    "save" =>
+      "Save validated replacement source only if the expected version matches.\nExisting source stays intact on caught preparation failures; no hosting action."
     "new" =>
       "Create content/<slug>.md as a draft with the supplied title.\nThe site/content directory must exist; existing targets are never overwritten.\nEdit the generated Markdown, then build a separate preview with --include-drafts."
     "posts" =>
@@ -69,12 +78,14 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
   if command == "recover" ||
     command == "init" ||
     command == "posts" ||
-    command == "new" {
+    command == "new" ||
+    command == "read" ||
+    command == "save" {
     return description +
       "\n\n" +
       usage(command) +
@@ -102,7 +113,9 @@ fn main {
     return
   }
   let command = args[1]
-  let required = if command == "new" {
+  let required = if command == "save" {
+    6
+  } else if command == "new" {
     5
   } else if command == "check" ||
     command == "recover" ||
@@ -130,7 +143,9 @@ fn main {
         command != "recover" &&
         command != "init" &&
         command != "posts" &&
-        command != "new" => include_drafts = true
+        command != "new" &&
+        command != "read" &&
+        command != "save" => include_drafts = true
       "--json" if !json => json = true
       _ => valid = false
     }
@@ -141,7 +156,27 @@ fn main {
     return
   }
   try {
-    if command == "new" {
+    if command == "read" {
+      let report = @lib.read_post(args[2], args[3])
+      if json {
+        print_report(command, false, report.to_json())
+      } else {
+        println("Version: " + report.digest)
+        println(report.content)
+      }
+    } else if command == "save" {
+      let report = @lib.save_post_from_file(args[2], args[3], args[4], args[5])
+      if json {
+        print_report(command, false, report.to_json())
+      } else {
+        println(
+          "Saved: " +
+          report.source.to_json().stringify() +
+          " (changed: \{report.changed})",
+        )
+        println("Version: " + report.digest)
+      }
+    } else if command == "new" {
       let report = @lib.new_post(args[2], args[3], args[4])
       if json {
         print_report(command, false, report.to_json())
