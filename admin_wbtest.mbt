@@ -1,0 +1,63 @@
+///|
+test "admin form decoder preserves Unicode and rejects ambiguity" {
+  let fields = admin_form("title=%E6%9C%88+%26+%2B&content=a%0D%0Ab%3D%3C")
+  assert_eq(fields.get("title"), Some("月 & +"))
+  assert_eq(fields.get("content"), Some("a\r\nb=<"))
+  for body in ["a=1&a=2", "%61=1&a=2", "x=%", "x=%FF", "x=%GG", "missing"] {
+    try admin_form(body) catch {
+      _ => ()
+    } noraise {
+      _ => fail("bad form accepted: " + body)
+    }
+  }
+}
+
+///|
+test "admin HTTP framing and origin are strictly bounded" {
+  let host = "127.0.0.1:8080"
+  let raw = "POST /save HTTP/1.1\r\nHost: " +
+    host +
+    "\r\nOrigin: http://" +
+    host +
+    "\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: 12\r\n"
+  assert_eq(admin_headers(raw + "\r\n", host).length, 12)
+  for
+    suffix in [
+      "Host: evil\r\n", "Transfer-Encoding: chunked\r\n", "Content-Length: 0\r\n",
+      "Content-Encoding: gzip\r\n", "Expect: 100-continue\r\n", "Sec-Fetch-Site: cross-site\r\n",
+      " folded: value\r\n",
+    ] {
+    try admin_headers(raw + suffix + "\r\n", host) catch {
+      _ => ()
+    } noraise {
+      _ => fail("ambiguous header accepted")
+    }
+  }
+  for
+    raw in [
+      "GET / HTTP/1.1\r\nHost: localhost:8080\r\n\r\n", "GET / HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nContent-Length: 1\r\n\r\n",
+      "POST /save HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nContent-Length: 262145\r\n\r\n",
+      "POST /save HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nContent-Length: 0\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n",
+    ] {
+    try admin_headers(raw, host) catch {
+      _ => ()
+    } noraise {
+      _ => fail("unsafe request accepted")
+    }
+  }
+}
+
+///|
+test "admin shell escapes titles and disables executable content" {
+  let html = admin_page("<script>", "<p>Trusted body</p>")
+  assert_true(html.contains("&lt;script&gt;"))
+  assert_false(html.contains("<script>"))
+  assert_eq(
+    admin_hidden("name", "\"<>&"),
+    "<input type=\"hidden\" name=\"name\" value=\"&quot;&lt;&gt;&amp;\">",
+  )
+  let response = decode_text(admin_response(200, "月"), "test")
+  assert_true(response.contains("Content-Length: 3\r\n"))
+  assert_true(response.contains("default-src 'none'"))
+  assert_true(response.contains("Cache-Control: no-store"))
+}

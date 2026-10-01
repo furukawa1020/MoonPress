@@ -26,6 +26,10 @@ moonpress="$PWD/_build/native/release/build/cmd/main/main.exe"
 
 The variable above uses the freshly compiled executable directly. For an optional
 PATH installation and the complete edit/build workflow, see [getting started](docs/getting-started.md).
+For the local browser editor, run `"$moonpress" admin ../my-site 8080` and open
+`http://127.0.0.1:8080/`. It supports draft creation, source editing and draft/ready
+changes without JavaScript. See [local administration](docs/admin.md) for limits.
+
 The starter includes tag navigation, pagination settings and a writing guide.
 No public URL is needed for local authoring; add your real `base_url` when ready
 to generate a sitemap or enable RSS.
