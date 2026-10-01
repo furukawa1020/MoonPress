@@ -101,8 +101,13 @@ fn collection_archives(
 fn archive_dependencies(
   archive : CollectionArchive,
   layout_digest : String,
+  layout_source? : String = "layout.html",
 ) -> Array[Dependency] {
-  let deps = collection_dependencies(archive.members, layout_digest)
+  let deps = collection_dependencies(
+    archive.members,
+    layout_digest,
+    layout_source~,
+  )
   if archive.paginated {
     deps.push({
       name: "pagination-renderer",

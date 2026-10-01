@@ -8,10 +8,11 @@ priv struct TagSummary {
 fn tag_index_dependencies(
   tags : Array[TagSummary],
   layout_digest : String,
+  layout_source? : String = "layout.html",
 ) -> Array[Dependency] {
   [
     { name: "tag-index-renderer", digest: digest_text("tag-index-v1"), },
-    { name: "layout.html", digest: layout_digest, },
+    { name: layout_source, digest: layout_digest, },
     { name: "tag-counts", digest: digest_text(tags.to_json().stringify()), },
   ]
 }

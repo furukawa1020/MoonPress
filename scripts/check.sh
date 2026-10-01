@@ -14,6 +14,7 @@ bash scripts/slugs-test.sh
 bash scripts/listed-test.sh
 bash scripts/dates-test.sh
 bash scripts/layouts-test.sh
+bash scripts/collection-layout-test.sh
 bash scripts/title-test.sh
 bash scripts/atx-test.sh
 bash scripts/emphasis-test.sh

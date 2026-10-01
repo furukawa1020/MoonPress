@@ -11,6 +11,7 @@ priv struct SiteConfig {
   page_size : Int?
   tag_page_size : Int?
   tag_index : Bool
+  collection_layout : String?
 }
 
 ///|
@@ -24,7 +25,8 @@ fn parse_site_config(source : String) -> SiteConfig raise {
       key != "feed" &&
       key != "page_size" &&
       key != "tag_page_size" &&
-      key != "tag_index" {
+      key != "tag_index" &&
+      key != "collection_layout" {
       raise InvalidInput("site.json: unknown key " + key)
     }
   }
@@ -59,7 +61,22 @@ fn parse_site_config(source : String) -> SiteConfig raise {
     Some(True) => true
     _ => raise InvalidInput("site.json: tag_index must be a boolean")
   }
-  { base_url: Some(base_url), feed, page_size, tag_page_size, tag_index, }
+  let collection_layout = match fields.get("collection_layout") {
+    None => None
+    Some(String(name)) if valid_layout_name(name) => Some(name)
+    _ =>
+      raise InvalidInput(
+        "site.json: collection_layout must be a safe .html filename",
+      )
+  }
+  {
+    base_url: Some(base_url),
+    feed,
+    page_size,
+    tag_page_size,
+    tag_index,
+    collection_layout,
+  }
 }
 
 ///|
@@ -99,6 +116,7 @@ fn read_site_config(input : String) -> SiteConfig raise {
       page_size: None,
       tag_page_size: None,
       tag_index: false,
+      collection_layout: None,
     }
   }
   require_input_kind(path, 1)

@@ -49,10 +49,11 @@ pub fn metadata_digest(page : Page) -> String {
 fn collection_dependencies(
   pages : Array[Page],
   layout_digest : String,
+  layout_source? : String = "layout.html",
 ) -> Array[Dependency] {
   let deps : Array[Dependency] = [
     { name: "collection-renderer", digest: digest_text("collection-v5"), },
-    { name: "layout.html", digest: layout_digest, },
+    { name: layout_source, digest: layout_digest, },
     {
       name: "members",
       digest: digest_text(pages.map(p => p.output).to_json().stringify()),

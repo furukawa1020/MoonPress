@@ -31,6 +31,27 @@ Title/description are escaped; content is generated HTML. Inserted values are
 never expanded again, so text containing another placeholder remains literal.
 Unknown template placeholders are preserved for forward compatibility.
 
+## Collection layout
+
+Set `"collection_layout":"archive.html"` in `site.json` to use
+`layouts/archive.html` for generated article archives, tag archives and the
+optional tag index. It applies to every pagination page and draft preview.
+Omitting the setting uses root `layout.html`, preserving existing output.
+The value must be a safe flat `.html` filename; null and other types are errors.
+Source pages continue to select layouts through their own metadata.
+
+The selected template uses the same placeholders and validation as page layouts.
+It must contain `{{content}}`; collection description/date/TOC values are empty.
+Links and images are validated against output routes, and heading links are
+checked in each consuming page. Collections have no generated `mp-` heading IDs.
+Missing, malformed or symlinked templates fail before any output changes.
+
+Dependencies record the selected template's source path and digest. Editing it
+rebuilds its consumers only; RSS and sitemap output stay unchanged. Source pages
+may also select the same named layout and then rebuild with it. Removing the
+setting switches collections back to the default and permits deleting the unused
+named template. The root `layout.html` remains required.
+
 ## Per-page layouts
 
 The required root `layout.html` is the default for source pages and all generated
@@ -57,7 +78,7 @@ named files are loaded and validated; unused files/subdirectories are ignored.
 Selected symlinks, directories, FIFOs and missing files are errors. Draft metadata
 is always validated, but an excluded draft's layout is not loaded until it is
 included by preview or published. Default `layout.html` is always required for
-collections, even when all source pages use named layouts.
+the site, even when all source and collection pages use named layouts.
 
 Static quoted href/src values are relative to generated output routes, not the
 `layouts/` source directory. They receive the same URL checks as the default.
@@ -161,7 +182,7 @@ Set `page_size` in `site.json` to a numeric integer from 1 to 1000:
 The first archive stays at `articles.html`; subsequent pages are
 `articles-2.html`, `articles-3.html`, etc. Source pages are sorted by the same
 publication-date and filename rules before partitioning, so each appears once.
-Archives use the default layout, with titles `Articles` and `Articles — page N`.
+Archives use the selected collection layout (the default unless configured), with titles `Articles` and `Articles — page N`.
 Previous/next links use `rel` attributes inside a labeled navigation element,
 alongside a `Page N of M` indicator. Even a one-page enabled archive shows its
 position. There is no JavaScript or client-side pagination.
@@ -178,7 +199,7 @@ have more pages; returning to normal mode removes obsolete tracked archives.
 Shrinking/disabling pagination also removes obsolete pages, after validating
 remaining incoming links and protecting edited/unmanaged outputs.
 
-Each archive depends on its own members' metadata, the default layout and page
+Each archive depends on its own members' metadata, the selected collection layout and page
 number/count. Body edits do not rebuild archives; metadata edits update the
 containing archive. Date or membership changes can move entries across pages;
 page-count changes update navigation throughout. Clean and incremental output
@@ -204,7 +225,7 @@ single tag archive. Article pagination and RSS membership are unaffected.
 
 ## Tag index
 
-Set `"tag_index":true` in `site.json` to generate `tags.html` using the default
+Set `"tag_index":true` in `site.json` to generate `tags.html` using the selected collection
 layout. Each entry contains an escaped tag name, a link to its first archive page
 and an article count. Tags use the existing deterministic filename/string ordering
 (length then code-unit order). Only listed, selected source pages count; metadata
@@ -218,7 +239,7 @@ incoming links before disabling it. A source page using the same output collides
 while the index is enabled. Generated index headings have no `mp-` anchor IDs,
 matching other generated collection pages.
 
-Index dependencies are tag names/counts, default layout and index renderer only.
+Index dependencies are tag names/counts, selected collection layout and index renderer only.
 Article body/title/date edits, pagination-size changes and source renames with
 unchanged membership do not rewrite it. It works alongside RSS and independent
 article/tag pagination. No browser runtime or dependencies are introduced.
