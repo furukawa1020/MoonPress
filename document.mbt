@@ -17,28 +17,7 @@ pub fn parse_document(
   fallback : String,
   filename? : String = "document",
 ) -> Document raise {
-  let normalized = source.replace_all(old="\r\n", new="\n")
-  let mut body = normalized
-  let mut metadata : Json = Json::empty_object()
-  if normalized.has_prefix("---\n") {
-    let remainder = normalized[4:].to_owned()
-    let (header, content) = match remainder.split_once("\n---\n") {
-      Some((header, content)) => (header.to_owned(), content.to_owned())
-      None =>
-        if remainder.has_suffix("\n---") {
-          (remainder[:remainder.length() - 4].to_owned(), "")
-        } else {
-          raise InvalidInput(filename + ":1: unclosed JSON frontmatter")
-        }
-    }
-    metadata = @json.parse(header) catch {
-      error =>
-        raise InvalidInput(
-          filename + ": frontmatter starts at line 2: " + error.to_string(),
-        )
-    }
-    body = content
-  }
+  let (metadata, body) = document_parts(source, filename)
   let fields = match metadata {
     Object(fields) => fields
     _ => raise InvalidInput(filename + ":2: frontmatter must be a JSON object")
@@ -141,4 +120,31 @@ fn valid_slug(value : String) -> Bool {
   !value.any(c => {
     c.is_whitespace() || c.is_control() || c == '?' || c == '#' || c == '%'
   })
+}
+
+///|
+fn document_parts(source : String, filename : String) -> (Json, String) raise {
+  let normalized = source.replace_all(old="\r\n", new="\n")
+  let mut body = normalized
+  let mut metadata : Json = Json::empty_object()
+  if normalized.has_prefix("---\n") {
+    let remainder = normalized[4:].to_owned()
+    let (header, content) = match remainder.split_once("\n---\n") {
+      Some((header, content)) => (header.to_owned(), content.to_owned())
+      None =>
+        if remainder.has_suffix("\n---") {
+          (remainder[:remainder.length() - 4].to_owned(), "")
+        } else {
+          raise InvalidInput(filename + ":1: unclosed JSON frontmatter")
+        }
+    }
+    metadata = @json.parse(header) catch {
+      error =>
+        raise InvalidInput(
+          filename + ": frontmatter starts at line 2: " + error.to_string(),
+        )
+    }
+    body = content
+  }
+  (metadata, body)
 }
