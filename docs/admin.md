@@ -25,6 +25,10 @@ The server does not open a browser automatically and has no `--json` mode.
 4. **Status:** set the saved article to draft or ready for normal builds. Save
    editor changes first: status buttons operate on the saved version, not the
    text currently in the other form. These actions do not deploy anything.
+5. **Validate saved site:** from Posts, check a normal build or include drafts.
+   This uses the compiler checks for saved metadata, layouts, local links and
+   routes. It reports page/output counts or the compiler diagnostic, without
+   writing files. It does not check existing output integrity or hosting.
 
 Successful operations show a confirmation and a link to continue editing. There
 is no JavaScript, auto-save, visual/WYSIWYG editor or client-side refresh. Browser
@@ -36,8 +40,9 @@ screen; keep a local copy of long edits.
 
 The body preview does not load the site theme or images, activate links, validate
 metadata, or check site links. It never refreshes the edit version: previewing an
-old form does not allow overwriting newer source. Full-site preview, validation
-and deployment still use the CLI:
+old form does not allow overwriting newer source. Use the CLI for full-site
+preview and building; saved-site validation is also available there. Publish
+the resulting output through your hosting workflow:
 
 ```sh
 moonpress check my-site --include-drafts
