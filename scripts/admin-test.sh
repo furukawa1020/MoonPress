@@ -56,6 +56,25 @@ grep -Fq '&lt;/textarea&gt;&lt;script&gt;bad' "$tmp/page"
 version="$(sed -n 's/.*name="version" value="\([a-f0-9]*\)".*/\1/p' "$tmp/page" | sort -u)"
 test "$(post /status --data-urlencode "token=$token" --data-urlencode name=first.md --data-urlencode "version=$version" --data-urlencode state=ready)" = 200
 "$cli" posts "$tmp/site" --json | jq -e '[.report.posts[] | select(.source=="content/first.md")][0].draft == false' >/dev/null
+test "$(get '/edit?name=first.md')" = 200
+version="$(sed -n 's/.*name="version" value="\([a-f0-9]*\)".*/\1/p' "$tmp/page" | sort -u)"
+fields_post() { post /fields --data-urlencode "token=$token" --data-urlencode name=first.md --data-urlencode "version=$version" --data-urlencode 'title=Structured <title>' --data-urlencode 'description=Summary' --data-urlencode 'tags=Moon,Bit' --data-urlencode 'body=# Structured body' --data-urlencode "date=$1"; }
+cp "$tmp/site/content/first.md" "$tmp/before-fields"
+test "$(fields_post 2026-02-30)" = 400
+grep -Fq 'Structured &lt;title&gt;' "$tmp/page"
+grep -Fq '# Structured body' "$tmp/page"
+cmp "$tmp/before-fields" "$tmp/site/content/first.md"
+test "$(fields_post 2026-10-03)" = 200
+"$cli" posts "$tmp/site" --json | jq -e '[.report.posts[] | select(.source=="content/first.md")][0] | .title=="Structured <title>" and .date=="2026-10-03" and .tags==["Moon,Bit"] and .draft==false' >/dev/null
+cp "$tmp/site/content/first.md" "$tmp/after-fields"
+test "$(fields_post 2026-10-04)" = 400
+grep -Fq 'Post changed since' "$tmp/page"
+cmp "$tmp/after-fields" "$tmp/site/content/first.md"
+printf '%s\n' '---' '{broken' '---' > "$tmp/site/content/broken.md"
+test "$(get '/edit?name=broken.md')" = 200
+grep -Fq 'Structured editor unavailable' "$tmp/page"
+grep -Fq '{broken' "$tmp/page"
+rm "$tmp/site/content/broken.md"
 test ! -e "$tmp/site/dist"
 test "$(get '/edit?name=..%2FREADME.md')" = 400
 test "$(get '/edit?name=first.md&name=index.md')" = 400

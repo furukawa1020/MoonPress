@@ -64,6 +64,8 @@ pub fn safe_output_name(String) -> Bool
 
 pub fn save_post(String, String, String, String) -> SavePostReport raise
 
+pub fn save_post_fields(String, String, String, PostFields) -> SavePostReport raise
+
 pub fn save_post_from_file(String, String, String, String) -> SavePostReport raise
 
 pub fn serialize_manifest(Array[Artifact]) -> String
@@ -184,6 +186,14 @@ pub fn NewPostReport::to_json(Self) -> Json
 pub(all) struct Page {
   output : String
   document : Document
+}
+
+pub(all) struct PostFields {
+  title : String
+  description : String
+  date : String
+  tags : String
+  body : String
 }
 
 pub(all) struct PostSnapshot {
