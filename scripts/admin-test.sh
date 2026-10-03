@@ -70,6 +70,22 @@ cp "$tmp/site/content/first.md" "$tmp/after-fields"
 test "$(fields_post 2026-10-04)" = 400
 grep -Fq 'Post changed since' "$tmp/page"
 cmp "$tmp/after-fields" "$tmp/site/content/first.md"
+# Preview stale unsaved work without refreshing the version or touching files.
+cp -a "$tmp/site" "$tmp/before-preview"
+printf '%s\n' '# Preview heading' '' '**Unsaved** </textarea><script>bad</script>' '[next](guide.html) ![alt](image.png)' > "$tmp/preview-body"
+test "$(post /preview --data-urlencode "token=$token" --data-urlencode name=first.md --data-urlencode "version=$version" --data-urlencode title=Unsaved --data-urlencode description=Summary --data-urlencode date=invalid --data-urlencode tags=Moon --data-urlencode "body@$tmp/preview-body")" = 200
+grep -Fq '<strong>Unsaved</strong>' "$tmp/page"
+grep -Fq '&lt;/textarea&gt;&lt;script&gt;bad&lt;/script&gt;' "$tmp/page"
+grep -Fq 'data-preview-href="guide.html"' "$tmp/page"
+grep -Fq "name=\"version\" value=\"$version\"" "$tmp/page"
+grep -Fq '**Unsaved**' "$tmp/page"
+if grep -Fq '<script>' "$tmp/page"; then exit 1; fi
+diff -r "$tmp/before-preview" "$tmp/site"
+test "$(fields_post 2026-10-04)" = 400
+cmp "$tmp/after-fields" "$tmp/site/content/first.md"
+test "$(post /preview --data-urlencode token=wrong)" = 400
+test "$(post /preview --data-urlencode "token=$token" --data-urlencode name=../README.md --data-urlencode "version=$version" --data-urlencode title=Keep --data-urlencode description= --data-urlencode date= --data-urlencode tags= --data-urlencode body=Keep)" = 400
+grep -Fq 'Keep' "$tmp/page"
 printf '%s\n' '---' '{broken' '---' > "$tmp/site/content/broken.md"
 test "$(get '/edit?name=broken.md')" = 200
 grep -Fq 'Structured editor unavailable' "$tmp/page"

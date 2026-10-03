@@ -18,8 +18,10 @@ The server does not open a browser automatically and has no `--json` mode.
    markers. Click a title to edit it.
 2. **New draft:** enter a title and file stem. This creates a Markdown source with
    `draft:true`, never overwriting an existing file.
-3. **Edit:** edit the complete Markdown source, including JSON frontmatter, and
-   save. Metadata is validated by the same parser used by the compiler.
+3. **Edit:** use title, description, date, tag and body fields, or open the
+   advanced source editor. Saving validates metadata with the compiler parser.
+   **Preview body without saving** renders the current Markdown and keeps all
+   fields available for continued editing.
 4. **Status:** set the saved article to draft or ready for normal builds. Save
    editor changes first: status buttons operate on the saved version, not the
    text currently in the other form. These actions do not deploy anything.
@@ -28,11 +30,14 @@ Successful operations show a confirmation and a link to continue editing. There
 is no JavaScript, auto-save, visual/WYSIWYG editor or client-side refresh. Browser
 forms may normalize line endings to CRLF when saving source. If an older editor
 tries to save after the source changed, saving is refused. The error screen shows
-your submitted source in a read-only textarea so you can copy it before reloading.
+your submitted fields, or a read-only copy of raw source, before reloading.
 This is not an automatic merge. Network failures do not provide this recovery
 screen; keep a local copy of long edits.
 
-Preview, full-site validation and deployment still use the CLI:
+The body preview does not load the site theme or images, activate links, validate
+metadata, or check site links. It never refreshes the edit version: previewing an
+old form does not allow overwriting newer source. Full-site preview, validation
+and deployment still use the CLI:
 
 ```sh
 moonpress check my-site --include-drafts

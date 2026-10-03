@@ -61,3 +61,19 @@ test "admin shell escapes titles and disables executable content" {
   assert_true(response.contains("default-src 'none'"))
   assert_true(response.contains("Cache-Control: no-store"))
 }
+
+///|
+test "body preview renders Markdown but disables destinations and raw HTML" {
+  let html = admin_body_preview(
+    "# Moon\n\n**bold** [next](guide.html) ![alt](image.png)\n\n</article><form action='/save'><script>bad</script>\n\n[bad](javascript:alert)\n",
+  )
+  assert_true(html.contains("<strong>bold</strong>"))
+  assert_true(html.contains("data-preview-href=\"guide.html\""))
+  assert_true(html.contains("data-preview-src=\"image.png\""))
+  assert_false(html.contains("<a href="))
+  assert_false(html.contains("<img src="))
+  assert_false(html.contains("<form"))
+  assert_false(html.contains("<script>"))
+  assert_true(html.contains("&lt;script&gt;bad&lt;/script&gt;"))
+  assert_false(html.contains("href=\"javascript:"))
+}

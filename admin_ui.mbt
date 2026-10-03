@@ -72,7 +72,7 @@ fn admin_fields_form(hidden : String, edit : PostFields) -> String {
     escape_html(edit.tags) +
     "</textarea></label><label>Markdown body<textarea name=\"body\">\n" +
     escape_html(edit.body) +
-    "</textarea></label><button>Save article</button></form>",
+    "</textarea></label><button>Save article</button> <button formaction=\"/preview\">Preview body without saving</button></form>",
   )
   out.to_string()
 }
@@ -143,6 +143,26 @@ fn admin_route(
     raise InvalidInput("Form token rejected; reload the page")
   }
   try {
+    if request.target == "/preview" {
+      if fields.length() != 8 {
+        raise InvalidInput("Invalid preview fields")
+      }
+      let name = admin_field(fields, "name")
+      // Validate the source path, but do not require a fresh version to preview
+      // unsaved work. The original version remains mandatory when saving.
+      let _ = read_post(input, name)
+      let hidden = admin_hidden("token", token) +
+        admin_hidden("name", name) +
+        admin_hidden("version", admin_field(fields, "version"))
+      let edit = admin_submitted_fields(fields)
+      return (
+        200,
+        admin_page(
+          "Preview " + name,
+          admin_body_preview(edit.body) + admin_fields_form(hidden, edit),
+        ),
+      )
+    }
     let name = match request.target {
       "/new" => {
         if fields.length() != 3 {
@@ -208,7 +228,8 @@ fn admin_route(
     )
   } catch {
     error => {
-      let recovery = if request.target == "/fields" {
+      let recovery = if request.target == "/fields" ||
+        request.target == "/preview" {
         let edit : PostFields = {
           title: fields.get("title").unwrap_or(""),
           description: fields.get("description").unwrap_or(""),
@@ -233,7 +254,11 @@ fn admin_route(
       (
         400,
         admin_page(
-          "Could not save",
+          if request.target == "/preview" {
+            "Could not preview"
+          } else {
+            "Could not save"
+          },
           "<p class=\"notice\">" +
           escape_html(error.to_string()) +
           "</p>" +
