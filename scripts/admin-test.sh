@@ -149,6 +149,45 @@ rmdir "$tmp/site/content/nested.md"
 test "$(get /)" = 200
 grep -Fq 'Repaired article' "$tmp/page"
 if grep -Fq 'Sources needing attention' "$tmp/page"; then exit 1; fi
+# GET search/filter navigation has stable twenty-row pages and no writes.
+for ((i=1; i<=21; i++)); do
+  printf -v name 'batch%02d' "$i"
+  draft=false; listed=true
+  if ((i % 2 == 0)); then draft=true; fi
+  if ((i == 1)); then listed=false; fi
+  printf '%s\n' '---' "{\"title\":\"Batch $i\",\"draft\":$draft,\"listed\":$listed,\"tags\":[\"月\"]}" '---' '# Content' > "$tmp/site/content/$name.md"
+done
+cp -a "$tmp/site" "$tmp/before-search"
+test "$(get '/?q=BATCH&state=all')" = 200
+grep -Fq 'Showing 20 of 21 matching posts' "$tmp/page"
+grep -Fq '/?q=BATCH&amp;state=all&amp;page=2' "$tmp/page"
+grep -Fq '/edit?name=batch01.md' "$tmp/page"
+if grep -Fq '/edit?name=batch21.md' "$tmp/page"; then exit 1; fi
+test "$(get '/?q=BATCH&state=all&page=2')" = 200
+grep -Fq 'Showing 1 of 21 matching posts' "$tmp/page"
+grep -Fq '/edit?name=batch21.md' "$tmp/page"
+grep -Fq 'Previous posts' "$tmp/page"
+test "$(get '/?q=batch&state=draft')" = 200
+grep -Fq 'Showing 10 of 10 matching posts' "$tmp/page"
+test "$(get '/?q=batch&state=ready')" = 200
+grep -Fq 'Showing 11 of 11 matching posts' "$tmp/page"
+test "$(get '/?q=batch&state=unlisted')" = 200
+grep -Fq 'Showing 1 of 1 matching posts' "$tmp/page"
+test "$(get '/?q=%E6%9C%88')" = 200
+grep -Fq 'Showing 20 of 21 matching posts' "$tmp/page"
+test "$(get '/?q=%22%3E%3Cscript%3E')" = 200
+grep -Fq 'No matching posts' "$tmp/page"
+grep -Fq '&quot;&gt;&lt;script&gt;' "$tmp/page"
+if grep -Fq '<script>' "$tmp/page"; then exit 1; fi
+for query in 'page=0' 'page=-1' 'page=1.5' 'page=999999999999' 'page=3&q=batch' 'state=bad' 'q=a&q=b' 'unknown=x'; do
+  test "$(get "/?$query")" = 400
+done
+diff -r "$tmp/before-search" "$tmp/site"
+printf '%s\n' '---' '{broken' '---' > "$tmp/site/content/search-error.md"
+test "$(get '/?q=absent&state=draft')" = 200
+grep -Fq 'content/search-error.md' "$tmp/page"
+grep -Fq 'No matching posts' "$tmp/page"
+rm "$tmp/site/content/search-error.md"
 raw() { timeout 8 bash -c 'exec 3<>/dev/tcp/127.0.0.1/"$1"; printf "%b" "$2" >&3; cat <&3 2>/dev/null || true' _ "$port" "$1" > "$tmp/raw"; }
 raw "GET / HTTP/1.1\r\nHost: 127.0.0.1:$port\r\nHost: evil\r\n\r\n"
 grep -Fq '400 Bad Request' "$tmp/raw"

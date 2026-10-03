@@ -19,38 +19,6 @@ fn admin_hidden(name : String, value : String) -> String {
 }
 
 ///|
-fn admin_posts(input : String, token : String) -> String raise {
-  let out = StringBuilder()
-  out.write_string(
-    "<p>Ready posts enter normal builds. Changes here do not deploy your site.</p><table><thead><tr><th>Title</th><th>State</th><th>Source</th></tr></thead><tbody>",
-  )
-  let inventory = inspect_posts(input)
-  for post in inventory.posts {
-    let name = post.source[8:].to_owned()
-    out.write_string(
-      "<tr><td><a href=\"/edit?name=" +
-      url_component(name) +
-      "\">" +
-      escape_html(post.title) +
-      "</a></td><td>" +
-      (if post.draft { "Draft" } else { "Ready" }) +
-      (if post.listed { "" } else { " · unlisted" }) +
-      "</td><td>" +
-      escape_html(name) +
-      "</td></tr>",
-    )
-  }
-  out.write_string(
-    "</tbody></table>" +
-    admin_post_problems(inventory.problems) +
-    "<h2>New draft</h2><form method=\"post\" action=\"/new\">" +
-    admin_hidden("token", token) +
-    "<label>Title<input name=\"title\" required></label><label>File stem (for example, first-post)<input name=\"slug\" required></label><button>Create draft</button></form>",
-  )
-  admin_page("Posts", out.to_string() + admin_check_form(token))
-}
-
-///|
 fn admin_fields_form(hidden : String, edit : PostFields) -> String {
   let out = StringBuilder()
   out.write_string("<form method=\"post\" action=\"/fields\">" + hidden)
@@ -125,7 +93,13 @@ fn admin_route(
 ) -> (Int, String) raise {
   if request.verb == "GET" {
     if request.target == "/" {
-      return (200, admin_posts(input, token))
+      return (200, admin_posts(input, token, Map([])))
+    }
+    if request.target.has_prefix("/?") {
+      return (
+        200,
+        admin_posts(input, token, admin_form(request.target[2:].to_owned())),
+      )
     }
     if request.target.has_prefix("/edit?") {
       let fields = admin_form(request.target[6:].to_owned())

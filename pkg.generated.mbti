@@ -22,6 +22,8 @@ pub fn digest_text(String) -> String
 
 pub fn escape_html(String) -> String
 
+pub fn filter_posts(Array[PostSummary], String, String) -> Array[PostSummary] raise
+
 pub fn headings(String) -> Array[HeadingInfo]
 
 pub fn init_site(String) -> InitReport raise

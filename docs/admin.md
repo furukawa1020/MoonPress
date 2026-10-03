@@ -113,3 +113,17 @@ invalid UTF-8 appear as problems without repair links; fix these with local
 filesystem tools. Missing or invalid site/content directories still fail the
 whole request. Inventory is read-only; compiler validation and the CLI `posts`
 command remain strict. Listing valid posts does not mean the site can build.
+
+### Finding articles
+
+Search matches title, source filename or tags using a case-insensitive substring
+(after trimming query whitespace). It does not search article bodies. Combine
+search with All, Drafts, Ready for build, or Unlisted; an unlisted article can
+also be a draft. Ready describes build eligibility, not deployment.
+
+Results retain deterministic filename order and show 20 articles per page.
+Previous/Next links retain the query and state. Search submits a normal GET form,
+resets to page 1, and can be bookmarked; Clear filters returns to all posts.
+Counts describe valid articles only. Source diagnostics remain visible on every
+page and through every filter, even when no articles match. Invalid query fields,
+duplicate fields and out-of-range pages are rejected without changing sources.
