@@ -77,3 +77,20 @@ test "body preview renders Markdown but disables destinations and raw HTML" {
   assert_true(html.contains("&lt;script&gt;bad&lt;/script&gt;"))
   assert_false(html.contains("href=\"javascript:"))
 }
+
+///|
+test "inventory diagnostics escape input and only link editable sources" {
+  let html = admin_post_problems([
+    {
+      source: "content/bad &.md",
+      message: "<script>bad</script>",
+      editable: true,
+    },
+    { source: "content/link.md", message: "symlink", editable: false, },
+  ])
+  assert_true(html.contains("&lt;script&gt;"))
+  assert_false(html.contains("<script>"))
+  assert_true(html.contains("/edit?name=bad%20%26.md"))
+  assert_false(html.contains("/edit?name=link.md"))
+  assert_eq(admin_post_problems([]), "")
+}

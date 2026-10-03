@@ -26,6 +26,8 @@ pub fn headings(String) -> Array[HeadingInfo]
 
 pub fn init_site(String) -> InitReport raise
 
+pub fn inspect_posts(String) -> PostInventory raise
+
 pub fn list_posts(String) -> PostsReport raise
 
 pub fn markdown_images(String) -> Array[String]
@@ -195,6 +197,19 @@ pub(all) struct PostFields {
   tags : String
   body : String
 }
+
+pub(all) struct PostInventory {
+  posts : Array[PostSummary]
+  problems : Array[PostProblem]
+} derive(ToJson)
+pub fn PostInventory::to_json(Self) -> Json
+
+pub(all) struct PostProblem {
+  source : String
+  message : String
+  editable : Bool
+} derive(ToJson)
+pub fn PostProblem::to_json(Self) -> Json
 
 pub(all) struct PostSnapshot {
   source : String
