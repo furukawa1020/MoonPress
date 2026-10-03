@@ -188,6 +188,44 @@ test "$(get '/?q=absent&state=draft')" = 200
 grep -Fq 'content/search-error.md' "$tmp/page"
 grep -Fq 'No matching posts' "$tmp/page"
 rm "$tmp/site/content/search-error.md"
+# Build themed draft-inclusive previews with the compiler's ownership checks.
+preview="$tmp/site/.moonpress-preview"
+build_preview() { post /build-preview --data-urlencode "token=$token"; }
+cp -a "$tmp/site" "$tmp/before-preview-build"
+test "$(post /build-preview --data-urlencode token=wrong)" = 400
+test "$(post /build-preview --data-urlencode "token=$token" --data-urlencode output=dist)" = 400
+test ! -e "$preview"
+ln -s "$tmp/site/dist" "$preview"
+test "$(build_preview)" = 400
+rm "$preview"
+mkdir "$preview"
+printf 'foreign' > "$preview/foreign.txt"
+test "$(build_preview)" = 400
+test "$(cat "$preview/foreign.txt")" = foreign
+rm "$preview/foreign.txt"
+rmdir "$preview"
+# A draft link failure is caught before creating any preview directory.
+printf '%s\n' '---' '{"draft":true}' '---' '[missing](missing.html)' > "$tmp/site/content/build-error.md"
+test "$(build_preview)" = 400
+grep -Fq 'Preview build failed' "$tmp/page"
+test ! -e "$preview"
+rm "$tmp/site/content/build-error.md"
+test "$(build_preview)" = 200
+grep -Fq 'Full preview files built' "$tmp/page"
+grep -Fq 'No deployment performed' "$tmp/page"
+test -f "$preview/batch02.html"
+"$cli" build "$tmp/site" "$tmp/clean-preview" --include-drafts >/dev/null
+diff -r "$tmp/clean-preview" "$preview"
+diff -r --exclude=.moonpress-preview "$tmp/before-preview-build" "$tmp/site"
+test "$(build_preview)" = 200
+grep -Fq 'written: 0;' "$tmp/page"
+printf 'manual edit' > "$preview/index.html"
+cp -a "$preview" "$tmp/edited-preview"
+test "$(build_preview)" = 400
+diff -r "$tmp/edited-preview" "$preview"
+# The admin origin never serves generated project HTML.
+test "$(get '/.moonpress-preview/index.html')" = 404
+diff -r --exclude=.moonpress-preview "$tmp/before-preview-build" "$tmp/site"
 raw() { timeout 8 bash -c 'exec 3<>/dev/tcp/127.0.0.1/"$1"; printf "%b" "$2" >&3; cat <&3 2>/dev/null || true' _ "$port" "$1" > "$tmp/raw"; }
 raw "GET / HTTP/1.1\r\nHost: 127.0.0.1:$port\r\nHost: evil\r\n\r\n"
 grep -Fq '400 Bad Request' "$tmp/raw"
