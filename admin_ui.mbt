@@ -48,18 +48,66 @@ fn admin_posts(input : String, token : String) -> String raise {
 }
 
 ///|
+fn admin_fields_form(hidden : String, edit : PostFields) -> String {
+  let out = StringBuilder()
+  out.write_string("<form method=\"post\" action=\"/fields\">" + hidden)
+  for
+    (key, label, value) in [
+      ("title", "Title (blank: infer from body)", edit.title),
+      ("description", "Description", edit.description),
+      ("date", "Date (YYYY-MM-DD; blank: undated)", edit.date),
+    ] {
+    out.write_string(
+      "<label>" +
+      label +
+      "<textarea name=\"" +
+      key +
+      "\" rows=\"2\" style=\"min-height:3rem\">\n" +
+      escape_html(value) +
+      "</textarea></label>",
+    )
+  }
+  out.write_string(
+    "<label>Tags (one per line)<textarea name=\"tags\" style=\"min-height:5rem\">\n" +
+    escape_html(edit.tags) +
+    "</textarea></label><label>Markdown body<textarea name=\"body\">\n" +
+    escape_html(edit.body) +
+    "</textarea></label><button>Save article</button></form>",
+  )
+  out.to_string()
+}
+
+///|
+fn admin_submitted_fields(fields : Map[String, String]) -> PostFields raise {
+  {
+    title: admin_field(fields, "title"),
+    description: admin_field(fields, "description"),
+    date: admin_field(fields, "date"),
+    tags: admin_field(fields, "tags"),
+    body: admin_field(fields, "body"),
+  }
+}
+
+///|
 fn admin_edit(input : String, name : String, token : String) -> String raise {
   let snapshot = read_post(input, name)
   let hidden = admin_hidden("token", token) +
     admin_hidden("name", name) +
     admin_hidden("version", snapshot.digest)
+  let editor = admin_fields_form(hidden, post_fields(snapshot.content, name)) catch {
+    error =>
+      "<p class=\"notice\">Structured editor unavailable: " +
+      escape_html(error.to_string()) +
+      ". Repair the source below.</p>"
+  }
   admin_page(
     "Edit " + name,
-    "<p>Edit Markdown and JSON frontmatter below. Saving validates metadata; use the CLI to check links and preview the full site.</p><form method=\"post\" action=\"/save\">" +
+    editor +
+    "<details><summary>Advanced: edit Markdown and JSON source</summary><p>Use one editor at a time. Saving validates metadata; use the CLI to check links and preview the full site.</p><form method=\"post\" action=\"/save\">" +
     hidden +
     "<label>Source<textarea name=\"content\" spellcheck=\"false\" aria-label=\"Post source\">\n" +
     escape_html(snapshot.content) +
-    "</textarea></label><button>Save source</button></form><form method=\"post\" action=\"/status\">" +
+    "</textarea></label><button>Save source</button></form></details><form method=\"post\" action=\"/status\">" +
     hidden +
     "<p>These buttons change the saved source. Save the editor above first.</p><button name=\"state\" value=\"draft\">Set draft</button> <button name=\"state\" value=\"ready\">Set ready for build</button></form>",
   )
@@ -117,6 +165,19 @@ fn admin_route(
         )
         name
       }
+      "/fields" => {
+        if fields.length() != 8 {
+          raise InvalidInput("Invalid article fields")
+        }
+        let name = admin_field(fields, "name")
+        let _ = save_post_fields(
+          input,
+          name,
+          admin_field(fields, "version"),
+          admin_submitted_fields(fields),
+        )
+        name
+      }
       "/status" => {
         if fields.length() != 4 {
           raise InvalidInput("Invalid status fields")
@@ -147,7 +208,22 @@ fn admin_route(
     )
   } catch {
     error => {
-      let recovery = if request.target == "/save" {
+      let recovery = if request.target == "/fields" {
+        let edit : PostFields = {
+          title: fields.get("title").unwrap_or(""),
+          description: fields.get("description").unwrap_or(""),
+          date: fields.get("date").unwrap_or(""),
+          tags: fields.get("tags").unwrap_or(""),
+          body: fields.get("body").unwrap_or(""),
+        }
+        "<p>Your submitted fields are retained below. On a version conflict, copy them before reloading; retrying cannot overwrite the newer source.</p>" +
+        admin_fields_form(
+          admin_hidden("token", token) +
+          admin_hidden("name", fields.get("name").unwrap_or("")) +
+          admin_hidden("version", fields.get("version").unwrap_or("")),
+          edit,
+        )
+      } else if request.target == "/save" {
         "<h2>Your submitted source</h2><p>Copy this text before reloading the current article. It has not been retried automatically.</p><textarea readonly aria-label=\"Submitted source\">\n" +
         escape_html(fields.get("content").unwrap_or("")) +
         "</textarea>"

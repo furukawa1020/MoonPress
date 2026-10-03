@@ -77,3 +77,19 @@ There is no persisted browser session or remote authentication. Filesystem trust
 cooperative locking, source staging and external-editor race limitations remain
 those of the CLI. A successful save means the source operation succeeded, not
 that a build or deployment succeeded.
+
+### Structured article editing
+
+The article editor provides title, description, date, tags and Markdown body
+fields. A blank title keeps automatic title inference; a blank date removes the
+date. Enter tags one per line (commas are part of a tag); blank lines are ignored
+and duplicates removed. Dates use valid `YYYY-MM-DD` calendar dates. Draft state,
+listing, slug and layout are preserved. Changed articles serialize JSON
+frontmatter and normalize body line endings; unchanged fields preserve source
+bytes. The advanced source editor remains available, including for repairing
+invalid frontmatter. Use one editor at a time.
+
+Both editors use the same version-checked atomic save service. Validation or
+version errors retain submitted input. On a version conflict, copy your input
+and reload before merging your edits manually. Retrying an old form cannot
+force an overwrite. Saving does not build or deploy the site.
