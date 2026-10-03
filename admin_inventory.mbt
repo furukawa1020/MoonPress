@@ -91,5 +91,8 @@ fn admin_posts(
     admin_hidden("token", token) +
     "<label>Title<input name=\"title\" required></label><label>File stem (for example, first-post)<input name=\"slug\" required></label><button>Create draft</button></form>",
   )
-  admin_page("Posts", out.to_string() + admin_check_form(token))
+  admin_page(
+    "Posts",
+    out.to_string() + admin_check_form(token) + admin_build_form(token),
+  )
 }

@@ -120,6 +120,12 @@ fn admin_route(
     raise InvalidInput("Form token rejected; reload the page")
   }
   try {
+    if request.target == "/build-preview" {
+      if fields.length() != 1 {
+        raise InvalidInput("Invalid preview build fields")
+      }
+      return (200, admin_build_preview(input, token))
+    }
     if request.target == "/check" {
       if fields.length() != 2 {
         raise InvalidInput("Invalid validation fields")
@@ -241,7 +247,9 @@ fn admin_route(
       (
         400,
         admin_page(
-          if request.target == "/check" {
+          if request.target == "/build-preview" {
+            "Preview build failed"
+          } else if request.target == "/check" {
             "Validation failed"
           } else if request.target == "/preview" {
             "Could not preview"

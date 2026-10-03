@@ -29,6 +29,9 @@ The server does not open a browser automatically and has no `--json` mode.
    This uses the compiler checks for saved metadata, layouts, local links and
    routes. It reports page/output counts or the compiler diagnostic, without
    writing files. It does not check existing output integrity or hosting.
+6. **Build full preview files:** compile saved sources, including drafts, into
+   `.moonpress-preview` inside the site. The result includes layouts and assets.
+   Open generated HTML with your local file browser. It is not deployed.
 
 Successful operations show a confirmation and a link to continue editing. There
 is no JavaScript, auto-save, visual/WYSIWYG editor or client-side refresh. Browser
@@ -40,9 +43,9 @@ screen; keep a local copy of long edits.
 
 The body preview does not load the site theme or images, activate links, validate
 metadata, or check site links. It never refreshes the edit version: previewing an
-old form does not allow overwriting newer source. Use the CLI for full-site
-preview and building; saved-site validation is also available there. Publish
-the resulting output through your hosting workflow:
+old form does not allow overwriting newer source. Full preview files can be
+built from Posts or the CLI. Use a normal CLI build for production, then publish
+that output through your hosting workflow:
 
 ```sh
 moonpress check my-site --include-drafts
@@ -127,3 +130,19 @@ resets to page 1, and can be bookmarked; Clear filters returns to all posts.
 Counts describe valid articles only. Source diagnostics remain visible on every
 page and through every filter, even when no articles match. Invalid query fields,
 duplicate fields and out-of-range pages are rejected without changing sources.
+
+
+### Full preview output protection
+
+The preview action always includes drafts and writes only to
+`<site>/.moonpress-preview`; it cannot select an arbitrary output path. Keep this
+preview directory private. Publishing it would publish drafts. It uses the same
+incremental compiler, ownership manifest, locking and publication protections as
+the CLI. Unknown files, edited outputs and symlink directories are refused;
+errors are reported without silently replacing or deleting them. If interrupted,
+use the documented CLI recovery flow for this output directory.
+
+The admin server does not serve generated project HTML on its origin or start a
+second preview server. Open the files locally; theme links configured for a
+hosted base URL still point to that URL. Unsaved form edits are not included.
+The preview directory is retained across server restarts for incremental builds.
