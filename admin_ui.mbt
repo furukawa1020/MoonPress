@@ -24,7 +24,8 @@ fn admin_posts(input : String, token : String) -> String raise {
   out.write_string(
     "<p>Ready posts enter normal builds. Changes here do not deploy your site.</p><table><thead><tr><th>Title</th><th>State</th><th>Source</th></tr></thead><tbody>",
   )
-  for post in list_posts(input).posts {
+  let inventory = inspect_posts(input)
+  for post in inventory.posts {
     let name = post.source[8:].to_owned()
     out.write_string(
       "<tr><td><a href=\"/edit?name=" +
@@ -40,7 +41,9 @@ fn admin_posts(input : String, token : String) -> String raise {
     )
   }
   out.write_string(
-    "</tbody></table><h2>New draft</h2><form method=\"post\" action=\"/new\">" +
+    "</tbody></table>" +
+    admin_post_problems(inventory.problems) +
+    "<h2>New draft</h2><form method=\"post\" action=\"/new\">" +
     admin_hidden("token", token) +
     "<label>Title<input name=\"title\" required></label><label>File stem (for example, first-post)<input name=\"slug\" required></label><button>Create draft</button></form>",
   )

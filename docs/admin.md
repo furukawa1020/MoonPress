@@ -103,3 +103,13 @@ Both editors use the same version-checked atomic save service. Validation or
 version errors retain submitted input. On a version conflict, copy your input
 and reload before merging your edits manually. Retrying an old form cannot
 force an overwrite. Saving does not build or deploy the site.
+
+### Repairing individual sources
+
+An invalid article no longer hides the rest of the Posts screen. The screen
+shows a separate diagnostics list and offers **Repair source** for regular,
+safely named UTF-8 Markdown files. Symlinks, directories, special files and
+invalid UTF-8 appear as problems without repair links; fix these with local
+filesystem tools. Missing or invalid site/content directories still fail the
+whole request. Inventory is read-only; compiler validation and the CLI `posts`
+command remain strict. Listing valid posts does not mean the site can build.

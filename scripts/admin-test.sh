@@ -121,6 +121,34 @@ test "$(check_post ready)" = 400
 grep -Fq '&lt;script&gt;' "$tmp/page"
 if grep -Fq '<script>' "$tmp/page"; then exit 1; fi
 rm "$tmp/site/content/bad-check.md"
+# A broken source must not hide good articles or permit unsafe repair reads.
+printf '%s\n' '---' '{"<script>":true}' '---' > "$tmp/site/content/repair.md"
+printf '\377' > "$tmp/site/content/invalid-utf8.md"
+ln -s "$tmp/site/content/first.md" "$tmp/site/content/link.md"
+mkdir "$tmp/site/content/nested.md"
+mkfifo "$tmp/site/content/pipe.md"
+cp -a "$tmp/site" "$tmp/before-inventory"
+test "$(get /)" = 200
+grep -Fq 'Structured &lt;title&gt;' "$tmp/page"
+grep -Fq 'Sources needing attention' "$tmp/page"
+grep -Fq '&lt;script&gt;' "$tmp/page"
+grep -Fq '/edit?name=repair.md' "$tmp/page"
+for name in invalid-utf8 link nested pipe; do
+  grep -Fq "content/$name.md" "$tmp/page"
+  if grep -Fq "/edit?name=$name.md" "$tmp/page"; then exit 1; fi
+done
+if "$cli" posts "$tmp/site" > "$tmp/strict" 2>&1; then exit 1; fi
+# Compare regular files/links and check FIFO type without reading it.
+test -p "$tmp/site/content/pipe.md"
+diff -r --exclude=pipe.md "$tmp/before-inventory" "$tmp/site" > "$tmp/inventory-diff" || { cat "$tmp/inventory-diff"; exit 1; }
+test "$(get '/edit?name=repair.md')" = 200
+version="$(sed -n 's/.*name="version" value="\([a-f0-9]*\)".*/\1/p' "$tmp/page" | sort -u)"
+test "$(post /save --data-urlencode "token=$token" --data-urlencode name=repair.md --data-urlencode "version=$version" --data-urlencode 'content=# Repaired article')" = 200
+rm "$tmp/site/content/invalid-utf8.md" "$tmp/site/content/link.md" "$tmp/site/content/pipe.md"
+rmdir "$tmp/site/content/nested.md"
+test "$(get /)" = 200
+grep -Fq 'Repaired article' "$tmp/page"
+if grep -Fq 'Sources needing attention' "$tmp/page"; then exit 1; fi
 raw() { timeout 8 bash -c 'exec 3<>/dev/tcp/127.0.0.1/"$1"; printf "%b" "$2" >&3; cat <&3 2>/dev/null || true' _ "$port" "$1" > "$tmp/raw"; }
 raw "GET / HTTP/1.1\r\nHost: 127.0.0.1:$port\r\nHost: evil\r\n\r\n"
 grep -Fq '400 Bad Request' "$tmp/raw"
