@@ -44,7 +44,7 @@ fn admin_posts(input : String, token : String) -> String raise {
     admin_hidden("token", token) +
     "<label>Title<input name=\"title\" required></label><label>File stem (for example, first-post)<input name=\"slug\" required></label><button>Create draft</button></form>",
   )
-  admin_page("Posts", out.to_string())
+  admin_page("Posts", out.to_string() + admin_check_form(token))
 }
 
 ///|
@@ -143,6 +143,16 @@ fn admin_route(
     raise InvalidInput("Form token rejected; reload the page")
   }
   try {
+    if request.target == "/check" {
+      if fields.length() != 2 {
+        raise InvalidInput("Invalid validation fields")
+      }
+      let mode = admin_field(fields, "mode")
+      if mode != "ready" && mode != "drafts" {
+        raise InvalidInput("Invalid validation mode")
+      }
+      return (200, admin_check(input, token, mode == "drafts"))
+    }
     if request.target == "/preview" {
       if fields.length() != 8 {
         raise InvalidInput("Invalid preview fields")
@@ -254,7 +264,9 @@ fn admin_route(
       (
         400,
         admin_page(
-          if request.target == "/preview" {
+          if request.target == "/check" {
+            "Validation failed"
+          } else if request.target == "/preview" {
             "Could not preview"
           } else {
             "Could not save"

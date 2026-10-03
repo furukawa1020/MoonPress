@@ -94,6 +94,33 @@ rm "$tmp/site/content/broken.md"
 test ! -e "$tmp/site/dist"
 test "$(get '/edit?name=..%2FREADME.md')" = 400
 test "$(get '/edit?name=first.md&name=index.md')" = 400
+# Site validation reuses the compiler without writing sources or output.
+check_post() { post /check --data-urlencode "token=$token" --data-urlencode "mode=$1"; }
+"$cli" build "$tmp/site" "$tmp/site/dist" >/dev/null
+printf 'user-owned output' > "$tmp/site/dist/foreign.txt"
+cp -a "$tmp/site" "$tmp/before-check"
+test "$(check_post ready)" = 200
+grep -Fq 'Site validation passed' "$tmp/page"
+expected="$("$cli" check "$tmp/site" --json | jq -r '"Checked: \(.report.pages) pages, \(.report.outputs) planned outputs."')"
+grep -Fq "$expected" "$tmp/page"
+test "$(check_post drafts)" = 200
+grep -Fq 'Including drafts' "$tmp/page"
+diff -r "$tmp/before-check" "$tmp/site"
+printf '%s\n' '---' '{"draft":true}' '---' '[missing](missing.html)' > "$tmp/site/content/draft-check.md"
+cp -a "$tmp/site" "$tmp/before-check-error"
+test "$(check_post ready)" = 200
+test "$(check_post drafts)" = 400
+grep -Fq 'Validation failed' "$tmp/page"
+grep -Fq 'missing.html' "$tmp/page"
+diff -r "$tmp/before-check-error" "$tmp/site"
+test "$(check_post invalid)" = 400
+test "$(post /check --data-urlencode token=wrong --data-urlencode mode=ready)" = 400
+rm "$tmp/site/content/draft-check.md"
+printf '%s\n' '---' '{"<script>":true}' '---' > "$tmp/site/content/bad-check.md"
+test "$(check_post ready)" = 400
+grep -Fq '&lt;script&gt;' "$tmp/page"
+if grep -Fq '<script>' "$tmp/page"; then exit 1; fi
+rm "$tmp/site/content/bad-check.md"
 raw() { timeout 8 bash -c 'exec 3<>/dev/tcp/127.0.0.1/"$1"; printf "%b" "$2" >&3; cat <&3 2>/dev/null || true' _ "$port" "$1" > "$tmp/raw"; }
 raw "GET / HTTP/1.1\r\nHost: 127.0.0.1:$port\r\nHost: evil\r\n\r\n"
 grep -Fq '400 Bad Request' "$tmp/raw"
