@@ -7,7 +7,7 @@ fn media_snippet(item : MediaItem) -> String {
 }
 
 ///|
-fn admin_media(input : String) -> String raise {
+fn admin_media(input : String, token : String) -> String raise {
   let report = list_media(input)
   let out = StringBuilder()
   out.write_string(
@@ -29,5 +29,16 @@ fn admin_media(input : String) -> String raise {
       "</textarea></label></section>",
     )
   }
-  admin_page("Media", out.to_string())
+  admin_page("Media", out.to_string() + admin_import_form(token, "", ""))
+}
+
+///|
+fn admin_import_form(token : String, source : String, name : String) -> String {
+  "<h2>Import a local file</h2><form method=\"post\" action=\"/import\">" +
+  admin_hidden("token", token) +
+  "<p>The file must be on the same computer as MoonPress. Create a real public directory inside the site first. Existing assets are never overwritten. This copies bytes; it does not upload from your browser or deploy.</p><label>Local source file path<input name=\"source\" required value=\"" +
+  escape_html(source) +
+  "\"></label><label>Destination filename (for example, photo.png)<input name=\"name\" required value=\"" +
+  escape_html(name) +
+  "\"></label><button>Import media</button></form>"
 }

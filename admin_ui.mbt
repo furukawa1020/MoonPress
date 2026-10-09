@@ -93,7 +93,7 @@ fn admin_route(
 ) -> (Int, String) raise {
   if request.verb == "GET" {
     if request.target == "/media" {
-      return (200, admin_media(input))
+      return (200, admin_media(input, token))
     }
     if request.target == "/" {
       return (200, admin_posts(input, token, Map([])))
@@ -123,6 +123,27 @@ fn admin_route(
     raise InvalidInput("Form token rejected; reload the page")
   }
   try {
+    if request.target == "/import" {
+      if fields.length() != 3 {
+        raise InvalidInput("Invalid import fields")
+      }
+      let item = import_media(
+        input,
+        admin_field(fields, "source"),
+        admin_field(fields, "name"),
+      )
+      return (
+        200,
+        admin_page(
+          "Media imported",
+          "<p>Imported " +
+          escape_html(item.source) +
+          " (\{item.bytes} bytes). No deployment performed.</p><label>Markdown snippet<textarea readonly rows=\"2\" style=\"min-height:4rem\">\n" +
+          escape_html(media_snippet(item)) +
+          "</textarea></label><p><a href=\"/media\">Return to media</a></p>",
+        ),
+      )
+    }
     if request.target == "/build-preview" {
       if fields.length() != 1 {
         raise InvalidInput("Invalid preview build fields")
@@ -224,8 +245,13 @@ fn admin_route(
     )
   } catch {
     error => {
-      let recovery = if request.target == "/fields" ||
-        request.target == "/preview" {
+      let recovery = if request.target == "/import" {
+        admin_import_form(
+          token,
+          fields.get("source").unwrap_or(""),
+          fields.get("name").unwrap_or(""),
+        )
+      } else if request.target == "/fields" || request.target == "/preview" {
         let edit : PostFields = {
           title: fields.get("title").unwrap_or(""),
           description: fields.get("description").unwrap_or(""),
@@ -250,7 +276,9 @@ fn admin_route(
       (
         400,
         admin_page(
-          if request.target == "/build-preview" {
+          if request.target == "/import" {
+            "Could not import media"
+          } else if request.target == "/build-preview" {
             "Preview build failed"
           } else if request.target == "/check" {
             "Validation failed"

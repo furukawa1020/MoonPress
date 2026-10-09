@@ -10,6 +10,7 @@ bash scripts/cli-help-test.sh
 bash scripts/init-test.sh
 bash scripts/posts-test.sh
 bash scripts/media-test.sh
+bash scripts/media-import-test.sh
 bash scripts/new-post-test.sh
 bash scripts/post-editor-test.sh
 bash scripts/post-status-test.sh

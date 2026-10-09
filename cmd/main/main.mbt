@@ -24,6 +24,7 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
+  value == "import" ||
   value == "media" ||
   value == "admin" ||
   value == "status" ||
@@ -41,6 +42,8 @@ fn is_command(value : String) -> Bool {
 ///|
 fn usage(command : String) -> String {
   match command {
+    "import" =>
+      "Usage: moonpress import <site-directory> <source-file> <destination-name> [--json]"
     "media" => "Usage: moonpress media <site-directory> [--json]"
     "admin" => "Usage: moonpress admin <site-directory> <port>"
     "status" =>
@@ -59,13 +62,15 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <admin|media|init|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <admin|media|import|init|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
   }
 }
 
 ///|
 fn help_text(command : String) -> String {
   let description = match command {
+    "import" =>
+      "Copy a regular local file into an existing public directory without overwriting.\nThe destination must be a supported flat asset filename. No deployment performed."
     "media" =>
       "List public assets with byte counts, digests and article URLs; no files written."
     "admin" =>
@@ -91,13 +96,14 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
   if command == "admin" {
     return description + "\n\n" + usage(command)
   }
   if command == "recover" ||
     command == "init" ||
+    command == "import" ||
     command == "media" ||
     command == "posts" ||
     command == "new" ||
@@ -133,7 +139,7 @@ fn main {
   let command = args[1]
   let required = if command == "save" || command == "status" {
     6
-  } else if command == "new" {
+  } else if command == "new" || command == "import" {
     5
   } else if command == "check" ||
     command == "recover" ||
@@ -161,6 +167,7 @@ fn main {
       "--include-drafts" if !include_drafts &&
         command != "recover" &&
         command != "init" &&
+        command != "import" &&
         command != "media" &&
         command != "posts" &&
         command != "new" &&
@@ -246,6 +253,19 @@ fn main {
         println("Created draft: " + report.source.to_json().stringify())
         println(
           "Edit the source, then preview with build --include-drafts in a separate output directory.",
+        )
+      }
+    } else if command == "import" {
+      let report = @lib.import_media(args[2], args[3], args[4])
+      if json {
+        print_report(command, false, report.to_json())
+      } else {
+        println(
+          "Imported: " +
+          report.source.to_json().stringify() +
+          " (\{report.bytes} bytes); URL: " +
+          report.url.to_json().stringify() +
+          "; no deployment performed",
         )
       }
     } else if command == "media" {
