@@ -26,6 +26,8 @@ pub fn filter_posts(Array[PostSummary], String, String) -> Array[PostSummary] ra
 
 pub fn headings(String) -> Array[HeadingInfo]
 
+pub fn import_media(String, String, String) -> MediaItem raise
+
 pub fn init_site(String) -> InitReport raise
 
 pub fn inspect_posts(String) -> PostInventory raise

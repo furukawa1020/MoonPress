@@ -236,6 +236,23 @@ grep -Fq '[Download](a.pdf)' "$tmp/page"
 grep -Fq 'public/画像 (a)&amp;.PNG' "$tmp/page"
 diff -r "$tmp/before-media" "$tmp/site"
 test "$(get '/public/a.pdf')" = 404
+printf '\000\377binary upload' > "$tmp/media-source"
+import_post() { post /import --data-urlencode "token=$token" --data-urlencode "source=$tmp/media-source" --data-urlencode "name=$1"; }
+test "$(post /import --data-urlencode token=wrong --data-urlencode "source=$tmp/media-source" --data-urlencode name=new.png)" = 400
+test ! -e "$tmp/site/public/new.png"
+test "$(import_post 'new (月).png')" = 200
+grep -Fq 'Media imported' "$tmp/page"
+grep -Fq '![Describe image](new%20%28%E6%9C%88%29.png)' "$tmp/page"
+cmp "$tmp/media-source" "$tmp/site/public/new (月).png"
+cp -a "$tmp/site" "$tmp/before-import-error"
+test "$(import_post 'new (月).png')" = 400
+grep -Fq 'Could not import media' "$tmp/page"
+grep -Fq 'name="source"' "$tmp/page"
+grep -Fq "$tmp/media-source" "$tmp/page"
+test "$(import_post '../bad.png')" = 400
+diff -r "$tmp/before-import-error" "$tmp/site"
+test "$(get /media)" = 200
+grep -Fq 'new (月).png' "$tmp/page"
 raw() { timeout 8 bash -c 'exec 3<>/dev/tcp/127.0.0.1/"$1"; printf "%b" "$2" >&3; cat <&3 2>/dev/null || true' _ "$port" "$1" > "$tmp/raw"; }
 raw "GET / HTTP/1.1\r\nHost: 127.0.0.1:$port\r\nHost: evil\r\n\r\n"
 grep -Fq '400 Bad Request' "$tmp/raw"

@@ -111,3 +111,23 @@ test "media snippets encode filenames and classify extensions only" {
   assert_true(image_asset_name("x.PNG"))
   assert_false(image_asset_name("x.pdf"))
 }
+
+///|
+test "media import destinations reject traversal script and compiler outputs" {
+  for
+    name in [
+      "../x.png", "x.js", "style.css", "rss.xml", "sitemap.xml", ".hidden.txt", "a/b.png",
+    ] {
+    try require_media_destination(name) catch {
+      _ => ()
+    } noraise {
+      _ => fail("Unsafe import name accepted")
+    }
+  }
+  require_media_destination("月 (a).PNG")
+  assert_true(
+    admin_import_form("token", "\"><script>", "a.png").contains(
+      "&quot;&gt;&lt;script&gt;",
+    ),
+  )
+}
