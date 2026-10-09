@@ -24,6 +24,7 @@ priv struct AdminRequest {
   verb : String
   target : String
   length : Int
+  boundary : String?
 }
 
 ///|
@@ -75,7 +76,7 @@ fn admin_headers(raw : String, host : String) -> AdminRequest raise {
   }
   let length_text = headers.get("content-length").unwrap_or("0")
   if length_text.is_empty() ||
-    length_text.length() > 6 ||
+    length_text.length() > 7 ||
     !length_text.all(c => c.is_ascii_digit()) {
     raise InvalidInput("Invalid content length")
   }
@@ -83,23 +84,30 @@ fn admin_headers(raw : String, host : String) -> AdminRequest raise {
   for c in length_text {
     length = length * 10 + c.to_int() - 48
   }
-  if length > 262144 {
-    raise InvalidInput("Request body too large (256 KiB limit)")
+  let content_type = headers.get("content-type").unwrap_or("")
+  let boundary = if start[0] == "POST" && start[1] == "/upload" {
+    Some(admin_multipart_boundary(content_type))
+  } else {
+    None
+  }
+  let limit = if boundary is Some(_) { 8388608 } else { 262144 }
+  if length > limit {
+    raise InvalidInput("Request body exceeds route limit (\{limit} bytes)")
   }
   if start[0] == "POST" {
     if !headers.contains("content-length") ||
       headers.get("origin") != Some("http://" + host) ||
-      headers.get("content-type") != Some("application/x-www-form-urlencoded") {
+      (boundary is None && content_type != "application/x-www-form-urlencoded") {
       raise InvalidInput("POST requires same-origin form encoding")
     }
   } else if length != 0 {
     raise InvalidInput("GET body rejected")
   }
-  { verb: start[0], target: start[1], length, }
+  { verb: start[0], target: start[1], length, boundary, }
 }
 
 ///|
-fn admin_read_request(fd : Int, host : String) -> (AdminRequest, String) raise {
+fn admin_read_request(fd : Int, host : String) -> (AdminRequest, Bytes) raise {
   let buffer = Bytes::make(4096, 0)
   let header = StringBuilder()
   let mut raw = ""
@@ -131,9 +139,10 @@ fn admin_read_request(fd : Int, host : String) -> (AdminRequest, String) raise {
     raise InvalidInput("Headers too large (16 KiB limit)")
   }
   let request = admin_headers(raw, host)
-  let body : Array[Byte] = []
-  while body.length() < request.length {
-    let remaining = request.length - body.length()
+  let body : FixedArray[Byte] = FixedArray::make(request.length, 0)
+  let mut offset = 0
+  while offset < request.length {
+    let remaining = request.length - offset
     let n = admin_recv(
       fd,
       buffer,
@@ -147,10 +156,11 @@ fn admin_read_request(fd : Int, host : String) -> (AdminRequest, String) raise {
       raise InvalidInput("Incomplete body or timeout")
     }
     for i = 0; i < n; i = i + 1 {
-      body.push(buffer[i])
+      body[offset + i] = buffer[i]
     }
+    offset += n
   }
-  (request, decode_text(Bytes::from_array(body), "form body"))
+  (request, Bytes::from_array(body[:]))
 }
 
 ///|

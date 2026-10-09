@@ -19,8 +19,7 @@ article. Replace `Describe image` with meaningful alternative text or `Download`
 with a descriptive link label. URLs encode spaces, Unicode and punctuation.
 Relative snippets assume the compiler's flat output routes. No script, image
 viewer, clipboard automation or arbitrary asset server is used. Inventory is
-read-only; the import operation below writes assets. Browser upload and
-reference-aware deletion remain separate work.
+read-only; the import operation below writes assets. Browser upload is described below; reference-aware deletion remains separate work.
 
 ## Importing local files
 
@@ -51,3 +50,24 @@ refuse to overwrite. Inspect it before manually removing it. Source files are
 not changed, source permissions are not copied, and import does not build or
 deploy. Uncooperative external file replacement during an import is outside the
 cooperative locking guarantee; use a trusted local project.
+
+
+## Browser file selection
+
+On the Media screen, use **Upload a file**, enter a supported destination name
+and select one file. This sends binary multipart data without JavaScript. The
+complete request, including form fields and framing, must fit within **8 MiB**;
+choose a file slightly smaller than that limit. The existing real `public/`
+directory requirement and exclusive creation protections apply. Success provides
+a Markdown snippet. On a save error the destination is retained, but the browser
+requires selecting the file again before retrying. No uploaded bytes are retained
+on the error page.
+
+The original browser filename and supplied MIME type are not used as a path or
+as content verification; the explicit destination controls extension checks.
+Upload does not inspect or sanitize file contents. The multipart parser accepts
+three fields (`token`, `name`, `file`), standard quoted dispositions and an ASCII
+alphanumeric/hyphen/underscore boundary of 1–70 characters, optionally quoted.
+Duplicate/unknown fields, nested multipart, part transfer encodings, preambles
+and epilogues are rejected. Standard HTML forms and curl multipart requests use
+this supported subset. Ordinary editor forms keep their 256 KiB limit.
