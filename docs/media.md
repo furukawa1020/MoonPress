@@ -23,7 +23,7 @@ read-only; the import operation below writes assets. Browser upload is described
 
 ## Importing local files
 
-Create a real `public/` directory in your site first, then run:
+For the CLI, create a real `public/` directory in your site first, then run:
 
 ```sh
 mkdir my-site/public
@@ -54,7 +54,10 @@ cooperative locking guarantee; use a trusted local project.
 
 ## Browser file selection
 
-On the Media screen, use **Upload a file**, enter a supported destination name
+On a fresh site, open Media and click **Prepare media storage** first. This
+explicit action creates only the public directory; opening the screen writes
+nothing. Existing real directories are kept, and files/symlinks/special entries
+are refused. Then use **Upload a file**, enter a supported destination name
 and select one file. This sends binary multipart data without JavaScript. The
 complete request, including form fields and framing, must fit within **8 MiB**;
 choose a file slightly smaller than that limit. The existing real `public/`

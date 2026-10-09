@@ -9,6 +9,14 @@ fn media_snippet(item : MediaItem) -> String {
 ///|
 fn admin_media(input : String, token : String) -> String raise {
   let report = list_media(input)
+  if path_kind(input + "/public") == 0 {
+    return admin_page(
+      "Media",
+      "<p>Media storage has not been prepared for this site.</p><form method=\"post\" action=\"/prepare-media\">" +
+      admin_hidden("token", token) +
+      "<p>Create an empty public directory for images and attachments. Existing files are never replaced.</p><button>Prepare media storage</button></form>",
+    )
+  }
   let out = StringBuilder()
   out.write_string(
     "<p>Media: \{report.items.length()}. Copy a Markdown snippet into an article and replace the label with a description. Image classification uses filename extensions; files are not inspected or served here.</p>",
@@ -41,7 +49,7 @@ fn admin_media(input : String, token : String) -> String raise {
 fn admin_import_form(token : String, source : String, name : String) -> String {
   "<h2>Import a local file</h2><form method=\"post\" action=\"/import\">" +
   admin_hidden("token", token) +
-  "<p>The file must be on the same computer as MoonPress. Create a real public directory inside the site first. Existing assets are never overwritten. This copies bytes; it does not upload from your browser or deploy.</p><label>Local source file path<input name=\"source\" required value=\"" +
+  "<p>The file must be on the same computer as MoonPress. Use Prepare media storage on the Media screen if needed. Existing assets are never overwritten. This copies bytes; it does not upload from your browser or deploy.</p><label>Local source file path<input name=\"source\" required value=\"" +
   escape_html(source) +
   "\"></label><label>Destination filename (for example, photo.png)<input name=\"name\" required value=\"" +
   escape_html(name) +
