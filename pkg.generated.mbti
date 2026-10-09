@@ -30,6 +30,8 @@ pub fn init_site(String) -> InitReport raise
 
 pub fn inspect_posts(String) -> PostInventory raise
 
+pub fn list_media(String) -> MediaReport raise
+
 pub fn list_posts(String) -> PostsReport raise
 
 pub fn markdown_images(String) -> Array[String]
@@ -178,6 +180,20 @@ pub fn Manifest::equal(Self, Self) -> Bool
 pub fn Manifest::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Manifest::not_equal(Self, Self) -> Bool
 pub fn Manifest::to_json(Self) -> Json
+
+pub(all) struct MediaItem {
+  source : String
+  url : String
+  bytes : Int
+  digest : String
+  image : Bool
+} derive(ToJson)
+pub fn MediaItem::to_json(Self) -> Json
+
+pub(all) struct MediaReport {
+  items : Array[MediaItem]
+} derive(ToJson)
+pub fn MediaReport::to_json(Self) -> Json
 
 pub(all) struct NewPostReport {
   source : String
