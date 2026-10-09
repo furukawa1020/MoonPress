@@ -29,7 +29,12 @@ fn admin_media(input : String, token : String) -> String raise {
       "</textarea></label></section>",
     )
   }
-  admin_page("Media", out.to_string() + admin_import_form(token, "", ""))
+  admin_page(
+    "Media",
+    out.to_string() +
+    admin_upload_form(token, "") +
+    admin_import_form(token, "", ""),
+  )
 }
 
 ///|

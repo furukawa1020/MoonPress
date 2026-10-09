@@ -48,7 +48,7 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
     }
     let response = try {
       let (request, body) = admin_read_request(client, host)
-      let (code, html) = admin_route(input, request, body, token)
+      let (code, html) = admin_dispatch(input, request, body, token)
       admin_response(code, html)
     } catch {
       error =>

@@ -57,7 +57,7 @@ moonpress build my-site dist
 ```
 
 The administration UI does not serve preview/output/source files as static files,
-manage uploads, run shell commands, create hosting credentials or install a
+run shell commands, create hosting credentials or install a
 workflow. The shared authoring services and their source-save limits are described
 in [getting started](getting-started.md). This first UI slice does not complete
 [the WordPress-style authoring roadmap](../../../issues/111).
@@ -79,7 +79,7 @@ Content Security Policy that disables scripts and external resources.
 
 The minimal HTTP/1.1 implementation accepts GET and fixed-length POST only,
 one request per connection. Headers are limited to 16 KiB and encoded request
-bodies to 256 KiB. Reads have a total 5-second deadline; responses have a separate
+bodies to 256 KiB (8 MiB for multipart upload requests). Reads have a total 5-second deadline; responses have a separate
 5-second send deadline. Incomplete/malformed requests fail without a source
 operation. The server processes one connection at a time; it is not designed for
 untrusted traffic or concurrent teams. Request limits are not a limit on all local
@@ -152,3 +152,7 @@ The preview directory is retained across server restarts for incremental builds.
 Open **Media** to see public asset byte counts and digests, and copy an escaped
 Markdown image/link snippet into an article. See [media](media.md) for naming,
 classification and validation limits. The inventory never serves these files.
+
+
+The Media screen also accepts browser file selection with a multipart upload.
+See [media](media.md) for its size limit, destination naming and retry behavior.

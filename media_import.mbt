@@ -23,6 +23,18 @@ pub fn import_media(
   require_input_kind(input + "/public", 2)
   require_input_kind(source, 1)
   let bytes = read_bytes(source)
+  store_media(input, name, bytes)
+}
+
+///|
+pub fn store_media(
+  input : String,
+  name : String,
+  bytes : Bytes,
+) -> MediaItem raise {
+  require_media_destination(name)
+  require_input_kind(input, 2)
+  require_input_kind(input + "/public", 2)
   let path = input + "/public/" + name
   let lock = lock_output(path, shared=false)
   defer native_unlock_output(lock)

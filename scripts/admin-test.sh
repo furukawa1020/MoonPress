@@ -253,8 +253,35 @@ test "$(import_post '../bad.png')" = 400
 diff -r "$tmp/before-import-error" "$tmp/site"
 test "$(get /media)" = 200
 grep -Fq 'new (月).png' "$tmp/page"
+# Multipart uploads preserve raw bytes; only /upload accepts this encoding.
+printf '\000\377\001\r\n--almost-boundaryX\r\n' > "$tmp/upload-source"
+upload_post() { post /upload -H 'Expect:' -F "token=$token" -F "name=$1" -F "file=@$tmp/upload-source"; }
+test "$(get /media)" = 200
+grep -Fq 'type="file"' "$tmp/page"
+grep -Fq 'multipart/form-data' "$tmp/page"
+test "$(upload_post 'browser (月).png')" = 200
+grep -Fq 'Media uploaded' "$tmp/page"
+cmp "$tmp/upload-source" "$tmp/site/public/browser (月).png"
+cp -a "$tmp/site" "$tmp/before-upload-error"
+test "$(upload_post 'browser (月).png')" = 400
+grep -Fq 'Select the file again' "$tmp/page"
+grep -Fq 'browser (月).png' "$tmp/page"
+test "$(upload_post '../bad.png')" = 400
+test "$(post /upload -H 'Expect:' -F token=wrong -F name=bad.png -F "file=@$tmp/upload-source")" = 400
+test "$(post /upload -H 'Expect:' -F "token=$token" -F name=bad.png -F name=other.png -F "file=@$tmp/upload-source")" = 400
+test "$(post /upload -H 'Expect:' -F "token=$token" -F name=bad.png -F extra=bad -F "file=@$tmp/upload-source")" = 400
+test "$(post /upload -H 'Expect:' -F "token=$token" -F name=bad.png)" = 400
+test "$(post /save -H 'Expect:' -F "token=$token" -F name=bad.png -F "file=@$tmp/upload-source")" = 400
+test "$(post /upload --data-urlencode "token=$token" --data-urlencode name=bad.png)" = 400
+diff -r "$tmp/before-upload-error" "$tmp/site"
+# Uploads above the ordinary 256 KiB form limit use their own bounded route.
+dd if=/dev/zero of="$tmp/upload-source" bs=1024 count=300 status=none
+test "$(upload_post large.pdf)" = 200
+cmp "$tmp/upload-source" "$tmp/site/public/large.pdf"
 raw() { timeout 8 bash -c 'exec 3<>/dev/tcp/127.0.0.1/"$1"; printf "%b" "$2" >&3; cat <&3 2>/dev/null || true' _ "$port" "$1" > "$tmp/raw"; }
 raw "GET / HTTP/1.1\r\nHost: 127.0.0.1:$port\r\nHost: evil\r\n\r\n"
+grep -Fq '400 Bad Request' "$tmp/raw"
+raw "POST /upload HTTP/1.1\r\nHost: 127.0.0.1:$port\r\nOrigin: $origin\r\nContent-Type: multipart/form-data; boundary=test\r\nContent-Length: 8388609\r\n\r\n"
 grep -Fq '400 Bad Request' "$tmp/raw"
 raw "POST /new HTTP/1.1\r\nHost: 127.0.0.1:$port\r\nContent-Length: 262145\r\n\r\n"
 grep -Fq '400 Bad Request' "$tmp/raw"

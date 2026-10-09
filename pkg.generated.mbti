@@ -84,6 +84,8 @@ pub fn set_post_draft(String, String, String, Bool) -> SavePostReport raise
 
 pub fn site_base_path(String) -> String
 
+pub fn store_media(String, String, Bytes) -> MediaItem raise
+
 pub fn tag_filename(String) -> String
 
 pub fn template_links(String) -> Array[String] raise
