@@ -31,6 +31,38 @@ test "$(get /)" = 200
 grep -Fq 'New draft' "$tmp/page"
 token="$(sed -n 's/.*name="token" value="\([a-f0-9]*\)".*/\1/p' "$tmp/page")"
 test "${#token}" = 64
+# A fresh site can prepare media storage explicitly without shell setup.
+cp -a "$tmp/site" "$tmp/before-media-setup"
+test "$(get /media)" = 200
+grep -Fq 'Prepare media storage' "$tmp/page"
+test ! -e "$tmp/site/public"
+diff -r "$tmp/before-media-setup" "$tmp/site"
+test "$(post /prepare-media --data-urlencode token=wrong)" = 400
+test "$(post /prepare-media --data-urlencode "token=$token" --data-urlencode extra=bad)" = 400
+test ! -e "$tmp/site/public"
+for kind in file fifo link; do
+  case "$kind" in
+    file) printf 'existing data' > "$tmp/site/public" ;;
+    fifo) mkfifo "$tmp/site/public" ;;
+    link) ln -s "$tmp/site/content" "$tmp/site/public" ;;
+  esac
+  test "$(post /prepare-media --data-urlencode "token=$token")" = 400
+  case "$kind" in
+    file) test "$(cat "$tmp/site/public")" = 'existing data' ;;
+    fifo) test -p "$tmp/site/public" ;;
+    link) test -L "$tmp/site/public" ;;
+  esac
+  rm "$tmp/site/public"
+done
+test "$(post /prepare-media --data-urlencode "token=$token")" = 200
+test -d "$tmp/site/public"
+grep -Fq 'Media storage ready' "$tmp/page"
+cp -a "$tmp/site" "$tmp/after-media-setup"
+test "$(post /prepare-media --data-urlencode "token=$token")" = 200
+grep -Fq 'already ready' "$tmp/page"
+diff -r "$tmp/after-media-setup" "$tmp/site"
+test "$(get /media)" = 200
+grep -Fq 'type="file"' "$tmp/page"
 cp -a "$tmp/site" "$tmp/before"
 test "$(post /new --data-urlencode token=wrong --data-urlencode slug=bad --data-urlencode title=Bad)" = 400
 test "$(curl --max-time 8 -sS -o "$tmp/page" -w '%{http_code}' -H 'Host: attacker.example' "$origin/")" = 400

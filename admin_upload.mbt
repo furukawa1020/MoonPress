@@ -142,7 +142,7 @@ fn admin_multipart(body : Bytes, boundary : String) -> AdminUpload raise {
 fn admin_upload_form(token : String, name : String) -> String {
   "<h2>Upload a file</h2><form method=\"post\" action=\"/upload\" enctype=\"multipart/form-data\">" +
   admin_hidden("token", token) +
-  "<p>Select one image or attachment. The complete request must fit within 8 MiB. Create a real public directory first. Existing names are never overwritten.</p><label>Destination filename<input name=\"name\" required value=\"" +
+  "<p>Select one image or attachment. The complete request must fit within 8 MiB. Use Prepare media storage on the Media screen if needed. Existing names are never overwritten.</p><label>Destination filename<input name=\"name\" required value=\"" +
   escape_html(name) +
   "\"></label><label>File<input type=\"file\" name=\"file\" required></label><button>Upload media</button></form>"
 }

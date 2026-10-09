@@ -123,6 +123,24 @@ fn admin_route(
     raise InvalidInput("Form token rejected; reload the page")
   }
   try {
+    if request.target == "/prepare-media" {
+      if fields.length() != 1 {
+        raise InvalidInput("Invalid media setup fields")
+      }
+      let created = prepare_media(input)
+      return (
+        200,
+        admin_page(
+          "Media storage ready",
+          (if created {
+            "<p>Created media storage.</p>"
+          } else {
+            "<p>Existing media storage is already ready.</p>"
+          }) +
+          "<p><a href=\"/media\">Choose a file to upload</a></p>",
+        ),
+      )
+    }
     if request.target == "/import" {
       if fields.length() != 3 {
         raise InvalidInput("Invalid import fields")
@@ -276,7 +294,9 @@ fn admin_route(
       (
         400,
         admin_page(
-          if request.target == "/import" {
+          if request.target == "/prepare-media" {
+            "Could not prepare media storage"
+          } else if request.target == "/import" {
             "Could not import media"
           } else if request.target == "/build-preview" {
             "Preview build failed"

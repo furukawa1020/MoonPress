@@ -52,6 +52,8 @@ pub fn parse_document(String, String, filename? : String) -> Document raise
 
 pub fn parse_manifest(String) -> Manifest raise
 
+pub fn prepare_media(String) -> Bool raise
+
 pub fn read_post(String, String) -> PostSnapshot raise
 
 pub fn rebuild_reason(Artifact?, Array[Dependency]) -> String?
