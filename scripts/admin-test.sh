@@ -226,6 +226,16 @@ diff -r "$tmp/edited-preview" "$preview"
 # The admin origin never serves generated project HTML.
 test "$(get '/.moonpress-preview/index.html')" = 404
 diff -r --exclude=.moonpress-preview "$tmp/before-preview-build" "$tmp/site"
+mkdir -p "$tmp/site/public"
+printf 'image bytes' > "$tmp/site/public/画像 (a)&.PNG"
+printf '<pdf>' > "$tmp/site/public/a.pdf"
+cp -a "$tmp/site" "$tmp/before-media"
+test "$(get /media)" = 200
+grep -Fq '![Describe image](%E7%94%BB%E5%83%8F%20%28a%29%26.PNG)' "$tmp/page"
+grep -Fq '[Download](a.pdf)' "$tmp/page"
+grep -Fq 'public/画像 (a)&amp;.PNG' "$tmp/page"
+diff -r "$tmp/before-media" "$tmp/site"
+test "$(get '/public/a.pdf')" = 404
 raw() { timeout 8 bash -c 'exec 3<>/dev/tcp/127.0.0.1/"$1"; printf "%b" "$2" >&3; cat <&3 2>/dev/null || true' _ "$port" "$1" > "$tmp/raw"; }
 raw "GET / HTTP/1.1\r\nHost: 127.0.0.1:$port\r\nHost: evil\r\n\r\n"
 grep -Fq '400 Bad Request' "$tmp/raw"

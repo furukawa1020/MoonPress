@@ -24,6 +24,7 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
+  value == "media" ||
   value == "admin" ||
   value == "status" ||
   value == "read" ||
@@ -40,6 +41,7 @@ fn is_command(value : String) -> Bool {
 ///|
 fn usage(command : String) -> String {
   match command {
+    "media" => "Usage: moonpress media <site-directory> [--json]"
     "admin" => "Usage: moonpress admin <site-directory> <port>"
     "status" =>
       "Usage: moonpress status <site-directory> <filename.md> <expected-digest> <draft|ready> [--json]"
@@ -57,13 +59,15 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <admin|init|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <admin|media|init|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
   }
 }
 
 ///|
 fn help_text(command : String) -> String {
   let description = match command {
+    "media" =>
+      "List public assets with byte counts, digests and article URLs; no files written."
     "admin" =>
       "Start the local browser editor on http://127.0.0.1:<port>/.\nPort must be 1024–65535. Ctrl-C stops the server. No deployment or --json option.\nUse only on a trusted local machine; do not expose through a proxy or tunnel."
     "status" =>
@@ -87,13 +91,14 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
   if command == "admin" {
     return description + "\n\n" + usage(command)
   }
   if command == "recover" ||
     command == "init" ||
+    command == "media" ||
     command == "posts" ||
     command == "new" ||
     command == "read" ||
@@ -133,6 +138,7 @@ fn main {
   } else if command == "check" ||
     command == "recover" ||
     command == "init" ||
+    command == "media" ||
     command == "posts" {
     3
   } else {
@@ -155,6 +161,7 @@ fn main {
       "--include-drafts" if !include_drafts &&
         command != "recover" &&
         command != "init" &&
+        command != "media" &&
         command != "posts" &&
         command != "new" &&
         command != "read" &&
@@ -239,6 +246,26 @@ fn main {
         println("Created draft: " + report.source.to_json().stringify())
         println(
           "Edit the source, then preview with build --include-drafts in a separate output directory.",
+        )
+      }
+    } else if command == "media" {
+      let report = @lib.list_media(args[2])
+      if json {
+        print_report(command, false, report.to_json())
+      } else {
+        for item in report.items {
+          println(
+            item.source.to_json().stringify() +
+            "\t" +
+            item.bytes.to_string() +
+            "\t" +
+            item.url.to_json().stringify() +
+            "\t" +
+            item.digest,
+          )
+        }
+        println(
+          "Media: \{report.items.length()} (extension classification only; no files written)",
         )
       }
     } else if command == "posts" {

@@ -94,3 +94,20 @@ test "inventory diagnostics escape input and only link editable sources" {
   assert_false(html.contains("/edit?name=link.md"))
   assert_eq(admin_post_problems([]), "")
 }
+
+///|
+test "media snippets encode filenames and classify extensions only" {
+  let url = url_component("月 (a)&.PNG")
+  assert_eq(url, "%E6%9C%88%20%28a%29%26.PNG")
+  let item : MediaItem = {
+    source: "public/x",
+    url,
+    bytes: 3,
+    digest: "digest",
+    image: true,
+  }
+  assert_eq(media_snippet(item), "![Describe image](" + url + ")")
+  assert_eq(media_snippet({ ..item, image: false, }), "[Download](" + url + ")")
+  assert_true(image_asset_name("x.PNG"))
+  assert_false(image_asset_name("x.pdf"))
+}

@@ -146,3 +146,9 @@ The admin server does not serve generated project HTML on its origin or start a
 second preview server. Open the files locally; theme links configured for a
 hosted base URL still point to that URL. Unsaved form edits are not included.
 The preview directory is retained across server restarts for incremental builds.
+
+### Media inventory
+
+Open **Media** to see public asset byte counts and digests, and copy an escaped
+Markdown image/link snippet into an article. See [media](media.md) for naming,
+classification and validation limits. The inventory never serves these files.

@@ -188,36 +188,18 @@ fn plan_site(
     ),
   )
   pending.push(plan_artifact(".nojekyll", [], previous, output, () => b"", log))
-  let public_dir = input + "/public"
-  let public_kind = path_kind(public_dir)
-  if public_kind != 0 {
-    if public_kind != 2 {
-      raise InvalidInput("public must be a real directory, not a symlink")
-    }
-    let assets = @fs.read_dir(public_dir).to_owned()
-    assets.sort()
-    for name in assets {
-      let path = public_dir + "/" + name
-      if path_kind(path) != 1 {
-        raise InvalidInput(
-          "Expected regular public asset (no subdirectories): " + path,
-        )
-      }
-      if !safe_output_name(name) || !allowed_asset_name(name) {
-        raise InvalidInput("Unsupported public asset name: " + name)
-      }
-      let bytes = read_bytes(path)
-      pending.push(
-        plan_artifact(
-          name,
-          [{ name: "public/" + name, digest: digest_bytes(bytes), }],
-          previous,
-          output,
-          () => bytes,
-          log,
-        ),
-      )
-    }
+  for name in public_asset_names(input) {
+    let bytes = read_bytes(input + "/public/" + name)
+    pending.push(
+      plan_artifact(
+        name,
+        [{ name: "public/" + name, digest: digest_bytes(bytes), }],
+        previous,
+        output,
+        () => bytes,
+        log,
+      ),
+    )
   }
   if config.feed is Some(feed) {
     let url = base_url.unwrap()
