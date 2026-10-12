@@ -25,6 +25,7 @@ fn is_help(value : String) -> Bool {
 ///|
 fn is_command(value : String) -> Bool {
   value == "import" ||
+  value == "media-refs" ||
   value == "media" ||
   value == "admin" ||
   value == "status" ||
@@ -44,6 +45,7 @@ fn usage(command : String) -> String {
   match command {
     "import" =>
       "Usage: moonpress import <site-directory> <source-file> <destination-name> [--json]"
+    "media-refs" => "Usage: moonpress media-refs <site-directory> [--json]"
     "media" => "Usage: moonpress media <site-directory> [--json]"
     "admin" => "Usage: moonpress admin <site-directory> <port>"
     "status" =>
@@ -62,7 +64,7 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <admin|media|import|init|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <admin|media-refs|media|import|init|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
   }
 }
 
@@ -71,6 +73,8 @@ fn help_text(command : String) -> String {
   let description = match command {
     "import" =>
       "Copy a regular local file into an existing public directory without overwriting.\nThe destination must be a supported flat asset filename. No deployment performed."
+    "media-refs" =>
+      "Inspect supported article Markdown references, including drafts; no files written.\nDiagnostics make incomplete scans explicit. Empty lists do not prove deletion safety."
     "media" =>
       "List public assets with byte counts, digests and article URLs; no files written."
     "admin" =>
@@ -96,7 +100,7 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
   if command == "admin" {
     return description + "\n\n" + usage(command)
@@ -104,6 +108,7 @@ fn help_text(command : String) -> String {
   if command == "recover" ||
     command == "init" ||
     command == "import" ||
+    command == "media-refs" ||
     command == "media" ||
     command == "posts" ||
     command == "new" ||
@@ -144,6 +149,7 @@ fn main {
   } else if command == "check" ||
     command == "recover" ||
     command == "init" ||
+    command == "media-refs" ||
     command == "media" ||
     command == "posts" {
     3
@@ -168,6 +174,7 @@ fn main {
         command != "recover" &&
         command != "init" &&
         command != "import" &&
+        command != "media-refs" &&
         command != "media" &&
         command != "posts" &&
         command != "new" &&
@@ -267,6 +274,38 @@ fn main {
           report.url.to_json().stringify() +
           "; no deployment performed",
         )
+      }
+    } else if command == "media-refs" {
+      let report = @lib.inspect_media_references(args[2])
+      if json {
+        print_report(command, false, report.to_json())
+      } else {
+        println(report.scope)
+        for asset in report.assets {
+          println(
+            asset.item.source.to_json().stringify() +
+            ": \{asset.posts.length()} referring articles",
+          )
+          for post in asset.posts {
+            println(
+              "  " +
+              post.source.to_json().stringify() +
+              " (" +
+              (if post.draft { "draft" } else { "ready" }) +
+              (if post.listed { "" } else { ", unlisted" }) +
+              ")",
+            )
+          }
+        }
+        for problem in report.problems {
+          println(
+            "DIAGNOSTIC " +
+            problem.source.to_json().stringify() +
+            ": " +
+            problem.message.to_json().stringify(),
+          )
+        }
+        println("Scan diagnostics: \{report.problems.length()}")
       }
     } else if command == "media" {
       let report = @lib.list_media(args[2])
