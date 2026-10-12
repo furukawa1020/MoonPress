@@ -34,9 +34,9 @@ test "post search combines state with title filename and tag matching" {
 
 ///|
 test "post page parsing and navigation are bounded and escape queries" {
-  assert_eq(admin_post_page("2"), 2)
+  assert_eq(admin_page_number("2"), 2)
   for value in ["", "0", "-1", "+1", "1.5", "999999999", " 1", "a"] {
-    try admin_post_page(value) catch {
+    try admin_page_number(value) catch {
       _ => ()
     } noraise {
       _ => fail("invalid page accepted")

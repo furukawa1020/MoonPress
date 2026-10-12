@@ -1,22 +1,4 @@
 ///|
-fn admin_post_page(value : String) -> Int raise {
-  if value.is_empty() || value.length() > 8 {
-    raise InvalidInput("Post page must be a positive decimal integer")
-  }
-  let mut page = 0
-  for ch in value {
-    if ch < '0' || ch > '9' {
-      raise InvalidInput("Post page must be a positive decimal integer")
-    }
-    page = page * 10 + ch.to_int() - 48
-  }
-  if page == 0 {
-    raise InvalidInput("Post page must be a positive decimal integer")
-  }
-  page
-}
-
-///|
 fn admin_post_search_form(query : String, state : String) -> String {
   let out = StringBuilder()
   out.write_string(

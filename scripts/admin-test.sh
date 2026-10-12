@@ -426,6 +426,30 @@ for query in 'q=a&q=b' 'kind=bad' 'extra=bad'; do
   test "$(get "/media?$query")" = 400
 done
 diff -r "$tmp/before-media" "$tmp/site"
+# Media page boundaries retain search/type, diagnostics and import/upload actions.
+for i in {1..24}; do printf bytes > "$tmp/site/public/media-page$(printf '%02d' "$i").txt"; done
+cp -a "$tmp/site" "$tmp/before-media-pages"
+test "$(get '/media?q=media-page&kind=attachments')" = 200
+grep -Fq 'Showing 20 of 24 matching media assets' "$tmp/page"
+test "$(grep -oF '<section><h2>public/media-page' "$tmp/page" | wc -l)" = 20
+grep -Fq '/media?q=media-page&amp;kind=attachments&amp;page=2' "$tmp/page"
+grep -Fq 'content/media-bad.md' "$tmp/page"
+test "$(get '/media?q=media-page&kind=attachments&page=2')" = 200
+grep -Fq 'Showing 4 of 24 matching media assets' "$tmp/page"
+test "$(grep -oF '<section><h2>public/media-page' "$tmp/page" | wc -l)" = 4
+grep -Fq 'public/media-page21.txt' "$tmp/page"
+if grep -Fq 'public/media-page20.txt' "$tmp/page"; then exit 1; fi
+grep -Fq '/media?q=media-page&amp;kind=attachments&amp;page=1' "$tmp/page"
+grep -Fq 'type="file"' "$tmp/page"
+grep -Fq 'Import a local file' "$tmp/page"
+grep -Fq 'content/media-bad.md' "$tmp/page"
+# Search submits no page field and therefore resets to page 1.
+if grep -Fq 'name="page"' "$tmp/page"; then exit 1; fi
+for query in 'page=0' 'page=-1' 'page=999999999' 'page=1&page=2' 'q=missing&page=2' 'q=media-page&kind=attachments&page=3'; do
+  test "$(get "/media?$query")" = 400
+done
+diff -r "$tmp/before-media-pages" "$tmp/site"
+rm "$tmp/site/public"/media-page*.txt
 rm "$tmp/site/content/media-use.md" "$tmp/site/content/media-bad.md"
 
 test "$(get '/public/a.pdf')" = 404
