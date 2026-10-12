@@ -126,6 +126,56 @@ rm "$tmp/site/content/broken.md"
 test ! -e "$tmp/site/dist"
 test "$(get '/edit?name=..%2FREADME.md')" = 400
 test "$(get '/edit?name=first.md&name=index.md')" = 400
+# Settings use separate source-version checks and preserve article text/state.
+settings_version="$("$cli" read "$tmp/site" first.md --json | jq -r '.report.digest')"
+settings_post() { post /settings --data-urlencode "token=$token" --data-urlencode name=first.md --data-urlencode "version=$settings_version" --data-urlencode "slug=$1" --data-urlencode "listed=$2" --data-urlencode "layout=$3"; }
+test "$(get '/edit?name=first.md')" = 200
+grep -Fq 'Save article settings' "$tmp/page"
+grep -Fq 'still built and publicly reachable' "$tmp/page"
+cp -a "$tmp/site" "$tmp/before-settings"
+touch -t 200001010000 "$tmp/site/content/first.md"
+stamp="$(stat -c %Y "$tmp/site/content/first.md")"
+test "$(settings_post '' yes '')" = 200
+cmp "$tmp/before-settings/content/first.md" "$tmp/site/content/first.md"
+test "$(stat -c %Y "$tmp/site/content/first.md")" = "$stamp"
+test "$(post /settings --data-urlencode token=wrong)" = 400
+test "$(settings_post '../bad"><script>' no missing.html)" = 400
+grep -Fq '../bad&quot;&gt;&lt;script&gt;' "$tmp/page"
+grep -Fq 'missing.html' "$tmp/page"
+test "$(settings_post valid invalid '')" = 400
+grep -Fq 'Invalid submitted value: invalid' "$tmp/page"
+cmp "$tmp/before-settings/content/first.md" "$tmp/site/content/first.md"
+mkdir -p "$tmp/site/layouts"
+printf '<aside>Named settings layout</aside>' > "$tmp/site/layouts/custom.html"
+cat "$tmp/site/layout.html" >> "$tmp/site/layouts/custom.html"
+test "$(settings_post settings-route no custom.html)" = 200
+"$cli" posts "$tmp/site" --json | jq -e '.report.posts[] | select(.source=="content/first.md") | .output=="settings-route.html" and (.listed|not) and (.draft|not) and .title=="Structured <title>" and .date=="2026-10-03"' >/dev/null
+test "$(get '/edit?name=first.md')" = 200
+grep -Fq 'value="settings-route"' "$tmp/page"
+grep -Fq 'value="no" selected' "$tmp/page"
+grep -Fq '# Structured body' "$tmp/page"
+"$cli" build "$tmp/site" "$tmp/settings-build" >/dev/null
+test -f "$tmp/settings-build/settings-route.html"
+test ! -e "$tmp/settings-build/first.html"
+grep -Fq 'Named settings layout' "$tmp/settings-build/settings-route.html"
+if grep -Fq 'settings-route.html' "$tmp/settings-build/index.html"; then exit 1; fi
+cp "$tmp/site/content/first.md" "$tmp/after-settings"
+test "$(settings_post overwrite yes '')" = 400
+grep -Fq 'Post changed since' "$tmp/page"
+cmp "$tmp/after-settings" "$tmp/site/content/first.md"
+settings_version="$("$cli" read "$tmp/site" first.md --json | jq -r '.report.digest')"
+test "$(settings_post '' yes '')" = 200
+"$cli" build "$tmp/site" "$tmp/settings-build" >/dev/null
+test -f "$tmp/settings-build/first.html"
+test ! -e "$tmp/settings-build/settings-route.html"
+# Saving metadata can succeed while whole-site layout validation still fails.
+settings_version="$("$cli" read "$tmp/site" first.md --json | jq -r '.report.digest')"
+test "$(settings_post '' yes missing.html)" = 200
+if "$cli" check "$tmp/site" > "$tmp/settings-check" 2>&1; then exit 1; fi
+grep -Fq 'missing.html' "$tmp/settings-check"
+cp "$tmp/before-settings/content/first.md" "$tmp/site/content/first.md"
+rm "$tmp/site/layouts/custom.html"
+diff -r "$tmp/before-settings" "$tmp/site"
 # Duplicate saved articles through token/version-protected HTML forms.
 copy_version="$("$cli" read "$tmp/site" first.md --json | jq -r '.report.digest')"
 duplicate_post() { post /duplicate --data-urlencode "token=$token" --data-urlencode name=first.md --data-urlencode "version=$copy_version" --data-urlencode "slug=$1" --data-urlencode 'title=Copy <title>'; }

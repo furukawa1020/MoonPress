@@ -202,3 +202,11 @@ The editor has a separate **Duplicate saved article** form. It creates a new
 draft from saved source and leaves the original unchanged. Choose a new filename
 stem and title; old URL/date are cleared, while body and other article settings
 are retained. See [duplication](duplication.md) for version checks and limits.
+
+### Article URL, listing and layout
+
+The editor's **Article URL and layout** form controls output stem, article-list
+inclusion and named layout without changing the body or draft state. It uses the
+same source-version protection as other saves. No-op submissions preserve source
+bytes and timestamps. See [article settings](article-settings.md) for defaults,
+validation limits and unlisted-page visibility. URL changes create no redirects.
