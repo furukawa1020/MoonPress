@@ -126,6 +126,31 @@ rm "$tmp/site/content/broken.md"
 test ! -e "$tmp/site/dist"
 test "$(get '/edit?name=..%2FREADME.md')" = 400
 test "$(get '/edit?name=first.md&name=index.md')" = 400
+# Duplicate saved articles through token/version-protected HTML forms.
+copy_version="$("$cli" read "$tmp/site" first.md --json | jq -r '.report.digest')"
+duplicate_post() { post /duplicate --data-urlencode "token=$token" --data-urlencode name=first.md --data-urlencode "version=$copy_version" --data-urlencode "slug=$1" --data-urlencode 'title=Copy <title>'; }
+test "$(get '/edit?name=first.md')" = 200
+grep -Fq 'Duplicate into new draft' "$tmp/page"
+cp -a "$tmp/site" "$tmp/before-duplicate"
+test "$(post /duplicate --data-urlencode token=wrong)" = 400
+test "$(duplicate_post first)" = 400
+grep -Fq 'Could not duplicate article' "$tmp/page"
+grep -Fq 'Copy &lt;title&gt;' "$tmp/page"
+test "$(duplicate_post ../escape)" = 400
+diff -r "$tmp/before-duplicate" "$tmp/site"
+printf '\nExternal edit\n' >> "$tmp/site/content/first.md"
+test "$(duplicate_post stale-copy)" = 400
+grep -Fq 'Post changed since' "$tmp/page"
+test ! -e "$tmp/site/content/stale-copy.md"
+cp "$tmp/before-duplicate/content/first.md" "$tmp/site/content/first.md"
+test "$(duplicate_post copied)" = 200
+grep -Fq 'Draft duplicated' "$tmp/page"
+grep -Fq '/edit?name=copied.md' "$tmp/page"
+"$cli" posts "$tmp/site" --json | jq -e '.report.posts[] | select(.source=="content/copied.md") | .draft and .date==null and .title=="Copy <title>"' >/dev/null
+test "$(get '/edit?name=copied.md')" = 200
+grep -Fq '# Structured body' "$tmp/page"
+diff -r --exclude=copied.md "$tmp/before-duplicate" "$tmp/site"
+rm "$tmp/site/content/copied.md"
 # Site validation reuses the compiler without writing sources or output.
 check_post() { post /check --data-urlencode "token=$token" --data-urlencode "mode=$1"; }
 "$cli" build "$tmp/site" "$tmp/site/dist" >/dev/null
