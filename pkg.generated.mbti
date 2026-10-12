@@ -30,6 +30,8 @@ pub fn import_media(String, String, String) -> MediaItem raise
 
 pub fn init_site(String) -> InitReport raise
 
+pub fn inspect_media_references(String) -> MediaReferences raise
+
 pub fn inspect_posts(String) -> PostInventory raise
 
 pub fn list_media(String) -> MediaReport raise
@@ -196,10 +198,23 @@ pub(all) struct MediaItem {
 } derive(ToJson)
 pub fn MediaItem::to_json(Self) -> Json
 
+pub(all) struct MediaReferences {
+  assets : Array[MediaUsage]
+  problems : Array[PostProblem]
+  scope : String
+} derive(ToJson)
+pub fn MediaReferences::to_json(Self) -> Json
+
 pub(all) struct MediaReport {
   items : Array[MediaItem]
 } derive(ToJson)
 pub fn MediaReport::to_json(Self) -> Json
+
+pub(all) struct MediaUsage {
+  item : MediaItem
+  posts : Array[PostSummary]
+} derive(ToJson)
+pub fn MediaUsage::to_json(Self) -> Json
 
 pub(all) struct NewPostReport {
   source : String

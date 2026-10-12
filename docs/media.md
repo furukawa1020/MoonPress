@@ -74,3 +74,16 @@ alphanumeric/hyphen/underscore boundary of 1–70 characters, optionally quoted.
 Duplicate/unknown fields, nested multipart, part transfer encodings, preambles
 and epilogues are rejected. Standard HTML forms and curl multipart requests use
 this supported subset. Ordinary editor forms keep their 256 KiB limit.
+
+## Article reference inspection
+
+The native `inspect_media_references` service scans supported Markdown links and
+images with the same parser and local URL normalization as the compiler. Each
+asset lists referring articles once, in source order, including drafts and
+unlisted posts. Code spans, fenced code, escaped syntax, and external URLs do not
+count. Site base paths, percent escapes, query strings and fragments follow the
+compiler rules. Invalid metadata, unreadable entries and invalid destinations
+produce explicit per-source diagnostics; invalid site configuration or asset
+storage rejects the report. This is a read-only observation, not a snapshot
+locked against external editors. Templates and CSS are outside its scope, and
+an empty list is never proof that an asset is safe to delete.
