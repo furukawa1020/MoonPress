@@ -10,6 +10,8 @@ pub fn allowed_href(String) -> Bool
 
 pub fn apply_layout(String, String, String, description? : String, toc? : String, date? : String) -> String
 
+pub fn audit_output(String) -> OutputAudit raise
+
 pub fn build_site(String, String) -> Int raise
 
 pub fn check_site(String, include_drafts? : Bool) -> CheckReport raise
@@ -231,6 +233,21 @@ pub(all) struct NewPostReport {
   draft : Bool
 } derive(ToJson)
 pub fn NewPostReport::to_json(Self) -> Json
+
+pub(all) struct OutputAudit {
+  healthy : Bool
+  findings : Array[OutputFinding]
+} derive(ToJson)
+pub fn OutputAudit::to_json(Self) -> Json
+
+pub(all) struct OutputFinding {
+  path : String
+  status : String
+  expected : String?
+  actual : String?
+  message : String
+} derive(ToJson)
+pub fn OutputFinding::to_json(Self) -> Json
 
 pub(all) struct Page {
   output : String
