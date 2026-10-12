@@ -18,6 +18,8 @@ pub fn check_site(String, include_drafts? : Bool) -> CheckReport raise
 
 pub fn compile_site(String, String, dry_run? : Bool, include_drafts? : Bool) -> BuildReport raise
 
+pub fn dependency_impact(DependencyGraph, Array[String]) -> DependencyImpact raise
+
 pub fn digest_bytes(Bytes) -> String
 
 pub fn digest_text(String) -> String
@@ -37,6 +39,8 @@ pub fn import_media(String, String, String) -> MediaItem raise
 pub fn init_site(String) -> InitReport raise
 
 pub fn inspect_dependencies(String, include_drafts? : Bool) -> DependencyGraph raise
+
+pub fn inspect_impact(String, Array[String], include_drafts? : Bool) -> DependencyImpact raise
 
 pub fn inspect_media_references(String) -> MediaReferences raise
 
@@ -172,6 +176,14 @@ pub(all) struct DependencyGraph {
 } derive(ToJson)
 pub fn DependencyGraph::to_json(Self) -> Json
 
+pub(all) struct DependencyImpact {
+  include_drafts : Bool
+  requested : Array[String]
+  unknown : Array[String]
+  outputs : Array[ImpactOutput]
+} derive(ToJson)
+pub fn DependencyImpact::to_json(Self) -> Json
+
 pub(all) struct Document {
   title : String
   description : String
@@ -191,6 +203,13 @@ pub(all) struct HeadingInfo {
 } derive(Eq)
 pub fn HeadingInfo::equal(Self, Self) -> Bool
 pub fn HeadingInfo::not_equal(Self, Self) -> Bool
+
+pub(all) struct ImpactOutput {
+  name : String
+  digest : String
+  dependencies : Array[String]
+} derive(ToJson)
+pub fn ImpactOutput::to_json(Self) -> Json
 
 pub(all) struct InitReport {
   directory : String

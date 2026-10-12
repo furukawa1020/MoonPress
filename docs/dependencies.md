@@ -28,3 +28,19 @@ Draft mode includes private draft nodes in the report, not any deployed output.
 Both flags may appear once in either order. Successful reports exit 0; source
 validation/I/O failures exit 1 with stderr and empty stdout, invalid arguments
 exit 2. No output-directory argument or existing manifest is required.
+
+## Direct dependency impact
+
+`dependency_impact(graph, names)` is a pure query over a validated graph;
+`inspect_impact(site, names, include_drafts=false)` composes it with saved-source
+inspection. Requests must contain at least one nonempty exact compiler key.
+Duplicate keys are removed and reports have deterministic requested/unknown
+names and output order. Matched outputs include their digest and matched keys.
+Externally constructed graphs use the shared manifest validation rules.
+
+Unknown keys remain explicit. They do not prove that changing a file is safe or
+irrelevant: a newly introduced/deleted input, excluded draft, derived collection
+or future metadata edit can have effects outside direct edges of this graph.
+Use `deps` to find actual keys and `explain` after saving changes for the real
+incremental plan. Queries do not mutate arrays, sources or output, and do not
+predict a transaction or deployed state.
