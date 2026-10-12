@@ -275,6 +275,19 @@ grep -Fq 'Draft · unlisted' "$tmp/page"
 grep -Fq 'content/media-bad.md' "$tmp/page"
 grep -Fq 'not proof that deletion is safe' "$tmp/page"
 diff -r "$tmp/before-media" "$tmp/site"
+test "$(get '/media?q=PDF&kind=attachments')" = 200
+grep -Fq '[Download](a.pdf)' "$tmp/page"
+if grep -Fq '![Describe image](%E7%94%BB' "$tmp/page"; then exit 1; fi
+grep -Fq 'content/media-bad.md' "$tmp/page"
+test "$(get '/media?q=missing&kind=images')" = 200
+grep -Fq 'No matching media assets' "$tmp/page"
+grep -Fq 'content/media-bad.md' "$tmp/page"
+test "$(get '/media?q=%22%3E%3Cscript%3E&kind=all')" = 200
+grep -Fq '&quot;&gt;&lt;script&gt;' "$tmp/page"
+for query in 'q=a&q=b' 'kind=bad' 'extra=bad'; do
+  test "$(get "/media?$query")" = 400
+done
+diff -r "$tmp/before-media" "$tmp/site"
 rm "$tmp/site/content/media-use.md" "$tmp/site/content/media-bad.md"
 
 test "$(get '/public/a.pdf')" = 404

@@ -93,7 +93,13 @@ fn admin_route(
 ) -> (Int, String) raise {
   if request.verb == "GET" {
     if request.target == "/media" {
-      return (200, admin_media(input, token))
+      return (200, admin_media(input, token, Map([])))
+    }
+    if request.target.has_prefix("/media?") {
+      return (
+        200,
+        admin_media(input, token, admin_form(request.target[7:].to_owned())),
+      )
     }
     if request.target == "/" {
       return (200, admin_posts(input, token, Map([])))
