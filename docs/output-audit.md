@@ -21,3 +21,13 @@ path replacement. Results describe the files observed during inspection and do
 not reserve them for deployment. Digests and the manifest detect divergence,
 not authenticity: an attacker able to rewrite both can forge ownership state.
 No crash recovery or power-loss guarantee is added by this audit.
+
+## CLI
+
+Run `moonpress audit <output-directory> [--json]`. Healthy reports exit 0.
+Reports with findings exit 1 **and retain their complete stdout report**; this is
+an intentional exception to the usual CLI failure channel. Schema-1 JSON wraps
+`healthy` and `findings`; consumers should inspect statuses rather than assuming
+all exit-1 cases are parse failures. Operation errors (invalid/missing manifest,
+invalid output directory) exit 1 with stderr and empty stdout. Argument errors
+exit 2. Auditing neither builds nor deploys and has no draft mode.
