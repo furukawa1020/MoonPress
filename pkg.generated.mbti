@@ -58,6 +58,8 @@ pub fn parse_document(String, String, filename? : String) -> Document raise
 
 pub fn parse_manifest(String) -> Manifest raise
 
+pub fn post_settings(String, filename? : String) -> PostSettings raise
+
 pub fn prepare_media(String) -> Bool raise
 
 pub fn read_post(String, String) -> PostSnapshot raise
@@ -83,6 +85,8 @@ pub fn save_post(String, String, String, String) -> SavePostReport raise
 pub fn save_post_fields(String, String, String, PostFields) -> SavePostReport raise
 
 pub fn save_post_from_file(String, String, String, String) -> SavePostReport raise
+
+pub fn save_post_settings(String, String, String, PostSettings) -> SavePostReport raise
 
 pub fn serialize_manifest(Array[Artifact]) -> String
 
@@ -253,6 +257,13 @@ pub(all) struct PostProblem {
   editable : Bool
 } derive(ToJson)
 pub fn PostProblem::to_json(Self) -> Json
+
+pub(all) struct PostSettings {
+  slug : String
+  listed : Bool
+  layout : String
+} derive(ToJson)
+pub fn PostSettings::to_json(Self) -> Json
 
 pub(all) struct PostSnapshot {
   source : String
