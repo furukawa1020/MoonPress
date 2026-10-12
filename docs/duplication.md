@@ -28,3 +28,12 @@ moonpress duplicate my-site original.md "$version" article-copy "Copy title"
 `--json` returns a schema-1 `duplicate` report with source, output, title and
 `draft:true`. Invalid arguments exit 2; metadata/version/I/O failures exit 1 with
 empty stdout. Draft inclusion is not an option: copies are always drafts.
+
+## Local administration
+
+Open an article and use **Duplicate saved article**. Choose a new file stem and
+title, then follow **Edit new draft**. The form uses the source version shown
+when the editor loaded. Save your existing editor changes first if you want
+them copied. Errors retain the submitted stem/title; a stale source requires
+reloading the original. The action is token-protected and cannot overwrite an
+existing destination or publish the copy.

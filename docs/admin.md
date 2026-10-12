@@ -195,3 +195,10 @@ shows planned actions, paths, reasons and counts without creating or changing
 source/output files, even on the first run. Existing output ownership and edits
 are validated. The report is not a reserved transaction: sources or output may
 change between inspection and build, and building validates them again.
+
+### Duplicate an article
+
+The editor has a separate **Duplicate saved article** form. It creates a new
+draft from saved source and leaves the original unchanged. Choose a new filename
+stem and title; old URL/date are cleared, while body and other article settings
+are retained. See [duplication](duplication.md) for version checks and limits.

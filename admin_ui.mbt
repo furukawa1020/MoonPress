@@ -71,9 +71,15 @@ fn admin_edit(input : String, name : String, token : String) -> String raise {
       escape_html(error.to_string()) +
       ". Repair the source below.</p>"
   }
+  let copy_title = try
+    parse_document(snapshot.content, name).title + " (copy)"
+  catch {
+    _ => ""
+  }
   admin_page(
     "Edit " + name,
     editor +
+    admin_duplicate_form(token, name, snapshot.digest, "", copy_title) +
     "<details><summary>Advanced: edit Markdown and JSON source</summary><p>Use one editor at a time. Saving validates metadata; use the CLI to check links and preview the full site.</p><form method=\"post\" action=\"/save\">" +
     hidden +
     "<label>Source<textarea name=\"content\" spellcheck=\"false\" aria-label=\"Post source\">\n" +
@@ -165,6 +171,30 @@ fn admin_route(
           " (\{item.bytes} bytes). No deployment performed.</p><label>Markdown snippet<textarea readonly rows=\"2\" style=\"min-height:4rem\">\n" +
           escape_html(media_snippet(item)) +
           "</textarea></label><p><a href=\"/media\">Return to media</a></p>",
+        ),
+      )
+    }
+    if request.target == "/duplicate" {
+      if fields.length() != 5 {
+        raise InvalidInput("Invalid duplicate fields")
+      }
+      let slug = admin_field(fields, "slug")
+      let report = duplicate_post(
+        input,
+        admin_field(fields, "name"),
+        admin_field(fields, "version"),
+        slug,
+        admin_field(fields, "title"),
+      )
+      return (
+        200,
+        admin_page(
+          "Draft duplicated",
+          "<p>Created " +
+          escape_html(report.source) +
+          ". Original source unchanged. No deployment performed.</p><p><a href=\"/edit?name=" +
+          url_component(slug + ".md") +
+          "\">Edit new draft</a></p>",
         ),
       )
     }
@@ -281,7 +311,16 @@ fn admin_route(
     )
   } catch {
     error => {
-      let recovery = if request.target == "/import" {
+      let recovery = if request.target == "/duplicate" {
+        "<p>Your duplication fields are retained. Reload the original article if its version changed.</p>" +
+        admin_duplicate_form(
+          token,
+          fields.get("name").unwrap_or(""),
+          fields.get("version").unwrap_or(""),
+          fields.get("slug").unwrap_or(""),
+          fields.get("title").unwrap_or(""),
+        )
+      } else if request.target == "/import" {
         admin_import_form(
           token,
           fields.get("source").unwrap_or(""),
@@ -312,7 +351,9 @@ fn admin_route(
       (
         400,
         admin_page(
-          if request.target == "/prepare-media" {
+          if request.target == "/duplicate" {
+            "Could not duplicate article"
+          } else if request.target == "/prepare-media" {
             "Could not prepare media storage"
           } else if request.target == "/import" {
             "Could not import media"
