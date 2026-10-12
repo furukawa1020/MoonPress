@@ -87,3 +87,10 @@ produce explicit per-source diagnostics; invalid site configuration or asset
 storage rejects the report. This is a read-only observation, not a snapshot
 locked against external editors. Templates and CSS are outside its scope, and
 an empty list is never proof that an asset is safe to delete.
+
+Run `moonpress media-refs <site-directory> [--json]` to inspect references.
+The schema-1 report contains `assets` (each with `item` and `posts`), `problems`,
+and `scope`. Exit 0 means the report was produced, even if `problems` is nonempty;
+consumers must inspect diagnostics. Site-level configuration/storage failures
+exit 1 with empty stdout; invalid arguments exit 2. `--include-drafts` is not an
+option because reference inspection always covers drafts and unlisted articles.
