@@ -7,23 +7,45 @@ fn media_snippet(item : MediaItem) -> String {
 }
 
 ///|
-fn admin_media(input : String, token : String) -> String raise {
+fn admin_media(
+  input : String,
+  token : String,
+  fields : Map[String, String],
+) -> String raise {
+  for key, _ in fields {
+    if key != "q" && key != "kind" {
+      raise InvalidInput("Unknown media query field: " + key)
+    }
+  }
+  let query = fields.get("q").unwrap_or("")
+  let kind = fields.get("kind").unwrap_or("all")
+  let _ = filter_media_references([], query, kind)
   let report = inspect_media_references(input)
+  let matches = filter_media_references(report.assets, query, kind)
   if path_kind(input + "/public") == 0 {
     return admin_page(
       "Media",
+      admin_media_search_form(query, kind) +
+      "<p>" +
+      escape_html(report.scope) +
+      "</p>" +
+      admin_post_problems(report.problems) +
       "<p>Media storage has not been prepared for this site.</p><form method=\"post\" action=\"/prepare-media\">" +
       admin_hidden("token", token) +
       "<p>Create an empty public directory for images and attachments. Existing files are never replaced.</p><button>Prepare media storage</button></form>",
     )
   }
   let out = StringBuilder()
+  out.write_string(admin_media_search_form(query, kind))
+  out.write_string(
+    "<p>Showing \{matches.length()} of \{report.assets.length()} media assets.</p>",
+  )
   out.write_string(
     "<p>Media: \{report.assets.length()}. Copy a Markdown snippet into an article and replace the label with a description. Image classification uses filename extensions; files are not inspected or served here.</p>",
   )
-  if report.assets.is_empty() {
+  if matches.is_empty() {
     out.write_string(
-      "<p>No public assets yet. Add supported files to the site's public directory.</p>",
+      "<p>No matching media assets. Clear filters or upload a supported file.</p>",
     )
   }
   out.write_string(
@@ -32,7 +54,7 @@ fn admin_media(input : String, token : String) -> String raise {
     "</p>" +
     admin_post_problems(report.problems),
   )
-  for asset in report.assets {
+  for asset in matches {
     let item = asset.item
     out.write_string(
       "<section><h2>" +
@@ -87,5 +109,35 @@ fn admin_media_posts(posts : Array[PostSummary]) -> String {
     )
   }
   out.write_string("</ul>")
+  out.to_string()
+}
+
+///|
+fn admin_media_search_form(query : String, kind : String) -> String {
+  let out = StringBuilder()
+  out.write_string(
+    "<form method=\"get\" action=\"/media\"><label>Search asset filenames<input name=\"q\" value=\"" +
+    escape_html(query) +
+    "\"></label><label>Type<select name=\"kind\">",
+  )
+  for
+    (value, label) in [
+      ("all", "All media"),
+      ("images", "Images"),
+      ("attachments", "Attachments"),
+    ] {
+    out.write_string(
+      "<option value=\"" +
+      value +
+      "\"" +
+      (if value == kind { " selected" } else { "" }) +
+      ">" +
+      label +
+      "</option>",
+    )
+  }
+  out.write_string(
+    "</select></label><button>Search media</button> <a href=\"/media\">Clear filters</a></form>",
+  )
   out.to_string()
 }

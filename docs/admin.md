@@ -162,3 +162,9 @@ and unlisted posts. Article titles link to the editor. Source diagnostics remain
 visible; repair eligible sources before relying on the scan. The report covers
 supported article Markdown, not templates or CSS, and cannot certify deletion
 safety. It remains read-only and does not serve images on the admin origin.
+
+Media search uses a case-insensitive filename substring and an All/Images/
+Attachments filter. Classification still uses filename extensions. Normal GET
+forms retain and escape the query; Clear filters restores the inventory.
+Reference diagnostics remain visible even when no assets match, or storage has
+not been prepared. Invalid, unknown or duplicate query fields are rejected.
