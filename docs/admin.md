@@ -33,7 +33,9 @@ The server does not open a browser automatically and has no `--json` mode.
    `.moonpress-preview` inside the site. The result includes layouts and assets.
    Open generated HTML with your local file browser. It is not deployed.
 
-7. **Build production files:** compile saved ready articles into `.moonpress-build`
+7. **Inspect production changes:** inspect planned writes, keeps, deletions and
+   draft skips without creating output. This also checks existing output integrity.
+8. **Build production files:** compile saved ready articles into `.moonpress-build`
    inside the site, excluding drafts. The result is local output, not a deployment.
 
 Successful operations show a confirmation and a link to continue editing. There
@@ -186,3 +188,10 @@ is made and no deployment status is inferred. Use the documented deployment
 workflow for actual hosting. Generated project HTML is not served on the admin
 origin. If publication is interrupted, use the CLI recovery procedure for this
 specific output directory.
+
+**Inspect production changes** uses the same dry-run compiler operation as CLI
+`explain`, with the same fixed production destination and draft exclusion. It
+shows planned actions, paths, reasons and counts without creating or changing
+source/output files, even on the first run. Existing output ownership and edits
+are validated. The report is not a reserved transaction: sources or output may
+change between inspection and build, and building validates them again.
