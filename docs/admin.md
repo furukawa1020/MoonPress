@@ -156,3 +156,9 @@ classification and validation limits. The inventory never serves these files.
 
 The Media screen also accepts browser file selection with a multipart upload.
 See [media](media.md) for its size limit, destination naming and retry behavior.
+
+The Media screen lists referring articles beside each asset, including drafts
+and unlisted posts. Article titles link to the editor. Source diagnostics remain
+visible; repair eligible sources before relying on the scan. The report covers
+supported article Markdown, not templates or CSS, and cannot certify deletion
+safety. It remains read-only and does not serve images on the admin origin.

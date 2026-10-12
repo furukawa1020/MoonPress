@@ -261,12 +261,22 @@ diff -r --exclude=.moonpress-preview "$tmp/before-preview-build" "$tmp/site"
 mkdir -p "$tmp/site/public"
 printf 'image bytes' > "$tmp/site/public/画像 (a)&.PNG"
 printf '<pdf>' > "$tmp/site/public/a.pdf"
+printf '%s\n' '---' '{"title":"<media article>","draft":true,"listed":false}' '---' '[asset](a.pdf)' > "$tmp/site/content/media-use.md"
+printf '%s\n' '---' '{"broken":true}' '---' > "$tmp/site/content/media-bad.md"
 cp -a "$tmp/site" "$tmp/before-media"
 test "$(get /media)" = 200
 grep -Fq '![Describe image](%E7%94%BB%E5%83%8F%20%28a%29%26.PNG)' "$tmp/page"
 grep -Fq '[Download](a.pdf)' "$tmp/page"
 grep -Fq 'public/画像 (a)&amp;.PNG' "$tmp/page"
+grep -Fq 'Referring articles' "$tmp/page"
+grep -Fq '/edit?name=media-use.md' "$tmp/page"
+grep -Fq '&lt;media article&gt;' "$tmp/page"
+grep -Fq 'Draft · unlisted' "$tmp/page"
+grep -Fq 'content/media-bad.md' "$tmp/page"
+grep -Fq 'not proof that deletion is safe' "$tmp/page"
 diff -r "$tmp/before-media" "$tmp/site"
+rm "$tmp/site/content/media-use.md" "$tmp/site/content/media-bad.md"
+
 test "$(get '/public/a.pdf')" = 404
 printf '\000\377binary upload' > "$tmp/media-source"
 import_post() { post /import --data-urlencode "token=$token" --data-urlencode "source=$tmp/media-source" --data-urlencode "name=$1"; }

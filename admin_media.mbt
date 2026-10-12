@@ -8,7 +8,7 @@ fn media_snippet(item : MediaItem) -> String {
 
 ///|
 fn admin_media(input : String, token : String) -> String raise {
-  let report = list_media(input)
+  let report = inspect_media_references(input)
   if path_kind(input + "/public") == 0 {
     return admin_page(
       "Media",
@@ -19,14 +19,21 @@ fn admin_media(input : String, token : String) -> String raise {
   }
   let out = StringBuilder()
   out.write_string(
-    "<p>Media: \{report.items.length()}. Copy a Markdown snippet into an article and replace the label with a description. Image classification uses filename extensions; files are not inspected or served here.</p>",
+    "<p>Media: \{report.assets.length()}. Copy a Markdown snippet into an article and replace the label with a description. Image classification uses filename extensions; files are not inspected or served here.</p>",
   )
-  if report.items.is_empty() {
+  if report.assets.is_empty() {
     out.write_string(
       "<p>No public assets yet. Add supported files to the site's public directory.</p>",
     )
   }
-  for item in report.items {
+  out.write_string(
+    "<p>" +
+    escape_html(report.scope) +
+    "</p>" +
+    admin_post_problems(report.problems),
+  )
+  for asset in report.assets {
+    let item = asset.item
     out.write_string(
       "<section><h2>" +
       escape_html(item.source) +
@@ -34,7 +41,9 @@ fn admin_media(input : String, token : String) -> String raise {
       item.digest +
       "</code></p><label>Markdown snippet<textarea readonly rows=\"2\" style=\"min-height:4rem\">\n" +
       escape_html(media_snippet(item)) +
-      "</textarea></label></section>",
+      "</textarea></label>" +
+      admin_media_posts(asset.posts) +
+      "</section>",
     )
   }
   admin_page(
@@ -54,4 +63,29 @@ fn admin_import_form(token : String, source : String, name : String) -> String {
   "\"></label><label>Destination filename (for example, photo.png)<input name=\"name\" required value=\"" +
   escape_html(name) +
   "\"></label><button>Import media</button></form>"
+}
+
+///|
+fn admin_media_posts(posts : Array[PostSummary]) -> String {
+  if posts.is_empty() {
+    return "<p>No references found in scanned article Markdown.</p>"
+  }
+  let out = StringBuilder()
+  out.write_string("<h3>Referring articles</h3><ul>")
+  for post in posts {
+    out.write_string(
+      "<li><a href=\"/edit?name=" +
+      url_component(post.source[8:].to_owned()) +
+      "\">" +
+      escape_html(post.title) +
+      "</a> · " +
+      escape_html(post.source) +
+      " · " +
+      (if post.draft { "Draft" } else { "Ready" }) +
+      (if post.listed { "" } else { " · unlisted" }) +
+      "</li>",
+    )
+  }
+  out.write_string("</ul>")
+  out.to_string()
 }
