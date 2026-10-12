@@ -13,6 +13,7 @@ bash scripts/media-test.sh
 bash scripts/media-references-test.sh
 bash scripts/media-import-test.sh
 bash scripts/new-post-test.sh
+bash scripts/duplicate-post-test.sh
 bash scripts/post-editor-test.sh
 bash scripts/post-status-test.sh
 bash scripts/admin-test.sh

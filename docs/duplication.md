@@ -17,3 +17,14 @@ crash may leave a partial destination, which subsequent creation refuses.
 Links are copied literally, not retargeted. Validate and preview the copy before
 marking it ready. This operation validates metadata, not the entire site's
 routes, links or named layouts, and never deploys anything.
+
+## CLI
+
+```sh
+version="$(moonpress read my-site original.md --json | jq -r '.report.digest')"
+moonpress duplicate my-site original.md "$version" article-copy "Copy title"
+```
+
+`--json` returns a schema-1 `duplicate` report with source, output, title and
+`draft:true`. Invalid arguments exit 2; metadata/version/I/O failures exit 1 with
+empty stdout. Draft inclusion is not an option: copies are always drafts.
