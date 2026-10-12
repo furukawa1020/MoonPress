@@ -19,3 +19,12 @@ synthetic key. The graph is not a complete prediction of an arbitrary future
 edit. Use `explain` against existing output after saving changes to inspect the
 actual rebuild plan. Inspection describes saved files as observed, without
 locking external editors or validating an existing deployment.
+
+## CLI
+
+Run `moonpress deps <site-directory> [--include-drafts] [--json]`. Text reports
+list outputs and direct edges; schema-1 JSON contains the native graph report.
+Draft mode includes private draft nodes in the report, not any deployed output.
+Both flags may appear once in either order. Successful reports exit 0; source
+validation/I/O failures exit 1 with stderr and empty stdout, invalid arguments
+exit 2. No output-directory argument or existing manifest is required.

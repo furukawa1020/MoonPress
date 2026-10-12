@@ -24,6 +24,7 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
+  value == "deps" ||
   value == "audit" ||
   value == "import" ||
   value == "media-refs" ||
@@ -45,6 +46,8 @@ fn is_command(value : String) -> Bool {
 ///|
 fn usage(command : String) -> String {
   match command {
+    "deps" =>
+      "Usage: moonpress deps <site-directory> [--include-drafts] [--json]"
     "audit" => "Usage: moonpress audit <output-directory> [--json]"
     "import" =>
       "Usage: moonpress import <site-directory> <source-file> <destination-name> [--json]"
@@ -69,7 +72,7 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <audit|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <deps|audit|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
   }
 }
 
@@ -108,7 +111,13 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+  }
+  if command == "deps" {
+    return description +
+      "\n\n" +
+      usage(command) +
+      "\n\n--include-drafts includes private draft nodes in the report, not deployed output.\n--json prints one schema-1 graph. Flags may appear once in either order.\nExit status: 0 report, 1 validation/I/O failure, 2 incorrect arguments.\nErrors use stderr with empty stdout."
   }
   if command == "audit" {
     return description +
@@ -163,7 +172,8 @@ fn main {
     6
   } else if command == "new" || command == "import" {
     5
-  } else if command == "audit" ||
+  } else if command == "deps" ||
+    command == "audit" ||
     command == "check" ||
     command == "recover" ||
     command == "init" ||
@@ -233,7 +243,26 @@ fn main {
     return
   }
   try {
-    if command == "audit" {
+    if command == "deps" {
+      let report = @lib.inspect_dependencies(args[2], include_drafts~)
+      if json {
+        print_report(command, include_drafts, report.to_json())
+      } else {
+        let mut edges = 0
+        for artifact in report.artifacts {
+          println(artifact.name.to_json().stringify() + "\t" + artifact.digest)
+          for dep in artifact.dependencies {
+            println(
+              "  <- " + dep.name.to_json().stringify() + "\t" + dep.digest,
+            )
+            edges += 1
+          }
+        }
+        println(
+          "Dependency graph: \{report.pages} pages, \{report.artifacts.length()} outputs, \{edges} direct edges; no files written",
+        )
+      }
+    } else if command == "audit" {
       let report = @lib.audit_output(args[2])
       if json {
         print_report(command, false, report.to_json())
