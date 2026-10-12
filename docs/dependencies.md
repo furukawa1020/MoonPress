@@ -44,3 +44,18 @@ or future metadata edit can have effects outside direct edges of this graph.
 Use `deps` to find actual keys and `explain` after saving changes for the real
 incremental plan. Queries do not mutate arrays, sources or output, and do not
 predict a transaction or deployed state.
+
+Run `moonpress impact <site-directory> <dependency-name>
+[--include-drafts] [--json]` for an exact-key query. For example:
+
+```sh
+moonpress deps my-site --json
+moonpress impact my-site content/guide.md --json
+moonpress impact my-site layouts/post.html
+```
+
+Unknown keys still produce a successful report (exit 0), with an explicit
+`unknown` array or `UNKNOWN` text row. They are not silently treated as evidence
+of no effect. Invalid queries or source validation/I/O failures exit 1 with
+stderr/empty stdout; incorrect arguments exit 2. The native API can query several
+keys together; this CLI accepts one key. Nothing is rebuilt or deployed.
