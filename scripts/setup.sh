@@ -8,7 +8,7 @@ if ! command -v moon >/dev/null || [[ "$(moon version | sed -n '1p' | cut -d' ' 
   installer="$(mktemp)"
   trap 'rm -f "$installer"' EXIT
   curl --fail --silent --show-error --location https://cli.moonbitlang.com/install/unix.sh -o "$installer"
-  TAR_OPTIONS=--no-same-owner bash "$installer"
+  TAR_OPTIONS=--no-same-owner bash "$installer" '0.10.14+7d59c7ec9'
 fi
 actual="$(moon version | sed -n '1p' | cut -d' ' -f2)"
 if [[ "$actual" != "$expected" ]]; then

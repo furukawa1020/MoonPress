@@ -23,8 +23,8 @@ _build/native/release/build/cmd/main/main.exe check site --json
 ```
 
 Setup checks the exact Moon/Moonc versions. It currently downloads from an
-upstream latest URL: a mismatch is a deliberate failure, not permission to
-silently update the pin. Record the error on [#11](https://github.com/furukawa1020/MoonPress/issues/11).
+official compiler-revision distribution: a mismatch is a deliberate failure,
+not permission to silently update the pin. Record the error on [#11](https://github.com/furukawa1020/MoonPress/issues/11).
 Version changes need a dedicated PR with native CI evidence.
 
 The full check script runs native type checks, unit tests, release compilation

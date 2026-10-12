@@ -29,7 +29,11 @@ moon() {
 moonc() { printf '%s\n' "$SETUP_TEST_COMPILER"; }
 curl() {
   printf 'installer requested\n' > "$SETUP_TEST_ROOT/install"
-  printf '#!/usr/bin/env bash\nexit 0\n' > "${@: -1}"
+  cat > "${@: -1}" <<'MOCK'
+#!/usr/bin/env bash
+printf '%s\n' "$@" > "$SETUP_TEST_ROOT/install-version"
+exit 0
+MOCK
 }
 export -f moon moonc curl
 # Reproduce the exact old early-closing pipeline in a copy of the script.
@@ -49,6 +53,7 @@ export SETUP_TEST_VERSION='0.0.0-test'
 if bash "$tmp/project/scripts/setup.sh" > "$tmp/output" 2> "$tmp/error"; then exit 1; fi
 grep -Fq 'Expected moon' "$tmp/error"
 test -s "$tmp/install"
+test "$(cat "$tmp/install-version")" = '0.10.14+7d59c7ec9'
 test ! -e "$tmp/update"
 rm "$tmp/install"
 # Compiler mismatch also fails before updating package indexes.

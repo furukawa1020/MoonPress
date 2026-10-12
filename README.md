@@ -71,8 +71,9 @@ configured in moon.mod. Run `moon info --target native && moon fmt` before PRs.
 `scripts/check.sh` also tests deterministic output and error handling.
 
 The verified toolchain is moon 0.1.20260920 / moonc v0.10.14+7d59c7ec9.
-Setup currently downloads the official latest distribution **and rejects a
-version mismatch**. It does not silently accept future versions. Archived,
+Setup requests the official compiler-revision distribution
+`0.10.14+7d59c7ec9` and rejects a version mismatch. It does not silently accept
+future versions. Archived,
 checksum-pinned toolchain distribution is a follow-up reproducibility task.
 The `moonbitlang/x` dependency is explicitly versioned at 0.5.5 for native I/O.
 Toolchain and dependency packages may contain unused JS backends; MoonPress
