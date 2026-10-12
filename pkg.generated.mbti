@@ -36,6 +36,8 @@ pub fn import_media(String, String, String) -> MediaItem raise
 
 pub fn init_site(String) -> InitReport raise
 
+pub fn inspect_dependencies(String, include_drafts? : Bool) -> DependencyGraph raise
+
 pub fn inspect_media_references(String) -> MediaReferences raise
 
 pub fn inspect_posts(String) -> PostInventory raise
@@ -162,6 +164,13 @@ pub fn Dependency::equal(Self, Self) -> Bool
 pub fn Dependency::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Dependency::not_equal(Self, Self) -> Bool
 pub fn Dependency::to_json(Self) -> Json
+
+pub(all) struct DependencyGraph {
+  pages : Int
+  include_drafts : Bool
+  artifacts : Array[Artifact]
+} derive(ToJson)
+pub fn DependencyGraph::to_json(Self) -> Json
 
 pub(all) struct Document {
   title : String
