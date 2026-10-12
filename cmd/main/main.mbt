@@ -31,6 +31,7 @@ fn is_command(value : String) -> Bool {
   value == "status" ||
   value == "read" ||
   value == "save" ||
+  value == "duplicate" ||
   value == "new" ||
   value == "posts" ||
   value == "init" ||
@@ -53,6 +54,8 @@ fn usage(command : String) -> String {
     "read" => "Usage: moonpress read <site-directory> <filename.md> [--json]"
     "save" =>
       "Usage: moonpress save <site-directory> <filename.md> <expected-digest> <replacement-file> [--json]"
+    "duplicate" =>
+      "Usage: moonpress duplicate <site-directory> <filename.md> <expected-digest> <new-stem> <new-title> [--json]"
     "new" => "Usage: moonpress new <site-directory> <slug> <title> [--json]"
     "posts" => "Usage: moonpress posts <site-directory> [--json]"
     "init" => "Usage: moonpress init <site-directory> [--json]"
@@ -64,7 +67,7 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <admin|media-refs|media|import|init|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
   }
 }
 
@@ -85,6 +88,8 @@ fn help_text(command : String) -> String {
       "Read a post source and SHA-256 version for editing; no files written."
     "save" =>
       "Save validated replacement source only if the expected version matches.\nExisting source stays intact on caught preparation failures; no hosting action."
+    "duplicate" =>
+      "Copy a saved valid article into a new draft with a source version check.\nRetain body/tags/layout/listing; clear old slug/date. Never overwrite or deploy."
     "new" =>
       "Create content/<slug>.md as a draft with the supplied title.\nThe site/content directory must exist; existing targets are never overwritten.\nEdit the generated Markdown, then build a separate preview with --include-drafts."
     "posts" =>
@@ -100,7 +105,7 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
   if command == "admin" {
     return description + "\n\n" + usage(command)
@@ -111,6 +116,7 @@ fn help_text(command : String) -> String {
     command == "media-refs" ||
     command == "media" ||
     command == "posts" ||
+    command == "duplicate" ||
     command == "new" ||
     command == "read" ||
     command == "save" ||
@@ -142,7 +148,9 @@ fn main {
     return
   }
   let command = args[1]
-  let required = if command == "save" || command == "status" {
+  let required = if command == "duplicate" {
+    7
+  } else if command == "save" || command == "status" {
     6
   } else if command == "new" || command == "import" {
     5
@@ -177,6 +185,7 @@ fn main {
         command != "media-refs" &&
         command != "media" &&
         command != "posts" &&
+        command != "duplicate" &&
         command != "new" &&
         command != "read" &&
         command != "save" &&
@@ -251,6 +260,22 @@ fn main {
           " (changed: \{report.changed})",
         )
         println("Version: " + report.digest)
+      }
+    } else if command == "duplicate" {
+      let report = @lib.duplicate_post(
+        args[2],
+        args[3],
+        args[4],
+        args[5],
+        args[6],
+      )
+      if json {
+        print_report(command, false, report.to_json())
+      } else {
+        println("Duplicated draft: " + report.source.to_json().stringify())
+        println(
+          "Original source unchanged. Validate and preview the copy before marking it ready; no deployment performed.",
+        )
       }
     } else if command == "new" {
       let report = @lib.new_post(args[2], args[3], args[4])
