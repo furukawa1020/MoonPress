@@ -19,3 +19,12 @@ validate and preview saved sources: route collisions, incoming links or missing
 templates may block a build. A route change is not an automatic redirect. A
 successful build updates only compiler-owned outputs; a source save never
 changes generated files or deploys the site.
+
+## Local administration
+
+Open an article and use the separate **Article URL and layout** form. Empty URL
+and layout fields restore defaults. The listing select explicitly distinguishes
+unlisted pages from private drafts. Errors retain submitted values; stale
+versions require reloading. Save other editor changes first because this form
+operates on saved source. Use **Validate saved site**, preview and production
+change inspection before building a changed URL/layout.

@@ -71,6 +71,21 @@ fn admin_edit(input : String, name : String, token : String) -> String raise {
       escape_html(error.to_string()) +
       ". Repair the source below.</p>"
   }
+  let settings = try {
+    let edit = post_settings(snapshot.content, filename=name)
+    admin_settings_form(
+      hidden,
+      edit.slug,
+      if edit.listed {
+        "yes"
+      } else {
+        "no"
+      },
+      edit.layout,
+    )
+  } catch {
+    _ => ""
+  }
   let copy_title = try
     parse_document(snapshot.content, name).title + " (copy)"
   catch {
@@ -79,6 +94,7 @@ fn admin_edit(input : String, name : String, token : String) -> String raise {
   admin_page(
     "Edit " + name,
     editor +
+    settings +
     admin_duplicate_form(token, name, snapshot.digest, "", copy_title) +
     "<details><summary>Advanced: edit Markdown and JSON source</summary><p>Use one editor at a time. Saving validates metadata; use the CLI to check links and preview the full site.</p><form method=\"post\" action=\"/save\">" +
     hidden +
@@ -268,6 +284,19 @@ fn admin_route(
         )
         name
       }
+      "/settings" => {
+        if fields.length() != 6 {
+          raise InvalidInput("Invalid article settings fields")
+        }
+        let name = admin_field(fields, "name")
+        let _ = save_post_settings(
+          input,
+          name,
+          admin_field(fields, "version"),
+          admin_submitted_settings(fields),
+        )
+        name
+      }
       "/fields" => {
         if fields.length() != 8 {
           raise InvalidInput("Invalid article fields")
@@ -311,7 +340,17 @@ fn admin_route(
     )
   } catch {
     error => {
-      let recovery = if request.target == "/duplicate" {
+      let recovery = if request.target == "/settings" {
+        "<p>Your settings are retained below. Reload the article if its version changed.</p>" +
+        admin_settings_form(
+          admin_hidden("token", token) +
+          admin_hidden("name", fields.get("name").unwrap_or("")) +
+          admin_hidden("version", fields.get("version").unwrap_or("")),
+          fields.get("slug").unwrap_or(""),
+          fields.get("listed").unwrap_or(""),
+          fields.get("layout").unwrap_or(""),
+        )
+      } else if request.target == "/duplicate" {
         "<p>Your duplication fields are retained. Reload the original article if its version changed.</p>" +
         admin_duplicate_form(
           token,
@@ -351,7 +390,9 @@ fn admin_route(
       (
         400,
         admin_page(
-          if request.target == "/duplicate" {
+          if request.target == "/settings" {
+            "Could not save article settings"
+          } else if request.target == "/duplicate" {
             "Could not duplicate article"
           } else if request.target == "/prepare-media" {
             "Could not prepare media storage"
