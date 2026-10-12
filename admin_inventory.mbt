@@ -96,6 +96,7 @@ fn admin_posts(
     out.to_string() +
     admin_check_form(token) +
     admin_build_form(token) +
+    admin_production_plan_form(token) +
     admin_production_form(token),
   )
 }

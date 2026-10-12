@@ -223,9 +223,18 @@ rm "$tmp/site/content/search-error.md"
 # Build production files separately, excluding drafts and protecting existing output.
 production="$tmp/site/.moonpress-build"
 build_production() { post /build-production --data-urlencode "token=$token"; }
+plan_production() { post /plan-production --data-urlencode "token=$token"; }
 cp -a "$tmp/site" "$tmp/before-production"
 test "$(get /)" = 200
 grep -Fq 'Build production files' "$tmp/page"
+grep -Fq 'Inspect production changes' "$tmp/page"
+test "$(post /plan-production --data-urlencode token=wrong)" = 400
+test "$(post /plan-production --data-urlencode "token=$token" --data-urlencode output=dist)" = 400
+test "$(plan_production)" = 200
+grep -Fq 'Production changes inspected' "$tmp/page"
+grep -Fq 'No files written or deployment performed' "$tmp/page"
+test ! -e "$production"
+diff -r "$tmp/before-production" "$tmp/site"
 test "$(post /build-production --data-urlencode token=wrong)" = 400
 test "$(post /build-production --data-urlencode "token=$token" --data-urlencode output=dist)" = 400
 test ! -e "$production"
@@ -235,11 +244,22 @@ rm "$production"
 mkdir "$production"
 printf foreign > "$production/foreign.txt"
 test "$(build_production)" = 400
+test "$(plan_production)" = 400
+grep -Fq 'Production inspection failed' "$tmp/page"
 test "$(cat "$production/foreign.txt")" = foreign
 rm "$production/foreign.txt"; rmdir "$production"
 printf '%s\n' '---' '{"draft":true}' '---' '[broken](absent.html)' > "$tmp/site/content/production-draft.md"
+cp -a "$tmp/site" "$tmp/before-production-plan"
+"$cli" explain "$tmp/site" "$production" --json > "$tmp/production-plan"
+expected="$(jq -r '"Pages: \(.report.pages); would write: \(.report.written); unchanged: \(.report.skipped); would delete: \(.report.deleted)."' "$tmp/production-plan")"
+test "$(plan_production)" = 200
+grep -Fq "$expected" "$tmp/page"
+grep -Fq '<th>Reason</th>' "$tmp/page"
+diff -r "$tmp/before-production-plan" "$tmp/site"
 test "$(build_production)" = 200
 grep -Fq 'Production files built' "$tmp/page"
+expected_build="$(jq -r '"Pages: \(.report.pages); written: \(.report.written); unchanged: \(.report.skipped); deleted: \(.report.deleted)."' "$tmp/production-plan")"
+grep -Fq "$expected_build" "$tmp/page"
 grep -Fq 'drafts excluded' "$tmp/page"
 grep -Fq 'No deployment performed' "$tmp/page"
 test ! -e "$production/batch02.html"
@@ -249,8 +269,14 @@ diff -r "$tmp/clean-production" "$production"
 rm "$tmp/site/content/production-draft.md"
 test "$(build_production)" = 200
 grep -Fq 'written: 0;' "$tmp/page"
+cp -a "$tmp/site" "$tmp/before-noop-plan"
+test "$(plan_production)" = 200
+grep -Fq 'would write: 0;' "$tmp/page"
+diff -r "$tmp/before-noop-plan" "$tmp/site"
 printf 'manual production edit' > "$production/index.html"
 cp -a "$production" "$tmp/edited-production"
+test "$(plan_production)" = 400
+diff -r "$tmp/edited-production" "$production"
 test "$(build_production)" = 400
 grep -Fq 'Production build failed' "$tmp/page"
 diff -r "$tmp/edited-production" "$production"

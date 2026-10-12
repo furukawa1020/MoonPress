@@ -168,6 +168,12 @@ fn admin_route(
         ),
       )
     }
+    if request.target == "/plan-production" {
+      if fields.length() != 1 {
+        raise InvalidInput("Invalid production plan fields")
+      }
+      return (200, admin_plan_production(input, token))
+    }
     if request.target == "/build-production" {
       if fields.length() != 1 {
         raise InvalidInput("Invalid production build fields")
@@ -310,6 +316,8 @@ fn admin_route(
             "Could not prepare media storage"
           } else if request.target == "/import" {
             "Could not import media"
+          } else if request.target == "/plan-production" {
+            "Production inspection failed"
           } else if request.target == "/build-production" {
             "Production build failed"
           } else if request.target == "/build-preview" {
