@@ -19,17 +19,21 @@ fn draft_source(title : String) -> String raise {
 }
 
 ///|
-pub fn new_post(
+fn create_draft_content(
   input : String,
   slug : String,
-  title : String,
+  content : String,
+  verify : () -> Unit raise,
 ) -> NewPostReport raise {
   if !valid_slug(slug) {
     raise InvalidInput(
       "Article slug must be a safe flat output stem (at most 250 UTF-8 bytes)",
     )
   }
-  let content = draft_source(title)
+  let document = parse_document(content, slug)
+  if !document.draft || document.slug is Some(_) {
+    raise InvalidInput("New articles must be drafts with filename routes")
+  }
   require_input_kind(input, 2)
   require_input_kind(input + "/content", 2)
   let source = "content/" + slug + ".md"
@@ -38,6 +42,7 @@ pub fn new_post(
   // against another creator winning the race after this preflight check.
   let lock = lock_output(path, shared=false)
   defer native_unlock_output(lock)
+  verify()
   if path_kind(path) != 0 {
     raise InvalidInput("Article target must not exist: " + path)
   }
@@ -54,5 +59,14 @@ pub fn new_post(
       raise InvalidInput("Article creation failed: \{error}" + cleanup)
     }
   }
-  { source, output: slug + ".html", title, draft: true, }
+  { source, output: slug + ".html", title: document.title, draft: true, }
+}
+
+///|
+pub fn new_post(
+  input : String,
+  slug : String,
+  title : String,
+) -> NewPostReport raise {
+  create_draft_content(input, slug, draft_source(title), () => ())
 }

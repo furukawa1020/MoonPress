@@ -20,6 +20,8 @@ pub fn digest_bytes(Bytes) -> String
 
 pub fn digest_text(String) -> String
 
+pub fn duplicate_post(String, String, String, String, String) -> NewPostReport raise
+
 pub fn escape_html(String) -> String
 
 pub fn filter_media_references(Array[MediaUsage], String, String) -> Array[MediaUsage] raise
