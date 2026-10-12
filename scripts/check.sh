@@ -52,6 +52,7 @@ bash scripts/draft-preview-test.sh
 bash scripts/json-report-test.sh
 
 bash scripts/manifest-preflight-test.sh
+bash scripts/output-audit-test.sh
 
 bash scripts/source-preflight-test.sh
 

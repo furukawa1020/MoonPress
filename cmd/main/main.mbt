@@ -24,6 +24,7 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
+  value == "audit" ||
   value == "import" ||
   value == "media-refs" ||
   value == "media" ||
@@ -44,6 +45,7 @@ fn is_command(value : String) -> Bool {
 ///|
 fn usage(command : String) -> String {
   match command {
+    "audit" => "Usage: moonpress audit <output-directory> [--json]"
     "import" =>
       "Usage: moonpress import <site-directory> <source-file> <destination-name> [--json]"
     "media-refs" => "Usage: moonpress media-refs <site-directory> [--json]"
@@ -67,13 +69,14 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <audit|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
   }
 }
 
 ///|
 fn help_text(command : String) -> String {
   let description = match command {
+    "audit" => "Inspect compiler-owned output without sources; write no files."
     "import" =>
       "Copy a regular local file into an existing public directory without overwriting.\nThe destination must be a supported flat asset filename. No deployment performed."
     "media-refs" =>
@@ -105,7 +108,13 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+  }
+  if command == "audit" {
+    return description +
+      "\n\n" +
+      usage(command) +
+      "\n\n--json prints a schema-1 report. No --include-drafts option.\nExit status: 0 healthy, 1 findings or validation/I/O failure, 2 incorrect arguments.\nFindings exit 1 with the complete report on stdout; operation errors use stderr with empty stdout."
   }
   if command == "admin" {
     return description + "\n\n" + usage(command)
@@ -154,7 +163,8 @@ fn main {
     6
   } else if command == "new" || command == "import" {
     5
-  } else if command == "check" ||
+  } else if command == "audit" ||
+    command == "check" ||
     command == "recover" ||
     command == "init" ||
     command == "media-refs" ||
@@ -179,6 +189,7 @@ fn main {
   for index = required; index < args.length(); index = index + 1 {
     match args[index] {
       "--include-drafts" if !include_drafts &&
+        command != "audit" &&
         command != "recover" &&
         command != "init" &&
         command != "import" &&
@@ -222,7 +233,28 @@ fn main {
     return
   }
   try {
-    if command == "admin" {
+    if command == "audit" {
+      let report = @lib.audit_output(args[2])
+      if json {
+        print_report(command, false, report.to_json())
+      } else {
+        for finding in report.findings {
+          println(
+            finding.status +
+            "\t" +
+            finding.path.to_json().stringify() +
+            "\t" +
+            finding.message.to_json().stringify(),
+          )
+        }
+        println(
+          "Healthy: \{report.healthy}; findings: \{report.findings.length()}",
+        )
+      }
+      if !report.healthy {
+        @sys.exit(1)
+      }
+    } else if command == "admin" {
       @lib.serve_admin(args[2], port)
     } else if command == "status" {
       let report = @lib.set_post_draft(
