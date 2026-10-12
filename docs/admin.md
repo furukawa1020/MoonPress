@@ -33,6 +33,9 @@ The server does not open a browser automatically and has no `--json` mode.
    `.moonpress-preview` inside the site. The result includes layouts and assets.
    Open generated HTML with your local file browser. It is not deployed.
 
+7. **Build production files:** compile saved ready articles into `.moonpress-build`
+   inside the site, excluding drafts. The result is local output, not a deployment.
+
 Successful operations show a confirmation and a link to continue editing. There
 is no JavaScript, auto-save, visual/WYSIWYG editor or client-side refresh. Browser
 forms may normalize line endings to CRLF when saving source. If an older editor
@@ -168,3 +171,18 @@ Attachments filter. Classification still uses filename extensions. Normal GET
 forms retain and escape the query; Clear filters restores the inventory.
 Reference diagnostics remain visible even when no assets match, or storage has
 not been prepared. Invalid, unknown or duplicate query fields are rejected.
+
+### Production output
+
+**Build production files** always uses `<site>/.moonpress-build`, independently
+of draft-inclusive previews and other CLI output directories. It shares the
+compiler's locking, incremental dependencies, owned manifest and publication
+recovery protections. Foreign entries, symlinks and manually edited generated
+files are refused. The form accepts only its token; clients cannot select an
+arbitrary path or enable drafts. Unsaved form text is excluded.
+
+The result reports local page/write/unchanged/delete counts. No hosting request
+is made and no deployment status is inferred. Use the documented deployment
+workflow for actual hosting. Generated project HTML is not served on the admin
+origin. If publication is interrupted, use the CLI recovery procedure for this
+specific output directory.

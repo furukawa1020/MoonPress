@@ -93,6 +93,9 @@ fn admin_posts(
   )
   admin_page(
     "Posts",
-    out.to_string() + admin_check_form(token) + admin_build_form(token),
+    out.to_string() +
+    admin_check_form(token) +
+    admin_build_form(token) +
+    admin_production_form(token),
   )
 }

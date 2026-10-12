@@ -220,6 +220,43 @@ test "$(get '/?q=absent&state=draft')" = 200
 grep -Fq 'content/search-error.md' "$tmp/page"
 grep -Fq 'No matching posts' "$tmp/page"
 rm "$tmp/site/content/search-error.md"
+# Build production files separately, excluding drafts and protecting existing output.
+production="$tmp/site/.moonpress-build"
+build_production() { post /build-production --data-urlencode "token=$token"; }
+cp -a "$tmp/site" "$tmp/before-production"
+test "$(get /)" = 200
+grep -Fq 'Build production files' "$tmp/page"
+test "$(post /build-production --data-urlencode token=wrong)" = 400
+test "$(post /build-production --data-urlencode "token=$token" --data-urlencode output=dist)" = 400
+test ! -e "$production"
+ln -s "$tmp/site/dist" "$production"
+test "$(build_production)" = 400
+rm "$production"
+mkdir "$production"
+printf foreign > "$production/foreign.txt"
+test "$(build_production)" = 400
+test "$(cat "$production/foreign.txt")" = foreign
+rm "$production/foreign.txt"; rmdir "$production"
+printf '%s\n' '---' '{"draft":true}' '---' '[broken](absent.html)' > "$tmp/site/content/production-draft.md"
+test "$(build_production)" = 200
+grep -Fq 'Production files built' "$tmp/page"
+grep -Fq 'drafts excluded' "$tmp/page"
+grep -Fq 'No deployment performed' "$tmp/page"
+test ! -e "$production/batch02.html"
+test ! -e "$production/production-draft.html"
+"$cli" build "$tmp/site" "$tmp/clean-production" >/dev/null
+diff -r "$tmp/clean-production" "$production"
+rm "$tmp/site/content/production-draft.md"
+test "$(build_production)" = 200
+grep -Fq 'written: 0;' "$tmp/page"
+printf 'manual production edit' > "$production/index.html"
+cp -a "$production" "$tmp/edited-production"
+test "$(build_production)" = 400
+grep -Fq 'Production build failed' "$tmp/page"
+diff -r "$tmp/edited-production" "$production"
+cp "$tmp/clean-production/index.html" "$production/index.html"
+test "$(get '/.moonpress-build/index.html')" = 404
+diff -r --exclude=.moonpress-build "$tmp/before-production" "$tmp/site"
 # Build themed draft-inclusive previews with the compiler's ownership checks.
 preview="$tmp/site/.moonpress-preview"
 build_preview() { post /build-preview --data-urlencode "token=$token"; }
