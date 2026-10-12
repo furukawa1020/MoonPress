@@ -210,3 +210,10 @@ inclusion and named layout without changing the body or draft state. It uses the
 same source-version protection as other saves. No-op submissions preserve source
 bytes and timestamps. See [article settings](article-settings.md) for defaults,
 validation limits and unlisted-page visibility. URL changes create no redirects.
+
+Media results show 20 assets per page in deterministic filename order. Counts
+include matching and total assets. Previous/Next links preserve filename search
+and type filters; submitting a new search resets to page 1. Source diagnostics
+and upload/import actions remain available on each page. Empty results have one
+page; invalid or out-of-range page requests are rejected without changes.
+Pagination limits displayed assets, not the underlying read-only reference scan.

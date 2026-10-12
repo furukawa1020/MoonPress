@@ -39,23 +39,10 @@ fn admin_posts(
   }
   let query = fields.get("q").unwrap_or("")
   let state = fields.get("state").unwrap_or("all")
-  let page = admin_post_page(fields.get("page").unwrap_or("1"))
+  let page = admin_page_number(fields.get("page").unwrap_or("1"))
   let inventory = inspect_posts(input)
   let matches = filter_posts(inventory.posts, query, state)
-  let pages = if matches.is_empty() {
-    1
-  } else {
-    (matches.length() - 1) / 20 + 1
-  }
-  if page > pages {
-    raise InvalidInput("Post page exceeds available pages")
-  }
-  let start = (page - 1) * 20
-  let end = if start + 20 < matches.length() {
-    start + 20
-  } else {
-    matches.length()
-  }
+  let (start, end, pages) = admin_page_bounds(matches.length(), page)
   let out = StringBuilder()
   out.write_string(admin_post_search_form(query, state))
   out.write_string(

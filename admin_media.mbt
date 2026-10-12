@@ -13,15 +13,17 @@ fn admin_media(
   fields : Map[String, String],
 ) -> String raise {
   for key, _ in fields {
-    if key != "q" && key != "kind" {
+    if key != "q" && key != "kind" && key != "page" {
       raise InvalidInput("Unknown media query field: " + key)
     }
   }
   let query = fields.get("q").unwrap_or("")
   let kind = fields.get("kind").unwrap_or("all")
+  let page = admin_page_number(fields.get("page").unwrap_or("1"))
   let _ = filter_media_references([], query, kind)
   let report = inspect_media_references(input)
   let matches = filter_media_references(report.assets, query, kind)
+  let (start, end, pages) = admin_page_bounds(matches.length(), page)
   if path_kind(input + "/public") == 0 {
     return admin_page(
       "Media",
@@ -38,7 +40,7 @@ fn admin_media(
   let out = StringBuilder()
   out.write_string(admin_media_search_form(query, kind))
   out.write_string(
-    "<p>Showing \{matches.length()} of \{report.assets.length()} media assets.</p>",
+    "<p>Showing \{end - start} of \{matches.length()} matching media assets (\{report.assets.length()} total). Page \{page} of \{pages}.</p>",
   )
   out.write_string(
     "<p>Media: \{report.assets.length()}. Copy a Markdown snippet into an article and replace the label with a description. Image classification uses filename extensions; files are not inspected or served here.</p>",
@@ -54,7 +56,8 @@ fn admin_media(
     "</p>" +
     admin_post_problems(report.problems),
   )
-  for asset in matches {
+  for index = start; index < end; index = index + 1 {
+    let asset = matches[index]
     let item = asset.item
     out.write_string(
       "<section><h2>" +
@@ -71,6 +74,7 @@ fn admin_media(
   admin_page(
     "Media",
     out.to_string() +
+    admin_media_navigation(query, kind, page, pages) +
     admin_upload_form(token, "") +
     admin_import_form(token, "", ""),
   )
@@ -139,5 +143,39 @@ fn admin_media_search_form(query : String, kind : String) -> String {
   out.write_string(
     "</select></label><button>Search media</button> <a href=\"/media\">Clear filters</a></form>",
   )
+  out.to_string()
+}
+
+///|
+fn admin_media_navigation(
+  query : String,
+  kind : String,
+  page : Int,
+  pages : Int,
+) -> String {
+  let out = StringBuilder()
+  let prefix = "/media?q=" +
+    url_component(query) +
+    "&amp;kind=" +
+    url_component(kind) +
+    "&amp;page="
+  out.write_string("<nav aria-label=\"Media pages\">")
+  if page > 1 {
+    out.write_string(
+      "<a rel=\"prev\" href=\"" +
+      prefix +
+      (page - 1).to_string() +
+      "\">Previous media</a> ",
+    )
+  }
+  if page < pages {
+    out.write_string(
+      "<a rel=\"next\" href=\"" +
+      prefix +
+      (page + 1).to_string() +
+      "\">Next media</a>",
+    )
+  }
+  out.write_string("</nav>")
   out.to_string()
 }

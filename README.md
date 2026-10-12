@@ -27,8 +27,12 @@ moonpress="$PWD/_build/native/release/build/cmd/main/main.exe"
 The variable above uses the freshly compiled executable directly. For an optional
 PATH installation and the complete edit/build workflow, see [getting started](docs/getting-started.md).
 For the local browser editor, run `"$moonpress" admin ../my-site 8080` and open
-`http://127.0.0.1:8080/`. It supports draft creation, source editing and draft/ready
-changes without JavaScript. See [local administration](docs/admin.md) for limits.
+`http://127.0.0.1:8080/`. Native HTML forms support draft creation and duplication,
+structured/raw editing, draft/ready transitions, article URL/listing/layout
+settings, searchable paginated media with uploads and reference inspection,
+preview compilation, and production build/change inspection. No JavaScript is
+needed. See [local administration](docs/admin.md) for the workflow and limits;
+local build success does not mean hosting deployment.
 
 The starter includes tag navigation, pagination settings and a writing guide.
 No public URL is needed for local authoring; add your real `base_url` when ready
