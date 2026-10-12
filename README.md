@@ -52,6 +52,13 @@ update only changed artifacts and remove tracked outputs whose sources were dele
 Unmanaged directories, unknown files, edited outputs and symlinks are rejected.
 Templates are trusted project files; Markdown content and titles are escaped.
 
+Use `moonpress audit dist [--json]` to inspect generated output integrity without
+source input. Findings exit 1 with a complete report. `moonpress deps my-site
+[--include-drafts] [--json]` reports compiled dependency edges, and `moonpress
+impact my-site content/guide.md [--json]` queries exact direct keys. These
+operations write no files; see [output audit](docs/output-audit.md) and
+[dependencies](docs/dependencies.md) for scope and exit semantics.
+
 Supported Markdown: ATX headings 1–6 with unique anchors and an optional `{{toc}}` table of contents, paragraphs, and backtick/tilde code
 fences, thematic breaks, flat unordered/ordered lists and block quotes. Unsupported syntax is plain text.
 Simple links, images, inline code and asterisk emphasis/strong emphasis are

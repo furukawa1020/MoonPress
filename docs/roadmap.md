@@ -13,6 +13,7 @@ CommonMark compatibility or superiority to other site generators.
 - Per-page named layouts, article/tag collections, optional sitemap and flat static assets.
 - Preflight local route/generated-heading reference checks and guarded incremental output ownership.
 - Deterministic clean/incremental output, explain/check modes and versioned JSON reports.
+- Read-only output integrity audit, compiled direct dependency graphs and exact-key impact queries with explicit unknowns.
 - Output filename byte limits, manifest validation and source file-kind checks.
 - Staged preparation, per-file replacement and caught-error rollback; explicit recovery of journaled interruptions.
 - Cooperative build/explain/recover locking on local Linux filesystems, including new outputs.
