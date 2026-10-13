@@ -18,6 +18,8 @@ pub fn check_site(String, include_drafts? : Bool) -> CheckReport raise
 
 pub fn compile_site(String, String, dry_run? : Bool, include_drafts? : Bool) -> BuildReport raise
 
+pub fn dependency_changes(Array[Dependency], Array[Dependency]) -> Array[DependencyChange] raise
+
 pub fn dependency_impact(DependencyGraph, Array[String]) -> DependencyImpact raise
 
 pub fn digest_bytes(Bytes) -> String
@@ -168,6 +170,14 @@ pub fn Dependency::equal(Self, Self) -> Bool
 pub fn Dependency::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Dependency::not_equal(Self, Self) -> Bool
 pub fn Dependency::to_json(Self) -> Json
+
+pub(all) struct DependencyChange {
+  name : String
+  action : String
+  old_digest : String?
+  new_digest : String?
+} derive(ToJson)
+pub fn DependencyChange::to_json(Self) -> Json
 
 pub(all) struct DependencyGraph {
   pages : Int
