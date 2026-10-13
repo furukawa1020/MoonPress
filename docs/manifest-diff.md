@@ -34,3 +34,11 @@ exit 1 with empty stdout; incorrect arguments exit 2. There is no
 `--include-drafts` option: each snapshot already records its chosen build scope.
 Keep snapshots outside managed output directories to avoid foreign-file refusal.
 Snapshot files need not sit beside their original generated output.
+
+Schema-1 ownership state accepts only `schema`, `compiler`, `artifacts` at the
+top level, `name`, `digest`, `dependencies` in each artifact, and `name`, `digest`
+in each dependency. Unknown fields are rejected at every object level rather
+than silently discarded. This applies to build/explain/plan/audit/diff and to
+manifest strings embedded in recovery journals. Publication journals accept only
+`schema`, `previous`, `next`, `present`, `writes`. Extensions require an explicit
+schema change; this does not add support for new schemas or crash phases.

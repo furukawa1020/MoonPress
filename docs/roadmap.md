@@ -14,9 +14,10 @@ CommonMark compatibility or superiority to other site generators.
 - Preflight local route/generated-heading reference checks and guarded incremental output ownership.
 - Deterministic clean/incremental output, explain/check modes and versioned JSON reports.
 - Read-only output integrity audit, compiled direct dependency graphs and exact-key impact queries with explicit unknowns.
-- Output filename byte limits, manifest validation and source file-kind checks.
+- Validated snapshot comparison and detailed protected build plans with complete dependency deltas.
+- Output filename byte limits, strict manifest/journal field validation and source file-kind checks.
 - Staged preparation, per-file replacement and caught-error rollback; explicit recovery of journaled interruptions.
-- Cooperative build/explain/recover locking on local Linux filesystems, including new outputs.
+- Cooperative build/explain/plan/recover locking on local Linux filesystems, including new outputs.
 - Native tests and shell-only GitHub Actions workflows.
 
 See [content semantics](content.md), [contributing](../CONTRIBUTING.md) and

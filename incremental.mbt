@@ -48,7 +48,9 @@ pub fn safe_output_name(name : String) -> Bool {
 
 ///|
 pub fn parse_manifest(text : String) -> Manifest raise {
-  let state : Manifest = @json.from_json(@json.parse(text))
+  let value = @json.parse(text)
+  check_manifest_fields(value)
+  let state : Manifest = @json.from_json(value)
   if state.schema != 1 || state.compiler != "moonpress-0.1" {
     raise InvalidInput("Unsupported MoonPress manifest version")
   }
