@@ -5,14 +5,11 @@ pub fn compile_site(
   dry_run? : Bool = false,
   include_drafts? : Bool = false,
 ) -> BuildReport raise {
-  let output = output.trim_end(chars="/").to_owned()
-  if output.is_empty() {
-    raise InvalidInput("Root output directory is not allowed")
-  }
+  let output = normalize_output(output)
   let lock = lock_output(output, shared=dry_run)
   defer native_unlock_output(lock)
-  let previous = load_previous(output)
-  let plan = plan_site(input, previous, Some(output), include_drafts~)
+  let state = plan_output(input, output, include_drafts~)
+  let plan = state.plan
   if !dry_run {
     apply_plan(output, plan)
   }
@@ -32,4 +29,31 @@ pub fn check_site(
   // No output path, prior manifest, temporary directory, or filesystem mutation.
   let plan = plan_site(input, Map([]), None, include_drafts~)
   { pages: plan.report.pages, outputs: plan.pending.length(), }
+}
+
+///|
+priv struct OutputPlan {
+  previous : Map[String, Artifact]
+  plan : BuildPlan
+}
+
+///|
+fn normalize_output(output : String) -> String raise {
+  let output = output.trim_end(chars="/").to_owned()
+  if output.is_empty() {
+    raise InvalidInput("Root output directory is not allowed")
+  }
+  output
+}
+
+///|
+// Caller holds the appropriate output lock through inspection or publication.
+fn plan_output(
+  input : String,
+  output : String,
+  include_drafts? : Bool = false,
+) -> OutputPlan raise {
+  let previous = load_previous(output)
+  let plan = plan_site(input, previous, Some(output), include_drafts~)
+  { previous, plan, }
 }
