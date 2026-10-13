@@ -18,3 +18,19 @@ names and malformed digests fail rather than produce a partial comparison.
 This pure service compares snapshots; it does not inspect current source files,
 verify output bytes, publish files or forecast a rebuild. Use `audit` for output
 integrity and `explain` for the actual protected incremental plan.
+
+Compare saved snapshots without rebuilding:
+
+```sh
+moonpress diff before.json after.json
+moonpress diff before.json after.json --json
+```
+
+Both files must be regular UTF-8 files (no symlinks or special files). Reports
+include unchanged outputs and always exit 0 on a valid comparison, even when
+different. `--json` uses the common schema-1 envelope with command `diff`,
+`include_drafts: false` and the comparison in `report`. Validation/I/O failures
+exit 1 with empty stdout; incorrect arguments exit 2. There is no
+`--include-drafts` option: each snapshot already records its chosen build scope.
+Keep snapshots outside managed output directories to avoid foreign-file refusal.
+Snapshot files need not sit beside their original generated output.

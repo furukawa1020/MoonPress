@@ -87,3 +87,13 @@ pub fn compare_manifests(old : String, next : String) -> ManifestDiff raise {
   }
   { added, removed, changed, unchanged, outputs, }
 }
+
+///|
+pub fn compare_manifest_files(
+  old_path : String,
+  next_path : String,
+) -> ManifestDiff raise {
+  require_input_kind(old_path, 1)
+  require_input_kind(next_path, 1)
+  compare_manifests(read_text(old_path), read_text(next_path))
+}

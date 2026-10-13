@@ -24,6 +24,7 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
+  value == "diff" ||
   value == "impact" ||
   value == "deps" ||
   value == "audit" ||
@@ -47,6 +48,8 @@ fn is_command(value : String) -> Bool {
 ///|
 fn usage(command : String) -> String {
   match command {
+    "diff" =>
+      "Usage: moonpress diff <old-manifest-file> <new-manifest-file> [--json]"
     "deps" =>
       "Usage: moonpress deps <site-directory> [--include-drafts] [--json]"
     "audit" => "Usage: moonpress audit <output-directory> [--json]"
@@ -73,13 +76,15 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <impact|deps|audit|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <diff|impact|deps|audit|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
   }
 }
 
 ///|
 fn help_text(command : String) -> String {
   let description = match command {
+    "diff" =>
+      "Compare two validated ownership manifests; write no files.\nDifferences are successful reports (exit 0); source/output bytes are not inspected."
     "audit" => "Inspect compiler-owned output without sources; write no files."
     "import" =>
       "Copy a regular local file into an existing public directory without overwriting.\nThe destination must be a supported flat asset filename. No deployment performed."
@@ -112,7 +117,7 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
   if command == "deps" || command == "impact" {
     return description +
@@ -129,7 +134,8 @@ fn help_text(command : String) -> String {
   if command == "admin" {
     return description + "\n\n" + usage(command)
   }
-  if command == "recover" ||
+  if command == "diff" ||
+    command == "recover" ||
     command == "init" ||
     command == "import" ||
     command == "media-refs" ||
@@ -200,6 +206,7 @@ fn main {
   for index = required; index < args.length(); index = index + 1 {
     match args[index] {
       "--include-drafts" if !include_drafts &&
+        command != "diff" &&
         command != "audit" &&
         command != "recover" &&
         command != "init" &&
@@ -244,7 +251,37 @@ fn main {
     return
   }
   try {
-    if command == "impact" {
+    if command == "diff" {
+      let report = @lib.compare_manifest_files(args[2], args[3])
+      if json {
+        print_report(command, false, report.to_json())
+      } else {
+        for output in report.outputs {
+          println(
+            output.action +
+            "\t" +
+            output.name.to_json().stringify() +
+            "\tcontent_changed=" +
+            output.content_changed.to_string(),
+          )
+          for dep in output.dependencies {
+            println(
+              "  " +
+              dep.action +
+              "\t" +
+              dep.name.to_json().stringify() +
+              "\t" +
+              dep.old_digest.to_json().stringify() +
+              " -> " +
+              dep.new_digest.to_json().stringify(),
+            )
+          }
+        }
+        println(
+          "Manifest difference: \{report.added} added, \{report.removed} removed, \{report.changed} changed, \{report.unchanged} unchanged; no files written",
+        )
+      }
+    } else if command == "impact" {
       let report = @lib.inspect_impact(args[2], [args[3]], include_drafts~)
       if json {
         print_report(command, include_drafts, report.to_json())
