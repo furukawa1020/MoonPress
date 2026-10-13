@@ -16,6 +16,8 @@ pub fn build_site(String, String) -> Int raise
 
 pub fn check_site(String, include_drafts? : Bool) -> CheckReport raise
 
+pub fn compare_manifests(String, String) -> ManifestDiff raise
+
 pub fn compile_site(String, String, dry_run? : Bool, include_drafts? : Bool) -> BuildReport raise
 
 pub fn dependency_changes(Array[Dependency], Array[Dependency]) -> Array[DependencyChange] raise
@@ -236,6 +238,25 @@ pub fn Manifest::equal(Self, Self) -> Bool
 pub fn Manifest::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Manifest::not_equal(Self, Self) -> Bool
 pub fn Manifest::to_json(Self) -> Json
+
+pub(all) struct ManifestDiff {
+  added : Int
+  removed : Int
+  changed : Int
+  unchanged : Int
+  outputs : Array[ManifestDifference]
+} derive(ToJson)
+pub fn ManifestDiff::to_json(Self) -> Json
+
+pub(all) struct ManifestDifference {
+  name : String
+  action : String
+  content_changed : Bool
+  old_digest : String?
+  new_digest : String?
+  dependencies : Array[DependencyChange]
+} derive(ToJson)
+pub fn ManifestDifference::to_json(Self) -> Json
 
 pub(all) struct MediaItem {
   source : String
