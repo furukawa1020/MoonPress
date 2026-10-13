@@ -52,6 +52,10 @@ update only changed artifacts and remove tracked outputs whose sources were dele
 Unmanaged directories, unknown files, edited outputs and symlinks are rejected.
 Templates are trusted project files; Markdown content and titles are escaped.
 
+Use `moonpress plan site dist [--json]` for the actual protected incremental
+plan with every dependency change. It writes no files and shares build validation.
+See [detailed build planning](docs/build-plan.md).
+
 Use `moonpress diff before.json after.json [--json]` to compare saved ownership
 manifests, including content and complete dependency differences, without
 rebuilding. See [manifest differences](docs/manifest-diff.md).

@@ -17,3 +17,20 @@ Manually changed files, foreign entries, symlinks and pending journals are refus
 before reporting. Use `recover` for supported journaled interrupted publication.
 Sources and output must stay stable between a plan and a later build; the plan is
 an observation, not a reservation or a publication authorization token.
+
+Use the CLI before publishing:
+
+```sh
+moonpress plan site dist
+moonpress plan site dist --json
+moonpress plan site preview --include-drafts --json
+```
+
+`--json` returns the schema-1 envelope with command `plan`, `include_drafts` and
+`report: {summary, outputs}`. `summary` equals the corresponding `explain` report.
+With stable sources/output it also equals the following `build` report. Human
+output lists actions/reasons, then dependency deltas with old/new digests. Both
+flags may appear once in either order. Success exits 0; validation/I/O failures
+exit 1 with empty stdout; incorrect arguments exit 2. Draft inspection never
+publishes pages; an actual build with `--include-drafts` does, so use a separate
+preview directory.
