@@ -60,23 +60,10 @@ pub fn parse_manifest(text : String) -> Manifest raise {
     if !valid_digest(artifact.digest) {
       raise InvalidInput("Invalid output digest in manifest: " + artifact.name)
     }
-    let dependencies : Map[String, Bool] = Map([])
-    for dep in artifact.dependencies {
-      if dep.name.is_empty() || dependencies.contains(dep.name) {
-        raise InvalidInput(
-          "Empty or duplicate dependency in manifest: " + artifact.name,
-        )
-      }
-      if !valid_digest(dep.digest) {
-        raise InvalidInput(
-          "Invalid dependency digest in manifest: " +
-          artifact.name +
-          " / " +
-          dep.name,
-        )
-      }
-      dependencies[dep.name] = true
-    }
+    let _ = dependency_index(
+      artifact.dependencies,
+      "manifest: " + artifact.name,
+    )
     seen[artifact.name] = true
   }
   state
