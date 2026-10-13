@@ -44,6 +44,8 @@ pub fn import_media(String, String, String) -> MediaItem raise
 
 pub fn init_site(String) -> InitReport raise
 
+pub fn inspect_build_plan(String, String, include_drafts? : Bool) -> DetailedBuildPlan raise
+
 pub fn inspect_dependencies(String, include_drafts? : Bool) -> DependencyGraph raise
 
 pub fn inspect_impact(String, Array[String], include_drafts? : Bool) -> DependencyImpact raise
@@ -198,6 +200,12 @@ pub(all) struct DependencyImpact {
 } derive(ToJson)
 pub fn DependencyImpact::to_json(Self) -> Json
 
+pub(all) struct DetailedBuildPlan {
+  summary : BuildReport
+  outputs : Array[PlannedOutput]
+} derive(ToJson)
+pub fn DetailedBuildPlan::to_json(Self) -> Json
+
 pub(all) struct Document {
   title : String
   description : String
@@ -314,6 +322,16 @@ pub(all) struct Page {
   output : String
   document : Document
 }
+
+pub(all) struct PlannedOutput {
+  name : String
+  action : String
+  reason : String
+  old_digest : String?
+  new_digest : String?
+  dependencies : Array[DependencyChange]
+} derive(ToJson)
+pub fn PlannedOutput::to_json(Self) -> Json
 
 pub(all) struct PostFields {
   title : String
