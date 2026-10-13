@@ -30,7 +30,13 @@ fn journal_names(names : Array[String]) -> Map[String, Bool] raise {
 
 ///|
 fn parse_journal(text : String) -> PublicationJournal raise {
-  let journal : PublicationJournal = @json.from_json(@json.parse(text))
+  let value = @json.parse(text)
+  let _ = strict_json_object(
+    value,
+    ["schema", "previous", "next", "present", "writes"],
+    "publication journal",
+  )
+  let journal : PublicationJournal = @json.from_json(value)
   if journal.schema != 1 {
     raise InvalidInput("Unsupported MoonPress publication journal version")
   }
