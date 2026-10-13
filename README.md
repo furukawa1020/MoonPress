@@ -52,6 +52,10 @@ update only changed artifacts and remove tracked outputs whose sources were dele
 Unmanaged directories, unknown files, edited outputs and symlinks are rejected.
 Templates are trusted project files; Markdown content and titles are escaped.
 
+Use `moonpress diff before.json after.json [--json]` to compare saved ownership
+manifests, including content and complete dependency differences, without
+rebuilding. See [manifest differences](docs/manifest-diff.md).
+
 Use `moonpress audit dist [--json]` to inspect generated output integrity without
 source input. Findings exit 1 with a complete report. `moonpress deps my-site
 [--include-drafts] [--json]` reports compiled dependency edges, and `moonpress
