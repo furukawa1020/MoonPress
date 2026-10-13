@@ -2,8 +2,8 @@
 
 On the supported local Linux filesystem, `build` acquires an exclusive advisory
 lock before reading previous output state and holds it until publication returns
-or raises an error. `explain` uses a shared lock for the same interval: multiple
-explain operations can coexist, but they cannot overlap a writer. `check` has no
+or raises an error. `explain` and `plan` use a shared lock for the same interval: multiple
+explain/plan operations can coexist, but they cannot overlap a writer. `check` has no
 output state and acquires no lock. `recover` uses the same exclusive lock as
 build for validation, restoration and cleanup. `init` exclusively locks the new
 site parent during creation and caught-error cleanup; it conflicts with builds
@@ -17,7 +17,7 @@ the other process finishes.
 
 MoonPress locks the **canonical output parent directory**, not a generated file.
 This also protects an output that does not exist yet, without creating an output
-directory or lock metadata during explain. Relative/absolute paths, `.`, `..`
+directory or lock metadata during explain or plan. Relative/absolute paths, `.`, `..`
 and symlinked parent aliases resolve to the same parent inode when they name the
 same filesystem location. A symlink for the output itself remains invalid.
 

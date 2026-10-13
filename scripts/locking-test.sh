@@ -43,6 +43,7 @@ test ! -e "$tmp/publish/out"
 busy build "$tmp/site" "$tmp/publish/./out"
 busy build "$tmp/site" "$tmp/alias/out/"
 busy explain "$tmp/site" "$tmp/publish/out"
+busy plan "$tmp/site" "$tmp/publish/out"
 # Conservative scope deliberately serializes siblings as well.
 busy build "$tmp/site" "$tmp/publish/other"
 "$cli" check "$tmp/site" --json | jq -e '.report.pages == 1' >/dev/null
