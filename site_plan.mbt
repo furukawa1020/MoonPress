@@ -35,6 +35,7 @@ fn plan_site(
   let names = @fs.read_dir(input + "/content").to_owned()
   names.sort()
   let pending : Array[Pending] = []
+  let route_info : Array[RouteInfo] = []
   let log : BuildLog = { events: [], changes: [], }
   let documents : Array[Page] = []
   let references : Array[PageReferences] = []
@@ -57,6 +58,12 @@ fn plan_site(
       let template = select_layout(layouts, input, document.layout)
       page_layouts[route] = template
       documents.push({ output: route, document, })
+      route_info.push({
+        name: route,
+        kind: "page",
+        source: Some("content/" + name),
+        target: None,
+      })
       let blocks = parse_blocks(document.body)
       let outline = block_headings(blocks)
       let (links, images) = block_references(blocks)
@@ -102,6 +109,12 @@ fn plan_site(
   let listed = documents.filter(page => page.document.listed)
   for archive in article_archives(listed, config.page_size) {
     page_layouts[archive.output] = collection_template
+    route_info.push({
+      name: archive.output,
+      kind: "archive",
+      source: None,
+      target: None,
+    })
     pending.push(
       plan_artifact(
         archive.output,
@@ -136,6 +149,12 @@ fn plan_site(
     tag_summaries.push({ name: tag, count: members.length(), })
     for archive in tag_archives(members, config.tag_page_size, tag) {
       page_layouts[archive.output] = collection_template
+      route_info.push({
+        name: archive.output,
+        kind: "archive",
+        source: None,
+        target: None,
+      })
       pending.push(
         plan_artifact(
           archive.output,
@@ -158,6 +177,12 @@ fn plan_site(
   }
   if config.tag_index {
     page_layouts["tags.html"] = collection_template
+    route_info.push({
+      name: "tags.html",
+      kind: "archive",
+      source: None,
+      target: None,
+    })
     pending.push(
       plan_artifact(
         "tags.html",
@@ -177,6 +202,12 @@ fn plan_site(
       ),
     )
   }
+  route_info.push({
+    name: "style.css",
+    kind: "asset",
+    source: Some("style.css"),
+    target: None,
+  })
   pending.push(
     plan_artifact(
       "style.css",
@@ -187,8 +218,20 @@ fn plan_site(
       log,
     ),
   )
+  route_info.push({
+    name: ".nojekyll",
+    kind: "marker",
+    source: None,
+    target: None,
+  })
   pending.push(plan_artifact(".nojekyll", [], previous, output, () => b"", log))
   for name in public_asset_names(input) {
+    route_info.push({
+      name,
+      kind: "asset",
+      source: Some("public/" + name),
+      target: None,
+    })
     let bytes = read_bytes(input + "/public/" + name)
     pending.push(
       plan_artifact(
@@ -202,6 +245,12 @@ fn plan_site(
     )
   }
   if config.feed is Some(feed) {
+    route_info.push({
+      name: "rss.xml",
+      kind: "feed",
+      source: None,
+      target: None,
+    })
     let url = base_url.unwrap()
     validate_feed(url, listed)
     pending.push(
@@ -222,6 +271,12 @@ fn plan_site(
   let redirects = resolve_redirects(config.redirects, redirect_targets)
   let redirect_names : Map[String, Bool] = Map([])
   for redirect in redirects {
+    route_info.push({
+      name: redirect.name,
+      kind: "redirect",
+      source: Some("site.json/redirects/" + redirect.name),
+      target: Some(redirect.target),
+    })
     redirect_names[redirect.name] = true
     let content = render_redirect(redirect.target, base_url~)
     pending.push(
@@ -282,6 +337,12 @@ fn plan_site(
     layouts, page_layouts, routes, route_lookup, heading_targets, base_path,
   )
   if base_url is Some(url) {
+    route_info.push({
+      name: "sitemap.xml",
+      kind: "sitemap",
+      source: None,
+      target: None,
+    })
     let sitemap_routes = documents.map(page => page.output)
     let source_routes = index_routes(sitemap_routes)
     for route in routes {
@@ -333,6 +394,7 @@ fn plan_site(
     record_event(log, "delete", name, "source removed")
   }
   {
+    routes: route_info,
     pending,
     removed,
     manifest: serialize_manifest(artifacts),
