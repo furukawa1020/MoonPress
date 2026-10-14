@@ -22,10 +22,12 @@ bash scripts/check.sh
 _build/native/release/build/cmd/main/main.exe check site --json
 ```
 
-Setup checks the exact Moon/Moonc versions. It currently downloads from an
-official compiler-revision distribution: a mismatch is a deliberate failure,
-not permission to silently update the pin. Record the error on [#11](https://github.com/furukawa1020/MoonPress/issues/11).
-Version changes need a dedicated PR with native CI evidence.
+Setup verifies official binary/core archives against the repository pins in
+`scripts/toolchain.lock`, checks exact Moon/Moonc versions and bundles native
+core. It never executes a mutable upstream installer. Existing incompatible
+installations require a fresh `MOON_HOME`; they are never silently upgraded.
+See [toolchain setup](docs/toolchain.md) for isolated installation and checks.
+Version/hash changes need a dedicated PR with clean native CI evidence.
 
 The full check script runs native type checks, unit tests, release compilation
 and shell integration suites. Use a fresh output directory when trying the CLI.

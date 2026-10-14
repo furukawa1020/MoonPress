@@ -9,7 +9,8 @@ or CI workflow. Experimental; see the [release-readiness roadmap](docs/roadmap.m
 ## Quick start
 
 Prerequisites: Linux x86_64, a C compiler, curl, Git, Bash, jq and standard GNU
-command-line tools. See [CONTRIBUTING.md](CONTRIBUTING.md) for the tested environment.
+command-line tools. Setup uses pinned archive checksums; an existing incompatible
+MoonBit installation needs a fresh `MOON_HOME`. See [toolchain setup](docs/toolchain.md) and [CONTRIBUTING.md](CONTRIBUTING.md) for the tested environment.
 
 ```sh
 git clone https://github.com/furukawa1020/MoonPress.git

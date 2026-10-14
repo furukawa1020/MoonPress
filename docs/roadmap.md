@@ -28,7 +28,7 @@ See [content semantics](content.md), [contributing](../CONTRIBUTING.md) and
 
 | Gate | Evidence required | Tracking |
 | --- | --- | --- |
-| Reproducible toolchain | Fixed official archive or permitted mirror, pinned checksums, clean-environment rebuild and mismatch tests | [#11](https://github.com/furukawa1020/MoonPress/issues/11) |
+| Reproducible toolchain | Fixed official binary/core archives with pinned checksums, native-only bundling, clean-install CI and tamper/version tests | [#11](https://github.com/furukawa1020/MoonPress/issues/11) |
 | Verified example deployment | Pages enabled and generated HTML/CSS retrieved from the public URL | [#3](https://github.com/furukawa1020/MoonPress/issues/3) |
 | Filesystem failure recovery | Journaled restart recovery implemented; pre-journal/final-cleanup gaps and power-loss durability remain open | [#49](https://github.com/furukawa1020/MoonPress/issues/49), [#53](https://github.com/furukawa1020/MoonPress/issues/53), [contract](publication.md) |
 | Concurrent writer protection | Implemented for cooperative local Linux builds; parent-directory scope and tested limits documented | [#50](https://github.com/furukawa1020/MoonPress/issues/50), [contract](concurrency.md) |
