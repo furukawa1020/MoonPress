@@ -1,4 +1,45 @@
 ///|
+test "redirect reference evidence must match its originating route" {
+  let base = query_fixture()
+  let redirect : RouteInfo = {
+    name: "old.html",
+    kind: "redirect",
+    source: Some("site.json/redirects/old.html"),
+    target: Some("a.html"),
+  }
+  let edge : ReferenceEdge = {
+    source: "site.json/redirects/old.html",
+    output: "old.html",
+    kind: "redirect",
+    url: "a.html",
+    target: "a.html",
+    fragment: None,
+  }
+  let graph : ReferenceGraph = {
+    ..base,
+    routes: [base.routes[0], base.routes[1], redirect],
+    references: [edge],
+  }
+  assert_eq(query_references(graph, "old.html").outgoing.length(), 1)
+  for
+    invalid in [
+      { ..edge, target: "月.html", },
+      { ..edge, output: "a.html", },
+      { ..edge, fragment: Some("mp-x"), },
+      { ..edge, kind: "markdown-link", },
+    ] {
+    let failed = try {
+      query_references({ ..graph, references: [invalid], }, "old.html")
+      |> ignore
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(failed)
+  }
+}
+
+///|
 fn query_fixture() -> ReferenceGraph {
   let a : ReferenceEdge = {
     source: "content/a.md",

@@ -60,3 +60,25 @@ invalid sites/unknown routes exit 1 with empty stdout and stderr detail; incorre
 arguments exit 2 with command-specific usage. Run these before changing a slug
 or deleting a source, while the current site is valid. A broken site produces
 an error, not partial backlinks or a false zero-reference result.
+
+## Changing article URLs
+
+Inspect the old output name before editing a slug, optionally including drafts.
+Incoming edges identify authored links to update and selected template consumers.
+After saving changes, validate again. A broken local link blocks both graph
+inspection and publication before output changes. A configured static redirect
+can preserve an old route; its edge records the resolved terminal destination.
+Redirect pages do not inherit the destination page's Markdown or template edges.
+Generated heading fragments must still pass the existing heading validator;
+a redirect is not a promise that every old fragment will reach a heading.
+
+Changing a selected layout changes template-reference evidence. Making a draft
+ready adds its references to the normal graph; unlisting it does not remove
+them. These facts describe navigation, not incremental content dependencies:
+editing a linked page need not rewrite a referring page whose HTML is unchanged.
+Use `plan`/`review` for the actual writes and `deps`/`impact` for rebuild edges.
+
+`query_references` also rejects externally constructed redirect edges whose
+origin is not a redirect or whose target/fragment contradicts route metadata,
+and refuses Markdown/template consumption attributed to redirect output.
+Structural checks are not source provenance authentication.

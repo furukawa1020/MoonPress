@@ -58,6 +58,20 @@ pub fn query_references(
       ].contains(edge.kind) {
       raise InvalidInput("Invalid reference graph edge")
     }
+    let origin = routes[edge.output]
+    if edge.kind == "redirect" {
+      if origin.kind != "redirect" ||
+        origin.target != Some(edge.target) ||
+        edge.fragment is Some(_) {
+        raise InvalidInput(
+          "Redirect reference does not match its route metadata",
+        )
+      }
+    } else if origin.kind == "redirect" {
+      raise InvalidInput(
+        "Redirect output cannot consume Markdown or template references",
+      )
+    }
   }
   let route = match routes.get(name) {
     Some(route) => route
