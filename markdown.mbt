@@ -158,7 +158,8 @@ fn inline_lines(block : Block) -> Array[String] {
   match block {
     Heading(_, text) => [text]
     UnorderedList(lines) => lines.map(task_text)
-    Paragraph(lines) | OrderedList(_, lines) | Quote(lines) => lines
+    Paragraph(lines) | Quote(lines) => flow_text(lines)
+    OrderedList(_, lines) => lines
     CodeBlock(_, _) | ThematicBreak => []
   }
 }
@@ -189,7 +190,7 @@ fn render_blocks_with_headings(
         )
       }
       Paragraph(lines) =>
-        out.write_string("<p>" + lines.map(render_inline).join("\n") + "</p>\n")
+        out.write_string("<p>" + render_flow(lines) + "</p>\n")
       UnorderedList(items) =>
         out.write_string("<ul>\n" + render_unordered_items(items) + "</ul>\n")
       OrderedList(start, items) => {
@@ -198,9 +199,7 @@ fn render_blocks_with_headings(
       }
       Quote(lines) =>
         out.write_string(
-          "<blockquote>\n<p>" +
-          lines.map(render_inline).join("\n") +
-          "</p>\n</blockquote>\n",
+          "<blockquote>\n<p>" + render_flow(lines) + "</p>\n</blockquote>\n",
         )
       ThematicBreak => out.write_string("<hr>\n")
       CodeBlock(code, language) => {
