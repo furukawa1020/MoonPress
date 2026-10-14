@@ -2,7 +2,8 @@
 
 ![MoonPress: Native MoonBit static-site compiler](docs/assets/social-preview.jpg)
 
-A small static-site compiler written in **MoonBit**. Native executable in,
+A static-site compiler that can refuse to build a plan you have not reviewed,
+written in **MoonBit**. Native executable in,
 HTML + CSS out. No TypeScript, JavaScript, Node.js or npm in the application
 or CI workflow. Experimental; see the [release-readiness roadmap](docs/roadmap.md).
 
@@ -84,7 +85,11 @@ browser's production review. Before writing files, see every changed dependency
 for each affected output, distinguish new/deleted/restored files from unchanged
 bytes, and keep draft exclusions visible. Existing edited or foreign generated
 files are refused. Review is read-only; a later build revalidates the current
-state. This makes the native compiler's decisions inspectable without a second
+state. Browser production builds and CLI `build-reviewed` stop before publication
+if that plan differs from the review. The exclusive-lock check applies the same
+computed plan it compares, including dependencies whose output bytes are unchanged.
+See [reviewed builds](docs/reviewed-builds.md) for commands and exact limits.
+This makes the native compiler's decisions inspectable and enforceable without a second
 JavaScript implementation. The manifest is an integrity record, not a signature,
 and publication recovery has the [documented limits](docs/publication.md).
 

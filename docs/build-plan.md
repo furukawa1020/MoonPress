@@ -21,6 +21,10 @@ before reporting. Use `recover` for supported journaled interrupted publication.
 Sources and output must stay stable between a plan and a later build; the plan is
 an observation, not a reservation or a publication authorization token.
 
+To require a later build to match the inspected state, use `review` followed by
+`build-reviewed`. See [reviewed builds](reviewed-builds.md). The existing `plan`
+and `build` commands retain their observation/unreviewed behavior.
+
 Use the CLI before publishing:
 
 ```sh
