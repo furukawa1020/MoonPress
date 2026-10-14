@@ -111,3 +111,17 @@ an output is unused or safe to delete.
 
 The summary validates graph structure through the same boundary as backlinks;
 it does not authenticate caller-provided graphs or discover omitted evidence.
+
+## Summary command
+
+```sh
+moonpress reference-summary my-site
+moonpress reference-summary my-site --include-drafts --json
+moonpress backlinks my-site 月.html --json
+```
+
+The summary command lists the counts above for every output. Text rows quote
+filenames; JSON uses the schema-1 command envelope with a typed summary in
+`report`. Options may appear once in either order after the site directory.
+Exit 0 means a complete report, 1 means compilation/I/O failure, and 2 means
+incorrect arguments. Failures use stderr with no partial stdout report.
