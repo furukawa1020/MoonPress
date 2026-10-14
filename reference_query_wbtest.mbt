@@ -124,3 +124,80 @@ test "reference query refuses unknown encoded names and malformed graphs" {
     assert_true(failed)
   }
 }
+
+///|
+test "reference origins must agree with route kind and source" {
+  let graph = query_fixture()
+  let edge = graph.references[1]
+  for kind in ["asset", "marker", "feed", "sitemap", "archive"] {
+    let route = { ..graph.routes[1], kind, }
+    let invalid = {
+      ..graph,
+      pages: 1,
+      routes: [graph.routes[0], route],
+      references: [edge],
+    }
+    assert_true(
+      try {
+        query_references(invalid, "a.html") |> ignore
+        false
+      } catch {
+        _ => true
+      },
+    )
+    if kind != "archive" {
+      assert_true(
+        try {
+          query_references(
+            {
+              ..invalid,
+              references: [
+                { ..edge, kind: "template-href", source: "layout.html", },
+              ],
+            },
+            "a.html",
+          )
+          |> ignore
+          false
+        } catch {
+          _ => true
+        },
+      )
+    }
+  }
+  assert_true(
+    try {
+      query_references(
+        { ..graph, references: [{ ..edge, source: "content/other.md", }], },
+        "a.html",
+      )
+      |> ignore
+      false
+    } catch {
+      _ => true
+    },
+  )
+}
+
+///|
+test "reference redirect targets must already be terminal" {
+  let graph = query_fixture()
+  let redirect : RouteInfo = {
+    name: "old.html",
+    kind: "redirect",
+    source: None,
+    target: Some("old.html"),
+  }
+  assert_true(
+    try {
+      query_references(
+        { ..graph, routes: [..graph.routes, redirect], },
+        "a.html",
+      )
+      |> ignore
+      false
+    } catch {
+      _ => true
+    },
+  )
+}
