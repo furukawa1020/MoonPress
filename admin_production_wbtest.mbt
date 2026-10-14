@@ -1,4 +1,16 @@
 ///|
+test "production build form requires review and escapes hidden values" {
+  assert_false(
+    admin_production_form("token").contains("action=\"/build-production\""),
+  )
+  let form = admin_production_form("<token>", review_id="\"<review>")
+  assert_true(
+    form.contains("name=\"review_id\" value=\"&quot;&lt;review&gt;\""),
+  )
+  assert_true(form.contains("&lt;token&gt;"))
+}
+
+///|
 test "production plan escapes untrusted event fields" {
   let report : BuildReport = {
     pages: 1,

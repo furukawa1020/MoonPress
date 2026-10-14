@@ -225,10 +225,13 @@ fn admin_route(
       return (200, admin_plan_production(input, token))
     }
     if request.target == "/build-production" {
-      if fields.length() != 1 {
+      if fields.length() != 2 {
         raise InvalidInput("Invalid production build fields")
       }
-      return (200, admin_build_production(input, token))
+      return (
+        200,
+        admin_build_production(input, token, admin_field(fields, "review_id")),
+      )
     }
     if request.target == "/build-preview" {
       if fields.length() != 1 {
@@ -419,6 +422,11 @@ fn admin_route(
           escape_html(error.to_string()) +
           "</p>" +
           recovery +
+          (if request.target == "/build-production" {
+            admin_production_plan_form(token)
+          } else {
+            ""
+          }) +
           "<p><a href=\"/\">Return to posts</a></p>",
         ),
       )

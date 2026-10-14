@@ -321,11 +321,20 @@ grep -Fq 'No matching posts' "$tmp/page"
 rm "$tmp/site/content/search-error.md"
 # Build production files separately, excluding drafts and protecting existing output.
 production="$tmp/site/.moonpress-build"
-build_production() { post /build-production --data-urlencode "token=$token"; }
-plan_production() { post /plan-production --data-urlencode "token=$token"; }
+build_production() { post /build-production --data-urlencode "token=$token" --data-urlencode "review_id=$(cat "$tmp/review-id")"; }
+plan_production() {
+  local code
+  code="$(post /plan-production --data-urlencode "token=$token")"
+  if [[ "$code" = 200 ]]; then
+    sed -n 's/.*name="review_id" value="\([a-f0-9]*\)".*/\1/p' "$tmp/page" > "$tmp/review-id"
+    test "$(wc -c < "$tmp/review-id")" = 65
+  fi
+  printf '%s' "$code"
+}
 cp -a "$tmp/site" "$tmp/before-production"
 test "$(get /)" = 200
-grep -Fq 'Build production files' "$tmp/page"
+grep -Fq 'Inspect production changes first' "$tmp/page"
+! grep -Fq 'action="/build-production"' "$tmp/page"
 grep -Fq 'Inspect production changes' "$tmp/page"
 test "$(post /plan-production --data-urlencode token=wrong)" = 400
 test "$(post /plan-production --data-urlencode "token=$token" --data-urlencode output=dist)" = 400
@@ -335,6 +344,8 @@ grep -Fq 'No files written or deployment performed' "$tmp/page"
 test ! -e "$production"
 diff -r "$tmp/before-production" "$tmp/site"
 test "$(post /build-production --data-urlencode token=wrong)" = 400
+test "$(post /build-production --data-urlencode "token=$token")" = 400
+test "$(post /build-production --data-urlencode "token=$token" --data-urlencode review_id=bad)" = 400
 test "$(post /build-production --data-urlencode "token=$token" --data-urlencode output=dist)" = 400
 test ! -e "$production"
 ln -s "$tmp/site/dist" "$production"
@@ -366,6 +377,8 @@ test ! -e "$production/production-draft.html"
 "$cli" build "$tmp/site" "$tmp/clean-production" >/dev/null
 diff -r "$tmp/clean-production" "$production"
 rm "$tmp/site/content/production-draft.md"
+test "$(build_production)" = 400
+test "$(plan_production)" = 200
 test "$(build_production)" = 200
 grep -Fq 'written: 0;' "$tmp/page"
 cp -a "$tmp/site" "$tmp/before-noop-plan"
@@ -391,6 +404,14 @@ grep -Fq 'Replace changed output bytes' "$tmp/page"
 grep -Fq 'Drafts excluded from production' "$tmp/page"
 grep -Fq 'content/batch02.md' "$tmp/page"
 while IFS= read -r digest; do grep -Fq "$digest" "$tmp/page"; done < <(jq -r '.report.outputs[] | select(.action!="keep") | .old_digest,.new_digest,(.dependencies[]|.old_digest,.new_digest) | select(.!=null)' "$tmp/rich-plan")
+diff -r "$tmp/output-before-rich-review" "$production"
+# A source change after inspection must reject this reviewed form without writes.
+printf '\nAfter inspection\n' >> "$tmp/site/content/first.md"
+test "$(build_production)" = 400
+grep -Fq 'Reviewed build plan changed' "$tmp/page"
+grep -Fq 'action="/plan-production"' "$tmp/page"
+diff -r "$tmp/output-before-rich-review" "$production"
+test "$(build_production)" = 400
 diff -r "$tmp/output-before-rich-review" "$production"
 cp "$tmp/before-rich-review/layout.html" "$tmp/site/layout.html"
 cp "$tmp/before-rich-review/style.css" "$tmp/site/style.css"
