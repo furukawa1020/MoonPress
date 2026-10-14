@@ -86,3 +86,28 @@ Use `plan`/`review` for the actual writes and `deps`/`impact` for rebuild edges.
 origin is not a redirect or whose target/fragment contradicts route metadata,
 and refuses Markdown/template consumption attributed to redirect output.
 Structural checks are not source provenance authentication.
+
+## Site-wide counts (native API)
+
+`summarize_references(graph)` validates a public `ReferenceGraph` and returns a
+`ReferenceSummary`. `inspect_reference_summary(input, include_drafts~)` compiles
+the saved site once and returns the same report without writing files.
+
+Every output route appears, sorted by decoded filename, including assets,
+archives, redirects and markers with zero edges. Exact duplicate evidence is
+counted once. Each row contains:
+
+- `incoming`: authored edges targeting this output, including self references.
+- `outgoing`: authored edges consumed by this output, including self references.
+- `self_references`: edges whose consumer and target are this same output.
+- `referring_outputs`: distinct **other** output filenames referring here.
+
+Two URLs/fragments from one page count as two edges but one referring output.
+A selected template can contribute edges for several consuming outputs.
+Redirects contribute their own resolved terminal edge. Counts describe this
+graph and draft scope, not unique people, external traffic, reachability from
+the home page or deployment status. Zero other referrers does not prove that
+an output is unused or safe to delete.
+
+The summary validates graph structure through the same boundary as backlinks;
+it does not authenticate caller-provided graphs or discover omitted evidence.
