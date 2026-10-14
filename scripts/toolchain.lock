@@ -1,0 +1,6 @@
+# Official Linux x86_64 archives. Changes require an explicit tested PR.
+toolchain_version='0.10.14%2B7d59c7ec9'
+toolchain_compiler='v0.10.14+7d59c7ec9'
+toolchain_moon='0.1.20260920'
+toolchain_binary_sha='9226694de9ff978db1ecf820b7710c4224e84ec7a76b19a222d96f0cd4e31b6a'
+toolchain_core_sha='6f18b8fdea18f85e628a75e4a1bd3977c5a5c9c6a836fd8824192b0e6bd91b14'
