@@ -1,5 +1,6 @@
 ///|
 priv struct PageReferences {
+  source : String
   output : String
   links : Array[String]
   images : Array[String]
@@ -67,7 +68,12 @@ fn plan_site(
       let blocks = parse_blocks(document.body)
       let outline = block_headings(blocks)
       let (links, images) = block_references(blocks)
-      references.push({ output: route, links, images, })
+      references.push({
+        source: "content/" + name,
+        output: route,
+        links,
+        images,
+      })
       heading_targets[url_component(route)] = index_heading_ids(outline)
       let deps : Array[Dependency] = [
         { name: "compiler", digest: compiler_digest, },
@@ -337,6 +343,62 @@ fn plan_site(
   validate_layouts(
     layouts, page_layouts, routes, route_lookup, heading_targets, base_path,
   )
+  let reference_edges : Array[ReferenceEdge] = []
+  let reference_routes : Map[String, String] = Map([])
+  for route in routes {
+    reference_routes[url_component(route)] = route
+  }
+  for page in references {
+    append_reference_edges(
+      reference_edges,
+      page.links,
+      page.source,
+      page.output,
+      "markdown-link",
+      reference_routes,
+      base_path,
+    )
+    append_reference_edges(
+      reference_edges,
+      page.images,
+      page.source,
+      page.output,
+      "markdown-image",
+      reference_routes,
+      base_path,
+    )
+  }
+  // Only actual template consumers: redirect HTML does not use a layout.
+  for route, template in page_layouts {
+    append_reference_edges(
+      reference_edges,
+      template.links,
+      template.source,
+      route,
+      "template-href",
+      reference_routes,
+      base_path,
+    )
+    append_reference_edges(
+      reference_edges,
+      template.images,
+      template.source,
+      route,
+      "template-src",
+      reference_routes,
+      base_path,
+    )
+  }
+  for redirect in redirects {
+    reference_edges.push({
+      source: "site.json/redirects/" + redirect.name,
+      output: redirect.name,
+      kind: "redirect",
+      url: url_component(redirect.target),
+      target: redirect.target,
+      fragment: None,
+    })
+  }
   if base_url is Some(url) {
     route_info.push({
       name: "sitemap.xml",
@@ -396,6 +458,7 @@ fn plan_site(
   }
   {
     routes: route_info,
+    references: sorted_reference_edges(reference_edges),
     pending,
     removed,
     manifest: serialize_manifest(artifacts),

@@ -47,6 +47,7 @@ fn plan_artifact(
 ///|
 priv struct BuildPlan {
   routes : Array[RouteInfo]
+  references : Array[ReferenceEdge]
   pending : Array[Pending]
   removed : Array[String]
   manifest : String
