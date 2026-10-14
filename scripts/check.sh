@@ -17,6 +17,7 @@ bash scripts/duplicate-post-test.sh
 bash scripts/post-editor-test.sh
 bash scripts/post-status-test.sh
 bash scripts/admin-test.sh
+bash scripts/admin-references-test.sh
 bash scripts/local-config-test.sh
 bash scripts/incremental-test.sh
 bash scripts/routes-test.sh

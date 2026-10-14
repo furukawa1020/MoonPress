@@ -228,6 +228,24 @@ and upload/import actions remain available on each page. Empty results have one
 page; invalid or out-of-range page requests are rejected without changes.
 Pagination limits displayed assets, not the underlying read-only reference scan.
 
+## Inspect article references before changing its URL
+
+The editor's **Inspect saved article references** link opens a read-only report
+of incoming and outgoing authored links for that article's current output name,
+including a configured slug. Choose **Ready articles only** or **Include saved
+drafts**; ready unlisted pages remain included. Unsaved editor text is excluded.
+The shared compiler validates the selected site scope before reporting. A broken
+included source shows an explicit error and a return-to-editor link, never a
+false empty result. Excluded drafts have a scope-switch notice.
+
+Rows identify the source, consuming output, kind, original URL and target/fragment.
+Article sources link to the editor; templates/configuration remain plain text.
+Project HTML and arbitrary reference URLs are never served or opened on the admin
+origin. Counts describe deduplicated authored edges, not occurrence counts or
+all rendered links. Generated navigation, CSS and external URLs are excluded;
+zero incoming references does not certify deletion safety. See [reference
+scope](references.md). Inspection never changes article/output files.
+
 ## Understand production changes
 
 Inspect production changes uses the same typed native `DetailedBuildPlan` as
