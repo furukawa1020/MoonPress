@@ -80,17 +80,17 @@ fn admin_references(
       name[:name.length() - 3].to_owned(),
       filename=snapshot.source,
     )
-    let graph = inspect_references(input, include_drafts=scope == "all")
     if document.draft && scope == "ready" {
       return (
         200,
         admin_page(
           "Article references",
           nav +
-          "<p class=\"notice\">This draft is excluded from the ready-only graph. Choose Include saved drafts to inspect its references.</p>",
+          "<p class=\"notice\">This draft is excluded from the ready-only graph. Choose Include saved drafts to inspect its references. No graph validation was performed for this notice.</p>",
         ),
       )
     }
+    let graph = inspect_references(input, include_drafts=scope == "all")
     let output = document.slug.unwrap_or(name[:name.length() - 3].to_owned()) +
       ".html"
     let report = query_references(graph, output)

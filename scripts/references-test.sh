@@ -49,6 +49,12 @@ diff -r "$tmp/before" "$tmp/site"
 jq -S '[.report.routes[].name]|sort' "$tmp/graph" > "$tmp/routes"
 jq -S '[.artifacts[].name]|sort' "$tmp/out/.moonpress.json" > "$tmp/built"
 cmp "$tmp/routes" "$tmp/built"
+# A required output name is positional data, even if it starts with --.
+printf '%s\n' '---' '{"slug":"--draft","listed":false}' '---' '# Flag route' > "$tmp/site/content/flag.md"
+"$cli" backlinks "$tmp/site" --draft.html --json | jq -e '.report.route.name=="--draft.html"' >/dev/null
+reject 2 backlinks "$tmp/site" --draft.html --unknown
+reject 2 backlinks "$tmp/site" --draft.html --json --json
+rm "$tmp/site/content/flag.md"
 printf '\n[broken](missing.html)\n' >> "$tmp/site/content/index.md"
 reject 1 references "$tmp/site" --json
 grep -Fq 'broken internal link' "$tmp/stderr"

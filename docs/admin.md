@@ -238,6 +238,10 @@ The shared compiler validates the selected site scope before reporting. A broken
 included source shows an explicit error and a return-to-editor link, never a
 false empty result. Excluded drafts have a scope-switch notice.
 
+An excluded draft notice is shown before compiling the ready-only graph, even
+when the site has no ready articles. The notice explicitly does not validate a
+graph; choose the draft-inclusive view to run validation and inspect references.
+
 Rows identify the source, consuming output, kind, original URL and target/fragment.
 Article sources link to the editor; templates/configuration remain plain text.
 Project HTML and arbitrary reference URLs are never served or opened on the admin

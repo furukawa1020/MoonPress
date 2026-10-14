@@ -253,7 +253,11 @@ fn main {
     valid = false
   } else {
     for index = 2; index < required; index = index + 1 {
-      if args[index].has_prefix("--") || is_help(args[index]) {
+      if (
+          args[index].has_prefix("--") &&
+          !(command == "backlinks" && index == 3)
+        ) ||
+        is_help(args[index]) {
         valid = false
       }
     }
