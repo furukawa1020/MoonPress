@@ -8,8 +8,11 @@ compiler plan under the same shared output lock and ownership validation used by
 `outputs` gives each planned `write`, `keep` or `delete`, its actual first reason,
 optional old/new content digests and every added/changed/removed dependency.
 Output and dependency rows have deterministic name order. Unchanged outputs are
-included. A missing owned file may require `write` with equal old/new digests and
-no dependency changes: repairing missing output is distinct from source changes.
+included. Excluded draft sources remain `skip` events in `summary.changes` only;
+`outputs` contains generated output actions, never `content/*.md` source rows.
+Its row count equals written + skipped + deleted (skipped here means kept
+outputs, not excluded sources). A missing owned file may require `write` with
+equal old/new digests and no dependency changes: repairing missing output is distinct from source changes.
 
 New outputs have no old digest and removed outputs have no new digest. This
 plans current sources against the recorded output, not hypothetical future edits.

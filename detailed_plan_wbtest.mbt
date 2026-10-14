@@ -16,6 +16,7 @@ test "detailed plan preserves actual actions including missing output repair" {
     deleted: 1,
     events: [],
     changes: [
+      { action: "skip", path: "content/draft.md", reason: "draft", },
       { action: "write", path: "missing.html", reason: "output missing", },
       {
         action: "write",
@@ -46,6 +47,8 @@ test "detailed plan preserves actual actions including missing output repair" {
   let detail = describe_plan(plan, previous)
   assert_eq(detail.summary.written, 2)
   assert_eq(detail.outputs.length(), 4)
+  assert_eq(detail.summary.changes.length(), 5)
+  assert_true(detail.outputs.all(o => o.name != "content/draft.md"))
   let repair = detail.outputs.filter(o => o.name == "missing.html")[0]
   assert_eq(repair.action, "write")
   assert_eq(repair.reason, "output missing")
@@ -56,5 +59,5 @@ test "detailed plan preserves actual actions including missing output repair" {
   let gone = detail.outputs.filter(o => o.name == "gone.html")[0]
   assert_eq(gone.new_digest, None)
   assert_eq(gone.dependencies[0].action, "removed")
-  assert_eq(plan.report.changes[0].path, "missing.html")
+  assert_eq(plan.report.changes[0].path, "content/draft.md")
 }
