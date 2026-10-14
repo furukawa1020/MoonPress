@@ -54,13 +54,15 @@ fn admin_production_changes(report : BuildReport) -> String {
 ///|
 fn admin_plan_production(input : String, token : String) -> String raise {
   let output = admin_production_output(input)
-  let report = compile_site(input, output, dry_run=true)
+  let plan = inspect_build_plan(input, output)
+  let report = plan.summary
   admin_page(
     "Production changes inspected",
     "<p>Read-only inspection; drafts excluded. No files written or deployment performed.</p><p>Pages: \{report.pages}; would write: \{report.written}; unchanged: \{report.skipped}; would delete: \{report.deleted}.</p><p>Planned output: <code>" +
     escape_html(output) +
     "</code>. This is an observation of current files, not an approval or reservation. Building revalidates sources and output, so later changes can alter the result.</p>" +
     admin_production_changes(report) +
+    admin_dependency_review(plan) +
     admin_production_plan_form(token) +
     admin_production_form(token),
   )

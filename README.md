@@ -77,6 +77,17 @@ per-file incremental dependencies. JSON frontmatter with draft exclusion,
 per-page named layouts, configured static redirects, publication dates, chronological article/tag lists, sitemap and preflight link checks are supported; see [content model](docs/content.md).
 This is not a CommonMark implementation.
 
+## What the native compiler gives you
+
+MoonPress uses one MoonBit planner for CLI checks, incremental builds and the
+browser's production review. Before writing files, see every changed dependency
+for each affected output, distinguish new/deleted/restored files from unchanged
+bytes, and keep draft exclusions visible. Existing edited or foreign generated
+files are refused. Review is read-only; a later build revalidates the current
+state. This makes the native compiler's decisions inspectable without a second
+JavaScript implementation. The manifest is an integrity record, not a signature,
+and publication recovery has the [documented limits](docs/publication.md).
+
 ## Development
 
 Start with [the contribution guide](CONTRIBUTING.md) for setup, architecture,

@@ -225,3 +225,20 @@ and type filters; submitting a new search resets to page 1. Source diagnostics
 and upload/import actions remain available on each page. Empty results have one
 page; invalid or out-of-range page requests are rejected without changes.
 Pagination limits displayed assets, not the underlying read-only reference scan.
+
+## Understand production changes
+
+Inspect production changes uses the same typed native `DetailedBuildPlan` as
+`moonpress plan`, under the same ownership validation and shared output lock.
+It shows every added/changed/removed dependency per affected output, rather
+than only the first rebuild reason. For example, editing an article and its
+layout together reports both dependencies. Kept outputs remain in the summary;
+excluded draft source rows have a separate list.
+
+Each affected output says whether it is new, removed, changed in bytes,
+recomputed with identical bytes or restored after going missing. Full observed
+SHA-256 values are available in collapsed details. These are integrity/diff
+observations, not signatures. Review writes no source/output files and does not
+reserve an approved snapshot: Build production files revalidates current state.
+CLI and HTML review use one native MoonBit planner, not a separate browser
+implementation or JavaScript dependency model.

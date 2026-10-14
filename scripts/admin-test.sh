@@ -372,6 +372,41 @@ cp -a "$tmp/site" "$tmp/before-noop-plan"
 test "$(plan_production)" = 200
 grep -Fq 'would write: 0;' "$tmp/page"
 diff -r "$tmp/before-noop-plan" "$tmp/site"
+# The HTML review exposes the same complete deltas as the native CLI planner.
+cp -a "$tmp/site" "$tmp/before-rich-review"
+cp -a "$production" "$tmp/output-before-rich-review"
+printf '\n<!-- reviewed layout -->\n' >> "$tmp/site/layout.html"
+printf '\nbody { color: navy; }\n' >> "$tmp/site/style.css"
+printf '\nReviewed source text\n' >> "$tmp/site/content/first.md"
+rm "$tmp/site/content/batch01.md"
+"$cli" plan "$tmp/site" "$production" --json > "$tmp/rich-plan"
+test "$(plan_production)" = 200
+grep -Fq 'Why these outputs change' "$tmp/page"
+grep -Fq 'Dependency changes for first.html' "$tmp/page"
+grep -Fq '<code>content/first.md</code></td><td>changed' "$tmp/page"
+grep -Fq '<code>layout.html</code></td><td>changed' "$tmp/page"
+grep -Fq '<code>style.css</code></td><td>changed' "$tmp/page"
+grep -Fq 'Remove generated output' "$tmp/page"
+grep -Fq 'Replace changed output bytes' "$tmp/page"
+grep -Fq 'Drafts excluded from production' "$tmp/page"
+grep -Fq 'content/batch02.md' "$tmp/page"
+while IFS= read -r digest; do grep -Fq "$digest" "$tmp/page"; done < <(jq -r '.report.outputs[] | select(.action!="keep") | .old_digest,.new_digest,(.dependencies[]|.old_digest,.new_digest) | select(.!=null)' "$tmp/rich-plan")
+diff -r "$tmp/output-before-rich-review" "$production"
+cp "$tmp/before-rich-review/layout.html" "$tmp/site/layout.html"
+cp "$tmp/before-rich-review/style.css" "$tmp/site/style.css"
+cp "$tmp/before-rich-review/content/first.md" "$tmp/site/content/first.md"
+cp "$tmp/before-rich-review/content/batch01.md" "$tmp/site/content/batch01.md"
+diff -r "$tmp/before-rich-review" "$tmp/site"
+# Missing owned bytes are restoration, not a changed dependency.
+rm "$production/style.css"
+cp -a "$production" "$tmp/missing-review"
+test "$(plan_production)" = 200
+grep -Fq 'Restore missing output' "$tmp/page"
+grep -Fq 'No dependency changes' "$tmp/page"
+diff -r "$tmp/missing-review" "$production"
+cp "$tmp/output-before-rich-review/style.css" "$production/style.css"
+test "$(plan_production)" = 200
+grep -Fq 'No generated output needs writing or removal' "$tmp/page"
 printf 'manual production edit' > "$production/index.html"
 cp -a "$production" "$tmp/edited-production"
 test "$(plan_production)" = 400
