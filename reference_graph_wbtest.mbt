@@ -35,6 +35,10 @@ test "reference edges resolve encoded names self links queries and opaque asset 
 test "reference graph filesystem probe" {
   if @env.get_env_var("MOONPRESS_REFERENCE_PROBE") is Some(input) {
     let graph = inspect_references(input)
+    let incoming = inspect_backlinks(input, "月.html")
+    assert_true(incoming.incoming.any(e => e.source == "content/index.md"))
+    assert_true(incoming.incoming.any(e => e.kind == "redirect"))
+    assert_true(incoming.outgoing.any(e => e.kind == "template-src"))
     assert_eq(graph.pages, 2)
     assert_false(graph.references.any(e => e.source == "content/draft.md"))
     assert_true(

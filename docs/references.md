@@ -32,3 +32,14 @@ does not prove that an output or asset is safe to delete.
 
 Inspection performs no source/output writes and creates no output directory.
 It describes observed source state, not a saved approval or deployment record.
+
+## Incoming and outgoing references
+
+`query_references(graph, output_name)` returns `RouteReferences` with route
+metadata, draft scope, deduplicated incoming/outgoing edges and the scope note.
+Self references appear in both directions. `inspect_backlinks(site, output_name,
+include_drafts=false)` compiles one graph then queries it. Names are exact
+decoded output filenames (for example `月.html`), not source paths or URL strings.
+Unknown names are errors, while a known route with no incoming edges returns an
+empty incoming array. Queries validate graph structure and preserve caller data;
+they do not certify the provenance of externally constructed graph objects.

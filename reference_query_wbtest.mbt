@@ -1,0 +1,85 @@
+///|
+fn query_fixture() -> ReferenceGraph {
+  let a : ReferenceEdge = {
+    source: "content/a.md",
+    output: "a.html",
+    kind: "markdown-link",
+    url: "月.html#mp-title",
+    target: "月.html",
+    fragment: Some("mp-title"),
+  }
+  let self : ReferenceEdge = {
+    ..a,
+    output: "月.html",
+    source: "content/b.md",
+    url: "#mp-title",
+  }
+  {
+    pages: 2,
+    include_drafts: true,
+    routes: [
+      {
+        name: "月.html",
+        kind: "page",
+        source: Some("content/b.md"),
+        target: None,
+      },
+      {
+        name: "a.html",
+        kind: "page",
+        source: Some("content/a.md"),
+        target: None,
+      },
+    ],
+    references: [self, a, a],
+    scope: reference_scope(),
+  }
+}
+
+///|
+test "reference query deduplicates both directions and preserves input" {
+  let graph = query_fixture()
+  let report = query_references(graph, "月.html")
+  assert_eq(report.incoming.length(), 2)
+  assert_eq(report.outgoing.length(), 1)
+  assert_eq(report.route.source, Some("content/b.md"))
+  assert_true(report.include_drafts)
+  assert_eq(graph.references.length(), 3)
+  assert_eq(graph.references[0].source, "content/b.md")
+  assert_eq(query_references(graph, "a.html").incoming.length(), 0)
+}
+
+///|
+test "reference query refuses unknown encoded names and malformed graphs" {
+  let graph = query_fixture()
+  for
+    name in [
+      "", "../a.html", "missing.html", "%E6%9C%88.html", "月.html#mp-title",
+    ] {
+    let failed = try {
+      query_references(graph, name) |> ignore
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(failed)
+  }
+  for
+    invalid in [
+      { ..graph, pages: -1, },
+      { ..graph, routes: [graph.routes[0], graph.routes[0]], },
+      {
+        ..graph,
+        references: [{ ..graph.references[0], target: "missing.html", }],
+      },
+      { ..graph, references: [{ ..graph.references[0], kind: "unknown", }], },
+    ] {
+    let failed = try {
+      query_references(invalid, "月.html") |> ignore
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(failed)
+  }
+}
