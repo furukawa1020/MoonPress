@@ -20,6 +20,8 @@ pub fn compare_manifest_files(String, String) -> ManifestDiff raise
 
 pub fn compare_manifests(String, String) -> ManifestDiff raise
 
+pub fn compile_reviewed_site(String, String, String, include_drafts? : Bool) -> BuildReport raise
+
 pub fn compile_site(String, String, dry_run? : Bool, include_drafts? : Bool) -> BuildReport raise
 
 pub fn dependency_changes(Array[Dependency], Array[Dependency]) -> Array[DependencyChange] raise
