@@ -100,6 +100,8 @@ pub fn render_toc(String) -> String
 
 pub fn resolve_redirects(Array[Redirect], Array[String]) -> Array[Redirect] raise
 
+pub fn review_build_plan(String, String, include_drafts? : Bool) -> ReviewedBuildPlan raise
+
 pub fn safe_output_name(String) -> Bool
 
 pub fn save_post(String, String, String, String) -> SavePostReport raise
@@ -404,6 +406,13 @@ pub(all) struct Redirect {
 pub fn Redirect::equal(Self, Self) -> Bool
 pub fn Redirect::not_equal(Self, Self) -> Bool
 pub fn Redirect::to_json(Self) -> Json
+
+pub(all) struct ReviewedBuildPlan {
+  schema : Int
+  review_id : String
+  plan : DetailedBuildPlan
+} derive(ToJson)
+pub fn ReviewedBuildPlan::to_json(Self) -> Json
 
 pub(all) struct RouteInfo {
   name : String
