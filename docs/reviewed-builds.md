@@ -19,7 +19,9 @@ reads does not establish human review. The ID is neither a secret nor authority.
 ## What is compared
 
 `review_build_plan(input, output, include_drafts=false)` returns
-`ReviewedBuildPlan {schema: 1, review_id, plan}`. `plan` is the complete
+`ReviewedBuildPlan` with schema 2, `review_id`, `plan`,
+`previous_manifest_digest` (nullable), `next_manifest_digest` and
+`manifest_changed`. `plan` is the complete
 `DetailedBuildPlan` used by the browser and existing `plan` command. The CLI wraps
 it in the existing schema-1 envelope, with command `review` and draft mode.
 
@@ -27,6 +29,7 @@ The review ID is SHA-256 over a versioned, ordered JSON encoding of:
 
 - Exact input and output path spellings and draft mode.
 - The complete next manifest, including unchanged artifact dependencies.
+- The exact prior manifest text, including whitespace, or its absence.
 - The detailed plan: summary/exclusion events, actions, old/new output digests
   and every dependency delta.
 
@@ -42,6 +45,13 @@ than rerunning a build that could compute something different. JSON success for
 `build-reviewed` contains the ordinary `BuildReport`; it equals the reviewed
 plan's summary. CLI operation errors exit 1 with empty stdout and stderr detail;
 incorrect arguments exit 2. Each optional flag may appear once in either order.
+
+Ownership marker writes are separate from the generated-output counts. Review
+reports show `manifest_changed` and before/after digests; the browser displays
+this explicitly. A valid reformatted marker is preserved by a stale attempt.
+After reinspection, an accepted build can canonicalize it even if generated
+output counts are all zero. Review schema 2 and identity domain
+`moonpress-review-2` replace schema 1: obtain a fresh review after upgrading.
 
 ## Changes that require another review
 

@@ -27,6 +27,18 @@ id="$(review)"; apply "$id"
 id="$(review)"
 apply "$id"; apply "$id"
 jq -e '.report.written==0 and .report.deleted==0' "$tmp/build" >/dev/null
+# Raw marker changes must not be hidden by JSON parsing/canonicalization.
+cp "$out/.moonpress.json" "$tmp/canonical-marker"
+jq -S . "$out/.moonpress.json" > "$tmp/reformatted-marker"
+cp "$tmp/reformatted-marker" "$out/.moonpress.json"
+reject build-reviewed "$tmp/site" "$out" "$id"
+cmp "$tmp/reformatted-marker" "$out/.moonpress.json"
+new_id="$(review)"
+test "$id" != "$new_id"
+jq -e '.report.manifest_changed and .report.previous_manifest_digest!=.report.next_manifest_digest' "$tmp/review" >/dev/null
+apply "$new_id"
+cmp "$tmp/canonical-marker" "$out/.moonpress.json"
+id="$(review)"
 # Same HTML bytes, changed source dependency: old review must fail.
 printf '%s\n' '---' '{"listed":true}' '---' '# Home' '' 'Body' > "$tmp/site/content/index.md"
 cp -a "$out" "$tmp/before"

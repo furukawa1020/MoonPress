@@ -34,6 +34,7 @@ pub fn check_site(
 ///|
 priv struct OutputPlan {
   previous : Map[String, Artifact]
+  previous_manifest : String?
   plan : BuildPlan
 }
 
@@ -53,7 +54,8 @@ fn plan_output(
   output : String,
   include_drafts? : Bool = false,
 ) -> OutputPlan raise {
-  let previous = load_previous(output)
+  let state = load_previous_state(output)
+  let previous = state.artifacts
   let plan = plan_site(input, previous, Some(output), include_drafts~)
-  { previous, plan, }
+  { previous, previous_manifest: state.manifest, plan, }
 }

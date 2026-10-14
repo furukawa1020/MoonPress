@@ -12,13 +12,14 @@ cp -a "$tmp/site" "$tmp/before"
 cmp "$tmp/review" "$tmp/repeat"
 diff -r "$tmp/site" "$tmp/before"
 test ! -e "$tmp/out"
-jq -e '.schema==1 and .command=="review" and .report.schema==1 and (.report.review_id|test("^[a-f0-9]{64}$"))' "$tmp/review" >/dev/null
+jq -e '.schema==1 and .command=="review" and .report.schema==2 and .report.manifest_changed and .report.previous_manifest_digest==null and (.report.review_id|test("^[a-f0-9]{64}$"))' "$tmp/review" >/dev/null
 id="$(jq -r '.report.review_id' "$tmp/review")"
 "$cli" review "$tmp/site" "$tmp/out" | grep -Fq "Review ID: $id"
 "$cli" --help | grep -Fq 'build-reviewed'
 for command in review build-reviewed; do
   "$cli" "$command" --help | grep -Fq "Usage: moonpress $command"
   reject 2 "$command"
+  grep -Fq "Usage: moonpress $command <site-directory>" "$tmp/stderr"
   reject 2 "$command" "$tmp/site"
 done
 reject 2 review "$tmp/site" "$tmp/out" --json --json
