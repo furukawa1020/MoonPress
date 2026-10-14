@@ -16,3 +16,5 @@
 記事のURLを変更する前には、編集画面の **Inspect saved article references** で参照元と参照先を確認できます。必要なら **Include saved drafts** で下書きも含めます。記事の参照元は編集画面へ戻るリンクになっています。CSS・外部URL・自動生成された一覧リンクなどは対象外なので、参照ゼロは削除してよいという保証ではありません。リンク切れのある範囲はエラーとして表示されます。[参照範囲の詳細](references.md)。
 
 MoonPressの実装はMoonBitのnative実行ファイルと薄いC境界です。管理画面はHTMLフォームで操作でき、JS/TS/Nodeは不要です。編集・CLI・管理画面で共通の型と検証を使い、元ファイルの依存関係から変更理由を追跡します。MoonBitだけに可能な機能という主張や、他製品より速いという未測定の主張はしません。
+
+全体から調べる場合は、管理画面の **Output references** または `moonpress reference-summary site` を使います。画像・アーカイブ・リダイレクトも含む出力一覧から、参照の根拠を開けます。Incoming / Outgoing は自己参照を含む辺の数、Self は自己参照、Other referring outputs は自分以外の参照元出力の数です。同じ記事から2種類のURLでリンクされても参照元は1件です。下書きを含める範囲は明示的に切り替えてください。

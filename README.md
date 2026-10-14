@@ -55,6 +55,11 @@ Templates are trusted project files; Markdown content and titles are escaped.
 Use `moonpress routes site [--json]` to inspect every generated output, its
 kind/source and terminal redirect target without publishing. See [routes](docs/routes.md).
 
+Use `moonpress reference-summary site` for counts across every output, including
+assets and redirects. The browser **Output references** screen provides the same
+overview with links to detailed evidence. Self references and distinct other
+referring outputs are counted separately; zero counts never prove deletion safety.
+
 Before changing an article URL, use `moonpress backlinks site guide.html`
 to see which articles and selected layouts reference it, and what it references.
 `moonpress references site --json` exposes the authored local graph shared by
