@@ -7,6 +7,7 @@ priv enum Block {
   UnorderedList(Array[String])
   OrderedList(String, Array[String])
   Quote(Array[String])
+  Table(TableData)
 }
 
 ///|
@@ -100,8 +101,23 @@ fn parse_blocks(source : String) -> Array[Block] {
   let mut fence : (String, Int)? = None
   let mut language : String? = None
   let mut code = StringBuilder()
+  let mut table : TableData? = None
   for raw in source.split("\n") {
     let line = raw.to_owned().trim_end(chars="\r").to_owned()
+    if table is Some(current) {
+      if opens_fence(line) is None &&
+        heading_level(line) == 0 &&
+        group_line(line).0 == 0 &&
+        !is_thematic_break(line) {
+        if table_row(line) is Some(row) &&
+          row.length() == current.header.length() {
+          current.rows.push(row)
+          continue
+        }
+      }
+      blocks.push(Table(current))
+      table = None
+    }
     if fence is Some((marker, length)) {
       if closes_fence(line, marker, length) {
         blocks.push(CodeBlock(code.to_string(), language))
@@ -118,6 +134,13 @@ fn parse_blocks(source : String) -> Array[Block] {
       fence = Some(opening)
       language = fence_language(line, opening.1)
     } else {
+      if kind == 0 && lines.length() == 1 {
+        if table_start(lines[0], line) is Some(current) {
+          table = Some(current)
+          lines = []
+          continue
+        }
+      }
       let underline = setext_level(line)
       if underline > 0 && kind == 0 && lines.length() == 1 {
         blocks.push(Heading(underline, lines[0].trim(chars=" \t").to_owned()))
@@ -150,6 +173,9 @@ fn parse_blocks(source : String) -> Array[Block] {
       }
     }
   }
+  if table is Some(current) {
+    blocks.push(Table(current))
+  }
   if !lines.is_empty() {
     blocks.push(group_block(kind, start, lines))
   }
@@ -163,6 +189,7 @@ fn parse_blocks(source : String) -> Array[Block] {
 fn inline_lines(block : Block) -> Array[String] {
   match block {
     Heading(_, text) => [text]
+    Table(table) => table_inline_lines(table)
     UnorderedList(lines) => lines.map(task_text)
     Paragraph(lines) | Quote(lines) => flow_text(lines)
     OrderedList(_, lines) => lines
@@ -207,6 +234,7 @@ fn render_blocks_with_headings(
         out.write_string(
           "<blockquote>\n<p>" + render_flow(lines) + "</p>\n</blockquote>\n",
         )
+      Table(table) => out.write_string(render_table(table))
       ThematicBreak => out.write_string("<hr>\n")
       CodeBlock(code, language) => {
         let attribute = match language {

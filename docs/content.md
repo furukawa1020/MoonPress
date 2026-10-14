@@ -731,3 +731,26 @@ unique IDs and reference checks. The first visible H1 supplies the title unless
 metadata overrides it. Code never creates headings. This is an explicit
 subset, not full CommonMark Setext behavior. Renderer v21 refreshes source pages;
 changed inferred titles also update metadata-dependent collections/feeds.
+
+### Flat pipe tables
+
+A standalone single-line pipe header followed by a delimiter row with the same
+number of cells starts a table. Every delimiter cell contains at least three
+contiguous hyphens with at most one colon on each edge. `:---`, `:---:` and
+`---:` select fixed left, center and right alignment; `---` leaves default
+alignment. Header, delimiter and body rows each require an unescaped pipe outside
+closed inline code; optional edge pipes and surrounding ASCII spaces/tabs work.
+
+Body rows must have exactly the header width. Missing/extra-cell rows terminate
+the table and are processed by normal block rules, preserving content rather
+than padding/truncating cells. Blank lines, fences, headings, lists and quotes
+also terminate it; use edge pipes when a cell begins with a block marker. Tables
+require a standalone header (blank line before it after ordinary paragraphs) and
+do not parse inside quotes/lists. Nested tables and captions are unsupported.
+
+Escaped pipes (`\|`) and pipes inside closed backtick code spans stay in a cell.
+Unclosed backticks do not shield pipes. Cells share inline rendering, escaping
+and link/image preflight, including generated-heading links; cell text cannot
+create block headings/TOC entries. HTML uses `thead`, `tbody`, column-scope `th`
+and fixed alignment styles. No raw HTML or scripts are evaluated. Renderer v22
+refreshes source-page caches; body-only table edits remain scoped to their page.
