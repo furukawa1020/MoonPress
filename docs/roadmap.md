@@ -16,6 +16,7 @@ CommonMark compatibility or superiority to other site generators.
 - Deterministic clean/incremental output, explain/check modes and versioned JSON reports.
 - Read-only output integrity audit, compiled direct dependency graphs and exact-key impact queries with explicit unknowns.
 - Validated snapshot comparison and detailed protected build plans with complete dependency deltas.
+- Reviewed plan identities and locked build enforcement, shared by native CLI and browser production forms.
 - Output filename byte limits, strict manifest/journal field validation and source file-kind checks.
 - Staged preparation, per-file replacement and caught-error rollback; explicit recovery of journaled interruptions.
 - Cooperative build/explain/plan/recover locking on local Linux filesystems, including new outputs.

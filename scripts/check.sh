@@ -65,6 +65,7 @@ bash scripts/output-audit-test.sh
 bash scripts/build-plan-test.sh
 bash scripts/reviewed-api-test.sh
 bash scripts/reviewed-cli-test.sh
+bash scripts/reviewed-transitions-test.sh
 bash scripts/manifest-diff-test.sh
 bash scripts/dependencies-test.sh
 bash scripts/dependency-impact-test.sh
