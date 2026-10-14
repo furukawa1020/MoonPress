@@ -31,13 +31,15 @@ fn feed_dependencies(
   config : FeedConfig,
   pages : Array[Page],
 ) -> Array[Dependency] {
+  let settings = [base_url, config.title, config.description]
+  if config.limit is Some(limit) {
+    settings.push("limit:\{limit}")
+  }
   let deps : Array[Dependency] = [
     { name: "feed-renderer", digest: digest_text("rss-v1"), },
     {
       name: "site.json/feed",
-      digest: digest_text(
-        [base_url, config.title, config.description].to_json().stringify(),
-      ),
+      digest: digest_text(settings.to_json().stringify()),
     },
     {
       name: "members",
@@ -92,4 +94,15 @@ fn render_feed(
   }
   out.write_string("</channel></rss>\n")
   out.to_string()
+}
+
+///|
+fn selected_feed_pages(pages : Array[Page], limit : Int?) -> Array[Page] {
+  guard limit is Some(size) else { return pages.copy() }
+  let ordered = chronological_pages(pages)
+  let result : Array[Page] = []
+  for index = 0; index < ordered.length() && index < size; index = index + 1 {
+    result.push(ordered[index])
+  }
+  result
 }

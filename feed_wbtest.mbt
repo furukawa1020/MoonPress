@@ -30,6 +30,7 @@ test "RSS plain summaries use two escaping layers and stable absolute IDs" {
     ),
   }
   let feed : FeedConfig = {
+    limit: None,
     title: "News & 月",
     description: "Updates <here>",
   }
