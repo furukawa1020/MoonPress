@@ -41,7 +41,7 @@ fn plan_site(
   let heading_targets : Map[String, Map[String, Bool]] = Map([])
   let mut pages = 0
   let layout_digest = collection_template.digest
-  let compiler_digest = digest_text("moonpress-renderer-v17")
+  let compiler_digest = page_renderer_digest()
   for name in names {
     let path = input + "/content/" + name
     require_input_kind(path, 1)

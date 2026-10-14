@@ -157,10 +157,8 @@ fn parse_blocks(source : String) -> Array[Block] {
 fn inline_lines(block : Block) -> Array[String] {
   match block {
     Heading(_, text) => [text]
-    Paragraph(lines)
-    | UnorderedList(lines)
-    | OrderedList(_, lines)
-    | Quote(lines) => lines
+    UnorderedList(lines) => lines.map(task_text)
+    Paragraph(lines) | OrderedList(_, lines) | Quote(lines) => lines
     CodeBlock(_, _) | ThematicBreak => []
   }
 }
@@ -193,7 +191,7 @@ fn render_blocks_with_headings(
       Paragraph(lines) =>
         out.write_string("<p>" + lines.map(render_inline).join("\n") + "</p>\n")
       UnorderedList(items) =>
-        out.write_string("<ul>\n" + render_items(items) + "</ul>\n")
+        out.write_string("<ul>\n" + render_unordered_items(items) + "</ul>\n")
       OrderedList(start, items) => {
         let attr = if start == "1" { "" } else { " start=\"" + start + "\"" }
         out.write_string("<ol" + attr + ">\n" + render_items(items) + "</ol>\n")
