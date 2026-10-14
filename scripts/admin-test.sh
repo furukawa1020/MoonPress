@@ -31,6 +31,30 @@ test "$(get /)" = 200
 grep -Fq 'New draft' "$tmp/page"
 token="$(sed -n 's/.*name="token" value="\([a-f0-9]*\)".*/\1/p' "$tmp/page")"
 test "${#token}" = 64
+# Guided authoring is read-only, even with malformed sources and absent templates.
+cp -a "$tmp/site" "$tmp/before-workflow"
+test "$(get /workflow)" = 200
+grep -Fq '2 ready for build; 0 drafts; 0 needing repair' "$tmp/page"
+for step in '1. Write and save' '2. Preview your saved drafts' '3. Choose what goes live' '4. Review before building' '5. Create production files' '6. Publish and verify'; do
+  grep -Fq "$step" "$tmp/page"
+done
+grep -Fq 'action="/plan-production"' "$tmp/page"
+grep -Fq 'href="/#new-draft"' "$tmp/page"
+diff -r "$tmp/before-workflow" "$tmp/site"
+"$cli" new "$tmp/site" workflow-draft 'Private draft' >/dev/null
+printf '%s\n' '---' '{"<script>":true}' '---' > "$tmp/site/content/workflow-bad.md"
+mv "$tmp/site/layout.html" "$tmp/site/layout.saved"
+cp -a "$tmp/site" "$tmp/workflow-broken"
+test "$(get /workflow)" = 200
+grep -Fq '2 ready for build; 1 drafts; 1 needing repair' "$tmp/page"
+grep -Fq '/edit?name=workflow-bad.md' "$tmp/page"
+grep -Fq '&lt;script&gt;' "$tmp/page"
+if grep -Fq '<script>' "$tmp/page"; then exit 1; fi
+diff -r "$tmp/workflow-broken" "$tmp/site"
+test ! -e "$tmp/site/.moonpress-build"
+test ! -e "$tmp/site/.moonpress-preview"
+mv "$tmp/site/layout.saved" "$tmp/site/layout.html"
+rm "$tmp/site/content/workflow-draft.md" "$tmp/site/content/workflow-bad.md"
 # A fresh site can prepare media storage explicitly without shell setup.
 cp -a "$tmp/site" "$tmp/before-media-setup"
 test "$(get /media)" = 200

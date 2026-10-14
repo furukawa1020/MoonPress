@@ -120,6 +120,11 @@ fn starter_files() -> Array[(String, String)] {
       (
         #|# Your MoonPress site
         #|
+        #|For guided browser editing, run `moonpress admin . 8080`, open http://127.0.0.1:8080/workflow
+        #|and follow write → preview → ready → review → build → publish. Keep the terminal open.
+        #|The editor builds local `.moonpress-preview` (includes drafts) and `.moonpress-build` (excludes drafts).
+        #|Upload only production files; the editor does not configure or report remote hosting.
+        #|
         #|With the MoonPress native executable on PATH, run from this directory:
         #|
         #|```sh
