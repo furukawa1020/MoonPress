@@ -54,6 +54,9 @@ update only changed artifacts and remove tracked outputs whose sources were dele
 Unmanaged directories, unknown files, edited outputs and symlinks are rejected.
 Templates are trusted project files; Markdown content and titles are escaped.
 
+Use `moonpress routes site [--json]` to inspect every generated output, its
+kind/source and terminal redirect target without publishing. See [routes](docs/routes.md).
+
 Use `moonpress plan site dist [--json]` for the actual protected incremental
 plan with every dependency change. It writes no files and shares build validation.
 See [detailed build planning](docs/build-plan.md).
