@@ -46,6 +46,8 @@ pub fn import_media(String, String, String) -> MediaItem raise
 
 pub fn init_site(String) -> InitReport raise
 
+pub fn inspect_backlinks(String, String, include_drafts? : Bool) -> RouteReferences raise
+
 pub fn inspect_build_plan(String, String, include_drafts? : Bool) -> DetailedBuildPlan raise
 
 pub fn inspect_dependencies(String, include_drafts? : Bool) -> DependencyGraph raise
@@ -83,6 +85,8 @@ pub fn parse_manifest(String) -> Manifest raise
 pub fn post_settings(String, filename? : String) -> PostSettings raise
 
 pub fn prepare_media(String) -> Bool raise
+
+pub fn query_references(ReferenceGraph, String) -> RouteReferences raise
 
 pub fn read_post(String, String) -> PostSnapshot raise
 
@@ -456,6 +460,15 @@ pub(all) struct RouteInventory {
   routes : Array[RouteInfo]
 } derive(ToJson)
 pub fn RouteInventory::to_json(Self) -> Json
+
+pub(all) struct RouteReferences {
+  route : RouteInfo
+  include_drafts : Bool
+  incoming : Array[ReferenceEdge]
+  outgoing : Array[ReferenceEdge]
+  scope : String
+} derive(ToJson)
+pub fn RouteReferences::to_json(Self) -> Json
 
 pub(all) struct SavePostReport {
   source : String
