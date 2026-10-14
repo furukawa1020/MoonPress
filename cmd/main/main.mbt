@@ -24,6 +24,7 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
+  value == "routes" ||
   value == "plan" ||
   value == "diff" ||
   value == "impact" ||
@@ -49,6 +50,8 @@ fn is_command(value : String) -> Bool {
 ///|
 fn usage(command : String) -> String {
   match command {
+    "routes" =>
+      "Usage: moonpress routes <site-directory> [--include-drafts] [--json]"
     "plan" =>
       "Usage: moonpress plan <site-directory> <output-directory> [--include-drafts] [--json]"
     "diff" =>
@@ -79,13 +82,15 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <plan|diff|impact|deps|audit|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <routes|plan|diff|impact|deps|audit|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
   }
 }
 
 ///|
 fn help_text(command : String) -> String {
   let description = match command {
+    "routes" =>
+      "Inspect every planned route with kind, source and terminal redirect target.\nCompile and validate sources in memory; no files written and no output directory needed."
     "plan" =>
       "Inspect the actual incremental plan with complete dependency changes.\nDry run: no files or directories are written; output ownership checks still apply."
     "diff" =>
@@ -122,9 +127,9 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  routes   Inspect compiled output routes and their sources.\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
-  if command == "deps" || command == "impact" {
+  if command == "routes" || command == "deps" || command == "impact" {
     return description +
       "\n\n" +
       usage(command) +
@@ -184,7 +189,8 @@ fn main {
     6
   } else if command == "new" || command == "import" {
     5
-  } else if command == "deps" ||
+  } else if command == "routes" ||
+    command == "deps" ||
     command == "audit" ||
     command == "check" ||
     command == "recover" ||
@@ -256,7 +262,27 @@ fn main {
     return
   }
   try {
-    if command == "plan" {
+    if command == "routes" {
+      let report = @lib.inspect_routes(args[2], include_drafts~)
+      if json {
+        print_report(command, include_drafts, report.to_json())
+      } else {
+        for route in report.routes {
+          println(
+            route.kind +
+            "\t" +
+            route.name.to_json().stringify() +
+            "\t" +
+            route.source.to_json().stringify() +
+            "\t" +
+            route.target.to_json().stringify(),
+          )
+        }
+        println(
+          "Routes: \{report.pages} pages, \{report.routes.length()} outputs; no files written",
+        )
+      }
+    } else if command == "plan" {
       let report = @lib.inspect_build_plan(args[2], args[3], include_drafts~)
       if json {
         print_report(command, include_drafts, report.to_json())
