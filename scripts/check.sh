@@ -21,6 +21,7 @@ bash scripts/local-config-test.sh
 bash scripts/incremental-test.sh
 bash scripts/routes-test.sh
 bash scripts/reference-api-test.sh
+bash scripts/references-test.sh
 bash scripts/redirects-test.sh
 bash scripts/content-test.sh
 bash scripts/slugs-test.sh

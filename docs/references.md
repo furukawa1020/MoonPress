@@ -43,3 +43,20 @@ decoded output filenames (for example `月.html`), not source paths or URL strin
 Unknown names are errors, while a known route with no incoming edges returns an
 empty incoming array. Queries validate graph structure and preserve caller data;
 they do not certify the provenance of externally constructed graph objects.
+
+## CLI
+
+```sh
+moonpress references my-site --json
+moonpress backlinks my-site guide.html
+moonpress backlinks my-site 月.html --include-drafts --json
+```
+
+`references` prints the graph; `backlinks` prints a route query. JSON uses the
+schema-1 command envelope with `include_drafts` and the corresponding report.
+Text shows source/consumer/kind/original URL/target/fragment, with user text JSON
+quoted. Each optional flag can appear once in either order. Success exits 0;
+invalid sites/unknown routes exit 1 with empty stdout and stderr detail; incorrect
+arguments exit 2 with command-specific usage. Run these before changing a slug
+or deleting a source, while the current site is valid. A broken site produces
+an error, not partial backlinks or a false zero-reference result.

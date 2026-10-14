@@ -24,6 +24,8 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
+  value == "references" ||
+  value == "backlinks" ||
   value == "review" ||
   value == "build-reviewed" ||
   value == "routes" ||
@@ -52,6 +54,10 @@ fn is_command(value : String) -> Bool {
 ///|
 fn usage(command : String) -> String {
   match command {
+    "references" =>
+      "Usage: moonpress references <site-directory> [--include-drafts] [--json]"
+    "backlinks" =>
+      "Usage: moonpress backlinks <site-directory> <output-name> [--include-drafts] [--json]"
     "review" =>
       "Usage: moonpress review <site-directory> <output-directory> [--include-drafts] [--json]"
     "build-reviewed" =>
@@ -88,13 +94,17 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <routes|plan|diff|impact|deps|audit|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <references|backlinks|review|build-reviewed|routes|plan|diff|impact|deps|audit|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
   }
 }
 
 ///|
 fn help_text(command : String) -> String {
   let description = match command {
+    "references" =>
+      "Inspect authored local references with source and consuming output evidence.\nSame compiler validation as build; no files written. Excludes external URLs, CSS and generated navigation."
+    "backlinks" =>
+      "Inspect incoming and outgoing authored references for an exact output filename.\nUse decoded names such as 月.html, not source paths or encoded URLs.\nUnknown routes are errors; zero incoming edges never proves deletion safety."
     "review" =>
       "Inspect a read-only build plan and its versioned SHA-256 review ID.\nThe ID binds exact path spellings, draft mode, output actions and dependencies.\nIt is not authentication, a reservation or evidence of deployment."
     "build-reviewed" =>
@@ -137,9 +147,13 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  review   Inspect a build plan and its review ID.\n  build-reviewed  Build only the reviewed plan.\n  routes   Inspect compiled output routes and their sources.\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  references  Inspect authored local reference edges.\n  backlinks   Inspect references to/from an output filename.\n  review   Inspect a build plan and its review ID.\n  build-reviewed  Build only the reviewed plan.\n  routes   Inspect compiled output routes and their sources.\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
-  if command == "routes" || command == "deps" || command == "impact" {
+  if command == "references" ||
+    command == "backlinks" ||
+    command == "routes" ||
+    command == "deps" ||
+    command == "impact" {
     return description +
       "\n\n" +
       usage(command) +
@@ -178,6 +192,25 @@ fn help_text(command : String) -> String {
 }
 
 ///|
+fn print_reference(direction : String, edge : @lib.ReferenceEdge) -> Unit {
+  println(
+    direction +
+    "\t" +
+    edge.source.to_json().stringify() +
+    "\t" +
+    edge.output.to_json().stringify() +
+    "\t" +
+    edge.kind +
+    "\t" +
+    edge.url.to_json().stringify() +
+    "\t-> " +
+    edge.target.to_json().stringify() +
+    "\t" +
+    edge.fragment.to_json().stringify(),
+  )
+}
+
+///|
 fn main {
   let args = @env.args()
   if args.length() == 1 || (args.length() == 2 && is_help(args[1])) {
@@ -201,7 +234,8 @@ fn main {
     command == "import" ||
     command == "build-reviewed" {
     5
-  } else if command == "routes" ||
+  } else if command == "references" ||
+    command == "routes" ||
     command == "deps" ||
     command == "audit" ||
     command == "check" ||
@@ -274,7 +308,37 @@ fn main {
     return
   }
   try {
-    if command == "review" {
+    if command == "references" {
+      let report = @lib.inspect_references(args[2], include_drafts~)
+      if json {
+        print_report(command, include_drafts, report.to_json())
+      } else {
+        println(report.scope)
+        for edge in report.references {
+          print_reference("REF", edge)
+        }
+        println(
+          "References: \{report.references.length()} authored local edges, \{report.routes.length()} routes; no files written",
+        )
+      }
+    } else if command == "backlinks" {
+      let report = @lib.inspect_backlinks(args[2], args[3], include_drafts~)
+      if json {
+        print_report(command, include_drafts, report.to_json())
+      } else {
+        println(report.scope)
+        println("Output: " + report.route.name.to_json().stringify())
+        for edge in report.incoming {
+          print_reference("IN", edge)
+        }
+        for edge in report.outgoing {
+          print_reference("OUT", edge)
+        }
+        println(
+          "References: \{report.incoming.length()} incoming, \{report.outgoing.length()} outgoing; no files written",
+        )
+      }
+    } else if command == "review" {
       let report = @lib.review_build_plan(args[2], args[3], include_drafts~)
       if json {
         print_report(command, include_drafts, report.to_json())
