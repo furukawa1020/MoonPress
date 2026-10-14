@@ -63,4 +63,16 @@ grep -Fq '/edit?name=renamed.md' "$tmp/page"
 diff -r "$tmp/broken-before" "$tmp/site"
 test ! -e "$tmp/site/.moonpress-build"
 test ! -e "$tmp/site/.moonpress-preview"
+# With no ready articles, the excluded draft notice still offers the valid scope.
+printf '%s\n' '---' '{"draft":true}' '---' '# Draft' '[target](target.html)' > "$tmp/site/content/draft.md"
+printf '%s\n' '---' '{"draft":true}' '---' '# Home' > "$tmp/site/content/index.md"
+printf '%s\n' '---' '{"draft":true,"slug":"target"}' '---' '# Target' > "$tmp/site/content/renamed.md"
+cp -a "$tmp/site" "$tmp/all-drafts"
+test "$(get '/references?name=draft.md')" = 200
+grep -Fq 'This draft is excluded' "$tmp/page"
+grep -Fq 'Include saved drafts' "$tmp/page"
+! grep -Fq 'Incoming references (0)' "$tmp/page"
+test "$(get '/references?name=draft.md&scope=all')" = 200
+grep -Fq 'Outgoing references' "$tmp/page"
+diff -r "$tmp/all-drafts" "$tmp/site"
 echo 'Admin reference tests passed: source-to-slug mapping, CLI counts, selected template evidence, draft scopes, read-only GETs, invalid queries and explicit validation failures.'

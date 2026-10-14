@@ -61,6 +61,10 @@ arguments exit 2 with command-specific usage. Run these before changing a slug
 or deleting a source, while the current site is valid. A broken site produces
 an error, not partial backlinks or a false zero-reference result.
 
+The required `backlinks` output argument is positional data, so valid names such
+as `--draft.html` are accepted. Options follow it: `backlinks site --draft.html
+--json`. Unknown or repeated trailing options remain argument errors.
+
 ## Changing article URLs
 
 Inspect the old output name before editing a slug, optionally including drafts.
