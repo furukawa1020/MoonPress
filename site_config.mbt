@@ -1,5 +1,6 @@
 ///|
 priv struct FeedConfig {
+  limit : Int?
   title : String
   description : String
 }
@@ -41,7 +42,7 @@ fn parse_site_config(source : String) -> SiteConfig raise {
     None => None
     Some(Object(values)) => {
       for key, _ in values {
-        if key != "title" && key != "description" {
+        if key != "title" && key != "description" && key != "limit" {
           raise InvalidInput("site.json: unknown feed key " + key)
         }
       }
@@ -50,7 +51,8 @@ fn parse_site_config(source : String) -> SiteConfig raise {
         values.get("description"),
         "description",
       )
-      Some({ title, description, })
+      let limit = parse_page_size(values.get("limit"), "feed.limit")
+      Some({ title, description, limit, })
     }
     _ => raise InvalidInput("site.json: feed must be an object")
   }

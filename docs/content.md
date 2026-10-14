@@ -754,3 +754,19 @@ and link/image preflight, including generated-heading links; cell text cannot
 create block headings/TOC entries. HTML uses `thead`, `tbody`, column-scope `th`
 and fixed alignment styles. No raw HTML or scripts are evaluated. Renderer v22
 refreshes source-page caches; body-only table edits remain scoped to their page.
+
+### RSS item limit
+
+`site.json` may set `feed.limit` to an integer from 1 to 1000. Omitting it keeps
+the existing unlimited feed; null, wrong types and out-of-range/fractional values
+fail preflight. The compiler selects recent listed articles using the existing
+calendar-date order (dated first, descending dates, output-name ties, then
+undated names). Excluded drafts and unlisted pages do not enter normal feeds.
+
+Only selected item metadata enters RSS XML validation and dependencies; all
+source metadata/layout/link checks still run. Body edits do not change RSS, and
+metadata edits to omitted items do not rewrite it unless selection changes.
+Enabling/changing/removing a limit updates the feed dependency settings; default
+unlimited projects retain their existing output and dependency bytes. Draft
+previews apply the same limit to their larger article set. No wall-clock time,
+file timestamp or scheduled publication is inferred.

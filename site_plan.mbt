@@ -252,14 +252,15 @@ fn plan_site(
       target: None,
     })
     let url = base_url.unwrap()
-    validate_feed(url, listed)
+    let feed_pages = selected_feed_pages(listed, feed.limit)
+    validate_feed(url, feed_pages)
     pending.push(
       plan_artifact(
         "rss.xml",
-        feed_dependencies(url, feed, listed),
+        feed_dependencies(url, feed, feed_pages),
         previous,
         output,
-        () => @utf8.encode(render_feed(url, feed, listed)),
+        () => @utf8.encode(render_feed(url, feed, feed_pages)),
         log,
       ),
     )
