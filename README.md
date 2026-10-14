@@ -55,6 +55,12 @@ Templates are trusted project files; Markdown content and titles are escaped.
 Use `moonpress routes site [--json]` to inspect every generated output, its
 kind/source and terminal redirect target without publishing. See [routes](docs/routes.md).
 
+Before changing an article URL, use `moonpress backlinks site guide.html`
+to see which articles and selected layouts reference it, and what it references.
+`moonpress references site --json` exposes the authored local graph shared by
+compiler validation and the browser editor's reference page. Include saved drafts
+explicitly with `--include-drafts`. See [reference scope](docs/references.md).
+
 Use `moonpress plan site dist [--json]` for the actual protected incremental
 plan with every dependency change. It writes no files and shares build validation.
 See [detailed build planning](docs/build-plan.md).
@@ -92,6 +98,12 @@ See [reviewed builds](docs/reviewed-builds.md) for commands and exact limits.
 This makes the native compiler's decisions inspectable and enforceable without a second
 JavaScript implementation. The manifest is an integrity record, not a signature,
 and publication recovery has the [documented limits](docs/publication.md).
+
+The same compiler also explains authored references before a URL change: source
+file, consuming page, target and heading fragment. These links are distinct from
+rebuild dependencies. An article can link to another page without needing to be
+rewritten whenever that page's body changes. The graph makes that distinction
+visible; it does not claim to crawl CSS, generated navigation or external links.
 
 ## Development
 
