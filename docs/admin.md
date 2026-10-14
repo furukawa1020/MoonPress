@@ -268,3 +268,22 @@ and requires its review ID to match. Only the inspection page has a build form;
 a failed build offers another inspection, never an automatic approval.
 CLI and HTML review use one native MoonBit planner, not a separate browser
 implementation or JavaScript dependency model.
+
+## All output references
+
+The global **Output references** link opens a saved-site overview with twenty
+outputs per page. It includes assets, archives, redirects and marker files as
+well as articles. Counts distinguish incoming/outgoing edges, self references
+and distinct other referring outputs. Click an output to inspect source
+evidence; redirects link to their terminal target's inspection.
+
+Ready-only and draft-inclusive links retain the selected output; switching to a
+scope which excludes that output produces an explicit error with an overview
+link. Pagination retains scope. Validation failures never produce a successful
+zero-count report. A site with only drafts must use the inclusive scope.
+
+All these GET requests are read-only. Source links point to the existing article
+editor only when the source is a safe article filename; project HTML/assets are
+not served on the administration origin. Counts exclude generated navigation,
+CSS and external URLs and are not proof that deletion is safe. No output or
+source files are removed or changed by this screen.
