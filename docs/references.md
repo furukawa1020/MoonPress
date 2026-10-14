@@ -125,3 +125,21 @@ filenames; JSON uses the schema-1 command envelope with a typed summary in
 `report`. Options may appear once in either order after the site directory.
 Exit 0 means a complete report, 1 means compilation/I/O failure, and 2 means
 incorrect arguments. Failures use stderr with no partial stdout report.
+
+## Reading counts during edits
+
+1. Inspect the ready-only summary, then include saved drafts if they may refer to
+   the URL or asset. Open backlinks for exact source and template evidence.
+2. Save a slug change and inspect again. Existing references to the old route
+   cause validation failure until you update the links or configure a redirect.
+   With a redirect, the old route retains its incoming authored links and has
+   one outgoing terminal edge; the terminal page has that redirect as a referrer.
+3. Change the chosen layout or article status and inspect again. Unused layouts
+   and excluded drafts contribute no edges; ready unlisted pages still do.
+4. Use the protected build plan/review workflow to inspect actual writes and
+   deletions. Changing an asset's bytes can require a build while leaving every
+   reference count unchanged. The summary is not an incremental-build plan.
+
+The transition suite independently derives counts from graph edges for every
+route, cross-checks backlinks, verifies source/output snapshots stay untouched,
+and compares incremental output with fresh builds after each valid change.

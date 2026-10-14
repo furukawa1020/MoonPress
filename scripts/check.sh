@@ -25,6 +25,7 @@ bash scripts/routes-test.sh
 bash scripts/reference-api-test.sh
 bash scripts/references-test.sh
 bash scripts/reference-summary-test.sh
+bash scripts/reference-summary-transitions-test.sh
 bash scripts/reference-transitions-test.sh
 bash scripts/redirects-test.sh
 bash scripts/content-test.sh
