@@ -12,6 +12,7 @@ priv struct SiteConfig {
   tag_page_size : Int?
   tag_index : Bool
   collection_layout : String?
+  redirects : Array[Redirect]
 }
 
 ///|
@@ -26,7 +27,8 @@ fn parse_site_config(source : String) -> SiteConfig raise {
       key != "page_size" &&
       key != "tag_page_size" &&
       key != "tag_index" &&
-      key != "collection_layout" {
+      key != "collection_layout" &&
+      key != "redirects" {
       raise InvalidInput("site.json: unknown key " + key)
     }
   }
@@ -73,7 +75,16 @@ fn parse_site_config(source : String) -> SiteConfig raise {
         "site.json: collection_layout must be a safe .html filename",
       )
   }
-  { base_url, feed, page_size, tag_page_size, tag_index, collection_layout, }
+  let redirects = parse_redirect_config(fields.get("redirects"))
+  {
+    base_url,
+    feed,
+    page_size,
+    tag_page_size,
+    tag_index,
+    collection_layout,
+    redirects,
+  }
 }
 
 ///|
@@ -114,6 +125,7 @@ fn read_site_config(input : String) -> SiteConfig raise {
       tag_page_size: None,
       tag_index: false,
       collection_layout: None,
+      redirects: [],
     }
   }
   require_input_kind(path, 1)

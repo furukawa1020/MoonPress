@@ -15,3 +15,23 @@ validate that a target exists: use graph resolution against the compiler plan.
 These are static HTML redirects, not HTTP 301/308 responses. Server/browser
 behavior and preservation of incoming query strings/fragments are not promised.
 For server status redirects, configure your host separately.
+
+## Site configuration
+
+```json
+{"base_url":"https://example.org/project/","redirects":{"old.html":"new.html","older.html":"old.html"}}
+```
+
+Omit `redirects` or use `{}` for no aliases. Null/non-object values, non-string
+targets and unsafe names are errors. Each target must resolve to an actual planned
+non-redirect HTML page or collection; excluded drafts do not qualify. Chains
+compile directly to their terminal target. Names collide with all source, asset
+and generated outputs; old source files must be removed or renamed first.
+
+Generated aliases participate in ownership, dependency graphs, dry runs, staged
+publication and recovery. Removing a mapping deletes its tracked file. Only
+aliases whose resolved target or base URL changes rebuild; edits to unrelated
+source bodies do not rebuild redirects. Dependencies describe effective mapping
+values, not the entire config file. Redirects are omitted from the sitemap, and
+redirect pages define no generated `mp-` anchors; link such anchors directly to
+the target page. Validation happens before output mutation in every build mode.

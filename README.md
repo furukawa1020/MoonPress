@@ -74,7 +74,7 @@ fences, thematic breaks, flat unordered/ordered lists, static task checkboxes, f
 Simple links, images, inline code and asterisk emphasis/strong emphasis and strikethrough are
 supported. Nested content directories are not supported yet. Optional `public/` assets are copied as bytes with
 per-file incremental dependencies. JSON frontmatter with draft exclusion,
-per-page named layouts, publication dates, chronological article/tag lists, sitemap and preflight link checks are supported; see [content model](docs/content.md).
+per-page named layouts, configured static redirects, publication dates, chronological article/tag lists, sitemap and preflight link checks are supported; see [content model](docs/content.md).
 This is not a CommonMark implementation.
 
 ## Development

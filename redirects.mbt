@@ -22,8 +22,11 @@ pub fn resolve_redirects(
 ) -> Array[Redirect] raise {
   let routes : Map[String, Bool] = Map([])
   for name in outputs {
-    if !safe_output_name(name) || routes.contains(name) {
-      raise InvalidInput("Invalid or duplicate planned output: " + name)
+    if !safe_output_name(name) {
+      raise InvalidInput("Invalid planned output: " + name)
+    }
+    if routes.contains(name) {
+      raise InvalidInput("Output collision: " + name)
     }
     routes[name] = true
   }
@@ -94,4 +97,26 @@ pub fn render_redirect(
   "\">" +
   escape_html(target) +
   "</a>.</p></body>\n</html>\n"
+}
+
+///|
+fn parse_redirect_config(value : Json?) -> Array[Redirect] raise {
+  let fields = match value {
+    None => return []
+    Some(Object(fields)) => fields
+    _ => raise InvalidInput("site.json: redirects must be an object")
+  }
+  let result : Array[Redirect] = []
+  for name, value in fields {
+    let target = match value {
+      String(target) if redirect_path(name) && redirect_path(target) => target
+      _ =>
+        raise InvalidInput(
+          "site.json: redirects require safe flat .html names and string targets",
+        )
+    }
+    result.push({ name, target, })
+  }
+  result.sort_by((a, b) => a.name.compare(b.name))
+  result
 }
