@@ -94,6 +94,9 @@ fn admin_edit(input : String, name : String, token : String) -> String raise {
   admin_page(
     "Edit " + name,
     "<p><a href=\"/workflow\">Writing and publishing steps</a>. Save your article, preview it, then set it ready for build.</p>" +
+    "<p><a href=\"/references?name=" +
+    url_component(name) +
+    "\">Inspect saved article references</a> before changing its URL or removing a source.</p>" +
     editor +
     settings +
     admin_duplicate_form(token, name, snapshot.digest, "", copy_title) +
@@ -142,6 +145,9 @@ fn admin_route(
         raise InvalidInput("Invalid edit query")
       }
       return (200, admin_edit(input, admin_field(fields, "name"), token))
+    }
+    if request.target.has_prefix("/references?") {
+      return admin_references(input, admin_form(request.target[12:].to_owned()))
     }
     return (
       404,
