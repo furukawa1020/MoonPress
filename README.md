@@ -1,5 +1,7 @@
 # MoonPress
 
+![MoonPress: Native MoonBit static-site compiler](docs/assets/social-preview.jpg)
+
 A small static-site compiler written in **MoonBit**. Native executable in,
 HTML + CSS out. No TypeScript, JavaScript, Node.js or npm in the application
 or CI workflow. Experimental; see the [release-readiness roadmap](docs/roadmap.md).
