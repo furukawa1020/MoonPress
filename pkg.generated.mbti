@@ -58,6 +58,8 @@ pub fn inspect_media_references(String) -> MediaReferences raise
 
 pub fn inspect_posts(String) -> PostInventory raise
 
+pub fn inspect_reference_summary(String, include_drafts? : Bool) -> ReferenceSummary raise
+
 pub fn inspect_references(String, include_drafts? : Bool) -> ReferenceGraph raise
 
 pub fn inspect_routes(String, include_drafts? : Bool) -> RouteInventory raise
@@ -129,6 +131,8 @@ pub fn set_post_draft(String, String, String, Bool) -> SavePostReport raise
 pub fn site_base_path(String) -> String
 
 pub fn store_media(String, String, Bytes) -> MediaItem raise
+
+pub fn summarize_references(ReferenceGraph) -> ReferenceSummary raise
 
 pub fn tag_filename(String) -> String
 
@@ -436,6 +440,15 @@ pub(all) struct ReferenceGraph {
 } derive(ToJson)
 pub fn ReferenceGraph::to_json(Self) -> Json
 
+pub(all) struct ReferenceSummary {
+  pages : Int
+  include_drafts : Bool
+  edges : Int
+  routes : Array[RouteReferenceCount]
+  scope : String
+} derive(ToJson)
+pub fn ReferenceSummary::to_json(Self) -> Json
+
 pub(all) struct ReviewedBuildPlan {
   schema : Int
   review_id : String
@@ -460,6 +473,15 @@ pub(all) struct RouteInventory {
   routes : Array[RouteInfo]
 } derive(ToJson)
 pub fn RouteInventory::to_json(Self) -> Json
+
+pub(all) struct RouteReferenceCount {
+  route : RouteInfo
+  incoming : Int
+  outgoing : Int
+  self_references : Int
+  referring_outputs : Int
+} derive(ToJson)
+pub fn RouteReferenceCount::to_json(Self) -> Json
 
 pub(all) struct RouteReferences {
   route : RouteInfo
