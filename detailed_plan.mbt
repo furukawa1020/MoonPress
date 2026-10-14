@@ -28,6 +28,12 @@ fn describe_plan(
   let next = artifact_map(plan.pending.map(item => item.artifact))
   let outputs : Array[PlannedOutput] = []
   for event in plan.report.changes {
+    // Source exclusions are summary events, not generated output paths.
+    if event.action != "write" &&
+      event.action != "keep" &&
+      event.action != "delete" {
+      continue
+    }
     let before = previous.get(event.path)
     let after = next.get(event.path)
     outputs.push({

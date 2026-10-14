@@ -52,8 +52,10 @@ cmp "$tmp/summary" "$tmp/actual"
 "$cli" build "$tmp/site" "$tmp/clean" >/dev/null
 diff -r "$tmp/out" "$tmp/clean"
 "$cli" new "$tmp/site" draft 'Private draft' >/dev/null
+"$cli" plan "$tmp/site" "$tmp/out" --json > "$tmp/excluded-draft-plan"
+jq -e 'any(.report.summary.changes[];.action=="skip" and .path=="content/draft.md") and all(.report.outputs[];.action=="write" or .action=="keep" or .action=="delete") and all(.report.outputs[];.name!="content/draft.md" and .name!="draft.html") and (.report.outputs|length)==(.report.summary.written+.report.summary.skipped+.report.summary.deleted)' "$tmp/excluded-draft-plan" >/dev/null
 "$cli" plan "$tmp/site" "$tmp/preview" --json --include-drafts > "$tmp/preview-plan"
-jq -e '.include_drafts and any(.report.outputs[];.name=="draft.html")' "$tmp/preview-plan" >/dev/null
+jq -e '.include_drafts and any(.report.outputs[];.name=="draft.html") and all(.report.summary.changes[];.action!="skip") and (.report.outputs|length)==(.report.summary.written+.report.summary.skipped+.report.summary.deleted)' "$tmp/preview-plan" >/dev/null
 test ! -e "$tmp/preview"
 reject() { local code="$1" status=0; shift; "$@" > "$tmp/stdout" 2> "$tmp/error" || status=$?; test "$status" = "$code"; test ! -s "$tmp/stdout"; test -s "$tmp/error"; }
 reject 2 "$cli" plan "$tmp/site" "$tmp/out" --json --json

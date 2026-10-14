@@ -9,7 +9,8 @@ CommonMark compatibility or superiority to other site generators.
 
 - Native `init` command producing a ready-to-check/build starter without overwriting existing targets.
 
-- Markdown subset, JSON metadata, draft preview, heading anchors and TOC.
+- Markdown subset with task lists, strikethrough, explicit paragraph/quote breaks, single-line Setext headings and flat pipe tables.
+- JSON metadata, draft preview, heading anchors and TOC.
 - Per-page named layouts, article/tag collections, optional sitemap and flat static assets.
 - Preflight local route/generated-heading reference checks and guarded incremental output ownership.
 - Deterministic clean/incremental output, explain/check modes and versioned JSON reports.
