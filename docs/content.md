@@ -680,3 +680,15 @@ File handles are closed before text decoding and on read/seek/size errors.
 The compiler loads file contents into memory; files above the native byte-buffer
 limit of 2,147,483,647 bytes are rejected before allocation. Available memory can
 impose a lower practical limit. Sources must remain unchanged during a build.
+
+### Static task lists
+
+Flat unordered items beginning exactly `- [ ] `, `- [x] ` or `- [X] `
+(also `* ` and `+ ` markers) compile to disabled HTML checkboxes. The item text
+uses shared inline rendering and link/image validation. Each checkbox has an
+escaped visible-text accessible label; an empty task uses `Task`. Checked items
+have `checked`; no forms, scripts or browser state are generated. Ordered items,
+other bracket markers, escaped brackets, inline code and fenced code stay literal.
+This subset does not support nested tasks or interactive saving. Renderer v18
+refreshes prior source-page caches once; body-only task edits then rebuild only
+that page. Output manifests and CLI report schemas stay unchanged.
