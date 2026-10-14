@@ -1,9 +1,20 @@
 ///|
+priv struct PreviousOutput {
+  artifacts : Map[String, Artifact]
+  manifest : String?
+}
+
+///|
 fn load_previous(output : String) -> Map[String, Artifact] raise {
+  load_previous_state(output).artifacts
+}
+
+///|
+fn load_previous_state(output : String) -> PreviousOutput raise {
   let result : Map[String, Artifact] = Map([])
   let kind = path_kind(output)
   if kind == 0 {
-    return result
+    return { artifacts: result, manifest: None, }
   }
   if kind != 2 {
     raise InvalidInput("Output must be a real directory, not a symlink")
@@ -18,7 +29,8 @@ fn load_previous(output : String) -> Map[String, Artifact] raise {
   if path_kind(marker) != 1 {
     raise InvalidInput("Existing output is not managed by MoonPress")
   }
-  let state = parse_manifest(read_text(marker))
+  let manifest = read_text(marker)
+  let state = parse_manifest(manifest)
   for artifact in state.artifacts {
     result[artifact.name] = artifact
   }
@@ -38,5 +50,5 @@ fn load_previous(output : String) -> Map[String, Artifact] raise {
       }
     }
   }
-  result
+  { artifacts: result, manifest: Some(manifest), }
 }

@@ -412,6 +412,9 @@ pub fn Redirect::to_json(Self) -> Json
 pub(all) struct ReviewedBuildPlan {
   schema : Int
   review_id : String
+  previous_manifest_digest : String?
+  next_manifest_digest : String
+  manifest_changed : Bool
   plan : DetailedBuildPlan
 } derive(ToJson)
 pub fn ReviewedBuildPlan::to_json(Self) -> Json

@@ -269,7 +269,7 @@ fn main {
     }
   }
   if !valid {
-    eprintln(usage(""))
+    eprintln(usage(command))
     @sys.exit(2)
     return
   }
@@ -281,7 +281,7 @@ fn main {
       } else {
         println("Review ID: " + report.review_id)
         // Print the complete plan, including all digests and dependency deltas.
-        println(report.plan.to_json().stringify())
+        println(report.to_json().stringify())
         println(
           "No files written. Use build-reviewed with this ID and the same paths and draft mode.",
         )

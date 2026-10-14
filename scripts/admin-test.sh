@@ -385,6 +385,15 @@ cp -a "$tmp/site" "$tmp/before-noop-plan"
 test "$(plan_production)" = 200
 grep -Fq 'would write: 0;' "$tmp/page"
 diff -r "$tmp/before-noop-plan" "$tmp/site"
+# Manifest-only edits must invalidate the form and be visible on reinspection.
+jq -S . "$production/.moonpress.json" > "$tmp/formatted-manifest"
+cp "$tmp/formatted-manifest" "$production/.moonpress.json"
+test "$(build_production)" = 400
+cmp "$tmp/formatted-manifest" "$production/.moonpress.json"
+test "$(plan_production)" = 200
+grep -Fq 'Ownership manifest: will update' "$tmp/page"
+test "$(build_production)" = 200
+diff -r "$tmp/before-noop-plan" "$tmp/site"
 # The HTML review exposes the same complete deltas as the native CLI planner.
 cp -a "$tmp/site" "$tmp/before-rich-review"
 cp -a "$production" "$tmp/output-before-rich-review"

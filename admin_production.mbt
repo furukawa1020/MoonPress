@@ -71,6 +71,13 @@ fn admin_plan_production(input : String, token : String) -> String raise {
     escape_html(output) +
     "</code>. Building checks this reviewed plan again. If it changes, no production files are written; inspect again before continuing.</p>" +
     admin_production_changes(report) +
+    "<p>Ownership manifest: " +
+    (if review.manifest_changed { "will update" } else { "unchanged" }) +
+    ". This metadata file is separate from the output counts.</p><details><summary>Ownership manifest digests</summary><p>Before: " +
+    admin_digest(review.previous_manifest_digest) +
+    "; after: " +
+    admin_digest(Some(review.next_manifest_digest)) +
+    "</p></details>" +
     admin_dependency_review(plan) +
     admin_production_plan_form(token) +
     admin_production_form(token, review_id=review.review_id),

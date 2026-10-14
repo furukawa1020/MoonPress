@@ -11,6 +11,34 @@ test "review identity binds paths mode manifest and complete plan" {
   let detail : DetailedBuildPlan = { summary, outputs: [], }
   let id = review_identity("site", "out", false, "manifest", detail)
   assert_true(valid_digest(id))
+  assert_true(
+    id !=
+    review_identity(
+      "site",
+      "out",
+      false,
+      "manifest",
+      detail,
+      previous_manifest=Some(""),
+    ),
+  )
+  let compact = review_identity(
+    "site",
+    "out",
+    false,
+    "manifest",
+    detail,
+    previous_manifest=Some("{}"),
+  )
+  let spaced = review_identity(
+    "site",
+    "out",
+    false,
+    "manifest",
+    detail,
+    previous_manifest=Some("{ }"),
+  )
+  assert_true(compact != spaced)
   assert_eq(id, review_identity("site", "out", false, "manifest", detail))
   assert_true(id != review_identity("site/", "out", false, "manifest", detail))
   assert_true(id != review_identity("site", "out/", false, "manifest", detail))
