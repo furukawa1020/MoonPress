@@ -188,8 +188,9 @@ not been prepared. Invalid, unknown or duplicate query fields are rejected.
 of draft-inclusive previews and other CLI output directories. It shares the
 compiler's locking, incremental dependencies, owned manifest and publication
 recovery protections. Foreign entries, symlinks and manually edited generated
-files are refused. The form accepts only its token; clients cannot select an
-arbitrary path or enable drafts. Unsaved form text is excluded.
+files are refused. The form accepts only its token and review ID from inspection; clients cannot
+select an arbitrary path or enable drafts. Missing or stale IDs fail before
+publication. On failure, inspect again using the recovery form. Unsaved form text is excluded.
 
 The result reports local page/write/unchanged/delete counts. No hosting request
 is made and no deployment status is inferred. Use the documented deployment
@@ -197,12 +198,13 @@ workflow for actual hosting. Generated project HTML is not served on the admin
 origin. If publication is interrupted, use the CLI recovery procedure for this
 specific output directory.
 
-**Inspect production changes** uses the same dry-run compiler operation as CLI
-`explain`, with the same fixed production destination and draft exclusion. It
+**Inspect production changes** uses the same typed review operation as CLI
+`review`, with the same fixed production destination and draft exclusion. It
 shows planned actions, paths, reasons and counts without creating or changing
 source/output files, even on the first run. Existing output ownership and edits
 are validated. The report is not a reserved transaction: sources or output may
-change between inspection and build, and building validates them again.
+change between inspection and build. Building compares the recomputed review ID
+under the exclusive output lock and refuses a different plan before writing.
 
 ### Duplicate an article
 
@@ -239,6 +241,8 @@ Each affected output says whether it is new, removed, changed in bytes,
 recomputed with identical bytes or restored after going missing. Full observed
 SHA-256 values are available in collapsed details. These are integrity/diff
 observations, not signatures. Review writes no source/output files and does not
-reserve an approved snapshot: Build production files revalidates current state.
+reserve an approved snapshot: Build production files revalidates current state
+and requires its review ID to match. Only the inspection page has a build form;
+a failed build offers another inspection, never an automatic approval.
 CLI and HTML review use one native MoonBit planner, not a separate browser
 implementation or JavaScript dependency model.

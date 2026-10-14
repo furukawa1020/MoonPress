@@ -4,16 +4,24 @@ fn admin_production_output(input : String) -> String {
 }
 
 ///|
-fn admin_production_form(token : String) -> String {
+fn admin_production_form(token : String, review_id? : String = "") -> String {
+  if review_id.is_empty() {
+    return "<h2>Production files</h2><p>Inspect production changes first. The inspection page provides the button to build exactly the reviewed plan. <a href=\"/workflow#review\">Review production changes</a>.</p>"
+  }
   "<h2>Production files</h2><form method=\"post\" action=\"/build-production\">" +
   admin_hidden("token", token) +
-  "<p>Compile saved ready articles and assets into <code>.moonpress-build</code> inside this site. Drafts and unsaved text are excluded. This creates local files; hosting deployment is a separate step.</p><button>Build production files</button></form>"
+  admin_hidden("review_id", review_id) +
+  "<p>Build the changes shown above into <code>.moonpress-build</code>. If the plan changes, the build stops and asks you to inspect again. Drafts and unsaved text are excluded. Hosting deployment is a separate step.</p><button>Build production files</button></form>"
 }
 
 ///|
-fn admin_build_production(input : String, token : String) -> String raise {
+fn admin_build_production(
+  input : String,
+  token : String,
+  review_id : String,
+) -> String raise {
   let output = admin_production_output(input)
-  let report = compile_site(input, output)
+  let report = compile_reviewed_site(input, output, review_id)
   admin_page(
     "Production files built",
     "<p>Built saved ready articles; drafts excluded. No deployment performed.</p><p>Pages: \{report.pages}; written: \{report.written}; unchanged: \{report.skipped}; deleted: \{report.deleted}.</p><p>Local output: <code>" +
@@ -54,16 +62,17 @@ fn admin_production_changes(report : BuildReport) -> String {
 ///|
 fn admin_plan_production(input : String, token : String) -> String raise {
   let output = admin_production_output(input)
-  let plan = inspect_build_plan(input, output)
+  let review = review_build_plan(input, output)
+  let plan = review.plan
   let report = plan.summary
   admin_page(
     "Production changes inspected",
     "<p>Read-only inspection; drafts excluded. No files written or deployment performed.</p><p>Pages: \{report.pages}; would write: \{report.written}; unchanged: \{report.skipped}; would delete: \{report.deleted}.</p><p>Planned output: <code>" +
     escape_html(output) +
-    "</code>. This is an observation of current files, not an approval or reservation. Building revalidates sources and output, so later changes can alter the result.</p>" +
+    "</code>. Building checks this reviewed plan again. If it changes, no production files are written; inspect again before continuing.</p>" +
     admin_production_changes(report) +
     admin_dependency_review(plan) +
     admin_production_plan_form(token) +
-    admin_production_form(token),
+    admin_production_form(token, review_id=review.review_id),
   )
 }

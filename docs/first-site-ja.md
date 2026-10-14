@@ -8,7 +8,7 @@
 2. **Preview your saved drafts**：Build full preview filesでテーマ・画像を含むプレビューを生成します。サイト内の `.moonpress-preview/index.html` をファイルブラウザから開いてください。ここには下書きが含まれます。
 3. **Choose what goes live**：公開する記事を開き、保存後にSet ready for buildを押します。Draftは下書き、Readyは通常ビルドに含める状態です。
 4. **Review before building**：Inspect production changesで追加・変更・削除と、その原因となる元記事・レイアウト・設定などの依存関係を確認します。エラーが出た場合は表示された元ファイルや出力の問題を直してから再確認します。手動編集した生成物は上書きされません。
-5. **Create production files**：Build production filesで `.moonpress-build` に下書きを除く公開用ファイルを生成します。プレビュー用ディレクトリとは分かれています。
+5. **Create production files**：確認結果の画面にあるBuild production filesで `.moonpress-build` に下書きを除く公開用ファイルを生成します。確認後に変更計画が変わると書き出さず停止するので、再度Inspect production changesで確認してください。プレビュー用ディレクトリとは分かれています。
 6. **Publish and verify**：公開用ファイルをホストへ配置するか、設定済みのGitHub Actionsで保存済みソースをビルド・公開します。[GitHub Pages設定](deployment.md)には一度だけ管理者の操作が必要です。Actionsの成功と実際の公開URLを確認してください。
 
 保存・Readyへの変更・ローカルビルドだけではインターネットに公開されません。この管理画面はホストの公開状態を取得していません。記事をDraftに戻した場合も、通常ビルドをやり直してホストへ反映するまで公開済みページは残ります。
