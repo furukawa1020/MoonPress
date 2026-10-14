@@ -300,7 +300,8 @@ JavaScript-generated links and arbitrary HTML fragments are outside this checker
 Backslash followed by ASCII punctuation emits that punctuation literally:
 `\*literal\*`, `` \`code\` `` and `\[text](missing.html)` do not start emphasis,
 inline code or a link. All ASCII punctuation is supported. Backslashes before
-letters, whitespace or Unicode, and a trailing backslash, remain literal.
+letters, whitespace or Unicode remain literal. A trailing backslash is literal
+except for the explicit paragraph/quote line-break rule described below.
 Escaped output is never parsed a second time; HTML characters are still escaped.
 
 Link labels and image alt text use the same decoding; escaped brackets remain
@@ -703,3 +704,15 @@ spans receive normal preflight checks. Single/triple tilde runs, intraword spans
 unmatched or crossing delimiters remain literal. Escaped tildes, code, fences,
 plain link labels and image alt text are not reparsed. Renderer v19 refreshes
 source-page caches; subsequent body-only edits remain scoped to the page.
+
+### Explicit line breaks
+
+Inside one paragraph or flat quote, two or more trailing ASCII spaces or an odd
+run of trailing backslashes insert `<br>` before the next line. Spaces are
+removed; a backslash marker consumes only the last slash. Even slash runs remain
+escaped literal slashes. Ordinary soft breaks stay as newlines. A final line
+without a following line keeps its text; headings, list items, code and fences
+do not use this rule. Rendering and link/image extraction normalize the same
+line text. Blank lines/block transitions terminate paragraphs, so a marker
+immediately before them does not create a break. Renderer v20 refreshes page
+caches without changing manifest/report schemas.
