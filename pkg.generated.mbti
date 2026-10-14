@@ -90,9 +90,13 @@ pub fn render_inline(String) -> String
 
 pub fn render_markdown(String) -> String
 
+pub fn render_redirect(String, base_url? : String?) -> String raise
+
 pub fn render_sitemap(String, Array[String]) -> String
 
 pub fn render_toc(String) -> String
+
+pub fn resolve_redirects(Array[Redirect], Array[String]) -> Array[Redirect] raise
 
 pub fn safe_output_name(String) -> Bool
 
@@ -390,6 +394,14 @@ pub(all) struct RecoveryReport {
   removed : Int
 } derive(ToJson)
 pub fn RecoveryReport::to_json(Self) -> Json
+
+pub(all) struct Redirect {
+  name : String
+  target : String
+} derive(Eq, ToJson)
+pub fn Redirect::equal(Self, Self) -> Bool
+pub fn Redirect::not_equal(Self, Self) -> Bool
+pub fn Redirect::to_json(Self) -> Json
 
 pub(all) struct SavePostReport {
   source : String
