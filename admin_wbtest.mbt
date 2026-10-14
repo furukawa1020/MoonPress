@@ -131,3 +131,27 @@ test "media import destinations reject traversal script and compiler outputs" {
     ),
   )
 }
+
+///|
+test "workflow counts include unlisted ready pages without claiming validation" {
+  let post : PostSummary = {
+    source: "content/a.md",
+    output: "a.html",
+    title: "a",
+    draft: false,
+    listed: false,
+    date: None,
+    tags: [],
+  }
+  let html = admin_workflow_summary({
+    posts: [post, { ..post, draft: true, }],
+    problems: [{ source: "content/b.md", message: "bad", editable: true, }],
+  })
+  assert_true(html.contains("1 ready for build; 1 drafts; 1 needing repair"))
+  assert_true(html.contains("not successful validation or deployment"))
+  assert_true(
+    admin_workflow_summary({ posts: [], problems: [], }).contains(
+      "0 ready for build; 0 drafts; 0 needing repair",
+    ),
+  )
+}

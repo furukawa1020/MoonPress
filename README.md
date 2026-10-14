@@ -8,34 +8,30 @@ or CI workflow. Experimental; see the [release-readiness roadmap](docs/roadmap.m
 
 ## Quick start
 
-Prerequisites: Linux x86_64, a C compiler, curl, Git, Bash, jq and standard GNU
-command-line tools. Setup uses pinned archive checksums; an existing incompatible
-MoonBit installation needs a fresh `MOON_HOME`. See [toolchain setup](docs/toolchain.md) and [CONTRIBUTING.md](CONTRIBUTING.md) for the tested environment.
+Prerequisites: Linux x86_64, a C compiler, curl, Git, Bash and standard GNU
+command-line tools. Setup verifies pinned official archives. Use a fresh
+`MOON_HOME` if another MoonBit version is installed; see [toolchain setup](docs/toolchain.md).
 
 ```sh
 git clone https://github.com/furukawa1020/MoonPress.git
 cd MoonPress
 bash scripts/setup.sh
 export PATH="$HOME/.moon/bin:$PATH"
-bash scripts/check.sh
+moon build --target native --release
 moonpress="$PWD/_build/native/release/build/cmd/main/main.exe"
 "$moonpress" init ../my-site
-"$moonpress" new ../my-site hello "My first article"
-"$moonpress" posts ../my-site
-"$moonpress" check ../my-site
-"$moonpress" build ../my-site ../my-site/dist
-# Open ../my-site/dist/index.html in a browser.
+"$moonpress" admin ../my-site 8080
 ```
 
-The variable above uses the freshly compiled executable directly. For an optional
-PATH installation and the complete edit/build workflow, see [getting started](docs/getting-started.md).
-For the local browser editor, run `"$moonpress" admin ../my-site 8080` and open
-`http://127.0.0.1:8080/`. Native HTML forms support draft creation and duplication,
-structured/raw editing, draft/ready transitions, article URL/listing/layout
-settings, searchable paginated media with uploads and reference inspection,
-preview compilation, and production build/change inspection. No JavaScript is
-needed. See [local administration](docs/admin.md) for the workflow and limits;
-local build success does not mean hosting deployment.
+Open **http://127.0.0.1:8080/workflow** and keep the terminal open.
+The guided browser workflow walks through creating and saving a draft,
+building a themed preview, marking it ready, reviewing changes and generating
+production output. Upload production output through your configured host;
+local build success does not report a deployment. No JavaScript is needed.
+
+[日本語の初回ガイド](docs/first-site-ja.md) · [Detailed authoring guide](docs/getting-started.md) ·
+[Browser editor](docs/admin.md) · [GitHub Actions hosting](docs/deployment.md).
+Development checks and their additional jq dependency are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 The starter includes tag navigation, pagination settings and a writing guide.
 No public URL is needed for local authoring; add your real `base_url` when ready
@@ -94,8 +90,8 @@ configured in moon.mod. Run `moon info --target native && moon fmt` before PRs.
 The verified toolchain is moon 0.1.20260920 / moonc v0.10.14+7d59c7ec9.
 Setup requests the official compiler-revision distribution
 `0.10.14+7d59c7ec9` and rejects a version mismatch. It does not silently accept
-future versions. Archived,
-checksum-pinned toolchain distribution is a follow-up reproducibility task.
+future versions. Both official binary/core archives have repository-pinned
+SHA-256 checksums; no mutable upstream installer is executed.
 The `moonbitlang/x` dependency is explicitly versioned at 0.5.5 for native I/O.
 Toolchain and dependency packages may contain unused JS backends; MoonPress
 never builds or invokes them.

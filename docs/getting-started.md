@@ -1,12 +1,11 @@
 # Create and build your first site
 
 MoonPress currently targets Linux x86_64. Build the compiler using the repository
-README instructions; setup requires a C compiler, curl, Git, Bash, jq and GNU
-command-line tools. No Node/npm or JavaScript runtime is required. The exact
-MoonBit toolchain is verified by setup; fixed archive distribution is still an
-open release gate.
+README instructions; setup requires a C compiler, curl, Git, Bash and GNU
+command-line tools. No Node/npm or JavaScript runtime is required. Setup verifies exact MoonBit versions and pinned official archive checksums;
+see [toolchain setup](toolchain.md).
 
-From the MoonPress checkout after `bash scripts/check.sh`:
+From the MoonPress checkout after `moon build --target native --release`:
 
 ```sh
 moonpress="$PWD/_build/native/release/build/cmd/main/main.exe"
@@ -241,4 +240,5 @@ workflow separately.
 
 Run `moonpress admin my-site 8080` for the local post-management interface.
 See [local administration](admin.md) for creation, editing, status controls and
-the local-only trust boundary. Preview and deployment remain CLI workflows.
+the local-only trust boundary. Open `/workflow` for the ordered writing,
+preview and production-build steps. Remote hosting requires separate setup.

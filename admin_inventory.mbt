@@ -44,6 +44,9 @@ fn admin_posts(
   let matches = filter_posts(inventory.posts, query, state)
   let (start, end, pages) = admin_page_bounds(matches.length(), page)
   let out = StringBuilder()
+  out.write_string(
+    "<p class=\"notice\"><a href=\"/workflow\">Start here: write, preview, review and publish</a></p>",
+  )
   out.write_string(admin_post_search_form(query, state))
   out.write_string(
     "<p>Showing \{end - start} of \{matches.length()} matching posts (\{inventory.posts.length()} valid total). Page \{page} of \{pages}.</p>",
@@ -74,7 +77,7 @@ fn admin_posts(
     "</tbody></table>" +
     admin_post_navigation(query, state, page, pages) +
     admin_post_problems(inventory.problems) +
-    "<h2>New draft</h2><form method=\"post\" action=\"/new\">" +
+    "<h2 id=\"new-draft\">New draft</h2><form method=\"post\" action=\"/new\">" +
     admin_hidden("token", token) +
     "<label>Title<input name=\"title\" required></label><label>File stem (for example, first-post)<input name=\"slug\" required></label><button>Create draft</button></form>",
   )
