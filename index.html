@@ -18,15 +18,18 @@
 </ol>
 </nav>
 <h1 id="mp-moonpress">MoonPress</h1>
-<p>Small builds. Visible decisions.</p>
+<p>Review the change. Build that plan.</p>
 <p>MoonBitで書く、静的サイトのための小さなコンパイラ。
 JavaScriptもNode.jsも、配信時のランタイムも不要です。</p>
+<p>何が変わるかを、書き出す前に確認する。確認した計画と違えば、勝手に先へ進まない。
+MoonPressは記事・テーマ・画像の依存関係から変更計画を作り、その計画を確認してからビルドできます。</p>
 <h2 id="mp-build-your-first-site">Build your first site</h2>
 <pre><code class="language-sh">moonpress build site dist
 </code></pre>
 <p>MarkdownとHTMLレイアウト、CSSから静的サイトを生成します。このページもMoonPressで生成しています。</p>
 <h2 id="mp-an-honest-beginning">An honest beginning</h2>
-<p>現在は見出し・段落・コードブロックに対応する実験段階です。SHA-256による差分ビルドと、再生成する理由の表示に対応しました。未変更のページは書き換えません。</p>
+<p>記事の作成・下書きプレビュー・変更理由の確認を、JavaScriptなしのブラウザ画面から操作できます。公開用ビルドは確認済みの計画と照合し、変わっていれば書き出さずに停止します。CLIでもreviewとbuild-reviewedで同じ仕組みを使えます。</p>
+<p>SHA-256による差分ビルドで、未変更のページは書き換えません。これはローカルの生成処理です。ホスティングへの公開は別の手順で行います。信頼できるローカルプロジェクト向けの実験段階で、電源断への完全な耐久性や外部プロセスによる同時変更への防御は保証しません。</p>
 <p>「超軽量」は目標です。サイズと速度を測定し、その根拠を公開します。</p>
 </main>
 <footer>Compiled by MoonPress. Served as HTML + CSS.<a href="https://github.com/furukawa1020/MoonPress/issues">Follow the build ↗</a></footer>
