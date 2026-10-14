@@ -692,3 +692,14 @@ other bracket markers, escaped brackets, inline code and fenced code stay litera
 This subset does not support nested tasks or interactive saving. Renderer v18
 refreshes prior source-page caches once; body-only task edits then rebuild only
 that page. Output manifests and CLI report schemas stay unchanged.
+
+### Strikethrough
+
+Exact double tilde spans `~~removed text~~` compile to `<del>`. They use the
+same outer/content boundary rules and last-opened delimiter stack as asterisk
+emphasis, and may nest with emphasis/strong emphasis. Only matched delimiters
+are removed from automatic titles, TOC labels and heading IDs. Links/images in
+spans receive normal preflight checks. Single/triple tilde runs, intraword spans,
+unmatched or crossing delimiters remain literal. Escaped tildes, code, fences,
+plain link labels and image alt text are not reparsed. Renderer v19 refreshes
+source-page caches; subsequent body-only edits remain scoped to the page.

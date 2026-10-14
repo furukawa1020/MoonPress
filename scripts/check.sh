@@ -36,6 +36,7 @@ bash scripts/pagination-test.sh
 bash scripts/tag-pagination-test.sh
 bash scripts/tag-index-test.sh
 
+bash scripts/strikethrough-test.sh
 bash scripts/task-lists-test.sh
 bash scripts/markdown-test.sh
 bash scripts/assets-test.sh

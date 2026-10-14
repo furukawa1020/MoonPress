@@ -26,6 +26,8 @@ fn parse_inline(text : String) -> Array[Inline] {
     }
     let star = rest.find("*").unwrap_or(rest.length())
     let start = if star < start { star } else { start }
+    let tilde = rest.find("~").unwrap_or(rest.length())
+    let start = if tilde < start { tilde } else { start }
     let slash = rest.find("\\").unwrap_or(rest.length())
     let start = if slash < start { slash } else { start }
     if start == rest.length() {
@@ -45,27 +47,33 @@ fn parse_inline(text : String) -> Array[Inline] {
       rest = rest[start + width:].to_owned()
       continue
     }
-    if start == star {
+    if start == star || start == tilde {
+      let delimiter = rest[start:start + 1].to_owned()
       let mut end = start + 1
-      while end < rest.length() && rest[end:end + 1] == "*" {
+      while end < rest.length() && rest[end:end + 1] == delimiter {
         end += 1
       }
       let marker = rest[start:end].to_owned()
+      let supported = marker == "*" || marker == "**" || marker == "~~"
       let offset = text.length() - rest.length() + start
       let before = text[:offset].rev_iter().next()
       let after = rest[end:].iter().next()
       let can_open = emphasis_boundary(before) && emphasis_content(after)
       let can_close = emphasis_content(before) && emphasis_boundary(after)
-      if marker.length() <= 2 &&
+      if supported &&
         can_close &&
         !openers.is_empty() &&
         openers[openers.length() - 1].0 == marker {
         let (_, index) = openers.pop().unwrap()
-        let tag = if marker == "*" { "em" } else { "strong" }
+        let tag = match marker {
+          "*" => "em"
+          "**" => "strong"
+          _ => "del"
+        }
         result[index] = EmphasisStart(tag)
         result.push(EmphasisEnd(tag))
       } else {
-        if marker.length() <= 2 && can_open {
+        if supported && can_open {
           openers.push((marker, result.length()))
         }
         result.push(Text(marker))

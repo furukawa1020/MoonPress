@@ -69,7 +69,7 @@ operations write no files; see [output audit](docs/output-audit.md) and
 
 Supported Markdown: ATX headings 1–6 with unique anchors and an optional `{{toc}}` table of contents, paragraphs, and backtick/tilde code
 fences, thematic breaks, flat unordered/ordered lists, static task checkboxes and block quotes. Unsupported syntax is plain text.
-Simple links, images, inline code and asterisk emphasis/strong emphasis are
+Simple links, images, inline code and asterisk emphasis/strong emphasis and strikethrough are
 supported. Nested content directories are not supported yet. Optional `public/` assets are copied as bytes with
 per-file incremental dependencies. JSON frontmatter with draft exclusion,
 per-page named layouts, publication dates, chronological article/tag lists, sitemap and preflight link checks are supported; see [content model](docs/content.md).
