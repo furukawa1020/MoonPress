@@ -12,7 +12,7 @@ test "thematic breaks accept homogeneous markers and ASCII spacing" {
 test "thematic breaks close groups and precede list parsing" {
   assert_eq(
     @moonpress.render_markdown(
-      "before\n---\nafter\n- item\n- - -\n1. item\n___\n> quote\n* * *\n# End",
+      "before\n\n---\nafter\n- item\n- - -\n1. item\n___\n> quote\n* * *\n# End",
     ),
     "<p>before</p>\n<hr>\n<p>after</p>\n<ul>\n<li>item</li>\n</ul>\n<hr>\n<ol>\n<li>item</li>\n</ol>\n<hr>\n<blockquote>\n<p>quote</p>\n</blockquote>\n<hr>\n<h1 id=\"mp-end\">End</h1>\n",
   )

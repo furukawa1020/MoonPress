@@ -466,8 +466,8 @@ They add no heading, title, TOC entry or reference.
 The frontmatter contract is unchanged: a source beginning with `---` followed by
 a newline starts JSON frontmatter, not a horizontal rule. Use `***` or `___` for
 a rule at the beginning of a page without frontmatter. After the frontmatter
-closing delimiter, `---` is a normal thematic break. Setext headings remain
-unsupported: `Title` followed by `---` renders a paragraph and a rule.
+closing delimiter, standalone `---` is a normal thematic break. Immediately
+after one paragraph line it instead forms the H2 Setext heading described below.
 
 ### Lists and quotes
 
@@ -716,3 +716,18 @@ do not use this rule. Rendering and link/image extraction normalize the same
 line text. Blank lines/block transitions terminate paragraphs, so a marker
 immediately before them does not create a break. Renderer v20 refreshes page
 caches without changing manifest/report schemas.
+
+### Single-line Setext headings
+
+One pending paragraph line followed by at least three contiguous `=` characters
+becomes H1; the same with `-` becomes H2. The underline starts at column zero
+and may end in ASCII spaces/tabs. This takes precedence over an unspaced `---`
+thematic break after exactly one paragraph line. Use a blank line before `---`
+or a spaced `- - -` to request a thematic break there. Multi-line paragraphs,
+lists, quotes, fences, indented/short/spaced underlines retain existing behavior.
+
+Setext and ATX headings share inline parsing, automatic title selection, TOC,
+unique IDs and reference checks. The first visible H1 supplies the title unless
+metadata overrides it. Code never creates headings. This is an explicit
+subset, not full CommonMark Setext behavior. Renderer v21 refreshes source pages;
+changed inferred titles also update metadata-dependent collections/feeds.

@@ -118,6 +118,12 @@ fn parse_blocks(source : String) -> Array[Block] {
       fence = Some(opening)
       language = fence_language(line, opening.1)
     } else {
+      let underline = setext_level(line)
+      if underline > 0 && kind == 0 && lines.length() == 1 {
+        blocks.push(Heading(underline, lines[0].trim(chars=" \t").to_owned()))
+        lines = []
+        continue
+      }
       let level = heading_level(line)
       let separator = is_thematic_break(line)
       if line.trim().is_empty() || level > 0 || separator {

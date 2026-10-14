@@ -67,7 +67,7 @@ impact my-site content/guide.md [--json]` queries exact direct keys. These
 operations write no files; see [output audit](docs/output-audit.md) and
 [dependencies](docs/dependencies.md) for scope and exit semantics.
 
-Supported Markdown: ATX headings 1–6 with unique anchors and an optional `{{toc}}` table of contents, paragraphs with explicit line breaks, and backtick/tilde code
+Supported Markdown: ATX headings 1–6 and single-line Setext headings with unique anchors and an optional `{{toc}}` table of contents, paragraphs with explicit line breaks, and backtick/tilde code
 fences, thematic breaks, flat unordered/ordered lists, static task checkboxes and block quotes. Unsupported syntax is plain text.
 Simple links, images, inline code and asterisk emphasis/strong emphasis and strikethrough are
 supported. Nested content directories are not supported yet. Optional `public/` assets are copied as bytes with
