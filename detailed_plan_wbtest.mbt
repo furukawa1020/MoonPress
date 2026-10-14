@@ -28,6 +28,7 @@ test "detailed plan preserves actual actions including missing output repair" {
     ],
   }
   let plan : BuildPlan = {
+    routes: [],
     pending: [
       {
         artifact: {

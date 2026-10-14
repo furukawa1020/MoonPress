@@ -54,6 +54,8 @@ pub fn inspect_media_references(String) -> MediaReferences raise
 
 pub fn inspect_posts(String) -> PostInventory raise
 
+pub fn inspect_routes(String, include_drafts? : Bool) -> RouteInventory raise
+
 pub fn list_media(String) -> MediaReport raise
 
 pub fn list_posts(String) -> PostsReport raise
@@ -402,6 +404,21 @@ pub(all) struct Redirect {
 pub fn Redirect::equal(Self, Self) -> Bool
 pub fn Redirect::not_equal(Self, Self) -> Bool
 pub fn Redirect::to_json(Self) -> Json
+
+pub(all) struct RouteInfo {
+  name : String
+  kind : String
+  source : String?
+  target : String?
+} derive(ToJson)
+pub fn RouteInfo::to_json(Self) -> Json
+
+pub(all) struct RouteInventory {
+  pages : Int
+  include_drafts : Bool
+  routes : Array[RouteInfo]
+} derive(ToJson)
+pub fn RouteInventory::to_json(Self) -> Json
 
 pub(all) struct SavePostReport {
   source : String

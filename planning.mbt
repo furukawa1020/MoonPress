@@ -46,6 +46,7 @@ fn plan_artifact(
 
 ///|
 priv struct BuildPlan {
+  routes : Array[RouteInfo]
   pending : Array[Pending]
   removed : Array[String]
   manifest : String
