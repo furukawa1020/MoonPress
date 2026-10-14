@@ -215,6 +215,36 @@ fn plan_site(
       ),
     )
   }
+  let redirect_targets = pending.map(item => item.artifact.name)
+  if base_url is Some(_) {
+    redirect_targets.push("sitemap.xml")
+  }
+  let redirects = resolve_redirects(config.redirects, redirect_targets)
+  let redirect_names : Map[String, Bool] = Map([])
+  for redirect in redirects {
+    redirect_names[redirect.name] = true
+    let content = render_redirect(redirect.target, base_url~)
+    pending.push(
+      plan_artifact(
+        redirect.name,
+        [
+          { name: "redirect-renderer", digest: digest_text("redirect-v1"), },
+          {
+            name: "site.json/redirects/" + redirect.name,
+            digest: digest_text(
+              [redirect.target, base_url.to_json().stringify()]
+              .to_json()
+              .stringify(),
+            ),
+          },
+        ],
+        previous,
+        output,
+        () => @utf8.encode(content),
+        log,
+      ),
+    )
+  }
   let routes = pending.map(item => item.artifact.name)
   if base_url is Some(_) {
     routes.push("sitemap.xml")
@@ -256,6 +286,7 @@ fn plan_site(
     let source_routes = index_routes(sitemap_routes)
     for route in routes {
       if route.has_suffix(".html") &&
+        !redirect_names.contains(route) &&
         !source_routes.contains(url_component(route)) {
         sitemap_routes.push(route)
       }

@@ -19,6 +19,7 @@ bash scripts/post-status-test.sh
 bash scripts/admin-test.sh
 bash scripts/local-config-test.sh
 bash scripts/incremental-test.sh
+bash scripts/redirects-test.sh
 bash scripts/content-test.sh
 bash scripts/slugs-test.sh
 bash scripts/listed-test.sh
