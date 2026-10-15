@@ -34,6 +34,12 @@ local build success does not report a deployment. No JavaScript is needed.
 [Browser editor](docs/admin.md) · [GitHub Actions hosting](docs/deployment.md).
 Development checks and their additional jq dependency are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+Existing media can be replaced at the same URL from the local **Media** screen
+or with `media-read` / `media-replace`. A saved SHA-256 version prevents stale
+updates; identical bytes preserve the file, and changed bytes are staged and
+checked before replacement. Review a separate build to update generated output.
+See [media replacement and its concurrency limits](docs/media-replacement.md).
+
 The starter includes tag navigation, pagination settings and a writing guide.
 No public URL is needed for local authoring; add your real `base_url` when ready
 to generate a sitemap or enable RSS.

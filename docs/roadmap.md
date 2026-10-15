@@ -18,6 +18,9 @@ CommonMark compatibility or superiority to other site generators.
 - Validated snapshot comparison and detailed protected build plans with complete dependency deltas.
 - Reviewed plan identities and locked build enforcement, shared by native CLI and browser production forms.
 - Source-aware authored reference graphs, per-route incoming/outgoing queries and site-wide counts shared by compiler validation, native CLI and local browser output inspection. Self edges and distinct other referrers are separate; zero counts do not certify safe deletion.
+- Versioned binary media replacement via native API, CLI and browser file picker;
+  staged writes, exact-byte no-op, observed staging/target checks and fault/race
+  regressions. Separate build/deployment, no undo journal or power-loss claim.
 - Output filename byte limits, strict manifest/journal field validation and source file-kind checks.
 - Staged preparation, per-file replacement and caught-error rollback; explicit recovery of journaled interruptions.
 - Cooperative build/explain/plan/recover locking on local Linux filesystems, including new outputs.
