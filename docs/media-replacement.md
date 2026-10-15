@@ -20,7 +20,10 @@ SHA-256 values from the asset you reviewed. A stale or invalid version fails.
 
 The operation locks the public directory cooperatively, rereads the asset under
 that lock, stages all new bytes exclusively in `public/.moonpress-media-edit`,
-copies ordinary permission bits, and rechecks the asset digest before renaming.
+copies ordinary permission bits, verifies that the closed staging path is still a
+regular file with the exact requested bytes, and rechecks the asset digest before
+renaming. Observed staging edits, substitutions and missing paths are refused;
+unverifiable remnants are retained for inspection rather than removed.
 Identical bytes return unchanged without replacing the inode or modifying mtime.
 An occupied staging path is refused, including on no-op attempts. Import/upload
 remain create-only operations; replacement never creates a missing target.
@@ -31,8 +34,10 @@ Interruption may leave a staging remnant; it is not silently removed on retry.
 Keep the remnant for inspection and use a fresh copy of the site if uncertain.
 This is not a media undo history, crash-recovery journal or power-loss guarantee.
 
-Noncooperating editors do not share the lock. Changes observed at the final
-digest check are preserved; an external writer can still race after that check.
+Noncooperating editors do not share the lock. Changes observed at the staging/target checks are refused; an external writer
+can still change either path after its final check. These are observed-state
+checks, not an atomic inode-bound publication guarantee against arbitrary
+same-user filesystem mutation.
 The digest checks bytes, not inode identity, timestamps or permission history.
 There is no whole-site transaction or lock across builds and source changes.
 
