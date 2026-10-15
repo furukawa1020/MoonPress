@@ -85,7 +85,8 @@ fn admin_headers(raw : String, host : String) -> AdminRequest raise {
     length = length * 10 + c.to_int() - 48
   }
   let content_type = headers.get("content-type").unwrap_or("")
-  let boundary = if start[0] == "POST" && start[1] == "/upload" {
+  let boundary = if start[0] == "POST" &&
+    (start[1] == "/upload" || start[1] == "/replace-media") {
     Some(admin_multipart_boundary(content_type))
   } else {
     None

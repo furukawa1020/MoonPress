@@ -22,6 +22,7 @@ bash scripts/post-status-test.sh
 bash scripts/admin-test.sh
 bash scripts/admin-references-test.sh
 bash scripts/admin-output-references-test.sh
+bash scripts/admin-media-replace-test.sh
 bash scripts/local-config-test.sh
 bash scripts/incremental-test.sh
 bash scripts/routes-test.sh

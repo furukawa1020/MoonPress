@@ -3,6 +3,7 @@ priv struct AdminUpload {
   token : String
   name : String
   bytes : Bytes
+  version : String?
 }
 
 ///|
@@ -28,7 +29,7 @@ fn admin_multipart_boundary(content_type : String) -> String raise {
 }
 
 ///|
-fn admin_part_name(raw : String) -> String raise {
+fn admin_part_name(raw : String, replacing? : Bool = false) -> String raise {
   let headers : Map[String, String] = Map([])
   for line in raw.split("\r\n") {
     let (key, value) = match line.split_once(":") {
@@ -44,7 +45,12 @@ fn admin_part_name(raw : String) -> String raise {
     headers[key] = value
   }
   let disposition = admin_field(headers, "content-disposition")
-  for name in ["token", "name"] {
+  let names = if replacing {
+    ["token", "name", "version"]
+  } else {
+    ["token", "name"]
+  }
+  for name in names {
     if disposition == "form-data; name=\"" + name + "\"" &&
       headers.length() == 1 {
       return name
@@ -82,7 +88,11 @@ fn admin_boundary_at(body : Bytes, start : Int, marker : Bytes) -> Int raise {
 }
 
 ///|
-fn admin_multipart(body : Bytes, boundary : String) -> AdminUpload raise {
+fn admin_multipart(
+  body : Bytes,
+  boundary : String,
+  replacing? : Bool = false,
+) -> AdminUpload raise {
   if body.length() > 8388608 {
     raise InvalidInput("Upload request exceeds 8 MiB")
   }
@@ -91,10 +101,15 @@ fn admin_multipart(body : Bytes, boundary : String) -> AdminUpload raise {
   if !body[:].has_prefix(opening[:]) {
     raise InvalidInput("Invalid multipart opening")
   }
+  let required = if replacing {
+    ["token", "name", "version", "file"]
+  } else {
+    ["token", "name", "file"]
+  }
   let parts : Map[String, Bytes] = Map([])
   let mut offset = opening.length()
   while true {
-    if parts.length() >= 3 {
+    if parts.length() >= required.length() {
       raise InvalidInput("Too many upload fields")
     }
     let header_size = match body[offset:].find(b"\r\n\r\n") {
@@ -106,6 +121,7 @@ fn admin_multipart(body : Bytes, boundary : String) -> AdminUpload raise {
         body[offset:offset + header_size].to_owned(),
         "multipart headers",
       ),
+      replacing~,
     )
     if parts.contains(name) {
       raise InvalidInput("Duplicate upload field")
@@ -113,7 +129,8 @@ fn admin_multipart(body : Bytes, boundary : String) -> AdminUpload raise {
     let start = offset + header_size + 4
     let end = admin_boundary_at(body, start, marker)
     if (name == "token" && end - start > 256) ||
-      (name == "name" && end - start > 1024) {
+      (name == "name" && end - start > 1024) ||
+      (name == "version" && end - start > 64) {
       raise InvalidInput("Upload text field too large")
     }
     parts[name] = body[start:end].to_owned()
@@ -128,13 +145,21 @@ fn admin_multipart(body : Bytes, boundary : String) -> AdminUpload raise {
     }
     offset += 2
   }
-  if parts.length() != 3 {
-    raise InvalidInput("Upload requires token, name and file")
+  if parts.length() != required.length() ||
+    required.any(name => !parts.contains(name)) {
+    raise InvalidInput(
+      "Upload requires exactly its token, name, file and replacement version when applicable",
+    )
   }
   {
     token: decode_text(parts["token"], "upload token"),
     name: decode_text(parts["name"], "upload name"),
     bytes: parts["file"],
+    version: if replacing {
+      Some(decode_text(parts["version"], "media version"))
+    } else {
+      None
+    },
   }
 }
 
@@ -155,9 +180,13 @@ fn admin_dispatch(
   token : String,
 ) -> (Int, String) raise {
   if request.boundary is Some(boundary) {
-    let upload = admin_multipart(body, boundary)
+    let replacing = request.target == "/replace-media"
+    let upload = admin_multipart(body, boundary, replacing~)
     if upload.token != token {
       raise InvalidInput("Form token rejected; reload the page")
+    }
+    if replacing {
+      return admin_replace_upload(input, upload, token)
     }
     try {
       let item = store_media(input, upload.name, upload.bytes)

@@ -67,6 +67,9 @@ fn admin_media(
       "</code></p><label>Markdown snippet<textarea readonly rows=\"2\" style=\"min-height:4rem\">\n" +
       escape_html(media_snippet(item)) +
       "</textarea></label>" +
+      "<p><a href=\"/media-replace?name=" +
+      url_component(item.source[7:].to_owned()) +
+      "\">Replace this media at the same URL</a></p>" +
       admin_media_posts(asset.posts) +
       "</section>",
     )

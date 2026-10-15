@@ -287,3 +287,21 @@ editor only when the source is a safe article filename; project HTML/assets are
 not served on the administration origin. Counts exclude generated navigation,
 CSS and external URLs and are not proof that deletion is safe. No output or
 source files are removed or changed by this screen.
+
+## Replace an existing image or attachment
+
+On **Media**, choose **Replace this media at the same URL**. The detail screen
+shows the saved byte version and a link to inspect references including drafts.
+Select a replacement file and submit. Its local filename does not rename the
+asset. The complete request must fit within 8 MiB, including form overhead.
+
+The form carries the version shown when opened. A newer edit causes an error;
+the failed form retains its old version and does not silently retry. Use
+**Reload current media version**, review the asset, then select the file again.
+Identical bytes are reported as unchanged. Existing create-only upload/import
+still refuse occupied destinations.
+
+Replacement changes the saved public asset only. Review the production build
+plan before rebuilding; hosting deployment remains a separate step. Assets are
+not displayed or served on the admin origin. Keep a backup for undo. See
+[replacement guarantees and limits](media-replacement.md).
