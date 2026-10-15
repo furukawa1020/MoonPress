@@ -130,6 +130,16 @@ fn admin_route(
     if request.target == "/workflow" {
       return (200, admin_workflow(input, token))
     }
+    if request.target.has_prefix("/media-replace?") {
+      let fields = admin_form(request.target[15:].to_owned())
+      if fields.length() != 1 {
+        raise InvalidInput("Invalid media replacement query")
+      }
+      return (
+        200,
+        admin_media_replace(input, admin_field(fields, "name"), token),
+      )
+    }
     if request.target == "/media" {
       return (200, admin_media(input, token, Map([])))
     }
