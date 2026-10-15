@@ -63,3 +63,19 @@ Failures write stderr with empty stdout. No binary contents are printed.
 The replacement file's filename does not rename the destination. The URL and
 extension classification stay those of the existing asset. Keep a backup if
 you need to undo the change.
+
+## Tested failure boundaries
+
+The native integration suite injects stage open/write/flush/close failures,
+rename failures, partial-write cleanup failure and stage read failures. It also
+creates a competing stage at exclusive open, changes the target after lock or
+during staging, runs competing cooperative replacements, and sends SIGKILL
+immediately before rename. Tests verify original bytes/metadata where unchanged,
+retained foreign or unverifiable staging, explicit retry refusal, correct
+reported digests and unchanged replacement input files.
+
+These are process/fault tests, not power-loss durability tests. A refused
+staging remnant is intentionally visible rather than silently discarded.
+Normal successful replacements are checked against fresh versus incremental
+build output. The operation never deletes an asset; reference counts remain
+inspection evidence, not permission to delete files.
