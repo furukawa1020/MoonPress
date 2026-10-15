@@ -58,13 +58,33 @@ pub fn list_media(input : String) -> MediaReport raise {
   let items : Array[MediaItem] = []
   for name in public_asset_names(input) {
     let bytes = read_bytes(input + "/public/" + name)
-    items.push({
-      source: "public/" + name,
-      url: url_component(name),
-      bytes: bytes.length(),
-      digest: digest_bytes(bytes),
-      image: image_asset_name(name),
-    })
+    items.push(media_item(name, bytes))
   }
   { items, }
+}
+
+///|
+fn media_item(name : String, bytes : Bytes) -> MediaItem {
+  {
+    source: "public/" + name,
+    url: url_component(name),
+    bytes: bytes.length(),
+    digest: digest_bytes(bytes),
+    image: image_asset_name(name),
+  }
+}
+
+///|
+fn media_path(input : String, name : String) -> String raise {
+  require_media_destination(name)
+  require_input_kind(input, 2)
+  require_input_kind(input + "/public", 2)
+  let path = input + "/public/" + name
+  require_input_kind(path, 1)
+  path
+}
+
+///|
+pub fn read_media(input : String, name : String) -> MediaItem raise {
+  media_item(name, read_bytes(media_path(input, name)))
 }
