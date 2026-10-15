@@ -110,6 +110,10 @@ pub fn render_sitemap(String, Array[String]) -> String
 
 pub fn render_toc(String) -> String
 
+pub fn replace_media(String, String, String, Bytes) -> ReplaceMediaReport raise
+
+pub fn replace_media_from_file(String, String, String, String) -> ReplaceMediaReport raise
+
 pub fn resolve_redirects(Array[Redirect], Array[String]) -> Array[Redirect] raise
 
 pub fn review_build_plan(String, String, include_drafts? : Bool) -> ReviewedBuildPlan raise
@@ -450,6 +454,13 @@ pub(all) struct ReferenceSummary {
   scope : String
 } derive(ToJson)
 pub fn ReferenceSummary::to_json(Self) -> Json
+
+pub(all) struct ReplaceMediaReport {
+  item : MediaItem
+  previous_digest : String
+  changed : Bool
+} derive(ToJson)
+pub fn ReplaceMediaReport::to_json(Self) -> Json
 
 pub(all) struct ReviewedBuildPlan {
   schema : Int

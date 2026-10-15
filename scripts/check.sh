@@ -11,6 +11,7 @@ bash scripts/init-test.sh
 bash scripts/posts-test.sh
 bash scripts/media-test.sh
 bash scripts/media-snapshot-test.sh
+bash scripts/media-replace-api-test.sh
 bash scripts/media-references-test.sh
 bash scripts/media-import-test.sh
 bash scripts/new-post-test.sh
