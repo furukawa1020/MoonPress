@@ -54,11 +54,5 @@ pub fn store_media(
       raise InvalidInput("Media import failed: \{error}" + cleanup)
     }
   }
-  {
-    source: "public/" + name,
-    url: url_component(name),
-    bytes: bytes.length(),
-    digest: digest_bytes(bytes),
-    image: image_asset_name(name),
-  }
+  media_item(name, bytes)
 }
