@@ -33,7 +33,8 @@ pub fn replace_media(
   let lock = lock_output(path, shared=false)
   defer native_unlock_output(lock)
   // Revalidate the path and bytes after acquiring the shared authoring lock.
-  let current_bytes = read_bytes(media_path(input, name))
+  media_path(input, name) |> ignore
+  let current_bytes = read_public_bytes(input, name)
   let current = media_item(name, current_bytes)
   require_media_version(current, expected)
   let stage = input + "/public/.moonpress-media-edit"
@@ -53,7 +54,7 @@ pub fn replace_media(
   try {
     write_opened_file(file, stage, bytes, mode_source=Some(path))
     prepared = true
-    verify_media_stage(stage, bytes)
+    verify_media_stage(input, bytes)
     verified = true
     require_media_version(read_media(input, name), expected)
     replace_staged_file(stage, path)
@@ -64,7 +65,7 @@ pub fn replace_media(
       } else {
         try {
           if prepared {
-            verify_media_stage(stage, bytes)
+            verify_media_stage(input, bytes)
           } else {
             require_input_kind(stage, 1)
           }
@@ -92,10 +93,11 @@ pub fn replace_media_from_file(
 }
 
 ///|
-fn verify_media_stage(stage : String, expected : Bytes) -> Unit raise {
+fn verify_media_stage(input : String, expected : Bytes) -> Unit raise {
+  let stage = input + "/public/.moonpress-media-edit"
   try {
     require_input_kind(stage, 1)
-    if read_bytes(stage) != expected {
+    if read_public_bytes(input, ".moonpress-media-edit") != expected {
       raise InvalidInput("Staged bytes differ from the requested replacement")
     }
   } catch {

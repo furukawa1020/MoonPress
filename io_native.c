@@ -34,3 +34,49 @@ MOONBIT_FFI_EXPORT int moonpress_io_copy_mode(FILE *file, moonbit_bytes_t path) 
   if (!S_ISREG(st.st_mode)) { errno = EINVAL; return -1; }
   return fchmod(fileno(file), st.st_mode & 0777);
 }
+
+/* Read-only directory walking. Never follow a symlink in the supplied path. */
+#include <fcntl.h>
+#include <stdlib.h>
+#include <string.h>
+
+static int moonpress_open_real_directory(const char *path) {
+  if (!path[0]) { errno = ENOENT; return -1; }
+  char *copy = strdup(path);
+  if (!copy) return -1;
+  int fd = open(path[0] == '/' ? "/" : ".", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+  if (fd < 0) { int saved = errno; free(copy); errno = saved; return -1; }
+  char *save = NULL;
+  for (char *part = strtok_r(copy, "/", &save); part; part = strtok_r(NULL, "/", &save)) {
+    int next = openat(fd, part, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+    int saved = errno;
+    close(fd);
+    if (next < 0) { free(copy); errno = saved; return -1; }
+    fd = next;
+  }
+  free(copy);
+  return fd;
+}
+
+/* Anchor public/ and its flat child to open descriptors, then validate the
+ * actual file. O_NONBLOCK prevents a substituted FIFO from blocking open. */
+MOONBIT_FFI_EXPORT FILE *moonpress_io_open_public(moonbit_bytes_t input, moonbit_bytes_t name) {
+  int root = moonpress_open_real_directory((const char *)input);
+  if (root < 0) return NULL;
+  int directory = openat(root, "public", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+  int saved = errno;
+  close(root);
+  if (directory < 0) { errno = saved; return NULL; }
+  int fd = openat(directory, (const char *)name, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC);
+  saved = errno;
+  close(directory);
+  if (fd < 0) { errno = saved; return NULL; }
+  struct stat st;
+  if (fstat(fd, &st) != 0) {
+    saved = errno; close(fd); errno = saved; return NULL;
+  }
+  if (!S_ISREG(st.st_mode)) { close(fd); errno = EINVAL; return NULL; }
+  FILE *file = fdopen(fd, "rb");
+  if (!file) { saved = errno; close(fd); errno = saved; }
+  return file;
+}
