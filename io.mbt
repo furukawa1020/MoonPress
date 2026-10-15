@@ -91,7 +91,12 @@ extern "C" fn io_read(file : NativeFile, data : Bytes, length : Int) -> Int = "m
 
 ///|
 fn read_bytes(path : String) -> Bytes raise {
-  let file = open_file(path, 0)
+  read_opened_file(open_file(path, 0), path)
+}
+
+///|
+// Takes ownership of the already-opened stream, including guarded media reads.
+fn read_opened_file(file : NativeFile, path : String) -> Bytes raise {
   let mut closed = false
   defer (if !closed { io_close(file) |> ignore })
   if io_seek(file, 2) != 0 {
@@ -160,3 +165,23 @@ fn require_input_kind(path : String, expected : Int) -> Unit raise {
 ///|
 #borrow(path)
 extern "C" fn io_copy_mode(file : NativeFile, path : Bytes) -> Int = "moonpress_io_copy_mode"
+
+///|
+#borrow(input, name)
+extern "C" fn io_open_public(input : Bytes, name : Bytes) -> NativeFile = "moonpress_io_open_public"
+
+///|
+fn read_public_bytes(input : String, name : String) -> Bytes raise {
+  if input.contains("\u0000") || !safe_output_name(name) {
+    raise InvalidInput("Invalid media read path")
+  }
+  let path = input + "/public/" + name
+  let file = io_open_public(
+    @utf8.encode(input) + b"\x00",
+    @utf8.encode(name) + b"\x00",
+  )
+  if io_is_null(file) != 0 {
+    raise io_failure("guarded media open", path)
+  }
+  read_opened_file(file, path)
+}

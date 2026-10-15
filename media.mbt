@@ -86,5 +86,6 @@ fn media_path(input : String, name : String) -> String raise {
 
 ///|
 pub fn read_media(input : String, name : String) -> MediaItem raise {
-  media_item(name, read_bytes(media_path(input, name)))
+  media_path(input, name) |> ignore
+  media_item(name, read_public_bytes(input, name))
 }

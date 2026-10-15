@@ -7,7 +7,10 @@ writes nothing. It does not require valid articles or a successful site build.
 
 Use an exact flat asset filename, for example `月 &a.PNG`, not a URL or source
 path. Missing files, reserved compiler filenames, symlinks and special files are
-rejected. Reading one item does not validate all other public files or the site.
+rejected. Media reads walk directory components with no-follow opens, anchor
+public/ and the asset to directory descriptors, and validate the opened descriptor
+as a regular file. Symlinked ancestors in the supplied site path are also refused;
+use the real directory path. Reading one item does not validate all other public files or the site.
 Classification by extension does not validate an image or sanitize its content.
 
 ## Replacement API
@@ -79,3 +82,11 @@ staging remnant is intentionally visible rather than silently discarded.
 Normal successful replacements are checked against fresh versus incremental
 build output. The operation never deletes an asset; reference counts remain
 inspection evidence, not permission to delete files.
+
+Guarded reads prevent following substituted symlinks; they do not freeze file
+contents against in-place external writes or make replacement publication atomic
+with directory renames. Source/root selection remains a trusted local operation.
+The guard is used for single-media snapshots and replacement target/stage checks;
+it does not change all compiler or inventory filesystem reads. Tests inject
+asset/public-directory substitutions at open and verify descriptor cleanup on
+stream-construction failure.
