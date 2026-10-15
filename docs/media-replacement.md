@@ -40,3 +40,21 @@ Replacement does not modify article links, validate image contents, recompile
 the site, change existing generated output or deploy. Inspect references and
 review a subsequent build separately. External browser/CDN caches may still
 retain bytes at the unchanged URL.
+
+## CLI
+
+```sh
+moonpress media-read my-site photo.png --json
+moonpress media-replace my-site photo.png <expected-digest> /path/to/new-photo.png --json
+```
+
+Use the digest returned by the read command after reviewing the asset.
+Both commands accept `--json` once, after all positional arguments; neither
+accepts `--include-drafts` because public assets have no draft status.
+JSON uses the schema-1 command envelope. Text output quotes names.
+Exit 0 is success, 1 is validation/I/O failure and 2 is an argument error.
+Failures write stderr with empty stdout. No binary contents are printed.
+
+The replacement file's filename does not rename the destination. The URL and
+extension classification stay those of the existing asset. Keep a backup if
+you need to undo the change.

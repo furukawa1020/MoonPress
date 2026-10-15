@@ -24,6 +24,8 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
+  value == "media-read" ||
+  value == "media-replace" ||
   value == "reference-summary" ||
   value == "references" ||
   value == "backlinks" ||
@@ -55,6 +57,10 @@ fn is_command(value : String) -> Bool {
 ///|
 fn usage(command : String) -> String {
   match command {
+    "media-read" =>
+      "Usage: moonpress media-read <site-directory> <asset-name> [--json]"
+    "media-replace" =>
+      "Usage: moonpress media-replace <site-directory> <asset-name> <expected-digest> <replacement-file> [--json]"
     "reference-summary" =>
       "Usage: moonpress reference-summary <site-directory> [--include-drafts] [--json]"
     "references" =>
@@ -97,13 +103,17 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <reference-summary|references|backlinks|review|build-reviewed|routes|plan|diff|impact|deps|audit|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <media-read|media-replace|reference-summary|references|backlinks|review|build-reviewed|routes|plan|diff|impact|deps|audit|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
   }
 }
 
 ///|
 fn help_text(command : String) -> String {
   let description = match command {
+    "media-read" =>
+      "Read one existing media asset's binary metadata and SHA-256 version; write no files."
+    "media-replace" =>
+      "Replace an existing media asset at the same URL only if its byte version matches.\nStage writes, preserve permissions and leave identical bytes untouched.\nNo site build or deployment; inspect references and review a subsequent build separately."
     "reference-summary" =>
       "Inspect counts for every output: incoming/outgoing/self edges and distinct other referring outputs.\nExact duplicate evidence counts once. Zero counts do not prove deletion safety. No files written."
     "references" =>
@@ -152,7 +162,7 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  reference-summary  Count authored references for every output.\n  references  Inspect authored local reference edges.\n  backlinks   Inspect references to/from an output filename.\n  review   Inspect a build plan and its review ID.\n  build-reviewed  Build only the reviewed plan.\n  routes   Inspect compiled output routes and their sources.\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  media-read  Inspect one media asset and its version.\n  media-replace  Replace existing media with version protection.\n  reference-summary  Count authored references for every output.\n  references  Inspect authored local reference edges.\n  backlinks   Inspect references to/from an output filename.\n  review   Inspect a build plan and its review ID.\n  build-reviewed  Build only the reviewed plan.\n  routes   Inspect compiled output routes and their sources.\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
   if command == "reference-summary" ||
     command == "references" ||
@@ -174,7 +184,9 @@ fn help_text(command : String) -> String {
   if command == "admin" {
     return description + "\n\n" + usage(command)
   }
-  if command == "diff" ||
+  if command == "media-read" ||
+    command == "media-replace" ||
+    command == "diff" ||
     command == "recover" ||
     command == "init" ||
     command == "import" ||
@@ -234,7 +246,9 @@ fn main {
   let command = args[1]
   let required = if command == "duplicate" {
     7
-  } else if command == "save" || command == "status" {
+  } else if command == "save" ||
+    command == "status" ||
+    command == "media-replace" {
     6
   } else if command == "new" ||
     command == "import" ||
@@ -262,7 +276,12 @@ fn main {
     for index = 2; index < required; index = index + 1 {
       if (
           args[index].has_prefix("--") &&
-          !(command == "backlinks" && index == 3)
+          !((
+            command == "backlinks" ||
+            command == "media-read" ||
+            command == "media-replace"
+          ) &&
+          index == 3)
         ) ||
         is_help(args[index]) {
         valid = false
@@ -274,6 +293,8 @@ fn main {
   for index = required; index < args.length(); index = index + 1 {
     match args[index] {
       "--include-drafts" if !include_drafts &&
+        command != "media-read" &&
+        command != "media-replace" &&
         command != "diff" &&
         command != "audit" &&
         command != "recover" &&
@@ -319,7 +340,39 @@ fn main {
     return
   }
   try {
-    if command == "reference-summary" {
+    if command == "media-read" {
+      let report = @lib.read_media(args[2], args[3])
+      if json {
+        print_report(command, false, report.to_json())
+      } else {
+        println(
+          "Media: " +
+          report.source.to_json().stringify() +
+          " (\{report.bytes} bytes)",
+        )
+        println("URL: " + report.url.to_json().stringify())
+        println("Version: " + report.digest)
+        println("No files written.")
+      }
+    } else if command == "media-replace" {
+      let report = @lib.replace_media_from_file(
+        args[2],
+        args[3],
+        args[4],
+        args[5],
+      )
+      if json {
+        print_report(command, false, report.to_json())
+      } else {
+        println(
+          "Media: " +
+          report.item.source.to_json().stringify() +
+          " (changed: \{report.changed})",
+        )
+        println("Version: " + report.item.digest)
+        println("URL unchanged. No build or deployment performed.")
+      }
+    } else if command == "reference-summary" {
       let report = @lib.inspect_reference_summary(args[2], include_drafts~)
       if json {
         print_report(command, include_drafts, report.to_json())
