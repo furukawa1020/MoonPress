@@ -11,6 +11,7 @@ pub extend SiteSettingsSnapshot with ToJson::{to_json}
 ///|
 pub fn read_site_settings(input : String) -> SiteSettingsSnapshot raise {
   require_input_kind(input, 2)
+  require_real_site_directory(input)
   let path = input + "/site.json"
   let kind = path_kind(path)
   if kind == 0 {

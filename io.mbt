@@ -205,3 +205,17 @@ fn read_site_file_bytes(input : String, name : String) -> Bytes raise {
   }
   read_opened_file(file, path)
 }
+
+///|
+#borrow(input)
+extern "C" fn io_check_site_directory(input : Bytes) -> Int = "moonpress_io_check_site_directory"
+
+///|
+fn require_real_site_directory(input : String) -> Unit raise {
+  if input.contains("\u0000") {
+    raise InvalidInput("Invalid site directory")
+  }
+  if io_check_site_directory(@utf8.encode(input) + b"\x00") != 0 {
+    raise io_failure("guarded site directory open", input)
+  }
+}

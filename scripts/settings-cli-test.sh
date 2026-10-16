@@ -64,4 +64,13 @@ for file in "$tmp/link" "$tmp/pipe" "$tmp/site" "$tmp/missing"; do
 done
 "$cli" settings-read "$tmp/site" | grep -Fq 'No files written.'
 test ! -e "$tmp/site/.moonpress-settings-edit"
+# Absence must not bypass guarded directory traversal.
+mkdir -p "$tmp/real/nested"
+ln -s "$tmp/real" "$tmp/ancestor"
+reject 1 "$cli" settings-read "$tmp/ancestor/nested"
+reject 1 "$cli" settings-save "$tmp/ancestor/nested" absent "$tmp/config"
+test ! -e "$tmp/real/nested/site.json"
+test ! -e "$tmp/real/nested/.moonpress-settings-edit"
+"$cli" settings-save "$tmp/real/nested" absent "$tmp/config" >/dev/null
+cmp "$tmp/config" "$tmp/real/nested/site.json"
 echo 'Settings CLI tests passed: absent/create, exact versions, raw repair, schema/stale refusal, no-op metadata/modes, strict grammar and separate deterministic builds.'
