@@ -58,3 +58,14 @@ schema-1 command envelope; text quotes raw content to escape control characters.
 Success exits 0, validation/I/O errors exit 1, argument errors exit 2. Failures
 write stderr with empty stdout. Existing output remains unchanged until an
 explicit build. The replacement file is read but never modified.
+
+## Local administration
+
+Open **Site settings** in the local admin navigation. The advanced JSON editor
+supports every documented schema field and shows malformed saved JSON for repair.
+A GET never creates a missing configuration. Saving uses the retained SHA-256 (or
+explicit `absent`) and the existing form-token/origin checks. Failures retain the
+submitted text and original version: reload and compare before retrying a conflict.
+The editor escapes raw content and never treats it as HTML. Schema validation on
+save is not a whole-site check: follow the workflow link to check, preview, review
+production changes and explicitly build. Saving alone does not publish anything.

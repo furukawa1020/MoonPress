@@ -2,7 +2,7 @@
 fn admin_page(title : String, body : String) -> String {
   "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>" +
   escape_html(title) +
-  " — MoonPress</title><style>body{font:17px/1.6 system-ui;max-width:64rem;margin:auto;padding:2rem;background:#f6f7fa;color:#182236}nav{padding:1rem 0;border-bottom:1px solid #ccd3de}a{color:#204ea5}table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:.7rem;border-bottom:1px solid #ccd3de}form{margin:1.5rem 0;padding:1rem;background:white;border:1px solid #ccd3de;border-radius:.5rem}label{display:block;margin:.7rem 0}input,textarea,button{font:inherit;box-sizing:border-box}input,textarea{width:100%;padding:.5rem}textarea{min-height:24rem;font-family:monospace}button{padding:.5rem 1rem;cursor:pointer}input[type=hidden]{display:none}:focus-visible{outline:3px solid #bb6b10;outline-offset:3px}.notice{padding:1rem;background:#fff3d6}</style><nav><strong>MoonPress</strong> · <a href=\"/workflow\">Start here</a> · <a href=\"/\">Posts</a> · <a href=\"/media\">Media</a> · <a href=\"/reference-outputs\">Output references</a> · Local administration</nav><h1>" +
+  " — MoonPress</title><style>body{font:17px/1.6 system-ui;max-width:64rem;margin:auto;padding:2rem;background:#f6f7fa;color:#182236}nav{padding:1rem 0;border-bottom:1px solid #ccd3de}a{color:#204ea5}table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:.7rem;border-bottom:1px solid #ccd3de}form{margin:1.5rem 0;padding:1rem;background:white;border:1px solid #ccd3de;border-radius:.5rem}label{display:block;margin:.7rem 0}input,textarea,button{font:inherit;box-sizing:border-box}input,textarea{width:100%;padding:.5rem}textarea{min-height:24rem;font-family:monospace}button{padding:.5rem 1rem;cursor:pointer}input[type=hidden]{display:none}:focus-visible{outline:3px solid #bb6b10;outline-offset:3px}.notice{padding:1rem;background:#fff3d6}</style><nav><strong>MoonPress</strong> · <a href=\"/workflow\">Start here</a> · <a href=\"/\">Posts</a> · <a href=\"/media\">Media</a> · <a href=\"/reference-outputs\">Output references</a> · <a href=\"/site-settings\">Site settings</a> · Local administration</nav><h1>" +
   escape_html(title) +
   "</h1>" +
   body +
@@ -127,6 +127,9 @@ fn admin_route(
         admin_form(request.target[19:].to_owned()),
       )
     }
+    if request.target == "/site-settings" {
+      return (200, admin_site_settings(input, token))
+    }
     if request.target == "/workflow" {
       return (200, admin_workflow(input, token))
     }
@@ -178,6 +181,9 @@ fn admin_route(
   let fields = admin_form(body)
   if admin_field(fields, "token") != token {
     raise InvalidInput("Form token rejected; reload the page")
+  }
+  if request.target == "/site-settings" {
+    return admin_site_settings_save(input, token, fields)
   }
   try {
     if request.target == "/prepare-media" {
