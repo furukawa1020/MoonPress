@@ -40,6 +40,12 @@ updates; identical bytes preserve the file, and changed bytes are staged and
 checked before replacement. Review a separate build to update generated output.
 See [media replacement and its concurrency limits](docs/media-replacement.md).
 
+Edit `site.json` through **Site settings** in local administration or use
+`settings-read` / `settings-save`. Version checks protect against stale edits;
+malformed JSON can be repaired. Saving validates the settings schema only, so
+check the complete site and review a separate build afterward.
+See [versioned site settings](docs/site-settings.md).
+
 The starter includes tag navigation, pagination settings and a writing guide.
 No public URL is needed for local authoring; add your real `base_url` when ready
 to generate a sitemap or enable RSS.

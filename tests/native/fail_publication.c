@@ -175,5 +175,11 @@ int link(const char *source, const char *target) {
     errno = EIO;
     return -1;
   }
+  if (matches("MOONPRESS_TEST_CREATE_BEFORE_LINK", target)) {
+    FILE *other = fopen(target, "wbx");
+    if (!other) _exit(114);
+    fputs("competing writer\n", other);
+    fclose(other);
+  }
   return real_link(source, target);
 }
