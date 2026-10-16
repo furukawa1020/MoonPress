@@ -31,6 +31,8 @@ bash scripts/settings-snapshot-test.sh
 bash scripts/settings-save-api-test.sh
 bash scripts/settings-cli-test.sh
 bash scripts/admin-settings-test.sh
+bash scripts/settings-fault-test.sh
+bash scripts/settings-transitions-test.sh
 bash scripts/incremental-test.sh
 bash scripts/routes-test.sh
 bash scripts/reference-api-test.sh

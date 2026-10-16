@@ -69,3 +69,25 @@ submitted text and original version: reload and compare before retrying a confli
 The editor escapes raw content and never treats it as HTML. Schema validation on
 save is not a whole-site check: follow the workflow link to check, preview, review
 production changes and explicitly build. Saving alone does not publish anything.
+
+## Failure handling and verification
+
+Before-publication I/O failures leave the original settings unchanged and attempt
+to remove owned staging. If cleanup fails or the staged bytes/type change, the
+remnant is retained and subsequent saves (including no-ops) refuse it. Inspect
+both files and keep a backup before manual cleanup. Following initial creation,
+the stage may be a second hard link to the saved file: do not edit that remnant.
+Reload the settings snapshot to determine what was committed.
+
+The native shell regression suites exercise write/flush/close/rename failures,
+exclusive-create collisions, cleanup failures, replaced staging and cooperative
+writer conflicts. Transition tests enable and remove sitemap/RSS/redirect/tag
+outputs, reject stale reviewed plans, preserve manually edited outputs and
+compare incremental output byte-for-byte with a fresh build. These checks do not
+extend the concurrency or crash guarantees described above.
+
+Directory validation rejects already-symlinked ancestors but does not retain a
+root handle throughout the write operation. A process replacing an ancestor
+after validation can redirect later pathname-based staging/publication. Keep
+site directories under trusted local control; descriptor-relative mutation
+hardening is tracked in [#280](https://github.com/furukawa1020/MoonPress/issues/280).
