@@ -86,6 +86,12 @@ MOONBIT_FFI_EXPORT FILE *moonpress_io_open_public(moonbit_bytes_t input, moonbit
 }
 
 /* Fixed-name site files use the same no-follow descriptor boundary. */
+MOONBIT_FFI_EXPORT int moonpress_io_check_site_directory(moonbit_bytes_t input) {
+  int directory = moonpress_open_real_directory((const char *)input);
+  if (directory < 0) return -1;
+  return close(directory);
+}
+
 MOONBIT_FFI_EXPORT FILE *moonpress_io_open_site_file(moonbit_bytes_t input, moonbit_bytes_t name) {
   int directory = moonpress_open_real_directory((const char *)input);
   if (directory < 0) return NULL;
