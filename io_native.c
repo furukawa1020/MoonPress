@@ -58,17 +58,10 @@ static int moonpress_open_real_directory(const char *path) {
   return fd;
 }
 
-/* Anchor public/ and its flat child to open descriptors, then validate the
- * actual file. O_NONBLOCK prevents a substituted FIFO from blocking open. */
-MOONBIT_FFI_EXPORT FILE *moonpress_io_open_public(moonbit_bytes_t input, moonbit_bytes_t name) {
-  int root = moonpress_open_real_directory((const char *)input);
-  if (root < 0) return NULL;
-  int directory = openat(root, "public", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+/* Consumes the directory descriptor on all paths. */
+static FILE *moonpress_open_regular_at(int directory, const char *name) {
+  int fd = openat(directory, name, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC);
   int saved = errno;
-  close(root);
-  if (directory < 0) { errno = saved; return NULL; }
-  int fd = openat(directory, (const char *)name, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC);
-  saved = errno;
   close(directory);
   if (fd < 0) { errno = saved; return NULL; }
   struct stat st;
@@ -79,4 +72,22 @@ MOONBIT_FFI_EXPORT FILE *moonpress_io_open_public(moonbit_bytes_t input, moonbit
   FILE *file = fdopen(fd, "rb");
   if (!file) { saved = errno; close(fd); errno = saved; }
   return file;
+}
+
+/* Anchor public/ and its flat child before reading. */
+MOONBIT_FFI_EXPORT FILE *moonpress_io_open_public(moonbit_bytes_t input, moonbit_bytes_t name) {
+  int root = moonpress_open_real_directory((const char *)input);
+  if (root < 0) return NULL;
+  int directory = openat(root, "public", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+  int saved = errno;
+  close(root);
+  if (directory < 0) { errno = saved; return NULL; }
+  return moonpress_open_regular_at(directory, (const char *)name);
+}
+
+/* Fixed-name site files use the same no-follow descriptor boundary. */
+MOONBIT_FFI_EXPORT FILE *moonpress_io_open_site_file(moonbit_bytes_t input, moonbit_bytes_t name) {
+  int directory = moonpress_open_real_directory((const char *)input);
+  if (directory < 0) return NULL;
+  return moonpress_open_regular_at(directory, (const char *)name);
 }
