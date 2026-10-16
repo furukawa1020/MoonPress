@@ -41,3 +41,20 @@ there is no authoring undo journal, automatic recovery or power-loss guarantee.
 Noncooperating processes can still race after final staging/target checks and
 during path-based publication. This is not an atomic whole-site transaction.
 Retain a backup, then validate the saved site and review the subsequent build.
+
+## CLI
+
+```sh
+moonpress settings-read my-site --json
+moonpress settings-save my-site absent /path/to/proposed-site.json --json
+moonpress settings-save my-site <digest-from-read> /path/to/proposed-site.json --json
+moonpress check my-site
+moonpress review my-site dist --json
+```
+
+Use `absent` only for a missing configuration. Both commands accept `--json`
+once after positional arguments and reject `--include-drafts`. JSON uses the
+schema-1 command envelope; text quotes raw content to escape control characters.
+Success exits 0, validation/I/O errors exit 1, argument errors exit 2. Failures
+write stderr with empty stdout. Existing output remains unchanged until an
+explicit build. The replacement file is read but never modified.

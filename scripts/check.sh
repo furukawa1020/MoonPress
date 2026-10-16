@@ -29,6 +29,7 @@ bash scripts/admin-media-replace-test.sh
 bash scripts/local-config-test.sh
 bash scripts/settings-snapshot-test.sh
 bash scripts/settings-save-api-test.sh
+bash scripts/settings-cli-test.sh
 bash scripts/incremental-test.sh
 bash scripts/routes-test.sh
 bash scripts/reference-api-test.sh
