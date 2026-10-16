@@ -12,3 +12,32 @@ as regular files. Symlinks and special files are rejected. Use real site paths,
 not symlinked ancestors. A read is an observed snapshot, not a reservation or an
 atomic freeze against in-place edits. No article, layout, route or hosting
 validation is implied.
+
+## Save API
+
+`save_site_settings(site, expected, content)` and
+`save_site_settings_from_file(site, expected, replacement_path)` save exact
+UTF-8 JSON text. Use the lowercase digest from the snapshot, or the literal
+`absent` only when no file exists. Save validates the existing compiler settings
+schema, including field types/ranges and the RSS base-URL requirement. It does
+not resolve routes, load layouts, validate articles or build/deploy anything.
+A valid settings file can still make the complete site fail validation.
+
+The report has `digest`, `changed` and `created`. Identical existing bytes are
+a no-op preserving inode/mtime. Valid replacement text can repair malformed
+existing JSON because only the proposed content must parse successfully.
+
+Writers cooperate through the site-directory lock. A fixed, exclusively created
+`.moonpress-settings-edit` stage receives the bytes and existing ordinary
+permission bits. Closed staging bytes and the target version are checked again
+before publication. Existing files use per-file rename. Initial creation uses
+an exclusive hard link so an unexpectedly appearing target is never overwritten.
+The stage link is then removed. If this final cleanup fails, the error explicitly
+states settings were saved and asks you to reload and inspect the remnant.
+
+Occupied or unverifiable staging is refused/preserved. Caught pre-publication
+failures attempt owned-stage cleanup. Process interruption can leave remnants;
+there is no authoring undo journal, automatic recovery or power-loss guarantee.
+Noncooperating processes can still race after final staging/target checks and
+during path-based publication. This is not an atomic whole-site transaction.
+Retain a backup, then validate the saved site and review the subsequent build.

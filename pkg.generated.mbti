@@ -130,6 +130,10 @@ pub fn save_post_from_file(String, String, String, String) -> SavePostReport rai
 
 pub fn save_post_settings(String, String, String, PostSettings) -> SavePostReport raise
 
+pub fn save_site_settings(String, String, String) -> SaveSiteSettingsReport raise
+
+pub fn save_site_settings_from_file(String, String, String) -> SaveSiteSettingsReport raise
+
 pub fn serialize_manifest(Array[Artifact]) -> String
 
 pub fn serve_admin(String, Int) -> Unit raise
@@ -513,6 +517,13 @@ pub(all) struct SavePostReport {
   changed : Bool
 } derive(ToJson)
 pub fn SavePostReport::to_json(Self) -> Json
+
+pub(all) struct SaveSiteSettingsReport {
+  digest : String
+  changed : Bool
+  created : Bool
+} derive(ToJson)
+pub fn SaveSiteSettingsReport::to_json(Self) -> Json
 
 pub(all) struct SiteSettingsSnapshot {
   exists : Bool
