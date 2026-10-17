@@ -25,7 +25,7 @@ fn admin_workflow(input : String, token : String) -> String raise {
     admin_workflow_summary(inventory) +
     admin_post_problems(inventory.problems) +
     "<section id=\"write\"><h2>1. Write and save</h2><p><a href=\"/#new-draft\">Create a draft</a>, or <a href=\"/\">choose an article to edit</a>. Save article before continuing. <a href=\"/media\">Upload images</a> and paste their Markdown snippets into the body.</p></section>" +
-    "<section id=\"preview\"><h2>2. Preview your saved drafts</h2><p>Use the full-site preview to see the theme, images and links. Open the generated index.html from your file browser.</p>" +
+    "<section id=\"preview\"><h2>2. Preview your saved drafts</h2><p>Use the full-site preview to see the theme, images and links. After building, choose Open built preview in the navigation. It opens on a separate local port; reload after rebuilding.</p>" +
     admin_build_form(token) +
     "</section>" +
     "<section id=\"ready\"><h2>3. Choose what goes live</h2><p><a href=\"/?state=draft\">Open a draft</a>, save its final text, then choose <strong>Set ready for build</strong>. Ready articles enter normal builds. Drafts stay out; making an article ready does not upload it.</p></section>" +

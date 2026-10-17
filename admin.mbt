@@ -21,8 +21,8 @@ fn admin_response(code : Int, html : String) -> Bytes {
 
 ///|
 pub fn serve_admin(input : String, port : Int) -> Unit raise {
-  if port < 1024 || port > 65535 {
-    raise InvalidInput("Admin port must be 1024–65535")
+  if port < 1024 || port > 65534 {
+    raise InvalidInput("Admin port must be 1024–65534")
   }
   require_input_kind(input, 2)
   require_input_kind(input + "/content", 2)
@@ -36,33 +36,73 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
     raise InvalidInput("Cannot bind admin to 127.0.0.1:\{port}")
   }
   defer admin_close(server)
+  let preview_port = port + 1
+  let preview_server = admin_listen(preview_port)
+  if preview_server < 0 {
+    raise InvalidInput(
+      "Cannot bind preview to 127.0.0.1:\{preview_port}; choose another admin port pair",
+    )
+  }
+  defer admin_close(preview_server)
   let host = "127.0.0.1:\{port}"
   println(
     "MoonPress admin: http://" + host + "/ (Ctrl-C to stop; no deployment)",
   )
+  println(
+    "MoonPress preview: http://127.0.0.1:\{preview_port}/ (build preview files first)",
+  )
   admin_flush()
   while true {
-    let client = admin_accept(server)
+    let selected = admin_wait_listener(server, preview_server)
+    if selected < 0 {
+      raise InvalidInput("Admin listener failed")
+    }
+    let client = admin_accept(
+      if selected == 1 {
+        preview_server
+      } else {
+        server
+      },
+    )
     if client < 0 {
       raise InvalidInput("Admin accept failed")
     }
-    let response = try {
-      let (request, body) = admin_read_request(client, host)
-      let (code, html) = admin_dispatch(input, request, body, token)
-      admin_response(code, html)
-    } catch {
-      error =>
-        admin_response(
-          400,
-          admin_page(
-            "Request rejected",
-            "<p>" +
-            escape_html(error.to_string()) +
-            "</p><p><a href=\"/\">Return to posts</a></p>",
-          ),
-        )
+    let response = if selected == 1 {
+      preview_client(
+        client,
+        "127.0.0.1:\{preview_port}",
+        input.trim_end(chars="/").to_owned() + "/.moonpress-preview",
+      )
+    } else {
+      try {
+        let (request, body) = admin_read_request(client, host)
+        let (code, html) = admin_dispatch(input, request, body, token)
+        admin_response(code, admin_preview_navigation(html, preview_port))
+      } catch {
+        error =>
+          admin_response(
+            400,
+            admin_page(
+              "Request rejected",
+              "<p>" +
+              escape_html(error.to_string()) +
+              "</p><p><a href=\"/\">Return to posts</a></p>",
+            ),
+          )
+      }
     }
     admin_send(client, response, response.length()) |> ignore
     admin_close(client)
   }
+}
+
+///|
+extern "C" fn admin_wait_listener(admin : Int, preview : Int) -> Int = "moonpress_admin_wait_listener"
+
+///|
+fn admin_preview_navigation(html : String, port : Int) -> String {
+  html.replace_all(
+    old=" · Local administration</nav>",
+    new=" · <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"http://127.0.0.1:\{port}/\">Open built preview</a> · Local administration</nav>",
+  )
 }
