@@ -7,7 +7,9 @@ bash scripts/package-native.sh /path/to/new-package-directory
 ```
 
 The directory must not already exist. It receives a Linux x86_64 tar.gz and
-SHA256SUMS. Verify the checksum before extracting. The bundle contains the native
+SHA256SUMS. Archive and checksum are staged on the destination filesystem before
+publishing the completed directory. Failed archive creation leaves the destination
+absent so it can be retried; an occupied destination is preserved. Verify the checksum before extracting. The bundle contains the native
 executable, startup guide, license/notices, executable checksum and BUILD.txt
 (source commit, clean/modified source status, toolchain and builder glibc).
 

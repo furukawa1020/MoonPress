@@ -10,7 +10,7 @@ expected="$(cat .moon-version)"
 actual="$(moon version | sed -n '1p' | cut -d' ' -f2)"
 [[ "$actual" = "$expected" ]] || { echo 'Use the pinned toolchain from scripts/setup.sh.' >&2; exit 1; }
 moon build --target native --release
-stage="$(mktemp -d)"
+stage="$(mktemp -d "$(dirname -- "$destination")/.moonpress-package.XXXXXXXX")"
 trap 'rm -rf "$stage"' EXIT
 bundle="$stage/moonpress-linux-x86_64"
 mkdir -p "$bundle/licenses"
@@ -64,7 +64,14 @@ TEXT
   moonc -v
 } > "$bundle/BUILD.txt"
 (cd "$bundle" && sha256sum moonpress > EXECUTABLE.sha256)
-mkdir -- "$destination"
-tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -C "$stage" -cf - moonpress-linux-x86_64 | gzip -n > "$destination/moonpress-linux-x86_64.tar.gz"
-(cd "$destination" && sha256sum moonpress-linux-x86_64.tar.gz > SHA256SUMS)
+archive="$stage/archive"
+mkdir -- "$archive"
+tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -C "$stage" -cf - moonpress-linux-x86_64 | gzip -n > "$archive/moonpress-linux-x86_64.tar.gz"
+(cd "$archive" && sha256sum moonpress-linux-x86_64.tar.gz > SHA256SUMS)
+# Same filesystem: publish the completed directory without replacing a racing target.
+if ! mv -T --no-clobber -- "$archive" "$destination"; then
+  echo 'Package publication refused.' >&2
+  exit 1
+fi
+[[ ! -e "$archive" ]] || { echo 'Package publication refused.' >&2; exit 1; }
 printf 'Native preview package: %s\n' "$destination/moonpress-linux-x86_64.tar.gz"
