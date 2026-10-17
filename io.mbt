@@ -185,23 +185,3 @@ fn read_public_bytes(input : String, name : String) -> Bytes raise {
   }
   read_opened_file(file, path)
 }
-
-///|
-#borrow(input, name)
-extern "C" fn io_open_site_file(input : Bytes, name : Bytes) -> NativeFile = "moonpress_io_open_site_file"
-
-///|
-fn read_site_file_bytes(input : String, name : String) -> Bytes raise {
-  if input.contains("\u0000") || !safe_output_name(name) {
-    raise InvalidInput("Invalid site file path")
-  }
-  let path = input + "/" + name
-  let file = io_open_site_file(
-    @utf8.encode(input) + b"\x00",
-    @utf8.encode(name) + b"\x00",
-  )
-  if io_is_null(file) != 0 {
-    raise io_failure("guarded site file open", path)
-  }
-  read_opened_file(file, path)
-}
