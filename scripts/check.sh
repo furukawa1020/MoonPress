@@ -26,6 +26,7 @@ bash scripts/post-editor-test.sh
 bash scripts/post-directory-test.sh
 bash scripts/post-status-test.sh
 bash scripts/admin-test.sh
+bash scripts/preview-server-test.sh
 bash scripts/admin-references-test.sh
 bash scripts/admin-output-references-test.sh
 bash scripts/admin-media-replace-test.sh
