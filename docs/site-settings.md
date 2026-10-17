@@ -92,9 +92,10 @@ all use that same directory. Renaming/replacing its original path cannot redirec
 these operations into another directory: an in-flight operation can finish in the
 original, now-renamed directory. Reload using its real path before further edits.
 This does not freeze directory entries against uncooperative writers or promise
-an atomic compare-and-swap of file contents. Broader authoring-path migration is
-tracked in [#280](https://github.com/furukawa1020/MoonPress/issues/280).
+an atomic compare-and-swap of file contents. See the complete
+[authoring filesystem boundary](authoring-filesystem.md).
 
 The same retained-directory mutation boundary is also used by existing-media
-replacement and post editing. Creation/import/duplication paths have separate
-contracts; do not infer an atomic site-wide transaction from these guarantees.
+replacement, post editing, new drafts, duplication and media import/upload.
+Directory preparation remains a separate setup operation. Do not infer an atomic
+site-wide transaction from these guarantees.

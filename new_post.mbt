@@ -34,7 +34,7 @@ fn create_draft_content(
   if !document.draft || document.slug is Some(_) {
     raise InvalidInput("New articles must be drafts with filename routes")
   }
-  let directory = open_authoring_directory(input + "/content")
+  let directory = open_authoring_subdirectory(input, "content")
   defer directory_close(directory.fd)
   directory.lock()
   let source = "content/" + slug + ".md"

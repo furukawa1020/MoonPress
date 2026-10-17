@@ -31,7 +31,7 @@ fn require_post_name(name : String) -> Unit raise {
 ///|
 pub fn read_post(input : String, name : String) -> PostSnapshot raise {
   require_post_name(name)
-  let directory = open_authoring_directory(input + "/content")
+  let directory = open_authoring_subdirectory(input, "content")
   defer directory_close(directory.fd)
   read_post_at(directory, name)
 }
@@ -78,7 +78,7 @@ pub fn save_post(
   content : String,
 ) -> SavePostReport raise {
   require_post_name(name)
-  let directory = open_authoring_directory(input + "/content")
+  let directory = open_authoring_subdirectory(input, "content")
   defer directory_close(directory.fd)
   directory.lock()
   let current = read_post_at(directory, name)

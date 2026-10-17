@@ -30,7 +30,7 @@ pub fn replace_media(
   bytes : Bytes,
 ) -> ReplaceMediaReport raise {
   require_media_destination(name)
-  let directory = open_authoring_directory(input + "/public")
+  let directory = open_authoring_subdirectory(input, "public")
   defer directory_close(directory.fd)
   directory.lock()
   let current_bytes = directory.read(name)
