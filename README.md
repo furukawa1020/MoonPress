@@ -45,6 +45,9 @@ Edit `site.json` through **Site settings** in local administration or use
 malformed JSON can be repaired. Saving validates the settings schema only, so
 check the complete site and review a separate build afterward.
 See [versioned site settings](docs/site-settings.md).
+Authoring edits retain directory handles so replacing a directory pathname cannot
+redirect an in-flight save into another location. Read the precise
+[filesystem and concurrency boundary](docs/authoring-filesystem.md).
 
 The starter includes tag navigation, pagination settings and a writing guide.
 No public URL is needed for local authoring; add your real `base_url` when ready

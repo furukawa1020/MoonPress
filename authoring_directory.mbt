@@ -183,3 +183,15 @@ fn AuthoringDirectory::require_file(
     )
   }
 }
+
+///|
+fn open_authoring_subdirectory(
+  input : String,
+  child : String,
+) -> AuthoringDirectory raise {
+  if input.is_empty() {
+    raise InvalidInput("Site directory must not be empty")
+  }
+  authoring_name(child) |> ignore
+  open_authoring_directory(input + "/" + child)
+}

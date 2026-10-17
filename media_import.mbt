@@ -33,7 +33,7 @@ pub fn store_media(
   bytes : Bytes,
 ) -> MediaItem raise {
   require_media_destination(name)
-  let directory = open_authoring_directory(input + "/public")
+  let directory = open_authoring_subdirectory(input, "public")
   defer directory_close(directory.fd)
   directory.lock()
   let path = input + "/public/" + name
