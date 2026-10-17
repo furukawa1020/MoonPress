@@ -183,3 +183,56 @@ int link(const char *source, const char *target) {
   }
   return real_link(source, target);
 }
+
+/* Descriptor-relative authoring uses the same test fault controls. */
+#include <fcntl.h>
+#include <stdarg.h>
+static void at_path(int directory, const char *name, char *path, size_t size) {
+  if (name[0]=='/' || directory==AT_FDCWD) { snprintf(path,size,"%s",name); return; }
+  char fdpath[64], parent[4096];
+  snprintf(fdpath,sizeof fdpath,"/proc/self/fd/%d",directory);
+  ssize_t n=readlink(fdpath,parent,sizeof parent-1);
+  if(n<0) _exit(115);
+  parent[n]=0;
+  if (snprintf(path,size,"%s/%s",parent,name)>=(int)size) _exit(116);
+}
+int openat(int directory, const char *name, int flags, ...) {
+  int (*real_open)(int,const char*,int,...)=dlsym(RTLD_NEXT,"openat");
+  mode_t mode=0;
+  if(flags&O_CREAT) { va_list ap; va_start(ap,flags); mode=va_arg(ap,int); va_end(ap); }
+  char path[8192]; at_path(directory,name,path,sizeof path);
+  if((flags&O_CREAT) && matches("MOONPRESS_TEST_FAIL_OPEN",path)) { errno=ENOSPC; return -1; }
+  if((flags&O_EXCL) && matches("MOONPRESS_TEST_CREATE_BEFORE_OPEN",path)) {
+    int other=real_open(directory,name,O_WRONLY|O_CREAT|O_EXCL,0600);
+    if(other<0) _exit(117);
+    if(write(other,"competing writer\n",17)!=17) _exit(118);
+    close(other);
+  }
+  return real_open(directory,name,flags,mode);
+}
+int renameat(int source_dir,const char *source,int target_dir,const char *target) {
+  int (*real_rename)(int,const char*,int,const char*)=dlsym(RTLD_NEXT,"renameat");
+  char path[8192]; at_path(target_dir,target,path,sizeof path);
+  crash_if("MOONPRESS_TEST_KILL_BEFORE_RENAME",path);
+  if(matches("MOONPRESS_TEST_FAIL_RENAME",path)) { errno=EIO; return -1; }
+  int result=real_rename(source_dir,source,target_dir,target);
+  if(result==0) crash_if("MOONPRESS_TEST_KILL_AFTER_RENAME",path);
+  return result;
+}
+int unlinkat(int directory,const char *name,int flags) {
+  int (*real_remove)(int,const char*,int)=dlsym(RTLD_NEXT,"unlinkat");
+  char path[8192]; at_path(directory,name,path,sizeof path);
+  if(matches("MOONPRESS_TEST_FAIL_REMOVE",path)) { errno=EIO; return -1; }
+  return real_remove(directory,name,flags);
+}
+int linkat(int source_dir,const char *source,int target_dir,const char *target,int flags) {
+  int (*real_link)(int,const char*,int,const char*,int)=dlsym(RTLD_NEXT,"linkat");
+  char path[8192]; at_path(target_dir,target,path,sizeof path);
+  if(matches("MOONPRESS_TEST_FAIL_LINK",path)) { errno=EIO; return -1; }
+  if(matches("MOONPRESS_TEST_CREATE_BEFORE_LINK",path)) {
+    FILE *other=fopen(path,"wbx");
+    if(!other) _exit(119);
+    fputs("competing writer\n",other); fclose(other);
+  }
+  return real_link(source_dir,source,target_dir,target,flags);
+}

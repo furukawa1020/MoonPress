@@ -39,7 +39,7 @@ Occupied or unverifiable staging is refused/preserved. Caught pre-publication
 failures attempt owned-stage cleanup. Process interruption can leave remnants;
 there is no authoring undo journal, automatic recovery or power-loss guarantee.
 Noncooperating processes can still race after final staging/target checks and
-during path-based publication. This is not an atomic whole-site transaction.
+during final publication. This is not an atomic whole-site transaction.
 Retain a backup, then validate the saved site and review the subsequent build.
 
 ## CLI
@@ -86,8 +86,11 @@ outputs, reject stale reviewed plans, preserve manually edited outputs and
 compare incremental output byte-for-byte with a fresh build. These checks do not
 extend the concurrency or crash guarantees described above.
 
-Directory validation rejects already-symlinked ancestors but does not retain a
-root handle throughout the write operation. A process replacing an ancestor
-after validation can redirect later pathname-based staging/publication. Keep
-site directories under trusted local control; descriptor-relative mutation
-hardening is tracked in [#280](https://github.com/furukawa1020/MoonPress/issues/280).
+Settings reads and saves now retain a no-follow directory handle. Absence checks,
+cooperative locking, staged writes, permission copying, publication and cleanup
+all use that same directory. Renaming/replacing its original path cannot redirect
+these operations into another directory: an in-flight operation can finish in the
+original, now-renamed directory. Reload using its real path before further edits.
+This does not freeze directory entries against uncooperative writers or promise
+an atomic compare-and-swap of file contents. Broader authoring-path migration is
+tracked in [#280](https://github.com/furukawa1020/MoonPress/issues/280).

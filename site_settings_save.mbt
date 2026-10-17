@@ -26,8 +26,11 @@ fn require_settings_version(
 }
 
 ///|
-fn verify_settings_stage(input : String, bytes : Bytes) -> Unit raise {
-  if read_site_file_bytes(input, ".moonpress-settings-edit") != bytes {
+fn verify_settings_stage(
+  directory : AuthoringDirectory,
+  bytes : Bytes,
+) -> Unit raise {
+  if directory.read(".moonpress-settings-edit") != bytes {
     raise InvalidInput("Staged settings differ from the requested content")
   }
 }
@@ -38,15 +41,14 @@ pub fn save_site_settings(
   expected : String,
   content : String,
 ) -> SaveSiteSettingsReport raise {
-  require_input_kind(input, 2)
-  let path = input + "/site.json"
-  let lock = lock_output(path, shared=false)
-  defer native_unlock_output(lock)
-  let current = read_site_settings(input)
+  let directory = open_authoring_directory(input)
+  defer directory_close(directory.fd)
+  directory.lock()
+  let current = read_settings_at(directory)
   require_settings_version(current, expected)
   parse_site_config(content) |> ignore
   let stage = input + "/.moonpress-settings-edit"
-  if path_kind(stage) != 0 {
+  if directory.kind(".moonpress-settings-edit") != 0 {
     raise InvalidInput(
       "Settings staging path already exists; inspect before retrying: " + stage,
     )
@@ -56,39 +58,35 @@ pub fn save_site_settings(
     return { digest, changed: false, created: false, }
   }
   let bytes = @utf8.encode(content)
-  let file = open_file(stage, 2)
+  let file = directory.create(".moonpress-settings-edit")
   let mut prepared = false
   let mut verified = false
   let mut committed = false
   try {
-    write_opened_file(
+    directory.write(
       file,
-      stage,
+      ".moonpress-settings-edit",
       bytes,
-      mode_source=if current.exists { Some(path) } else { None },
+      if current.exists {
+        Some("site.json")
+      } else {
+        None
+      },
     )
     prepared = true
-    verify_settings_stage(input, bytes)
+    verify_settings_stage(directory, bytes)
     verified = true
-    require_settings_version(read_site_settings(input), expected)
+    require_settings_version(read_settings_at(directory), expected)
     if current.exists {
-      replace_staged_file(stage, path)
+      directory.publish(".moonpress-settings-edit", "site.json", false)
       committed = true
     } else {
       // Hard-link publication is exclusive: an unexpectedly appearing target
       // cannot be overwritten between the absence check and publication.
-      let result = native_link_file(
-        @utf8.encode(stage) + b"\x00",
-        @utf8.encode(path) + b"\x00",
-      )
-      if result != 0 {
-        raise InvalidInput(
-          "Cannot exclusively create site settings (errno \{result})",
-        )
-      }
+      directory.publish(".moonpress-settings-edit", "site.json", true)
       committed = true
-      verify_settings_stage(input, bytes)
-      @fs.remove_file(stage)
+      verify_settings_stage(directory, bytes)
+      directory.remove(".moonpress-settings-edit")
     }
   } catch {
     error => {
@@ -104,11 +102,11 @@ pub fn save_site_settings(
       } else {
         try {
           if prepared {
-            verify_settings_stage(input, bytes)
+            verify_settings_stage(directory, bytes)
           } else {
-            require_input_kind(stage, 1)
+            directory.require_file(".moonpress-settings-edit")
           }
-          @fs.remove_file(stage)
+          directory.remove(".moonpress-settings-edit")
           ""
         } catch {
           cause => "; cleanup incomplete; inspect " + stage + ": \{cause}"

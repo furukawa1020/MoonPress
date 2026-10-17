@@ -63,3 +63,123 @@ fn AuthoringDirectory::read(
   }
   read_opened_file(file, path)
 }
+
+///|
+extern "C" fn directory_lock(fd : Int) -> Int = "moonpress_dir_lock"
+
+///|
+#borrow(name)
+extern "C" fn directory_create(fd : Int, name : Bytes) -> NativeFile = "moonpress_dir_create"
+
+///|
+#borrow(name)
+extern "C" fn directory_copy_mode(
+  fd : Int,
+  file : NativeFile,
+  name : Bytes,
+) -> Int = "moonpress_dir_copy_mode"
+
+///|
+#borrow(stage, target)
+extern "C" fn directory_publish(
+  fd : Int,
+  stage : Bytes,
+  target : Bytes,
+  exclusive : Int,
+) -> Int = "moonpress_dir_publish"
+
+///|
+#borrow(name)
+extern "C" fn directory_remove(fd : Int, name : Bytes) -> Int = "moonpress_dir_remove"
+
+///|
+fn AuthoringDirectory::lock(self : AuthoringDirectory) -> Unit raise {
+  let result = directory_lock(self.fd)
+  if result == -2 {
+    raise InvalidInput(
+      "Directory is locked by another MoonPress operation: " + self.path,
+    )
+  }
+  if result != 0 {
+    raise io_failure("directory lock", self.path)
+  }
+}
+
+///|
+fn AuthoringDirectory::create(
+  self : AuthoringDirectory,
+  name : String,
+) -> NativeFile raise {
+  let file = directory_create(self.fd, authoring_name(name))
+  if io_is_null(file) != 0 {
+    raise io_failure(
+      "exclusive staging open; inspect any remnant",
+      self.path + "/" + name,
+    )
+  }
+  file
+}
+
+///|
+fn AuthoringDirectory::write(
+  self : AuthoringDirectory,
+  file : NativeFile,
+  name : String,
+  bytes : Bytes,
+  mode_source : String?,
+) -> Unit raise {
+  // Transfer stream ownership only after permission copying succeeds.
+  let mut transferred = false
+  defer (if !transferred { io_close(file) |> ignore })
+  if mode_source is Some(source) {
+    if directory_copy_mode(self.fd, file, authoring_name(source)) != 0 {
+      raise io_failure("copy permissions", self.path + "/" + name)
+    }
+  }
+  transferred = true
+  write_opened_file(file, self.path + "/" + name, bytes)
+}
+
+///|
+fn AuthoringDirectory::publish(
+  self : AuthoringDirectory,
+  stage : String,
+  target : String,
+  exclusive : Bool,
+) -> Unit raise {
+  if directory_publish(
+      self.fd,
+      authoring_name(stage),
+      authoring_name(target),
+      if exclusive {
+        1
+      } else {
+        0
+      },
+    ) !=
+    0 {
+    raise io_failure("directory-relative publication", self.path + "/" + target)
+  }
+}
+
+///|
+fn AuthoringDirectory::remove(
+  self : AuthoringDirectory,
+  name : String,
+) -> Unit raise {
+  if directory_remove(self.fd, authoring_name(name)) != 0 {
+    raise io_failure("directory-relative cleanup", self.path + "/" + name)
+  }
+}
+
+///|
+fn AuthoringDirectory::require_file(
+  self : AuthoringDirectory,
+  name : String,
+) -> Unit raise {
+  if self.kind(name) != 1 {
+    raise InvalidInput(
+      "Expected regular authoring file: " + self.path + "/" + name,
+    )
+  }
+}

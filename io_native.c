@@ -85,13 +85,6 @@ MOONBIT_FFI_EXPORT FILE *moonpress_io_open_public(moonbit_bytes_t input, moonbit
   return moonpress_open_regular_at(directory, (const char *)name);
 }
 
-/* Fixed-name site files use the same no-follow descriptor boundary. */
-MOONBIT_FFI_EXPORT FILE *moonpress_io_open_site_file(moonbit_bytes_t input, moonbit_bytes_t name) {
-  int directory = moonpress_open_real_directory((const char *)input);
-  if (directory < 0) return NULL;
-  return moonpress_open_regular_at(directory, (const char *)name);
-}
-
 /* Retained directory operations: callers own and close the descriptor. */
 MOONBIT_FFI_EXPORT int moonpress_dir_open(moonbit_bytes_t path) {
   return moonpress_open_real_directory((const char *)path);
@@ -107,4 +100,35 @@ MOONBIT_FFI_EXPORT FILE *moonpress_dir_read(int directory, moonbit_bytes_t name)
   int copy = dup(directory);
   if (copy < 0) return NULL;
   return moonpress_open_regular_at(copy, (const char *)name);
+}
+
+#include <sys/file.h>
+MOONBIT_FFI_EXPORT int moonpress_dir_lock(int directory) {
+  if (flock(directory, LOCK_EX | LOCK_NB) == 0) return 0;
+  return errno == EAGAIN || errno == EWOULDBLOCK ? -2 : -1;
+}
+MOONBIT_FFI_EXPORT FILE *moonpress_dir_create(int directory, moonbit_bytes_t name) {
+  int fd = openat(directory, (const char *)name, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0666);
+  if (fd < 0) return NULL;
+  FILE *file = fdopen(fd, "wb");
+  if (!file) {
+    int saved = errno;
+    close(fd);
+    /* Creation succeeded: leave the file for explicit inspection on stream failure. */
+    errno = saved;
+  }
+  return file;
+}
+MOONBIT_FFI_EXPORT int moonpress_dir_copy_mode(int directory, FILE *file, moonbit_bytes_t name) {
+  struct stat st;
+  if (fstatat(directory, (const char *)name, &st, AT_SYMLINK_NOFOLLOW) != 0) return -1;
+  if (!S_ISREG(st.st_mode)) { errno = EINVAL; return -1; }
+  return fchmod(fileno(file), st.st_mode & 0777);
+}
+MOONBIT_FFI_EXPORT int moonpress_dir_publish(int directory, moonbit_bytes_t stage, moonbit_bytes_t target, int exclusive) {
+  return exclusive ? linkat(directory, (const char *)stage, directory, (const char *)target, 0)
+                   : renameat(directory, (const char *)stage, directory, (const char *)target);
+}
+MOONBIT_FFI_EXPORT int moonpress_dir_remove(int directory, moonbit_bytes_t name) {
+  return unlinkat(directory, (const char *)name, 0);
 }
