@@ -33,20 +33,19 @@ pub fn store_media(
   bytes : Bytes,
 ) -> MediaItem raise {
   require_media_destination(name)
-  require_input_kind(input, 2)
-  require_input_kind(input + "/public", 2)
+  let directory = open_authoring_directory(input + "/public")
+  defer directory_close(directory.fd)
+  directory.lock()
   let path = input + "/public/" + name
-  let lock = lock_output(path, shared=false)
-  defer native_unlock_output(lock)
-  if path_kind(path) != 0 {
+  if directory.kind(name) != 0 {
     raise InvalidInput("Media target must not exist: " + path)
   }
-  let file = open_file(path, 2)
-  write_opened_file(file, path, bytes) catch {
+  let file = directory.create(name)
+  directory.write(file, name, bytes, None) catch {
     error => {
       let cleanup = try {
-        require_input_kind(path, 1)
-        @fs.remove_file(path)
+        directory.require_file(name)
+        directory.remove(name)
         ""
       } catch {
         cause => "; cleanup incomplete; inspect " + path + ": \{cause}"
