@@ -23,7 +23,7 @@ fn create_draft_content(
   input : String,
   slug : String,
   content : String,
-  verify : () -> Unit raise,
+  verify : (AuthoringDirectory) -> Unit raise,
 ) -> NewPostReport raise {
   if !valid_slug(slug) {
     raise InvalidInput(
@@ -34,24 +34,22 @@ fn create_draft_content(
   if !document.draft || document.slug is Some(_) {
     raise InvalidInput("New articles must be drafts with filename routes")
   }
-  require_input_kind(input, 2)
-  require_input_kind(input + "/content", 2)
+  let directory = open_authoring_directory(input + "/content")
+  defer directory_close(directory.fd)
+  directory.lock()
   let source = "content/" + slug + ".md"
+  let name = slug + ".md"
   let path = input + "/" + source
-  // Lock content/ for cooperating authoring writers; exclusive open also protects
-  // against another creator winning the race after this preflight check.
-  let lock = lock_output(path, shared=false)
-  defer native_unlock_output(lock)
-  verify()
-  if path_kind(path) != 0 {
+  verify(directory)
+  if directory.kind(name) != 0 {
     raise InvalidInput("Article target must not exist: " + path)
   }
-  let file = open_file(path, 2)
-  write_opened_file(file, path, @utf8.encode(content)) catch {
+  let file = directory.create(name)
+  directory.write(file, name, @utf8.encode(content), None) catch {
     error => {
       let cleanup = try {
-        require_input_kind(path, 1)
-        @fs.remove_file(path)
+        directory.require_file(name)
+        directory.remove(name)
         ""
       } catch {
         cause => "; cleanup incomplete; inspect " + path + ": \{cause}"
@@ -68,5 +66,5 @@ pub fn new_post(
   slug : String,
   title : String,
 ) -> NewPostReport raise {
-  create_draft_content(input, slug, draft_source(title), () => ())
+  create_draft_content(input, slug, draft_source(title), _ => ())
 }

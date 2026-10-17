@@ -31,7 +31,7 @@ pub fn duplicate_post(
   let snapshot = read_post(input, name)
   require_post_version(snapshot, expected)
   let content = duplicate_source(snapshot.content, name, title)
-  create_draft_content(input, slug, content, () => {
-    require_post_version(read_post(input, name), expected)
+  create_draft_content(input, slug, content, directory => {
+    require_post_version(read_post_at(directory, name), expected)
   })
 }
