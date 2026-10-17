@@ -10,6 +10,9 @@ expected="$(cat .moon-version)"
 actual="$(moon version | sed -n '1p' | cut -d' ' -f2)"
 [[ "$actual" = "$expected" ]] || { echo 'Use the pinned toolchain from scripts/setup.sh.' >&2; exit 1; }
 moon build --target native --release
+source_commit="$(git rev-parse HEAD)"
+source_tree=clean
+[[ -z "$(git status --porcelain)" ]] || source_tree=modified
 stage="$(mktemp -d "$(dirname -- "$destination")/.moonpress-package.XXXXXXXX")"
 trap 'rm -rf "$stage"' EXIT
 bundle="$stage/moonpress-linux-x86_64"
@@ -55,8 +58,8 @@ Use ./moonpress --help for CLI commands. Back up your source files before use.
 Documentation: https://github.com/furukawa1020/MoonPress
 TEXT
 {
-  printf 'source_commit=%s\n' "$(git rev-parse HEAD)"
-  if [[ -z "$(git status --porcelain)" ]]; then printf 'source_tree=clean\n'; else printf 'source_tree=modified\n'; fi
+  printf 'source_commit=%s\n' "$source_commit"
+  printf 'source_tree=%s\n' "$source_tree"
   printf 'cli_version=%s\n' "$("$bundle/moonpress" --version)"
   printf 'tested_platform=Linux x86_64\n'
   printf 'builder_runtime=%s\n' "$(getconf GNU_LIBC_VERSION)"

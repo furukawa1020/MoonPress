@@ -2,7 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+in_tree=""
+trap 'rm -rf "$tmp"; if [[ -n "$in_tree" ]]; then rm -rf "$in_tree"; fi' EXIT
 bash scripts/package-native.sh "$tmp/package" > "$tmp/log"
 (cd "$tmp/package" && sha256sum -c SHA256SUMS)
 mkdir "$tmp/unpacked"
@@ -19,6 +20,16 @@ test -s "$tmp/output/index.html"
 cp "$tmp/package/SHA256SUMS" "$tmp/before"
 if bash scripts/package-native.sh "$tmp/package" >/dev/null 2>&1; then exit 1; fi
 cmp "$tmp/before" "$tmp/package/SHA256SUMS"
+# Staging in the checkout must not contaminate recorded source provenance.
+in_tree="$PWD/package-provenance-$$"
+test ! -e "$in_tree"
+expected_source_tree=clean
+[[ -z "$(git status --porcelain)" ]] || expected_source_tree=modified
+bash scripts/package-native.sh "$in_tree" >/dev/null
+tar -xOf "$in_tree/moonpress-linux-x86_64.tar.gz" moonpress-linux-x86_64/BUILD.txt > "$tmp/in-tree-build"
+grep -Fxq "source_tree=$expected_source_tree" "$tmp/in-tree-build"
+mv "$in_tree" "$tmp/in-tree-package"
+in_tree=""
 # Fail each archive phase after staging starts, then verify a normal retry.
 mkdir "$tmp/bin"
 for command in tar gzip sha256sum; do
