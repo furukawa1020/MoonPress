@@ -1,15 +1,15 @@
 # 初めての記事を公開するまで
 
-対応環境はLinux x86_64です。[README](../README.md#quick-start)の手順で実行ファイルを構築し、サイトを初期化して管理画面を起動してください。別の版のMoonBitがある場合は[専用の導入先](toolchain.md)を指定します。安定版バイナリ配布やmacOS/Windowsの動作確認はまだ完了していません。
+対応環境はLinux x86_64です。[README](../README.md#quick-start)の手順で実行ファイルを構築し、サイトを初期化して管理画面を起動してください。別の版のMoonBitがある場合は[専用の導入先](toolchain.md)を指定します。MoonBit不要の[Linux用試用パッケージ](native-package.md)も作成できます。安定版配布やmacOS/Windowsの動作確認はまだ完了していません。
 
-ブラウザで **http://127.0.0.1:8080/workflow** を開きます。作業中は起動したターミナルを開いたままにし、終了するときはCtrl-Cを押します。
+ブラウザで **http://127.0.0.1:8080/workflow** を開きます。作業中は起動したターミナルを開いたままにし、終了するときはCtrl-Cを押します。管理画面とプレビューに隣り合う2ポート（標準8080・8081）を使うので、両方が空いている必要があります。
 
 1. **Write and save**：Create a draftからタイトルとファイル名（例：first-post）を入力し、Markdown本文を書いてSave articleで保存します。画像はMediaからアップロードし、表示されたMarkdownを本文に貼ります。
-2. **Preview your saved drafts**：Build full preview filesでテーマ・画像を含むプレビューを生成します。サイト内の `.moonpress-preview/index.html` をファイルブラウザから開いてください。ここには下書きが含まれます。
+2. **Preview your saved drafts**：Build full preview filesでテーマ・画像を含むプレビューを生成します。上部の **Open built preview** を押すと別タブ（標準では http://127.0.0.1:8081/ ）で開き、画像・CSS・ページ間リンクを確認できます。ここには保存済み下書きが含まれます。編集後は再ビルドしてブラウザを再読み込みしてください。
 3. **Choose what goes live**：公開する記事を開き、保存後にSet ready for buildを押します。Draftは下書き、Readyは通常ビルドに含める状態です。
 4. **Review before building**：Inspect production changesで追加・変更・削除と、その原因となる元記事・レイアウト・設定などの依存関係を確認します。エラーが出た場合は表示された元ファイルや出力の問題を直してから再確認します。手動編集した生成物は上書きされません。
 5. **Create production files**：確認結果の画面にあるBuild production filesで `.moonpress-build` に下書きを除く公開用ファイルを生成します。確認後に変更計画が変わると書き出さず停止するので、再度Inspect production changesで確認してください。プレビュー用ディレクトリとは分かれています。
-6. **Publish and verify**：公開用ファイルをホストへ配置するか、設定済みのGitHub Actionsで保存済みソースをビルド・公開します。[GitHub Pages設定](deployment.md)には一度だけ管理者の操作が必要です。Actionsの成功と実際の公開URLを確認してください。
+6. **Publish and verify**：上部の **Publish** で本番出力が最新かを確認します。Build neededなら差分確認とビルドをやり直し、エラーがあれば修正します。公開用ファイルをホストへ配置するか、設定済みのGitHub Actionsで保存済みソースをビルド・公開します。[GitHub Pages設定](deployment.md)には一度だけ管理者の操作が必要です。Actionsの成功と実際の公開URLを確認してください。
 
 保存・Readyへの変更・ローカルビルドだけではインターネットに公開されません。この管理画面はホストの公開状態を取得していません。記事をDraftに戻した場合も、通常ビルドをやり直してホストへ反映するまで公開済みページは残ります。
 

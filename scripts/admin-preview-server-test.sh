@@ -51,15 +51,19 @@ test "$(post /build-preview --data-urlencode "token=$token")" = 200
 test "$(view /private.html)" = 200
 grep -Fq 'Private preview' "$tmp/view"
 # Preview alone occupies the next port: admin must fail without leaving its listener.
-other_port="$(shuf -i 20000-55000 -n 1)"
-"$cli" preview "$tmp/site/.moonpress-preview" "$other_port" > "$tmp/other-log" 2> "$tmp/other-error" &
+cc -Wall -Wextra -Werror tests/native/reserve_preview_port.c -o "$tmp/reserve-port"
+"$tmp/reserve-port" > "$tmp/other-log" &
 other=$!
-for ((i=0;i<50;i++)); do grep -Fq 'MoonPress preview:' "$tmp/other-log" && break; sleep .02; done
+for ((i=0;i<100;i++)); do test -s "$tmp/other-log" && break; kill -0 "$other"; sleep .02; done
+test -s "$tmp/other-log"
+conflict_admin_port="$(cat "$tmp/other-log")"
+kill -0 "$other"
 code=0
-"$cli" admin "$tmp/site" "$((other_port-1))" > "$tmp/failed-out" 2> "$tmp/failed-error" || code=$?
+"$cli" admin "$tmp/site" "$conflict_admin_port" > "$tmp/failed-out" 2> "$tmp/failed-error" || code=$?
 test "$code" = 1
 grep -Fq 'Cannot bind preview' "$tmp/failed-error"
 kill "$other"; wait "$other" || true; other=''
+if curl --max-time 1 -s "http://127.0.0.1:$conflict_admin_port/" >/dev/null; then exit 1; fi
 code=0; "$cli" admin "$tmp/site" 65535 > /dev/null 2>&1 || code=$?; test "$code" = 2
 kill "$server"; wait "$server" || true; server=''
 if curl --max-time 1 -s "$preview/" >/dev/null; then exit 1; fi

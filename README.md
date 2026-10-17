@@ -27,8 +27,12 @@ moonpress="$PWD/_build/native/release/build/cmd/main/main.exe"
 Open **http://127.0.0.1:8080/workflow** and keep the terminal open.
 The guided browser workflow walks through creating and saving a draft,
 building a themed preview, marking it ready, reviewing changes and generating
-production output. Upload production output through your configured host;
+production output. **Open built preview** opens the themed site on port 8081;
+**Publish** checks whether production files match saved ready articles.
+Upload production output through your configured host;
 local build success does not report a deployment. No JavaScript is needed.
+Both adjacent ports must be free. See [preview](docs/preview.md) and the
+[standalone Linux preview package](docs/native-package.md).
 
 [日本語の初回ガイド](docs/first-site-ja.md) · [Detailed authoring guide](docs/getting-started.md) ·
 [Browser editor](docs/admin.md) · [GitHub Actions hosting](docs/deployment.md).

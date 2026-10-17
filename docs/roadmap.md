@@ -7,6 +7,11 @@ CommonMark compatibility or superiority to other site generators.
 
 ## Available and covered
 
+- Separate-origin local HTTP preview integrated with administration; generated HTML, CSS and images are viewed without serving project HTML on the editor origin.
+- Read-only Publish readiness screen distinguishing missing/stale/current production output from actual deployment.
+- Linux native preview packaging with checksum/provenance/notices and unpacked no-toolchain smoke test.
+- End-to-end HTTP form journey from initialized site through images, draft preview, ready status and reviewed production build.
+
 - Native `init` command producing a ready-to-check/build starter without overwriting existing targets.
 
 - Markdown subset with task lists, strikethrough, explicit paragraph/quote breaks, single-line Setext headings and flat pipe tables.
@@ -37,7 +42,7 @@ See [content semantics](content.md), [contributing](../CONTRIBUTING.md) and
 | Verified example deployment | Pages enabled and generated HTML/CSS retrieved from the public URL | [#3](https://github.com/furukawa1020/MoonPress/issues/3) |
 | Filesystem failure recovery | Journaled restart recovery implemented; pre-journal/final-cleanup gaps and power-loss durability remain open | [#49](https://github.com/furukawa1020/MoonPress/issues/49), [#53](https://github.com/furukawa1020/MoonPress/issues/53), [contract](publication.md) |
 | Concurrent writer protection | Implemented for cooperative local Linux builds; parent-directory scope and tested limits documented | [#50](https://github.com/furukawa1020/MoonPress/issues/50), [contract](concurrency.md) |
-| Distribution and compatibility | Versioned native artifact/checksum process, install smoke test, supported-platform statement and API/schema migration policy | Plan after the reproducible toolchain gate |
+| Distribution and compatibility | Versioned native artifact/checksum process, install smoke test, supported-platform statement and API/schema migration policy | Preview packaging/test implemented; signed stable assets, compatibility matrix and schema migration policy remain |
 
 Current builds are not transactional. Cooperative writers use directory locks;
 external tools and old MoonPress versions that do not lock remain unsupported.
@@ -61,3 +66,10 @@ and a reproducible installation take priority over a larger feature checklist.
 Promotion should link to a working, verified example and honest installation
 instructions. A gh-pages branch push alone is not proof of a publicly deployed
 site; keep the deployment gate open until the public endpoint is checked.
+
+## User-facing gates still open
+
+- Actual browser visual/accessibility and first-time-user testing (HTTP integration is not a visual usability study).
+- Verified public example deployment and general host integration/status. The Publish screen is local readiness only.
+- Signed/versioned release assets and installation verification across supported Linux distributions; other operating systems remain unverified.
+- Isolated preview intentionally disables project scripts/forms/external resource loads; it is not a full hosting emulator.

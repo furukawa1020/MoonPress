@@ -37,6 +37,10 @@ fn preview_mime(name : String) -> String {
     "image/x-icon"
   } else if name.has_suffix(".woff2") {
     "font/woff2"
+  } else if name.has_suffix(".ttf") {
+    "font/ttf"
+  } else if name.has_suffix(".otf") {
+    "font/otf"
   } else if name.has_suffix(".woff") {
     "font/woff"
   } else if name.has_suffix(".xml") {
