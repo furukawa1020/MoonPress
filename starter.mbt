@@ -133,7 +133,7 @@ fn starter_files() -> Array[(String, String)] {
         #|moonpress explain . dist
         #|```
         #|
-        #|Run `moonpress preview dist 8081`, then open http://127.0.0.1:8081/. Rebuild and reload after editing sources.
+        #|Run `moonpress preview dist 8082`, then open http://127.0.0.1:8082/. Rebuild and reload after editing sources.
         #|Do not manually edit generated files in `dist/`.
         #|
         #|- `content/index.md`: home page.
