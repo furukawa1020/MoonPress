@@ -58,3 +58,23 @@ test "preview HEAD preserves length without body and stays preview-only" {
     },
   )
 }
+
+///|
+test "conditional preview tags parse complete weak and strong lists" {
+  for value in ["*", "\"abc\"", "W/\"abc\"", "\"other,tag\", W/\"abc\""] {
+    assert_true(preview_etag_matches(value, "abc"))
+  }
+  for
+    value in [
+      "", "abc", "\"abc\",", "\"abc\", ", "\"abc\",bad", "\"abcd\"", "*, \"abc\"",
+    ] {
+    assert_false(preview_etag_matches(value, "abc"))
+  }
+  let response = decode_text(
+    preview_response(304, "text/css", b"body", etag=Some("abc")),
+    "304",
+  )
+  assert_true(response.contains("304 Not Modified"))
+  assert_false(response.contains("Content-Length:"))
+  assert_true(response.has_suffix("\r\n\r\n"))
+}

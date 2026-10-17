@@ -13,8 +13,8 @@ then reload the browser. Private drafts may be included: do not expose this
 loopback server through a tunnel/proxy or publish the preview directory.
 
 The server is read-only and serves only intact manifest-tracked flat output files.
-Edited files, symlinks, hidden state and untracked files are refused. Responses
-are not cached. Project scripts, forms, embedded frames and external resource
+Edited files, symlinks, hidden state and untracked files are refused. Verified responses may be cached privately but must be revalidated before reuse;
+errors are not stored. Project scripts, forms, embedded frames and external resource
 loads are disabled by the preview content policy; this is not a hosting emulator.
 Use a separate port from administration. No files are built or deployed by GET.
 
@@ -33,3 +33,8 @@ preview reports unavailable; saving an article alone does not rebuild it.
 GET and HEAD are supported on the preview origin. HEAD performs the same output
 verification and returns the representation length without a response body.
 The administration origin still accepts only its existing GET/POST routes.
+
+Verified files include a SHA-256 ETag and `Cache-Control: private, no-cache`.
+GET/HEAD `If-None-Match` supports strong/weak tag lists and `*`. Every request
+rechecks the manifest and actual file digest before a bodyless 304; edited, missing
+or unsafe output never bypasses verification. Errors remain `no-store`.
