@@ -96,7 +96,11 @@ fn read_bytes(path : String) -> Bytes raise {
 
 ///|
 // Takes ownership of the already-opened stream, including guarded media reads.
-fn read_opened_file(file : NativeFile, path : String) -> Bytes raise {
+fn read_opened_file(
+  file : NativeFile,
+  path : String,
+  max_bytes? : Int = 2147483647,
+) -> Bytes raise {
   let mut closed = false
   defer (if !closed { io_close(file) |> ignore })
   if io_seek(file, 2) != 0 {
@@ -106,7 +110,7 @@ fn read_opened_file(file : NativeFile, path : String) -> Bytes raise {
   if size < 0 {
     raise io_failure("size", path)
   }
-  if size > 2147483647L {
+  if max_bytes < 0 || size > max_bytes.to_int64() {
     raise InvalidInput("File exceeds supported byte-buffer length: " + path)
   }
   if io_seek(file, 0) != 0 {
