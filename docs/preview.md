@@ -17,3 +17,15 @@ Edited files, symlinks, hidden state and untracked files are refused. Responses
 are not cached. Project scripts, forms, embedded frames and external resource
 loads are disabled by the preview content policy; this is not a hosting emulator.
 Use a separate port from administration. No files are built or deployed by GET.
+
+## From the editor
+
+`moonpress admin my-site 8080` starts administration on port 8080 and the preview
+on port 8081. Both bind only to 127.0.0.1 and stop with the same process. Choose
+an unused pair of adjacent ports (admin range 1024–65534). Startup fails if either
+is occupied; it does not silently reuse another service.
+
+Choose **Build full preview files**, then **Open built preview** in the navigation.
+The new tab contains generated site content only, including saved drafts. Editing
+forms and tokens stay on the administration port. Before the first build the
+preview reports unavailable; saving an article alone does not rebuild it.

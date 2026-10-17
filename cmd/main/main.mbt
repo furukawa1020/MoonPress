@@ -152,7 +152,7 @@ fn help_text(command : String) -> String {
     "preview" =>
       "View built files on a read-only loopback server. Only intact manifest-tracked files are served.\nBuild first; no automatic rebuild or deployment. Use a different port from administration.\nPort: 1024–65535. No flags. Ctrl-C stops the server."
     "admin" =>
-      "Start the local browser editor on http://127.0.0.1:<port>/.\nPort must be 1024–65535. Ctrl-C stops the server. No deployment or --json option.\nUse only on a trusted local machine; do not expose through a proxy or tunnel."
+      "Start the local browser editor on http://127.0.0.1:<port>/.\nAdmin uses this port and the next port for isolated preview.\nPort must be 1024–65534. Ctrl-C stops both listeners. No deployment or --json option.\nUse only on a trusted local machine; do not expose through a proxy or tunnel."
     "status" =>
       "Set draft or ready-for-build status with source version checks.\nReady includes the article in normal builds; it does not deploy the site."
     "read" =>
@@ -351,7 +351,7 @@ fn main {
       for c in args[3] {
         port = port * 10 + c.to_int() - 48
       }
-      if port < 1024 || port > 65535 {
+      if port < 1024 || port > 65535 || (command == "admin" && port == 65535) {
         valid = false
       }
     }

@@ -77,3 +77,16 @@ MOONBIT_FFI_EXPORT int moonpress_admin_random(moonbit_bytes_t bytes) {
 }
 #include <stdio.h>
 MOONBIT_FFI_EXPORT void moonpress_admin_flush(void) { fflush(stdout); }
+
+/* One local process owns both origins; readiness is separate from accepting. */
+MOONBIT_FFI_EXPORT int moonpress_admin_wait_listener(int admin, int preview) {
+  struct pollfd descriptors[2] = {{admin, POLLIN, 0}, {preview, POLLIN, 0}};
+  for (;;) {
+    int result = poll(descriptors, 2, -1);
+    if (result < 0 && errno == EINTR) continue;
+    if (result < 0) return -1;
+    if (descriptors[0].revents & POLLIN) return 0;
+    if (descriptors[1].revents & POLLIN) return 1;
+    return -1;
+  }
+}
