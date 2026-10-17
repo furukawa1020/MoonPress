@@ -13,6 +13,7 @@ bash scripts/posts-test.sh
 bash scripts/media-test.sh
 bash scripts/media-snapshot-test.sh
 bash scripts/media-preview-api-test.sh
+bash scripts/media-preview-guard-test.sh
 bash scripts/media-read-guard-test.sh
 bash scripts/media-replace-api-test.sh
 bash scripts/media-replace-cli-test.sh
@@ -36,6 +37,7 @@ bash scripts/admin-references-test.sh
 bash scripts/admin-output-references-test.sh
 bash scripts/admin-media-replace-test.sh
 bash scripts/admin-media-image-test.sh
+bash scripts/media-preview-journey-test.sh
 bash scripts/local-config-test.sh
 bash scripts/settings-snapshot-test.sh
 bash scripts/settings-directory-test.sh

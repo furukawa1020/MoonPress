@@ -141,7 +141,9 @@ fn preview_file(
 fn preview_client(client : Int, host : String, output : String) -> Bytes {
   let mut head = false
   try {
-    let (request, _) = admin_read_request(client, host, allow_head=true)
+    let (request, _) = admin_read_request(client, host, allow_head=true, on_head=fn() {
+      head = true
+    })
     head = request.verb == "HEAD"
     if request.verb != "GET" && !head {
       raise InvalidInput("Preview is read-only")

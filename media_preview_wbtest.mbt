@@ -28,6 +28,7 @@ test "media preview guarded filesystem probe" {
     read_media_preview(input, "a.png", expected=Some(preview.item.digest)).content,
     preview.content,
   )
+  assert_eq(read_media_preview(input, "limit.png").item.bytes, 8388608)
   for expected in ["bad", digest_bytes(b"different")] {
     assert_true(
       try {
@@ -63,5 +64,35 @@ test "media preview guarded filesystem probe" {
     } catch {
       _ => true
     },
+  )
+}
+
+///|
+test "media preview refuses substituted paths and closes failed streams" {
+  guard @env.get_env_var("MOONPRESS_IMAGE_FAILURE_PROBE") is Some(input) else {
+    return
+  }
+  let before = @fs.read_dir("/proc/self/fd").length()
+  for i = 0; i < 32; i = i + 1 {
+    assert_true(
+      try {
+        read_media_preview(input, "a.png") |> ignore
+        false
+      } catch {
+        _ => true
+      },
+    )
+  }
+  assert_eq(@fs.read_dir("/proc/self/fd").length(), before)
+}
+
+///|
+test "media preview retains original directory after replacement" {
+  guard @env.get_env_var("MOONPRESS_IMAGE_DIRECTORY_PROBE") is Some(input) else {
+    return
+  }
+  assert_eq(
+    read_media_preview(input, "a.png").content,
+    b"\x89PNG\r\n\x1a\noriginal",
   )
 }

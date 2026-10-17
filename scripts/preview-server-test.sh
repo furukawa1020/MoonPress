@@ -66,6 +66,18 @@ test "$(get /missing.html)" = 404
 for path in '/.moonpress.json' '/%2e%2e' '/a%2fb' '/%00' '/%FF'; do test "$(get "$path")" = 400; done
 test "$(curl -sS -o "$tmp/page" -w '%{http_code}' -H 'Host: evil' "$origin/")" = 400
 test "$(post /save --data 'token=anything')" = 400
+for failure in host duplicate body; do
+  args=()
+  case "$failure" in
+    host) args=(-H 'Host: evil');;
+    duplicate) args=(-H 'X-Test: one' -H 'X-Test: two');;
+    body) args=(-H 'Content-Length: 1');;
+  esac
+  test "$(curl --max-time 8 -sS -X HEAD --ignore-content-length "${args[@]}" -o "$tmp/rejected-head" -w '%{http_code}' "$origin/")" = 400
+  test ! -s "$tmp/rejected-head"
+done
+test "$(curl -sS -H 'Host: evil' -o "$tmp/rejected-get" -w '%{http_code}' "$origin/")" = 400
+test -s "$tmp/rejected-get"
 diff -r "$tmp/out" "$tmp/before"
 printf 'private' > "$tmp/out/foreign.html"
 test "$(get /foreign.html)" = 404

@@ -7,6 +7,9 @@ CommonMark compatibility or superiority to other site generators.
 
 ## Available and covered
 
+- Versioned raster thumbnails in media/replacement screens using bounded no-follow source reads; no build needed to view saved PNG/JPEG/GIF/WebP images.
+- Verified preview HEAD and digest-based conditional GET/HEAD with rebuild invalidation.
+
 - Separate-origin local HTTP preview integrated with administration; generated HTML, CSS and images are viewed without serving project HTML on the editor origin.
 - Read-only Publish readiness screen distinguishing missing/stale/current production output from actual deployment.
 - Linux native preview packaging with checksum/provenance/notices and unpacked no-toolchain smoke test.
