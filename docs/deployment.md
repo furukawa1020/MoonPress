@@ -27,8 +27,13 @@ https://furukawa1020.github.io/MoonPress/
 
 ## Local preview
 
-Generate a fresh output directory with the CLI. Open its index.html directly
-in a browser. No development server or JavaScript is required.
+Use the admin **Build full preview files** action, then **Open built preview**.
+The read-only preview uses a separate loopback port. Alternatively run
+`moonpress preview OUTPUT PORT` for an already-built directory. Rebuild explicitly
+and reload after edits. See [preview](preview.md).
+
+The admin **Publish** screen validates local production readiness and provides a
+hosting handoff. It does not upload files or verify the public URL.
 
 ## Current limits
 

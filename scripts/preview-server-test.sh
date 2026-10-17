@@ -12,6 +12,8 @@ trap cleanup EXIT
 "$cli" init "$tmp/site" >/dev/null
 mkdir "$tmp/site/public"
 printf 'image\000bytes' > "$tmp/site/public/a.png"
+printf font > "$tmp/site/public/font.ttf"
+printf font > "$tmp/site/public/font.otf"
 "$cli" build "$tmp/site" "$tmp/out" >/dev/null
 cp -a "$tmp/out" "$tmp/before"
 for attempt in {1..10}; do
@@ -40,6 +42,11 @@ cmp "$tmp/page" "$tmp/site/public/a.png"
 curl -sS -D "$tmp/headers" -o /dev/null "$origin/"
 grep -Fq "form-action 'none'" "$tmp/headers"
 grep -Fq 'Cache-Control: no-store' "$tmp/headers"
+for type in ttf otf; do
+  curl -sS -D "$tmp/headers" -o "$tmp/view-font" "$origin/font.$type"
+  grep -Fq "Content-Type: font/$type" "$tmp/headers"
+  ! grep -Fq "Content-Disposition: attachment" "$tmp/headers"
+done
 test "$(get /missing.html)" = 404
 for path in '/.moonpress.json' '/%2e%2e' '/a%2fb' '/%00' '/%FF'; do test "$(get "$path")" = 400; done
 test "$(curl -sS -o "$tmp/page" -w '%{http_code}' -H 'Host: evil' "$origin/")" = 400

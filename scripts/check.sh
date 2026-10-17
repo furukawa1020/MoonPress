@@ -30,6 +30,7 @@ bash scripts/admin-test.sh
 bash scripts/preview-server-test.sh
 bash scripts/admin-preview-server-test.sh
 bash scripts/publish-readiness-test.sh
+bash scripts/first-site-journey-test.sh
 bash scripts/admin-references-test.sh
 bash scripts/admin-output-references-test.sh
 bash scripts/admin-media-replace-test.sh
