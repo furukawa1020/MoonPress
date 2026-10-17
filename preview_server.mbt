@@ -58,9 +58,12 @@ fn preview_response(
   mime : String,
   bytes : Bytes,
   head? : Bool = false,
+  etag? : String? = None,
 ) -> Bytes {
   let status = if code == 200 {
     "200 OK"
+  } else if code == 304 {
+    "304 Not Modified"
   } else if code == 404 {
     "404 Not Found"
   } else {
@@ -71,7 +74,14 @@ fn preview_response(
     status +
     "\r\nContent-Type: " +
     mime +
-    "\r\nContent-Length: \{bytes.length()}\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'\r\n" +
+    "\r\n" +
+    (if code == 304 { "" } else { "Content-Length: \{bytes.length()}\r\n" }) +
+    (match etag {
+      Some(digest) =>
+        "ETag: \"" + digest + "\"\r\nCache-Control: private, no-cache\r\n"
+      None => "Cache-Control: no-store\r\n"
+    }) +
+    "Connection: close\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'\r\n" +
     (if mime == "application/octet-stream" {
       "Content-Disposition: attachment\r\n"
     } else {
@@ -79,7 +89,7 @@ fn preview_response(
     }) +
     "\r\n",
   ) +
-  (if head { b"" } else { bytes })
+  (if head || code == 304 { b"" } else { bytes })
 }
 
 ///|
@@ -87,6 +97,7 @@ fn preview_file(
   output : String,
   target : String,
   head? : Bool = false,
+  if_none_match? : String? = None,
 ) -> Bytes raise {
   let name = preview_name(target)
   let lock = lock_output(output, shared=true)
@@ -100,7 +111,22 @@ fn preview_file(
       if digest_bytes(bytes) != artifact.digest {
         raise InvalidInput("Preview output changed; rebuild before viewing")
       }
-      return preview_response(200, preview_mime(name), bytes, head~)
+      let code = match if_none_match {
+        Some(value) =>
+          if preview_etag_matches(value, artifact.digest) {
+            304
+          } else {
+            200
+          }
+        None => 200
+      }
+      return preview_response(
+        code,
+        preview_mime(name),
+        bytes,
+        head~,
+        etag=Some(artifact.digest),
+      )
     }
   }
   preview_response(
@@ -120,7 +146,12 @@ fn preview_client(client : Int, host : String, output : String) -> Bytes {
     if request.verb != "GET" && !head {
       raise InvalidInput("Preview is read-only")
     }
-    preview_file(output, request.target, head~)
+    preview_file(
+      output,
+      request.target,
+      head~,
+      if_none_match=request.if_none_match,
+    )
   } catch {
     _ =>
       preview_response(
@@ -168,4 +199,54 @@ fn preview_manifest(directory : AuthoringDirectory) -> Manifest raise {
   parse_manifest(
     decode_text(read_opened_file(file, "preview manifest"), "preview manifest"),
   )
+}
+
+///|
+fn preview_etag_matches(value : String, digest : String) -> Bool {
+  let bytes = @utf8.encode(value.trim(chars=" \t").to_owned())
+  if bytes == b"*" {
+    return true
+  }
+  let mut i = 0
+  let mut matched = false
+  while i < bytes.length() {
+    while i < bytes.length() && (bytes[i] == b' ' || bytes[i] == b'\t') {
+      i += 1
+    }
+    if i + 1 < bytes.length() && bytes[i] == b'W' && bytes[i + 1] == b'/' {
+      i += 2
+    }
+    if i >= bytes.length() || bytes[i] != b'"' {
+      return false
+    }
+    i += 1
+    let tag = StringBuilder()
+    while i < bytes.length() && bytes[i] != b'"' {
+      let c = bytes[i].to_int()
+      if c < 33 || c > 126 {
+        return false
+      }
+      tag.write_char(c.unsafe_to_char())
+      i += 1
+    }
+    if i >= bytes.length() {
+      return false
+    }
+    matched = matched || tag.to_string() == digest
+    i += 1
+    while i < bytes.length() && (bytes[i] == b' ' || bytes[i] == b'\t') {
+      i += 1
+    }
+    if i == bytes.length() {
+      return matched
+    }
+    if bytes[i] != b',' {
+      return false
+    }
+    i += 1
+    if i == bytes.length() {
+      return false
+    }
+  }
+  false
 }

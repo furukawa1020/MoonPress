@@ -48,7 +48,15 @@ test "$(get /a.png)" = 200
 cmp "$tmp/page" "$tmp/site/public/a.png"
 curl -sS -D "$tmp/headers" -o /dev/null "$origin/"
 grep -Fq "form-action 'none'" "$tmp/headers"
-grep -Fq 'Cache-Control: no-store' "$tmp/headers"
+grep -Fq 'Cache-Control: private, no-cache' "$tmp/headers"
+etag="$(sed -n 's/^ETag: //p' "$tmp/headers" | tr -d '\r')"
+test "$etag" = "\"$(sha256sum "$tmp/out/index.html" | cut -d ' ' -f1)\""
+for tag in "$etag" "W/$etag" "\"different\", $etag" '*'; do
+  test "$(curl -sS -H "If-None-Match: $tag" -o "$tmp/conditional" -w '%{http_code}' "$origin/")" = 304
+  test ! -s "$tmp/conditional"
+done
+test "$(curl -sS -I -H "If-None-Match: $etag" -o "$tmp/conditional" -w '%{http_code}' "$origin/")" = 304
+test "$(curl -sS -H 'If-None-Match: "different"' -o "$tmp/conditional" -w '%{http_code}' "$origin/")" = 200
 for type in ttf otf; do
   curl -sS -D "$tmp/headers" -o "$tmp/view-font" "$origin/font.$type"
   grep -Fq "Content-Type: font/$type" "$tmp/headers"
@@ -61,9 +69,11 @@ test "$(post /save --data 'token=anything')" = 400
 diff -r "$tmp/out" "$tmp/before"
 printf 'private' > "$tmp/out/foreign.html"
 test "$(get /foreign.html)" = 404
+test "$(curl -sS -H 'If-None-Match: *' -o "$tmp/conditional" -w '%{http_code}' "$origin/missing.html")" = 404
 printf 'manual edit' > "$tmp/out/index.html"
 test "$(get /)" = 400
 ! grep -Fq 'manual edit' "$tmp/page"
+test "$(curl -sS -H "If-None-Match: $etag" -o "$tmp/conditional" -w '%{http_code}' "$origin/")" = 400
 rm "$tmp/out/index.html"
 ln -s "$tmp/before/index.html" "$tmp/out/index.html"
 test "$(get /)" = 400
@@ -73,6 +83,10 @@ cp "$tmp/before/index.html" "$tmp/out/index.html"
 "$cli" build "$tmp/site" "$tmp/out" --include-drafts >/dev/null
 test "$(get /private.html)" = 200
 grep -Fq 'Private draft' "$tmp/page"
+printf '\nChanged home.\n' >> "$tmp/site/content/index.md"
+"$cli" build "$tmp/site" "$tmp/out" --include-drafts >/dev/null
+test "$(curl -sS -H "If-None-Match: $etag" -o "$tmp/conditional" -w '%{http_code}' "$origin/")" = 200
+grep -Fq 'Changed home.' "$tmp/conditional"
 for args in '--json' '--include-drafts'; do
   code=0; "$cli" preview "$tmp/out" "$port" "$args" >/dev/null 2>&1 || code=$?; test "$code" = 2
 done

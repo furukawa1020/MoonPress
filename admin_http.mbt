@@ -25,6 +25,7 @@ priv struct AdminRequest {
   target : String
   length : Int
   boundary : String?
+  if_none_match : String?
 }
 
 ///|
@@ -112,7 +113,13 @@ fn admin_headers(
   } else if length != 0 {
     raise InvalidInput("GET body rejected")
   }
-  { verb: start[0], target: start[1], length, boundary, }
+  {
+    verb: start[0],
+    target: start[1],
+    length,
+    boundary,
+    if_none_match: headers.get("if-none-match"),
+  }
 }
 
 ///|
