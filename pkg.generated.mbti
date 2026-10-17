@@ -62,6 +62,8 @@ pub fn inspect_reference_summary(String, include_drafts? : Bool) -> ReferenceSum
 
 pub fn inspect_references(String, include_drafts? : Bool) -> ReferenceGraph raise
 
+pub fn inspect_release_readiness(String) -> ReleaseReadiness raise
+
 pub fn inspect_routes(String, include_drafts? : Bool) -> RouteInventory raise
 
 pub fn list_media(String) -> MediaReport raise
@@ -462,6 +464,19 @@ pub(all) struct ReferenceSummary {
   scope : String
 } derive(ToJson)
 pub fn ReferenceSummary::to_json(Self) -> Json
+
+pub(all) struct ReleaseReadiness {
+  output : String
+  current : Bool
+  ready_posts : Int
+  drafts : Int
+  outputs : Int
+  pending_writes : Int
+  pending_deletes : Int
+  manifest_changed : Bool
+  base_url : String?
+} derive(ToJson)
+pub fn ReleaseReadiness::to_json(Self) -> Json
 
 pub(all) struct ReplaceMediaReport {
   item : MediaItem

@@ -26,7 +26,7 @@ fn admin_build_production(
     "Production files built",
     "<p>Built saved ready articles; drafts excluded. No deployment performed.</p><p>Pages: \{report.pages}; written: \{report.written}; unchanged: \{report.skipped}; deleted: \{report.deleted}.</p><p>Local output: <code>" +
     escape_html(output) +
-    "</code>. Use the documented hosting workflow to deploy these files. A successful build does not record a deployment.</p>" +
+    "</code>. Use the documented hosting workflow to deploy these files. A successful build does not record a deployment. <a href=\"/publish\">Check publishing readiness and next steps</a>.</p>" +
     admin_production_form(token),
   )
 }
