@@ -10,7 +10,10 @@ expected="$(cat .moon-version)"
 actual="$(moon version | sed -n '1p' | cut -d' ' -f2)"
 [[ "$actual" = "$expected" ]] || { echo 'Use the pinned toolchain from scripts/setup.sh.' >&2; exit 1; }
 moon build --target native --release
-stage="$(mktemp -d)"
+source_commit="$(git rev-parse HEAD)"
+source_tree=clean
+[[ -z "$(git status --porcelain)" ]] || source_tree=modified
+stage="$(mktemp -d "$(dirname -- "$destination")/.moonpress-package.XXXXXXXX")"
 trap 'rm -rf "$stage"' EXIT
 bundle="$stage/moonpress-linux-x86_64"
 mkdir -p "$bundle/licenses"
@@ -55,8 +58,8 @@ Use ./moonpress --help for CLI commands. Back up your source files before use.
 Documentation: https://github.com/furukawa1020/MoonPress
 TEXT
 {
-  printf 'source_commit=%s\n' "$(git rev-parse HEAD)"
-  if [[ -z "$(git status --porcelain)" ]]; then printf 'source_tree=clean\n'; else printf 'source_tree=modified\n'; fi
+  printf 'source_commit=%s\n' "$source_commit"
+  printf 'source_tree=%s\n' "$source_tree"
   printf 'cli_version=%s\n' "$("$bundle/moonpress" --version)"
   printf 'tested_platform=Linux x86_64\n'
   printf 'builder_runtime=%s\n' "$(getconf GNU_LIBC_VERSION)"
@@ -64,7 +67,14 @@ TEXT
   moonc -v
 } > "$bundle/BUILD.txt"
 (cd "$bundle" && sha256sum moonpress > EXECUTABLE.sha256)
-mkdir -- "$destination"
-tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -C "$stage" -cf - moonpress-linux-x86_64 | gzip -n > "$destination/moonpress-linux-x86_64.tar.gz"
-(cd "$destination" && sha256sum moonpress-linux-x86_64.tar.gz > SHA256SUMS)
+archive="$stage/archive"
+mkdir -- "$archive"
+tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -C "$stage" -cf - moonpress-linux-x86_64 | gzip -n > "$archive/moonpress-linux-x86_64.tar.gz"
+(cd "$archive" && sha256sum moonpress-linux-x86_64.tar.gz > SHA256SUMS)
+# Same filesystem: publish the completed directory without replacing a racing target.
+if ! mv -T --no-clobber -- "$archive" "$destination"; then
+  echo 'Package publication refused.' >&2
+  exit 1
+fi
+[[ ! -e "$archive" ]] || { echo 'Package publication refused.' >&2; exit 1; }
 printf 'Native preview package: %s\n' "$destination/moonpress-linux-x86_64.tar.gz"
