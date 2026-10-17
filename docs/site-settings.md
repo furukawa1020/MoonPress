@@ -94,3 +94,7 @@ original, now-renamed directory. Reload using its real path before further edits
 This does not freeze directory entries against uncooperative writers or promise
 an atomic compare-and-swap of file contents. Broader authoring-path migration is
 tracked in [#280](https://github.com/furukawa1020/MoonPress/issues/280).
+
+The same retained-directory mutation boundary is also used by existing-media
+replacement and post editing. Creation/import/duplication paths have separate
+contracts; do not infer an atomic site-wide transaction from these guarantees.
