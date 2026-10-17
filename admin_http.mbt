@@ -127,6 +127,7 @@ fn admin_read_request(
   fd : Int,
   host : String,
   allow_head? : Bool = false,
+  on_head? : () -> Unit = fn() { () },
 ) -> (AdminRequest, Bytes) raise {
   let buffer = Bytes::make(4096, 0)
   let header = StringBuilder()
@@ -141,6 +142,10 @@ fn admin_read_request(
       raise InvalidInput("Non-ASCII header")
     }
     header.write_char(n.unsafe_to_char())
+    // Observe HEAD before header/framing errors, including incomplete headers.
+    if i == 4 && header.to_string() == "HEAD " {
+      on_head()
+    }
     state = if (state == 0 || state == 2) && n == 13 {
       state + 1
     } else if (state == 1 || state == 3) && n == 10 {

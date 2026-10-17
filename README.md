@@ -38,6 +38,9 @@ Both adjacent ports must be free. See [preview](docs/preview.md) and the
 [Browser editor](docs/admin.md) · [GitHub Actions hosting](docs/deployment.md).
 Development checks and their additional jq dependency are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+The **Media** and replacement screens show versioned PNG/JPEG/GIF/WebP previews
+(up to 8 MiB) directly from saved images, without rebuilding the site.
+
 Existing media can be replaced at the same URL from the local **Media** screen
 or with `media-read` / `media-replace`. A saved SHA-256 version prevents stale
 updates; identical bytes preserve the file, and changed bytes are staged and

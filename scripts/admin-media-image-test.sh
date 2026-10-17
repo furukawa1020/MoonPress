@@ -61,4 +61,4 @@ test "$(get "/media-image?name=%E6%9C%88%26a.png&version=$version")" = 400
 mv "$asset" "$tmp/unsafe-source"
 ln -s "$tmp/unsafe-source" "$asset"
 test "$(get "/media-image?name=%E6%9C%88%26a.png&version=$version")" = 400
-echo 'Admin media image tests passed: guarded binary GET, strict version/query/origin, stale snapshots and unsafe files refused without read writes.'
+echo 'Admin media image tests passed: guarded binary GET, strict version/query/origin, stale snapshots and unsafe files refused without source writes.'
