@@ -28,6 +28,7 @@ bash scripts/admin-output-references-test.sh
 bash scripts/admin-media-replace-test.sh
 bash scripts/local-config-test.sh
 bash scripts/settings-snapshot-test.sh
+bash scripts/settings-directory-test.sh
 bash scripts/settings-save-api-test.sh
 bash scripts/settings-cli-test.sh
 bash scripts/admin-settings-test.sh
