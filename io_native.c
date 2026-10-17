@@ -86,14 +86,25 @@ MOONBIT_FFI_EXPORT FILE *moonpress_io_open_public(moonbit_bytes_t input, moonbit
 }
 
 /* Fixed-name site files use the same no-follow descriptor boundary. */
-MOONBIT_FFI_EXPORT int moonpress_io_check_site_directory(moonbit_bytes_t input) {
-  int directory = moonpress_open_real_directory((const char *)input);
-  if (directory < 0) return -1;
-  return close(directory);
-}
-
 MOONBIT_FFI_EXPORT FILE *moonpress_io_open_site_file(moonbit_bytes_t input, moonbit_bytes_t name) {
   int directory = moonpress_open_real_directory((const char *)input);
   if (directory < 0) return NULL;
   return moonpress_open_regular_at(directory, (const char *)name);
+}
+
+/* Retained directory operations: callers own and close the descriptor. */
+MOONBIT_FFI_EXPORT int moonpress_dir_open(moonbit_bytes_t path) {
+  return moonpress_open_real_directory((const char *)path);
+}
+MOONBIT_FFI_EXPORT void moonpress_dir_close(int directory) { close(directory); }
+MOONBIT_FFI_EXPORT int moonpress_dir_kind(int directory, moonbit_bytes_t name) {
+  struct stat st;
+  if (fstatat(directory, (const char *)name, &st, AT_SYMLINK_NOFOLLOW) != 0)
+    return errno == ENOENT ? 0 : -1;
+  return S_ISREG(st.st_mode) ? 1 : (S_ISDIR(st.st_mode) ? 2 : 3);
+}
+MOONBIT_FFI_EXPORT FILE *moonpress_dir_read(int directory, moonbit_bytes_t name) {
+  int copy = dup(directory);
+  if (copy < 0) return NULL;
+  return moonpress_open_regular_at(copy, (const char *)name);
 }
