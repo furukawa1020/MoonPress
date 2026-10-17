@@ -15,6 +15,7 @@ bash scripts/media-read-guard-test.sh
 bash scripts/media-replace-api-test.sh
 bash scripts/media-replace-cli-test.sh
 bash scripts/media-stage-test.sh
+bash scripts/media-directory-test.sh
 bash scripts/media-replace-fault-test.sh
 bash scripts/media-references-test.sh
 bash scripts/media-import-test.sh

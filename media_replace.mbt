@@ -29,16 +29,15 @@ pub fn replace_media(
   expected : String,
   bytes : Bytes,
 ) -> ReplaceMediaReport raise {
-  let path = media_path(input, name)
-  let lock = lock_output(path, shared=false)
-  defer native_unlock_output(lock)
-  // Revalidate the path and bytes after acquiring the shared authoring lock.
-  media_path(input, name) |> ignore
-  let current_bytes = read_public_bytes(input, name)
+  require_media_destination(name)
+  let directory = open_authoring_directory(input + "/public")
+  defer directory_close(directory.fd)
+  directory.lock()
+  let current_bytes = directory.read(name)
   let current = media_item(name, current_bytes)
   require_media_version(current, expected)
   let stage = input + "/public/.moonpress-media-edit"
-  if path_kind(stage) != 0 {
+  if directory.kind(".moonpress-media-edit") != 0 {
     raise InvalidInput(
       "Media replacement staging path already exists; inspect it before retrying: " +
       stage,
@@ -48,16 +47,16 @@ pub fn replace_media(
     return { item: current, previous_digest: current.digest, changed: false, }
   }
   let item = media_item(name, bytes)
-  let file = open_file(stage, 2)
+  let file = directory.create(".moonpress-media-edit")
   let mut prepared = false
   let mut verified = false
   try {
-    write_opened_file(file, stage, bytes, mode_source=Some(path))
+    directory.write(file, ".moonpress-media-edit", bytes, Some(name))
     prepared = true
-    verify_media_stage(input, bytes)
+    verify_media_stage(directory, bytes)
     verified = true
-    require_media_version(read_media(input, name), expected)
-    replace_staged_file(stage, path)
+    require_media_version(media_item(name, directory.read(name)), expected)
+    directory.publish(".moonpress-media-edit", name, false)
   } catch {
     error => {
       let cleanup = if prepared && !verified {
@@ -65,11 +64,11 @@ pub fn replace_media(
       } else {
         try {
           if prepared {
-            verify_media_stage(input, bytes)
+            verify_media_stage(directory, bytes)
           } else {
-            require_input_kind(stage, 1)
+            directory.require_file(".moonpress-media-edit")
           }
-          @fs.remove_file(stage)
+          directory.remove(".moonpress-media-edit")
           ""
         } catch {
           cause => "; cleanup incomplete; inspect " + stage + ": \{cause}"
@@ -93,11 +92,14 @@ pub fn replace_media_from_file(
 }
 
 ///|
-fn verify_media_stage(input : String, expected : Bytes) -> Unit raise {
-  let stage = input + "/public/.moonpress-media-edit"
+fn verify_media_stage(
+  directory : AuthoringDirectory,
+  expected : Bytes,
+) -> Unit raise {
+  let stage = directory.path + "/.moonpress-media-edit"
   try {
-    require_input_kind(stage, 1)
-    if read_public_bytes(input, ".moonpress-media-edit") != expected {
+    directory.require_file(".moonpress-media-edit")
+    if directory.read(".moonpress-media-edit") != expected {
       raise InvalidInput("Staged bytes differ from the requested replacement")
     }
   } catch {

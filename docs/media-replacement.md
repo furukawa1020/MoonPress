@@ -90,3 +90,10 @@ The guard is used for single-media snapshots and replacement target/stage checks
 it does not change all compiler or inventory filesystem reads. Tests inject
 asset/public-directory substitutions at open and verify descriptor cleanup on
 stream-construction failure.
+
+Replacement now retains a no-follow handle to `public` for locking, reading,
+staging, permissions, final version verification, rename and cleanup. Replacing
+an ancestor or the `public` pathname cannot redirect those operations into a
+substitute directory. An in-flight replacement can complete in the original
+renamed directory; reload via its real path afterward. This does not freeze its
+entries or prevent uncooperative edits after the final content checks.

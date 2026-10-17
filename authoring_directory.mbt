@@ -97,7 +97,7 @@ fn AuthoringDirectory::lock(self : AuthoringDirectory) -> Unit raise {
   let result = directory_lock(self.fd)
   if result == -2 {
     raise InvalidInput(
-      "Directory is locked by another MoonPress operation: " + self.path,
+      "Directory is busy with another MoonPress operation: " + self.path,
     )
   }
   if result != 0 {
