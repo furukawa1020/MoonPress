@@ -35,6 +35,6 @@ fn admin_workflow(input : String, token : String) -> String raise {
     "<section id=\"build\"><h2>5. Create production files</h2>" +
     admin_production_form(token) +
     "</section>" +
-    "<section id=\"publish\"><h2>6. Publish and verify</h2><p>Upload only the production output to your host, or commit the saved sources and run your configured GitHub Actions workflow. For GitHub Pages, enable the required Pages setting and check the workflow plus the public URL.</p><p><a href=\"https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md\">GitHub Actions setup guide</a></p><p>Hosting status is not connected to this local editor. A local preview or build is not a deployment receipt.</p></section>",
+    "<section id=\"publish\"><h2>6. Publish and verify</h2><p><a href=\"/publish\">Check publishing readiness and next steps</a>.</p><p>Upload only the production output to your host, or commit the saved sources and run your configured GitHub Actions workflow. For GitHub Pages, enable the required Pages setting and check the workflow plus the public URL.</p><p><a href=\"https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md\">GitHub Actions setup guide</a></p><p>Hosting status is not connected to this local editor. A local preview or build is not a deployment receipt.</p></section>",
   )
 }
