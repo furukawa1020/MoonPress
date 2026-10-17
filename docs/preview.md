@@ -29,3 +29,7 @@ Choose **Build full preview files**, then **Open built preview** in the navigati
 The new tab contains generated site content only, including saved drafts. Editing
 forms and tokens stay on the administration port. Before the first build the
 preview reports unavailable; saving an article alone does not rebuild it.
+
+GET and HEAD are supported on the preview origin. HEAD performs the same output
+verification and returns the representation length without a response body.
+The administration origin still accepts only its existing GET/POST routes.

@@ -28,12 +28,20 @@ priv struct AdminRequest {
 }
 
 ///|
-fn admin_headers(raw : String, host : String) -> AdminRequest raise {
+fn admin_headers(
+  raw : String,
+  host : String,
+  allow_head? : Bool = false,
+) -> AdminRequest raise {
   let lines = raw.split("\r\n").map(s => s.to_owned()).to_array()
   let start = lines[0].split(" ").map(s => s.to_owned()).to_array()
   if start.length() != 3 ||
     start[2] != "HTTP/1.1" ||
-    (start[0] != "GET" && start[0] != "POST") {
+    (
+      start[0] != "GET" &&
+      start[0] != "POST" &&
+      !(allow_head && start[0] == "HEAD")
+    ) {
     raise InvalidInput("Unsupported request line")
   }
   let headers : Map[String, String] = Map([])
@@ -108,7 +116,11 @@ fn admin_headers(raw : String, host : String) -> AdminRequest raise {
 }
 
 ///|
-fn admin_read_request(fd : Int, host : String) -> (AdminRequest, Bytes) raise {
+fn admin_read_request(
+  fd : Int,
+  host : String,
+  allow_head? : Bool = false,
+) -> (AdminRequest, Bytes) raise {
   let buffer = Bytes::make(4096, 0)
   let header = StringBuilder()
   let mut raw = ""
@@ -139,7 +151,7 @@ fn admin_read_request(fd : Int, host : String) -> (AdminRequest, Bytes) raise {
   if raw.is_empty() {
     raise InvalidInput("Headers too large (16 KiB limit)")
   }
-  let request = admin_headers(raw, host)
+  let request = admin_headers(raw, host, allow_head~)
   let body : FixedArray[Byte] = FixedArray::make(request.length, 0)
   let mut offset = 0
   while offset < request.length {

@@ -53,7 +53,12 @@ fn preview_mime(name : String) -> String {
 }
 
 ///|
-fn preview_response(code : Int, mime : String, bytes : Bytes) -> Bytes {
+fn preview_response(
+  code : Int,
+  mime : String,
+  bytes : Bytes,
+  head? : Bool = false,
+) -> Bytes {
   let status = if code == 200 {
     "200 OK"
   } else if code == 404 {
@@ -74,11 +79,15 @@ fn preview_response(code : Int, mime : String, bytes : Bytes) -> Bytes {
     }) +
     "\r\n",
   ) +
-  bytes
+  (if head { b"" } else { bytes })
 }
 
 ///|
-fn preview_file(output : String, target : String) -> Bytes raise {
+fn preview_file(
+  output : String,
+  target : String,
+  head? : Bool = false,
+) -> Bytes raise {
   let name = preview_name(target)
   let lock = lock_output(output, shared=true)
   defer native_unlock_output(lock)
@@ -91,26 +100,34 @@ fn preview_file(output : String, target : String) -> Bytes raise {
       if digest_bytes(bytes) != artifact.digest {
         raise InvalidInput("Preview output changed; rebuild before viewing")
       }
-      return preview_response(200, preview_mime(name), bytes)
+      return preview_response(200, preview_mime(name), bytes, head~)
     }
   }
   preview_response(
-    404, "text/plain; charset=utf-8", b"No generated page at this URL. Build the saved-site preview first.\n",
+    404,
+    "text/plain; charset=utf-8",
+    b"No generated page at this URL. Build the saved-site preview first.\n",
+    head~,
   )
 }
 
 ///|
 fn preview_client(client : Int, host : String, output : String) -> Bytes {
+  let mut head = false
   try {
-    let (request, _) = admin_read_request(client, host)
-    if request.verb != "GET" {
+    let (request, _) = admin_read_request(client, host, allow_head=true)
+    head = request.verb == "HEAD"
+    if request.verb != "GET" && !head {
       raise InvalidInput("Preview is read-only")
     }
-    preview_file(output, request.target)
+    preview_file(output, request.target, head~)
   } catch {
     _ =>
       preview_response(
-        400, "text/plain; charset=utf-8", b"Preview unavailable or request rejected. Build preview files, then reload.\n",
+        400,
+        "text/plain; charset=utf-8",
+        b"Preview unavailable or request rejected. Build preview files, then reload.\n",
+        head~,
       )
   }
 }

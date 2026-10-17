@@ -29,3 +29,32 @@ test "preview response has isolated restrictive policy and binary length" {
   assert_true(text.contains("default-src 'none'"))
   assert_true(text.contains("Cache-Control: no-store"))
 }
+
+///|
+test "preview HEAD preserves length without body and stays preview-only" {
+  let response = decode_text(
+    preview_response(200, "image/png", b"abc", head=true),
+    "HEAD",
+  )
+  assert_true(response.contains("Content-Length: 3\r\n"))
+  assert_true(response.has_suffix("\r\n\r\n"))
+  assert_eq(
+    admin_headers(
+      "HEAD / HTTP/1.1\r\nHost: localhost:8081\r\n\r\n",
+      "localhost:8081",
+      allow_head=true,
+    ).verb,
+    "HEAD",
+  )
+  assert_true(
+    try {
+      admin_headers(
+        "HEAD / HTTP/1.1\r\nHost: localhost:8081\r\n\r\n", "localhost:8081",
+      )
+      |> ignore
+      false
+    } catch {
+      _ => true
+    },
+  )
+}

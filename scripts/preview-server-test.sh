@@ -35,6 +35,13 @@ get() { curl --max-time 8 -sS -o "$tmp/page" -w '%{http_code}' "$origin$1"; }
 post() { local path="$1"; shift; curl --max-time 8 -sS -o "$tmp/page" -w '%{http_code}' -H "Origin: $origin" "$@" "$origin$path"; }
 test "$(get /)" = 200
 cmp "$tmp/page" "$tmp/out/index.html"
+for route in / /missing.html; do
+  expected=200; [[ "$route" = / ]] || expected=404
+  test "$(curl -sS --max-time 8 -X HEAD --ignore-content-length -D "$tmp/head" -o "$tmp/head-body" -w '%{http_code}' "$origin$route")" = "$expected"
+  test ! -s "$tmp/head-body"
+done
+curl -sSI "$origin/" > "$tmp/head"
+grep -Fq "Content-Length: $(wc -c < "$tmp/out/index.html")" "$tmp/head"
 test "$(get /style.css)" = 200
 cmp "$tmp/page" "$tmp/out/style.css"
 test "$(get /a.png)" = 200
