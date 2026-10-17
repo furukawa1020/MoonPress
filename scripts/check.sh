@@ -12,6 +12,7 @@ bash scripts/init-test.sh
 bash scripts/posts-test.sh
 bash scripts/media-test.sh
 bash scripts/media-snapshot-test.sh
+bash scripts/media-preview-api-test.sh
 bash scripts/media-read-guard-test.sh
 bash scripts/media-replace-api-test.sh
 bash scripts/media-replace-cli-test.sh

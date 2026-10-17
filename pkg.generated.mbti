@@ -94,6 +94,8 @@ pub fn query_references(ReferenceGraph, String) -> RouteReferences raise
 
 pub fn read_media(String, String) -> MediaItem raise
 
+pub fn read_media_preview(String, String, expected? : String?) -> MediaPreview raise
+
 pub fn read_post(String, String) -> PostSnapshot raise
 
 pub fn read_site_settings(String) -> SiteSettingsSnapshot raise
@@ -312,6 +314,12 @@ pub(all) struct MediaItem {
   image : Bool
 } derive(ToJson)
 pub fn MediaItem::to_json(Self) -> Json
+
+pub(all) struct MediaPreview {
+  item : MediaItem
+  mime : String
+  content : Bytes
+}
 
 pub(all) struct MediaReferences {
   assets : Array[MediaUsage]

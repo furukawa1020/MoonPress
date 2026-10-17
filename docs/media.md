@@ -94,3 +94,14 @@ and `scope`. Exit 0 means the report was produced, even if `problems` is nonempt
 consumers must inspect diagnostics. Site-level configuration/storage failures
 exit 1 with empty stdout; invalid arguments exit 2. `--include-drafts` is not an
 option because reference inspection always covers drafts and unlisted articles.
+
+## Native raster preview snapshots
+
+`read_media_preview(input, name, expected~)` returns the exact bytes, MIME and
+MediaItem for PNG/JPEG/GIF/WebP. The optional expected SHA-256 refuses stale
+snapshots. The retained no-follow public directory reader rejects symlinks and
+special files and refuses files larger than 8 MiB before allocating the buffer.
+Filename and magic bytes must agree; this is not a full decoder or an image
+sanitizer, and it makes no decoded-pixel-size guarantee. SVG/AVIF/ICO and other
+assets remain supported by the compiler but are outside this preview API.
+No source, generated output or deployment is changed.
