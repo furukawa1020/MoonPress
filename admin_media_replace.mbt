@@ -35,7 +35,8 @@ fn admin_media_replace(
     escape_html(item.source) +
     "</code> (\{item.bytes} bytes). Article URL: <code>" +
     escape_html(item.url) +
-    "</code>. File contents are not displayed or served here.</p>" +
+    "</code>.</p>" +
+    admin_media_thumbnail(item) +
     admin_media_replace_form(token, name, item.digest),
   )
 }

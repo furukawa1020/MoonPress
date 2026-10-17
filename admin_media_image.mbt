@@ -26,3 +26,24 @@ fn admin_image_response(preview : MediaPreview) -> Bytes {
   ) +
   preview.content
 }
+
+///|
+fn admin_media_thumbnail(item : MediaItem) -> String {
+  let name = item.source[7:].to_owned()
+  if raster_preview_mime(name) is None || item.bytes > 8388608 {
+    return "<p>Inline preview unavailable for this format or size. The asset remains available for article links.</p>"
+  }
+  let url = "/media-image?name=" +
+    url_component(name) +
+    "&amp;version=" +
+    item.digest
+  return "<figure><a href=\"" +
+    url +
+    "\" target=\"_blank\" rel=\"noopener noreferrer\"><img src=\"" +
+    url +
+    "\" alt=\"Saved image: " +
+    escape_html(name) +
+    "\" loading=\"lazy\" decoding=\"async\" width=\"240\" height=\"160\" style=\"max-width:100%;object-fit:contain;background:#eef1f6\"></a><figcaption>Saved image preview. If unavailable or changed, reload this page. <a href=\"" +
+    url +
+    "\" target=\"_blank\" rel=\"noopener noreferrer\">Open image</a></figcaption></figure>"
+}

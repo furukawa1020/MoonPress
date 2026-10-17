@@ -43,7 +43,7 @@ fn admin_media(
     "<p>Showing \{end - start} of \{matches.length()} matching media assets (\{report.assets.length()} total). Page \{page} of \{pages}.</p>",
   )
   out.write_string(
-    "<p>Media: \{report.assets.length()}. Copy a Markdown snippet into an article and replace the label with a description. Image classification uses filename extensions; files are not inspected or served here.</p>",
+    "<p>Media: \{report.assets.length()}. Copy a Markdown snippet into an article and replace the label with a description. Image classification uses filename extensions. Inline PNG/JPEG/GIF/WebP previews verify signatures and are limited to 8 MiB.</p>",
   )
   if matches.is_empty() {
     out.write_string(
@@ -64,7 +64,9 @@ fn admin_media(
       escape_html(item.source) +
       "</h2><p>\{item.bytes} bytes · SHA-256 <code>" +
       item.digest +
-      "</code></p><label>Markdown snippet<textarea readonly rows=\"2\" style=\"min-height:4rem\">\n" +
+      "</code></p>" +
+      admin_media_thumbnail(item) +
+      "<label>Markdown snippet<textarea readonly rows=\"2\" style=\"min-height:4rem\">\n" +
       escape_html(media_snippet(item)) +
       "</textarea></label>" +
       "<p><a href=\"/media-replace?name=" +
