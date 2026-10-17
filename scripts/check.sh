@@ -35,6 +35,7 @@ bash scripts/first-site-journey-test.sh
 bash scripts/admin-references-test.sh
 bash scripts/admin-output-references-test.sh
 bash scripts/admin-media-replace-test.sh
+bash scripts/admin-media-image-test.sh
 bash scripts/local-config-test.sh
 bash scripts/settings-snapshot-test.sh
 bash scripts/settings-directory-test.sh

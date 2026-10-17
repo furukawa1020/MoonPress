@@ -78,8 +78,13 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
     } else {
       try {
         let (request, body) = admin_read_request(client, host)
-        let (code, html) = admin_dispatch(input, request, body, token)
-        admin_response(code, admin_preview_navigation(html, preview_port))
+        if request.target == "/media-image" ||
+          request.target.has_prefix("/media-image?") {
+          admin_media_image(input, request)
+        } else {
+          let (code, html) = admin_dispatch(input, request, body, token)
+          admin_response(code, admin_preview_navigation(html, preview_port))
+        }
       } catch {
         error =>
           admin_response(
