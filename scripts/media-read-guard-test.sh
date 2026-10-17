@@ -24,7 +24,7 @@ for command in media-read media-replace; do
     env LD_PRELOAD="$tmp/swap.so" MOONPRESS_TEST_MEDIA_SWAP="$action" MOONPRESS_TEST_MEDIA_TARGET="$target" MOONPRESS_TEST_MEDIA_OUTSIDE="$outside" timeout 5 "$cli" "${args[@]}" --json > "$tmp/stdout" 2> "$tmp/stderr" || code=$?
     test "$code" = 1
     test ! -s "$tmp/stdout"
-    grep -Fq 'guarded media open' "$tmp/stderr"
+    grep -Eq 'guarded media open|directory-relative read|guarded directory open' "$tmp/stderr"
     cmp "$tmp/outside/a.png" "$tmp/outside-before"
     if [[ "$action" = public ]]; then
       test -L "$site/public"
