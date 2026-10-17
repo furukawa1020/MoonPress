@@ -19,25 +19,40 @@ pub(all) struct SavePostReport {
 pub extend SavePostReport with ToJson::{to_json}
 
 ///|
-fn post_path(input : String, name : String) -> String raise {
+fn require_post_name(name : String) -> Unit raise {
   if !safe_output_name(name) ||
     !name.has_suffix(".md") ||
     name.length() <= 3 ||
     name.has_prefix(".") {
     raise InvalidInput("Post name must be a safe flat .md filename")
   }
-  require_input_kind(input, 2)
-  require_input_kind(input + "/content", 2)
-  let path = input + "/content/" + name
-  require_input_kind(path, 1)
-  path
 }
 
 ///|
 pub fn read_post(input : String, name : String) -> PostSnapshot raise {
-  let path = post_path(input, name)
-  let content = read_text(path)
+  require_post_name(name)
+  let directory = open_authoring_directory(input + "/content")
+  defer directory_close(directory.fd)
+  read_post_at(directory, name)
+}
+
+///|
+fn read_post_at(
+  directory : AuthoringDirectory,
+  name : String,
+) -> PostSnapshot raise {
+  let content = decode_text(directory.read(name), directory.path + "/" + name)
   { source: "content/" + name, content, digest: digest_text(content), }
+}
+
+///|
+fn verify_post_stage(
+  directory : AuthoringDirectory,
+  bytes : Bytes,
+) -> Unit raise {
+  if directory.read(".moonpress-edit") != bytes {
+    raise InvalidInput("Staged post differs from requested content")
+  }
 }
 
 ///|
@@ -62,39 +77,54 @@ pub fn save_post(
   expected : String,
   content : String,
 ) -> SavePostReport raise {
-  let path = post_path(input, name)
-  let lock = lock_output(path, shared=false)
-  defer native_unlock_output(lock)
-  let current = read_post(input, name)
+  require_post_name(name)
+  let directory = open_authoring_directory(input + "/content")
+  defer directory_close(directory.fd)
+  directory.lock()
+  let current = read_post_at(directory, name)
   require_post_version(current, expected)
   let _ = parse_document(
     content,
     name[:name.length() - 3].to_owned(),
     filename=current.source,
   )
+  let stage = input + "/content/.moonpress-edit"
+  if directory.kind(".moonpress-edit") != 0 {
+    raise InvalidInput(
+      "Post staging path already exists; inspect before retrying: " + stage,
+    )
+  }
   let digest = digest_text(content)
   if content == current.content {
     return { source: current.source, digest, changed: false, }
   }
-  let stage = input + "/content/.moonpress-edit"
-  let file = open_file(stage, 2)
+  let bytes = @utf8.encode(content)
+  let file = directory.create(".moonpress-edit")
+  let mut prepared = false
+  let mut verified = false
   try {
-    write_opened_file(
-      file,
-      stage,
-      @utf8.encode(content),
-      mode_source=Some(path),
-    )
-    require_post_version(read_post(input, name), expected)
-    replace_staged_file(stage, path)
+    directory.write(file, ".moonpress-edit", bytes, Some(name))
+    prepared = true
+    verify_post_stage(directory, bytes)
+    verified = true
+    require_post_version(read_post_at(directory, name), expected)
+    directory.publish(".moonpress-edit", name, false)
   } catch {
     error => {
-      let cleanup = try {
-        require_input_kind(stage, 1)
-        @fs.remove_file(stage)
-        ""
-      } catch {
-        cause => "; cleanup incomplete; inspect " + stage + ": \{cause}"
+      let cleanup = if prepared && !verified {
+        "; unverified staging retained: " + stage
+      } else {
+        try {
+          if prepared {
+            verify_post_stage(directory, bytes)
+          } else {
+            directory.require_file(".moonpress-edit")
+          }
+          directory.remove(".moonpress-edit")
+          ""
+        } catch {
+          cause => "; cleanup incomplete; inspect " + stage + ": \{cause}"
+        }
       }
       raise InvalidInput("Post save failed: \{error}" + cleanup)
     }

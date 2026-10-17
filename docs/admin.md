@@ -305,3 +305,14 @@ Replacement changes the saved public asset only. Review the production build
 plan before rebuilding; hosting deployment remains a separate step. Assets are
 not displayed or served on the admin origin. Keep a backup for undo. See
 [replacement guarantees and limits](media-replacement.md).
+
+### Saved article integrity
+
+Existing article reads and saves now retain a no-follow handle to the content
+directory. Saves lock that same directory and verify closed staging bytes before
+checking the target version again and replacing the article. Changed/unreadable
+staging is retained for inspection; an occupied stage also blocks a no-op save.
+If the directory is renamed during an edit, the operation remains in the original
+directory rather than following a replacement path. This does not provide an
+undo journal or protection against arbitrary entry/content changes after final
+checks. Draft/ready and article settings edits use the shared post save service.
