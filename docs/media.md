@@ -17,8 +17,9 @@ collisions or hosting; use `check` for the whole site.
 In local administration, open **Media** and copy a Markdown snippet into an
 article. Replace `Describe image` with meaningful alternative text or `Download`
 with a descriptive link label. URLs encode spaces, Unicode and punctuation.
-Relative snippets assume the compiler's flat output routes. No script, image
-viewer, clipboard automation or arbitrary asset server is used. Inventory is
+Relative snippets assume the compiler's flat output routes. Supported raster images have lazy thumbnails and an Open image link. These show
+saved source bytes without rebuilding the site. No script or clipboard automation
+is used. Inventory is
 read-only; the import operation below writes assets. Browser upload is described below; reference-aware deletion remains separate work.
 
 ## Importing local files
@@ -105,3 +106,17 @@ Filename and magic bytes must agree; this is not a full decoder or an image
 sanitizer, and it makes no decoded-pixel-size guarantee. SVG/AVIF/ICO and other
 assets remain supported by the compiler but are outside this preview API.
 No source, generated output or deployment is changed.
+
+## Images in local administration
+
+Media and Replace media show bounded thumbnails for PNG/JPEG/GIF/WebP up to
+8 MiB. The image URL includes the saved SHA-256: stale URLs refuse instead of
+silently displaying replacement bytes. Reload the Media/Replace page after
+changes to get a new URL. Unsupported formats/sizes retain their snippets and
+replacement controls. Invalid or undecodable image data may show a broken-image
+placeholder; signature checks are not full decoding.
+
+The image route is a read-only, same-origin GET with strict name/version fields,
+Host/Origin checks, no-store/nosniff headers and sandboxed content policy. Source
+images are not served on the generated-site preview origin. Viewing them does
+not rebuild, publish, or imply they appear in the current generated output.

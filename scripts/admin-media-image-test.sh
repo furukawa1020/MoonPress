@@ -35,6 +35,11 @@ post() { local path="$1"; shift; curl --max-time 8 -sS -o "$tmp/page" -w '%{http
 version="$(sha256sum "$asset" | cut -d ' ' -f1)"
 route="/media-image?name=%E6%9C%88%26a.png&version=$version"
 cp -a "$tmp/site" "$tmp/before"
+test "$(get /media)" = 200
+grep -Fq "src=\"/media-image?name=%E6%9C%88%26a.png&amp;version=$version\"" "$tmp/page"
+grep -Fq 'loading="lazy"' "$tmp/page"
+test "$(get '/media-replace?name=%E6%9C%88%26a.png')" = 200
+grep -Fq "src=\"/media-image?name=%E6%9C%88%26a.png&amp;version=$version\"" "$tmp/page"
 test "$(get "$route")" = 200
 cmp "$asset" "$tmp/page"
 curl -sS -D "$tmp/headers" -o /dev/null "$origin$route"
