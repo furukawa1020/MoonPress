@@ -45,3 +45,87 @@ test "media removal inspection filesystem probe" {
   )
   assert_eq(read_bytes(input + "/public/月.png"), b"changed")
 }
+
+///|
+test "reviewed media removal filesystem probe" {
+  guard @env.get_env_var("MOONPRESS_REMOVAL_PROBE") is Some(root) else {
+    return
+  }
+  let input = root + "/site"
+  let output = root + "/out"
+  init_site(input) |> ignore
+  @fs.create_dir(input + "/public")
+  write_bytes(input + "/public/a.png", b"image")
+  compile_site(input, output) |> ignore
+  let manifest = read_bytes(output + "/.moonpress.json")
+  let first = inspect_media_removal(input, "a.png")
+  assert_true(
+    try {
+      remove_media(input, "a.png", first.review_id, acknowledge_unscanned=false)
+      |> ignore
+      false
+    } catch {
+      _ => true
+    },
+  )
+  write_text(
+    input + "/content/private.md",
+    "---\n{\"draft\":true}\n---\n# Private\n\n![image](a.png)\n",
+  )
+  let blocked = inspect_media_removal(input, "a.png")
+  for id in ["bad", first.review_id, blocked.review_id] {
+    assert_true(
+      try {
+        remove_media(input, "a.png", id, acknowledge_unscanned=true) |> ignore
+        false
+      } catch {
+        _ => true
+      },
+    )
+  }
+  assert_eq(read_bytes(input + "/public/a.png"), b"image")
+  write_text(input + "/content/private.md", "# No image\n")
+  let unreferenced = inspect_media_removal(input, "a.png")
+  write_bytes(input + "/public/a.png", b"new")
+  assert_true(
+    try {
+      remove_media(
+        input,
+        "a.png",
+        unreferenced.review_id,
+        acknowledge_unscanned=true,
+      )
+      |> ignore
+      false
+    } catch {
+      _ => true
+    },
+  )
+  let fresh = inspect_media_removal(input, "a.png")
+  let removed = remove_media(
+    input,
+    "a.png",
+    fresh.review_id,
+    acknowledge_unscanned=true,
+  )
+  assert_eq(removed.item.digest, digest_bytes(b"new"))
+  assert_eq(path_kind(input + "/public/a.png"), 0)
+  assert_eq(read_bytes(output + "/a.png"), b"image")
+  assert_eq(read_bytes(output + "/.moonpress.json"), manifest)
+  assert_true(
+    try {
+      remove_media(input, "a.png", fresh.review_id, acknowledge_unscanned=true)
+      |> ignore
+      false
+    } catch {
+      _ => true
+    },
+  )
+  compile_site(input, output) |> ignore
+  assert_eq(path_kind(output + "/a.png"), 0)
+  compile_site(input, root + "/clean") |> ignore
+  assert_eq(
+    read_bytes(output + "/.moonpress.json"),
+    read_bytes(root + "/clean/.moonpress.json"),
+  )
+}
