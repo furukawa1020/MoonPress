@@ -41,6 +41,18 @@ test ! -e "$tmp/bad.zip"
 fail 2 export "$tmp/site" "$tmp/out" "$id"
 fail 2 export "$tmp/site" "$tmp/out" "$id" "$tmp/new.zip" --include-drafts
 fail 2 export "$tmp/site" "$tmp/out" "$id" "$tmp/new.zip" --json --json
+mkdir "$tmp/aliases"
+ln -s "$tmp" "$tmp/aliases/parent"
+alias_site="$tmp/aliases/parent/site"
+alias_id="$("$cli" review "$alias_site" "$tmp/out" --json | jq -r '.report.review_id')"
+"$cli" export "$alias_site" "$tmp/out" "$alias_id" "$tmp/alias.zip" >/dev/null
+cmp "$tmp/site.zip" "$tmp/alias.zip"
+fail 1 export "$alias_site" "$tmp/out" "$alias_id" "$tmp/site/public/alias.zip"
+test ! -e "$tmp/site/public/alias.zip"
+ln -s "$tmp/site" "$tmp/site-link"
+fail 1 export "$tmp/site-link/" "$tmp/out" "$alias_id" "$tmp/root-link.zip"
+test ! -e "$tmp/root-link.zip"
+diff -r "$tmp/source-before" "$tmp/site"
 printf '# Changed\n' > "$tmp/site/content/index.md"
 fail 1 export "$tmp/site" "$tmp/out" "$id" "$tmp/stale.zip"
 fail 1 export "$tmp/site" "$tmp/out" "$(review)" "$tmp/stale.zip"
