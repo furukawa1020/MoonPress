@@ -57,6 +57,16 @@ pub fn export_site_to_file(
   if directory.kind(name) != 0 {
     raise InvalidInput("Export destination already exists: " + archive)
   }
+  require_input_kind(root, 2)
+  let current_project = input_directory_open(@utf8.encode(root) + b"\x00")
+  if current_project < 0 {
+    raise io_failure("source directory recheck", root)
+  }
+  defer directory_close(current_project)
+  if directory_same(project, current_project) != 1 ||
+    directory_within(directory.fd, current_project) != 0 {
+    raise InvalidInput("Source directory changed; review export again")
+  }
   let file = directory.create(name)
   directory.write(file, name, snapshot.content, None) catch {
     error => {
