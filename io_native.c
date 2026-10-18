@@ -138,3 +138,28 @@ MOONBIT_FFI_EXPORT int moonpress_dir_same(int a, int b) {
   if (fstat(a, &left) != 0 || fstat(b, &right) != 0) return -1;
   return left.st_dev == right.st_dev && left.st_ino == right.st_ino;
 }
+
+/* Compare retained directory identities while walking ancestors. */
+MOONBIT_FFI_EXPORT int moonpress_dir_within(int directory, int root) {
+  struct stat target;
+  if (fstat(root, &target) != 0) return -1;
+  int current = dup(directory);
+  if (current < 0) return -1;
+  for (int depth = 0; depth < 1024; depth++) {
+    struct stat here, above;
+    if (fstat(current, &here) != 0) { close(current); return -1; }
+    if (here.st_dev == target.st_dev && here.st_ino == target.st_ino) {
+      close(current); return 1;
+    }
+    int parent = openat(current, "..", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+    if (parent < 0) { close(current); return -1; }
+    if (fstat(parent, &above) != 0) { close(parent); close(current); return -1; }
+    close(current);
+    if (here.st_dev == above.st_dev && here.st_ino == above.st_ino) {
+      close(parent); return 0;
+    }
+    current = parent;
+  }
+  close(current);
+  return -1;
+}

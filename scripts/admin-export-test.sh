@@ -49,5 +49,12 @@ diff -r "$tmp/before" "$tmp/site"
 printf '# Changed\n' > "$tmp/site/content/index.md"
 test "$(post)" = 400
 grep -Fq 'Review production' "$tmp/body"
+"$cli" build "$tmp/site" "$tmp/site/.moonpress-build" >/dev/null
+id="$("$cli" review "$tmp/site" "$tmp/site/.moonpress-build" --json | jq -r '.report.review_id')"
+printf 'manual edit' >> "$tmp/site/.moonpress-build/index.html"
+cp -a "$tmp/site" "$tmp/edited"
+test "$(post)" = 400
+grep -Fq 'Edited export file' "$tmp/body"
+diff -r "$tmp/edited" "$tmp/site"
 test "$(find "$tmp/site" -name '*.zip' | wc -l)" = 0
 echo 'Admin export passed: protected POST, binary ZIP parity/headers, deterministic no-write reads and stale review refusal.'
