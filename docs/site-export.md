@@ -41,3 +41,9 @@ symlinks and directories are preserved. A caught write failure attempts to remov
 only the new partial file; cleanup failures report the path for inspection.
 Creation is exclusive, but writing is not crash-atomic. Do not consume the ZIP
 until the command succeeds. No server upload or implicit build occurs.
+
+The local admin also serves `POST /export-production` with exactly the current
+form token and `review_id`, through the existing same-origin form parser. It
+returns a fixed `moonpress-site.zip` attachment, `no-store`, restrictive CSP and
+an `X-MoonPress-SHA256` header. No archive is saved on the server. A stale review
+returns an HTML error with links to recheck readiness and review production.
