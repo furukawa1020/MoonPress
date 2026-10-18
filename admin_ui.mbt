@@ -136,6 +136,16 @@ fn admin_route(
     if request.target == "/workflow" {
       return (200, admin_workflow(input, token))
     }
+    if request.target.has_prefix("/media-remove?") {
+      let fields = admin_form(request.target[14:].to_owned())
+      if fields.length() != 1 {
+        raise InvalidInput("Invalid media removal query")
+      }
+      return (
+        200,
+        admin_media_removal(input, admin_field(fields, "name"), token),
+      )
+    }
     if request.target.has_prefix("/media-replace?") {
       let fields = admin_form(request.target[15:].to_owned())
       if fields.length() != 1 {
@@ -184,6 +194,9 @@ fn admin_route(
   let fields = admin_form(body)
   if admin_field(fields, "token") != token {
     raise InvalidInput("Form token rejected; reload the page")
+  }
+  if request.target == "/remove-media" {
+    return admin_remove_media(input, fields)
   }
   if request.target == "/site-settings" {
     return admin_site_settings_save(input, token, fields)

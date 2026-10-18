@@ -71,7 +71,9 @@ fn admin_media(
       "</textarea></label>" +
       "<p><a href=\"/media-replace?name=" +
       url_component(item.source[7:].to_owned()) +
-      "\">Replace this media at the same URL</a></p>" +
+      "\">Replace this media at the same URL</a> · <a href=\"/media-remove?name=" +
+      url_component(item.source[7:].to_owned()) +
+      "\">Review removal</a></p>" +
       admin_media_posts(asset.posts) +
       "</section>",
     )

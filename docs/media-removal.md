@@ -39,3 +39,12 @@ uses. Both reports always include draft references (`include_drafts: true`);
 there is no draft-exclusion or force flag. A blocked inspection is a successful
 report; an attempted blocked/stale removal fails with exit 1. Argument errors
 use exit 2. Failures have empty stdout and diagnostics on stderr.
+
+## Browser confirmation
+
+In **Media**, choose **Review removal** beside an asset. This GET validates the
+saved site without mutation and lists blocking references, including drafts.
+An unblocked plan offers a required acknowledgement checkbox and **Remove this
+media permanently**. The POST checks origin, token, exact fields and the reviewed
+state again. A stale plan links to a fresh inspection instead of silently using
+new state. Success links to the separate production review/build workflow.
