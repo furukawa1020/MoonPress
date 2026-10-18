@@ -75,3 +75,8 @@ Source path identity follows the compiler's existing policy: ancestor aliases
 are accepted, but the final source root must be a real directory. This is a
 read-only identity lookup for source-tree exclusion. Destination/output handles
 still reject symlink ancestors. Review IDs continue to bind exact path spelling.
+
+Before archive creation, the writer reopens the source identity after taking the
+retained destination lock and rejects observed identity/ancestry changes. A
+retargeted source ancestor is therefore refused before mutation. This is an
+observed-state recheck, not a transaction against arbitrary external writers.

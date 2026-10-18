@@ -11,6 +11,7 @@ bash scripts/site-export-test.sh
 bash scripts/export-cli-test.sh
 bash scripts/admin-export-test.sh
 bash scripts/export-failure-test.sh
+bash scripts/export-alias-race-test.sh
 bash scripts/package-native-test.sh
 bash scripts/cli-help-test.sh
 bash scripts/init-test.sh
