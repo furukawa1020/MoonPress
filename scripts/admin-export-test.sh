@@ -31,7 +31,7 @@ post() { curl --max-time 10 -sS -D "$tmp/headers" -o "$tmp/body" -w '%{http_code
 cp -a "$tmp/site" "$tmp/before"
 test "$(post)" = 200
 cp "$tmp/body" "$tmp/site.zip"
-for header in 'Content-Type: application/zip' 'Content-Disposition: attachment; filename="moonpress-site.zip"' 'Cache-Control: no-store' 'X-Content-Type-Options: nosniff' "default-src 'none'; sandbox"; do grep -Fq "$header" "$tmp/headers"; done
+for header in 'Content-Type: application/zip' 'Content-Disposition: attachment; filename="moonpress-site.zip"' 'Cache-Control: no-store' 'X-Content-Type-Options: nosniff' "default-src 'none'; sandbox allow-downloads;"; do grep -Fq "$header" "$tmp/headers"; done
 grep -Fq "X-MoonPress-SHA256: $(sha256sum "$tmp/site.zip" | cut -d ' ' -f1)" "$tmp/headers"
 unzip -q "$tmp/site.zip" -d "$tmp/unpacked"
 cp -a "$tmp/site/.moonpress-build" "$tmp/expected"

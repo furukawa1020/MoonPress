@@ -25,7 +25,7 @@ fn admin_export(
   @utf8.encode(
     "HTTP/1.1 200 OK\r\nContent-Type: application/zip\r\nContent-Disposition: attachment; filename=\"moonpress-site.zip\"\r\nContent-Length: \{snapshot.content.length()}\r\nX-MoonPress-SHA256: " +
     snapshot.report.digest +
-    "\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nCross-Origin-Resource-Policy: same-origin\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; sandbox; frame-ancestors 'none'; base-uri 'none'\r\n\r\n",
+    "\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nCross-Origin-Resource-Policy: same-origin\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; sandbox allow-downloads; frame-ancestors 'none'; base-uri 'none'\r\n\r\n",
   ) +
   snapshot.content
 }

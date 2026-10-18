@@ -64,3 +64,9 @@ If a process is killed or cleanup fails, inspect any reported partial archive
 and remove it yourself before retrying with a new filename. Successful ZIP
 creation does not replace the host's deployment/removal procedure. Review and
 build again after changing saved sources; unsaved editor text is never included.
+
+The ZIP attachment's CSP uses `sandbox allow-downloads`: download navigation is
+permitted while scripts/forms remain disabled. See the
+[MDN sandbox policy reference](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/sandbox).
+HTTP regression asserts this exact policy. Cross-browser download/visual testing
+remains a release gate; HTTP tests alone do not establish browser usability.
