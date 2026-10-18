@@ -25,3 +25,17 @@ observed-state checks do not eliminate every subsequent race. Unlink failure
 preserves the file; success has no undo journal or power-loss durability claim.
 Generated files stay unchanged until an explicit build; already hosted copies
 remain online until your host applies removal.
+
+## CLI
+
+```sh
+moonpress media-removal-plan site image.png --json
+moonpress media-remove site image.png REVIEW_ID confirm-unscanned-removal --json
+```
+
+Use the returned review ID and identical site path spelling. The required final
+argument acknowledges permanent removal and your manual check of unscanned
+uses. Both reports always include draft references (`include_drafts: true`);
+there is no draft-exclusion or force flag. A blocked inspection is a successful
+report; an attempted blocked/stale removal fails with exit 1. Argument errors
+use exit 2. Failures have empty stdout and diagnostics on stderr.

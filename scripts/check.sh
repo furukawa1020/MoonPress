@@ -19,6 +19,7 @@ bash scripts/posts-test.sh
 bash scripts/media-test.sh
 bash scripts/media-removal-plan-test.sh
 bash scripts/media-remove-test.sh
+bash scripts/media-removal-cli-test.sh
 bash scripts/media-snapshot-test.sh
 bash scripts/media-preview-api-test.sh
 bash scripts/media-preview-guard-test.sh
