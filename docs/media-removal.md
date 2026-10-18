@@ -12,3 +12,16 @@ external consumers are outside this graph: zero known references is not proof
 that deletion is universally safe. Review these uses yourself and keep a backup.
 Removal is permanent and has no undo. Generated output and hosting are updated
 only by a separate reviewed build and deployment/removal procedure.
+
+`remove_media(site, name, review_id, acknowledge_unscanned=true)` requires an
+explicit acknowledgement of the limitations and permanent deletion. It retains
+and locks public/, recomputes the same plan, refuses known references or a stale
+ID, rechecks directory identity and target bytes, then unlinks only that asset.
+No force option bypasses references; replay after removal fails.
+
+The public-directory lock coordinates media writers. It is not a transaction
+across content/layout/settings editors or hostile external writers. The final
+observed-state checks do not eliminate every subsequent race. Unlink failure
+preserves the file; success has no undo journal or power-loss durability claim.
+Generated files stay unchanged until an explicit build; already hosted copies
+remain online until your host applies removal.

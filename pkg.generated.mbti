@@ -112,6 +112,8 @@ pub fn rebuild_reason(Artifact?, Array[Dependency]) -> String?
 
 pub fn recover_output(String) -> RecoveryReport raise
 
+pub fn remove_media(String, String, String, acknowledge_unscanned~ : Bool) -> RemoveMediaReport raise
+
 pub fn render_collection(String, Array[Page]) -> String
 
 pub fn render_inline(String) -> String
@@ -504,6 +506,12 @@ pub(all) struct ReleaseReadiness {
   base_url : String?
 } derive(ToJson)
 pub fn ReleaseReadiness::to_json(Self) -> Json
+
+pub(all) struct RemoveMediaReport {
+  item : MediaItem
+  review_id : String
+} derive(ToJson)
+pub fn RemoveMediaReport::to_json(Self) -> Json
 
 pub(all) struct ReplaceMediaReport {
   item : MediaItem
