@@ -30,6 +30,7 @@ post() { local path="$1"; shift; curl --max-time 8 -sS -o "$tmp/page" -w '%{http
 cp -a "$tmp/site" "$tmp/before"
 test "$(get /publish)" = 200
 grep -Fq 'Build needed before publishing' "$tmp/page"
+! grep -Fq 'action="/export-production"' "$tmp/page"
 grep -Fq 'No public base_url' "$tmp/page"
 diff -r "$tmp/site" "$tmp/before"
 "$cli" new "$tmp/site" private 'Private' >/dev/null
@@ -38,11 +39,15 @@ cp -a "$tmp/site" "$tmp/built"
 test "$(get /publish)" = 200
 grep -Fq 'Production files match saved ready sources' "$tmp/page"
 grep -Fq 'excluded drafts: 1' "$tmp/page"
+grep -Fq 'action="/export-production"' "$tmp/page"
+review_id="$("$cli" review "$tmp/site" "$tmp/site/.moonpress-build" --json | jq -r '.report.review_id')"
+grep -Fq "name=\"review_id\" value=\"$review_id\"" "$tmp/page"
 grep -Fq 'not deployment confirmation' "$tmp/page"
 diff -r "$tmp/site" "$tmp/built"
 printf '\nChanged text\n' >> "$tmp/site/content/index.md"
 test "$(get /publish)" = 200
 grep -Fq 'Build needed before publishing' "$tmp/page"
+! grep -Fq 'action="/export-production"' "$tmp/page"
 "$cli" build "$tmp/site" "$tmp/site/.moonpress-build" >/dev/null
 printf 'manual' >> "$tmp/site/.moonpress-build/index.html"
 cp -a "$tmp/site" "$tmp/manual"

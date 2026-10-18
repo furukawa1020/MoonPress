@@ -41,3 +41,12 @@ The publish script targets GitHub.com and the MoonPress demonstration site.
 It is infrastructure for this repository, not yet a general `moonpress deploy`
 CLI command. The installed toolchain is guarded by an exact version check;
 future upstream releases require an explicit toolchain update.
+
+## Manual ZIP handoff
+
+For a host-managed upload, build normal production output and use the admin
+Publish page's **Download production ZIP**, or the native `export` command.
+See [ZIP export](site-export.md). Extract the archive unless your host accepts
+ZIP uploads, preserve filenames (including `.nojekyll`), synchronize deletions,
+and verify the actual public URLs. A successful download does not establish
+that hosting is configured or that a deployment succeeded.

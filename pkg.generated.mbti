@@ -480,6 +480,7 @@ pub(all) struct ReferenceSummary {
 pub fn ReferenceSummary::to_json(Self) -> Json
 
 pub(all) struct ReleaseReadiness {
+  review_id : String
   output : String
   current : Bool
   ready_posts : Int

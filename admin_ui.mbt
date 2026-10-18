@@ -131,7 +131,7 @@ fn admin_route(
       return (200, admin_site_settings(input, token))
     }
     if request.target == "/publish" {
-      return admin_publish(input)
+      return admin_publish(input, token)
     }
     if request.target == "/workflow" {
       return (200, admin_workflow(input, token))
