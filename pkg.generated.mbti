@@ -34,6 +34,8 @@ pub fn digest_text(String) -> String
 
 pub fn duplicate_post(String, String, String, String, String) -> NewPostReport raise
 
+pub fn encode_site_zip(Array[ZipEntry]) -> Bytes raise
+
 pub fn escape_html(String) -> String
 
 pub fn filter_media_references(Array[MediaUsage], String, String) -> Array[MediaUsage] raise
@@ -556,6 +558,11 @@ pub(all) struct SiteSettingsSnapshot {
   digest : String?
 } derive(ToJson)
 pub fn SiteSettingsSnapshot::to_json(Self) -> Json
+
+pub(all) struct ZipEntry {
+  name : String
+  content : Bytes
+}
 
 // Type aliases
 
