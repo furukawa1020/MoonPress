@@ -40,6 +40,8 @@ pub fn escape_html(String) -> String
 
 pub fn export_site(String, String, String) -> SiteExport raise
 
+pub fn export_site_to_file(String, String, String, String) -> SiteExportReport raise
+
 pub fn filter_media_references(Array[MediaUsage], String, String) -> Array[MediaUsage] raise
 
 pub fn filter_posts(Array[PostSummary], String, String) -> Array[PostSummary] raise

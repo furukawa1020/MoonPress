@@ -24,3 +24,20 @@ Output reads are bounded before allocation: 4 MiB manifest, 64 MiB complete ZIP.
 This is not a total compiler memory limit: source validation has its own costs.
 The lock coordinates MoonPress operations, not hostile external writers, and a
 review ID is neither a reservation nor authentication.
+
+## CLI handoff
+
+After a normal build, request a **fresh** review (the pre-build ID is stale):
+
+```sh
+moonpress review site dist --json
+moonpress export site dist REVIEW_ID release.zip --json
+```
+
+Use the returned `report.review_id` and identical site/output path spellings.
+The archive parent must already exist; `.zip` destinations must be new, visible
+files outside the managed output, including directory aliases. Existing files,
+symlinks and directories are preserved. A caught write failure attempts to remove
+only the new partial file; cleanup failures report the path for inspection.
+Creation is exclusive, but writing is not crash-atomic. Do not consume the ZIP
+until the command succeeds. No server upload or implicit build occurs.
