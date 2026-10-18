@@ -282,3 +282,9 @@ Verified production files can be handed off as a deterministic ZIP through
 fresh review ID. Drafts and internal build state are excluded; current output
 and every file digest are revalidated. See [ZIP export](docs/site-export.md)
 for limits and hosting handoff instructions.
+
+Media also supports reviewed permanent removal through **Media → Review removal**
+and the native `media-removal-plan` / `media-remove` commands. Known references,
+including drafts and selected templates, block removal; stale reviews refuse.
+CSS and external uses require manual checking and explicit acknowledgement.
+There is no undo or implicit rebuild/deployment. See [media removal](docs/media-removal.md).

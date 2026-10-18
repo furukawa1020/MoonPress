@@ -48,3 +48,13 @@ An unblocked plan offers a required acknowledgement checkbox and **Remove this
 media permanently**. The POST checks origin, token, exact fields and the reviewed
 state again. A stale plan links to a fresh inspection instead of silently using
 new state. Success links to the separate production review/build workflow.
+
+## Covered failure and handoff behavior
+
+Tests exercise unlink failure with unchanged bytes and zero descriptor growth,
+symlink/FIFO/directory refusal, directory replacement before inspection/locking,
+and replacement at the unlink boundary without touching the substituted tree.
+The HTTP first-site journey removes an article's image reference, confirms media
+removal, observes old preview/production copies, then explicitly rebuilds both
+and checks the new ZIP against a clean build. These are HTTP integration checks,
+not a browser visual/accessibility or public-hosting verification.
