@@ -24,6 +24,8 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
+  value == "media-removal-plan" ||
+  value == "media-remove" ||
   value == "export" ||
   value == "settings-read" ||
   value == "settings-save" ||
@@ -61,6 +63,10 @@ fn is_command(value : String) -> Bool {
 ///|
 fn usage(command : String) -> String {
   match command {
+    "media-removal-plan" =>
+      "Usage: moonpress media-removal-plan <site-directory> <asset-name> [--json]"
+    "media-remove" =>
+      "Usage: moonpress media-remove <site-directory> <asset-name> <review-id> confirm-unscanned-removal [--json]"
     "export" =>
       "Usage: moonpress export <site-directory> <output-directory> <review-id> <new-archive.zip> [--json]"
     "settings-read" =>
@@ -114,13 +120,17 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <export|settings-read|settings-save|media-read|media-replace|reference-summary|references|backlinks|review|build-reviewed|routes|plan|diff|impact|deps|audit|preview|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <media-removal-plan|media-remove|export|settings-read|settings-save|media-read|media-replace|reference-summary|references|backlinks|review|build-reviewed|routes|plan|diff|impact|deps|audit|preview|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
   }
 }
 
 ///|
 fn help_text(command : String) -> String {
   let description = match command {
+    "media-removal-plan" =>
+      "Inspect permanent removal of one asset, including references from drafts and selected templates.\nKnown references block deletion. CSS/unsupported HTML/external consumers are not fully scanned.\nNo files written. A review ID is not authentication or a reservation."
+    "media-remove" =>
+      "Permanently remove an asset only if its reviewed plan is current and has no known references.\nRequired confirm-unscanned-removal acknowledges no undo and manual inspection of CSS, unsupported HTML and external uses.\nNo force bypass, implicit build or deployment. Use identical site path spelling."
     "export" =>
       "Write a ZIP of verified current production files using a fresh review ID.\nThe destination must not exist and must be outside the source site tree and managed output.\nExcludes drafts and build state. No build or hosting deployment is performed."
     "settings-read" =>
@@ -181,7 +191,7 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  export   Save verified production files as a new ZIP.\n  settings-read  Inspect raw site settings and version.\n  settings-save  Save site settings with version protection.\n  media-read  Inspect one media asset and its version.\n  media-replace  Replace existing media with version protection.\n  reference-summary  Count authored references for every output.\n  references  Inspect authored local reference edges.\n  backlinks   Inspect references to/from an output filename.\n  review   Inspect a build plan and its review ID.\n  build-reviewed  Build only the reviewed plan.\n  routes   Inspect compiled output routes and their sources.\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  preview  View built files on an isolated read-only loopback server.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  media-removal-plan  Inspect asset removal and known references.\n  media-remove  Permanently remove a reviewed unreferenced asset.\n  export   Save verified production files as a new ZIP.\n  settings-read  Inspect raw site settings and version.\n  settings-save  Save site settings with version protection.\n  media-read  Inspect one media asset and its version.\n  media-replace  Replace existing media with version protection.\n  reference-summary  Count authored references for every output.\n  references  Inspect authored local reference edges.\n  backlinks   Inspect references to/from an output filename.\n  review   Inspect a build plan and its review ID.\n  build-reviewed  Build only the reviewed plan.\n  routes   Inspect compiled output routes and their sources.\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  preview  View built files on an isolated read-only loopback server.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
   if command == "reference-summary" ||
     command == "references" ||
@@ -203,7 +213,9 @@ fn help_text(command : String) -> String {
   if command == "admin" || command == "preview" {
     return description + "\n\n" + usage(command)
   }
-  if command == "export" ||
+  if command == "media-removal-plan" ||
+    command == "media-remove" ||
+    command == "export" ||
     command == "settings-read" ||
     command == "settings-save" ||
     command == "media-read" ||
@@ -268,7 +280,8 @@ fn main {
   let command = args[1]
   let required = if command == "duplicate" {
     7
-  } else if command == "export" ||
+  } else if command == "media-remove" ||
+    command == "export" ||
     command == "save" ||
     command == "status" ||
     command == "media-replace" {
@@ -303,6 +316,8 @@ fn main {
           args[index].has_prefix("--") &&
           !((
             command == "backlinks" ||
+            command == "media-removal-plan" ||
+            command == "media-remove" ||
             command == "media-read" ||
             command == "media-replace"
           ) &&
@@ -318,6 +333,8 @@ fn main {
   for index = required; index < args.length(); index = index + 1 {
     match args[index] {
       "--include-drafts" if !include_drafts &&
+        command != "media-removal-plan" &&
+        command != "media-remove" &&
         command != "export" &&
         command != "settings-read" &&
         command != "settings-save" &&
@@ -349,6 +366,11 @@ fn main {
     args[5] != "ready" {
     valid = false
   }
+  if command == "media-remove" &&
+    args.length() >= 6 &&
+    args[5] != "confirm-unscanned-removal" {
+    valid = false
+  }
   let mut port = 0
   if (command == "admin" || command == "preview") && args.length() >= 4 {
     if args[3].is_empty() ||
@@ -370,7 +392,39 @@ fn main {
     return
   }
   try {
-    if command == "export" {
+    if command == "media-removal-plan" {
+      let report = @lib.inspect_media_removal(args[2], args[3])
+      if json {
+        print_report(command, true, report.to_json())
+      } else {
+        println("Asset: " + report.item.source.to_json().stringify())
+        println("SHA-256: " + report.item.digest)
+        println(
+          "Blocked: \{report.blocked}; known references: \{report.references.length()}",
+        )
+        for edge in report.references {
+          println(edge.to_json().stringify())
+        }
+        println("Review ID: " + report.review_id)
+        println(report.scope)
+      }
+    } else if command == "media-remove" {
+      let report = @lib.remove_media(
+        args[2],
+        args[3],
+        args[4],
+        acknowledge_unscanned=true,
+      )
+      if json {
+        print_report(command, true, report.to_json())
+      } else {
+        println("Removed: " + report.item.source.to_json().stringify())
+        println("Previous SHA-256: " + report.item.digest)
+        println(
+          "No undo. Generated files and hosting are unchanged; review and build separately.",
+        )
+      }
+    } else if command == "export" {
       let report = @lib.export_site_to_file(args[2], args[3], args[4], args[5])
       if json {
         print_report(command, false, report.to_json())
