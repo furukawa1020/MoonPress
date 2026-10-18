@@ -78,7 +78,9 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
     } else {
       try {
         let (request, body) = admin_read_request(client, host)
-        if request.target == "/media-image" ||
+        if request.target == "/export-production" {
+          admin_export(input, request, body, token)
+        } else if request.target == "/media-image" ||
           request.target.has_prefix("/media-image?") {
           admin_media_image(input, request)
         } else {
@@ -93,7 +95,7 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
               "Request rejected",
               "<p>" +
               escape_html(error.to_string()) +
-              "</p><p><a href=\"/\">Return to posts</a></p>",
+              "</p><p><a href=\"/publish\">Check publication readiness</a> · <a href=\"/workflow#review\">Review production</a> · <a href=\"/\">Return to posts</a></p>",
             ),
           )
       }
