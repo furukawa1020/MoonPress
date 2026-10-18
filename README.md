@@ -276,3 +276,9 @@ or in the final directory cleanup window after its removal, still needs a fresh
 output directory. This does not provide whole-site atomic visibility or power-loss
 durability. See [publication and recovery](docs/publication.md) for exact limits,
 report fields and exit statuses.
+
+Verified production files can be handed off as a deterministic ZIP through
+**Publish → Download production ZIP**, or the native `export` command with a
+fresh review ID. Drafts and internal build state are excluded; current output
+and every file digest are revalidated. See [ZIP export](docs/site-export.md)
+for limits and hosting handoff instructions.

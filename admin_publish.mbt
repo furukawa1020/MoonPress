@@ -23,14 +23,17 @@ fn admin_publish_report(report : ReleaseReadiness) -> String {
 }
 
 ///|
-fn admin_publish(input : String) -> (Int, String) {
-  (
-    200,
-    admin_page(
-      "Publish your site",
-      admin_publish_report(inspect_release_readiness(input)),
-    ),
-  ) catch {
+fn admin_publish(input : String, token : String) -> (Int, String) {
+  try {
+    let report = inspect_release_readiness(input)
+    (
+      200,
+      admin_page(
+        "Publish your site",
+        admin_publish_report(report) + admin_export_form(report, token),
+      ),
+    )
+  } catch {
     error =>
       (
         400,
@@ -42,4 +45,16 @@ fn admin_publish(input : String) -> (Int, String) {
         ),
       )
   }
+}
+
+///|
+fn admin_export_form(report : ReleaseReadiness, token : String) -> String {
+  if !report.current {
+    return ""
+  }
+  "<h2>Download production ZIP</h2><p>Includes the verified generated HTML, CSS, public assets and .nojekyll. Excludes drafts, source files and .moonpress.json. Maximum 64 MiB and 10000 files. The download rechecks this review; if saved sources or output change, check readiness again.</p><form method=\"post\" action=\"/export-production\"><input type=\"hidden\" name=\"token\" value=\"" +
+  escape_html(token) +
+  "\"><input type=\"hidden\" name=\"review_id\" value=\"" +
+  escape_html(report.review_id) +
+  "\"><button type=\"submit\">Download production ZIP</button></form><p>Extract the ZIP before uploading its files unless your host explicitly accepts ZIP archives. Follow your host's removal process for deleted pages. Downloading does not deploy or verify your public website.</p>"
 }

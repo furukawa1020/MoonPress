@@ -1,5 +1,6 @@
 ///|
 pub(all) struct ReleaseReadiness {
+  review_id : String
   output : String
   current : Bool
   ready_posts : Int
@@ -25,6 +26,7 @@ pub fn inspect_release_readiness(input : String) -> ReleaseReadiness raise {
   let drafts = inventory.posts.filter(post => post.draft).length()
   let summary = review.plan.summary
   {
+    review_id: review.review_id,
     output,
     current: review.previous_manifest_digest is Some(_) &&
     !review.manifest_changed &&
