@@ -95,4 +95,31 @@ diff -r "$tmp/site" "$tmp/before-readiness"
 diff -r "$tmp/clean" "$tmp/site/.moonpress-build"
 rm "$tmp/clean/.moonpress.json"
 diff -r "$tmp/clean" "$tmp/downloaded"
-echo 'First-site journey passed: browser forms create/edit/upload/check, isolated linked preview, draft exclusion, ready transition, stale review refusal and current deterministic production output and reviewed ZIP handoff.'
+test "$(get '/media-remove?name=moon.png')" = 200
+grep -Fq 'Removal blocked' "$tmp/page"
+! grep -Fq 'action="/remove-media"' "$tmp/page"
+test "$(get '/edit?name=first.md')" = 200
+version="$(sed -n 's/.*name="version" value="\([a-f0-9]*\)".*/\1/p' "$tmp/page" | head -n 1)"
+printf '# First article\n\nImage removed from this article.\n\n[Home](index.html)\n' > "$tmp/body"
+test "$(post /fields --data-urlencode "token=$token" --data-urlencode name=first.md --data-urlencode "version=$version" --data-urlencode 'title=First article' --data-urlencode description=Welcome --data-urlencode date=2026-01-01 --data-urlencode tags=news --data-urlencode "body@$tmp/body")" = 200
+test "$(get '/media-remove?name=moon.png')" = 200
+removal_review="$(sed -n 's/.*name="review_id" value="\([a-f0-9]*\)".*/\1/p' "$tmp/page" | head -n 1)"
+test "$(post /remove-media --data-urlencode "token=$token" --data-urlencode name=moon.png --data-urlencode "review_id=$removal_review" --data-urlencode ack=confirm-unscanned-removal)" = 200
+test ! -e "$tmp/site/public/moon.png"
+test -f "$tmp/site/.moonpress-build/moon.png"
+test "$(view /moon.png)" = 200
+test "$(get /publish)" = 200
+grep -Fq 'Build needed' "$tmp/page"
+plan
+test "$(build)" = 200
+test ! -e "$tmp/site/.moonpress-build/moon.png"
+test "$(post /build-preview --data-urlencode "token=$token")" = 200
+test "$(view /moon.png)" = 404
+"$cli" build "$tmp/site" "$tmp/after-removal" >/dev/null
+diff -r "$tmp/after-removal" "$tmp/site/.moonpress-build"
+test "$(get /publish)" = 200
+download "$tmp/removed-download"
+test ! -e "$tmp/removed-download/moon.png"
+rm "$tmp/after-removal/.moonpress.json"
+diff -r "$tmp/after-removal" "$tmp/removed-download"
+echo 'First-site journey passed: browser forms create/edit/upload/check, isolated linked preview, draft exclusion, ready transition, stale review refusal and current deterministic production output and reviewed ZIP handoff and guarded media removal/rebuild.'

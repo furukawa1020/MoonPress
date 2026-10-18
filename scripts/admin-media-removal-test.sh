@@ -57,4 +57,9 @@ grep -Fq 'Media removed' "$tmp/page"
 test ! -e "$tmp/site/public/a.png"
 diff -r "$tmp/output" "$tmp/out"
 test "$(post)" = 400
+printf image > "$tmp/site/public/月&<b>.png"
+test "$(get '/media-remove?name=%E6%9C%88%26%3Cb%3E.png')" = 200
+grep -Fq '月&amp;&lt;b&gt;.png' "$tmp/page"
+! grep -Fq '<b>.png' "$tmp/page"
+test -f "$tmp/site/public/月&<b>.png"
 echo 'Admin media removal passed: read-only inspection, strict protected confirmation, stale/blocked refusal and separate output lifecycle.'

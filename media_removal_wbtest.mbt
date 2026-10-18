@@ -129,3 +129,29 @@ test "reviewed media removal filesystem probe" {
     read_bytes(root + "/clean/.moonpress.json"),
   )
 }
+
+///|
+test "media removal failure descriptor lifecycle probe" {
+  guard @env.get_env_var("MOONPRESS_REMOVAL_FAILURE_PROBE") is Some(root) else {
+    return
+  }
+  let input = root + "/site"
+  let plan = inspect_media_removal(input, "a.png")
+  let before = @fs.read_dir("/proc/self/fd").length()
+  for i = 0; i < 16; i = i + 1 {
+    assert_true(
+      try {
+        remove_media(input, "a.png", plan.review_id, acknowledge_unscanned=true)
+        |> ignore
+        false
+      } catch {
+        _ => true
+      },
+    )
+    assert_eq(
+      digest_bytes(read_bytes(input + "/public/a.png")),
+      plan.item.digest,
+    )
+  }
+  assert_eq(@fs.read_dir("/proc/self/fd").length(), before)
+}

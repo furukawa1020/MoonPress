@@ -7,6 +7,8 @@ CommonMark compatibility or superiority to other site generators.
 
 ## Available and covered
 
+- Reviewed permanent media removal with draft/template reference checks, exact snapshot IDs, explicit acknowledgement, retained-directory unlink and CLI/browser confirmation. CSS/unsupported/external uses require manual review; no undo or implicit rebuild/deployment. See [media removal](media-removal.md).
+
 - Verified current production ZIP export through native API, CLI and protected browser download, with review revalidation, deterministic UTF-8 archives, draft/internal-state exclusion and bounded output reads. Independent extraction, first-site handoff and destination failure/replacement regressions are covered; hosting remains separate. See [ZIP export](site-export.md).
 
 - Versioned raster thumbnails in media/replacement screens using bounded no-follow source reads; no build needed to view saved PNG/JPEG/GIF/WebP images.
