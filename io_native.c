@@ -132,3 +132,9 @@ MOONBIT_FFI_EXPORT int moonpress_dir_publish(int directory, moonbit_bytes_t stag
 MOONBIT_FFI_EXPORT int moonpress_dir_remove(int directory, moonbit_bytes_t name) {
   return unlinkat(directory, (const char *)name, 0);
 }
+
+MOONBIT_FFI_EXPORT int moonpress_dir_same(int a, int b) {
+  struct stat left, right;
+  if (fstat(a, &left) != 0 || fstat(b, &right) != 0) return -1;
+  return left.st_dev == right.st_dev && left.st_ino == right.st_ino;
+}
