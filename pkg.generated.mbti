@@ -38,6 +38,8 @@ pub fn encode_site_zip(Array[ZipEntry]) -> Bytes raise
 
 pub fn escape_html(String) -> String
 
+pub fn export_site(String, String, String) -> SiteExport raise
+
 pub fn filter_media_references(Array[MediaUsage], String, String) -> Array[MediaUsage] raise
 
 pub fn filter_posts(Array[PostSummary], String, String) -> Array[PostSummary] raise
@@ -551,6 +553,19 @@ pub(all) struct SaveSiteSettingsReport {
   created : Bool
 } derive(ToJson)
 pub fn SaveSiteSettingsReport::to_json(Self) -> Json
+
+pub(all) struct SiteExport {
+  report : SiteExportReport
+  content : Bytes
+}
+
+pub(all) struct SiteExportReport {
+  review_id : String
+  files : Array[String]
+  bytes : Int
+  digest : String
+} derive(ToJson)
+pub fn SiteExportReport::to_json(Self) -> Json
 
 pub(all) struct SiteSettingsSnapshot {
   exists : Bool
