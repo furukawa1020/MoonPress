@@ -17,6 +17,7 @@ bash scripts/cli-help-test.sh
 bash scripts/init-test.sh
 bash scripts/posts-test.sh
 bash scripts/media-test.sh
+bash scripts/media-removal-plan-test.sh
 bash scripts/media-snapshot-test.sh
 bash scripts/media-preview-api-test.sh
 bash scripts/media-preview-guard-test.sh

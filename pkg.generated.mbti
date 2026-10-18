@@ -62,6 +62,8 @@ pub fn inspect_impact(String, Array[String], include_drafts? : Bool) -> Dependen
 
 pub fn inspect_media_references(String) -> MediaReferences raise
 
+pub fn inspect_media_removal(String, String) -> MediaRemovalPlan raise
+
 pub fn inspect_posts(String) -> PostInventory raise
 
 pub fn inspect_reference_summary(String, include_drafts? : Bool) -> ReferenceSummary raise
@@ -333,6 +335,16 @@ pub(all) struct MediaReferences {
   scope : String
 } derive(ToJson)
 pub fn MediaReferences::to_json(Self) -> Json
+
+pub(all) struct MediaRemovalPlan {
+  schema : Int
+  review_id : String
+  item : MediaItem
+  references : Array[ReferenceEdge]
+  blocked : Bool
+  scope : String
+} derive(ToJson)
+pub fn MediaRemovalPlan::to_json(Self) -> Json
 
 pub(all) struct MediaReport {
   items : Array[MediaItem]
