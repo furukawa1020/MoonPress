@@ -6,6 +6,7 @@ moon check --target native
 moon test --target native
 moon build --target native --release
 bash scripts/smoke.sh
+bash scripts/site-zip-test.sh
 bash scripts/package-native-test.sh
 bash scripts/cli-help-test.sh
 bash scripts/init-test.sh
