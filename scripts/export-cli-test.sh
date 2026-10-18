@@ -5,6 +5,7 @@ cli="$PWD/_build/native/release/build/cmd/main/main.exe"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 "$cli" init "$tmp/site" >/dev/null
+mkdir "$tmp/site/public"
 "$cli" build "$tmp/site" "$tmp/out" >/dev/null
 review() { "$cli" review "$tmp/site" "$tmp/out" --json | jq -r '.report.review_id'; }
 id="$(review)"
@@ -29,6 +30,12 @@ test -L "$tmp/link.zip"
 fail 1 export "$tmp/site" "$tmp/out" "$id" "$tmp/out/a.zip"
 fail 1 export "$tmp/site" "$tmp/out" "$id" "$tmp/out/../out/a.zip"
 test ! -e "$tmp/out/a.zip"
+for destination in "$tmp/site/release.zip" "$tmp/site/public/release.zip" "$tmp/site/public/../public/release.zip" "$tmp/site/content/release.zip"; do
+  fail 1 export "$tmp/site" "$tmp/out" "$id" "$destination"
+  test ! -e "$destination"
+done
+diff -r "$tmp/source-before" "$tmp/site"
+test "$(review)" = "$id"
 fail 1 export "$tmp/site" "$tmp/out" bad "$tmp/bad.zip"
 test ! -e "$tmp/bad.zip"
 fail 2 export "$tmp/site" "$tmp/out" "$id"

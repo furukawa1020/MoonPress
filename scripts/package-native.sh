@@ -50,7 +50,9 @@ Choose Open built preview (port 8081). Mark finished articles ready, inspect
 production changes, build the reviewed plan, then open Publish for next steps.
 Port 8080 and 8081 must both be free. Ctrl-C stops both local listeners.
 
-Upload only production files from my-site/.moonpress-build through your host.
+Use Publish > Download production ZIP to save verified public files. Extract
+the ZIP and upload its contents through your host, including .nojekyll.
+The ZIP excludes drafts and .moonpress.json; it does not deploy the site.
 Keep .moonpress.json locally; never publish .moonpress-preview (contains drafts).
 Check the actual public URL separately. Local build success is not deployment.
 

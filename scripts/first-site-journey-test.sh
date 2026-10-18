@@ -48,6 +48,16 @@ grep -Fq 'src="moon.png"' "$tmp/view"
 test "$(view /moon.png)" = 200
 cmp "$tmp/image.png" "$tmp/view"
 test "$(view /style.css)" = 200
+download() {
+  local destination="$1"
+  local download_review
+  download_review="$(sed -n 's/.*name="review_id" value="\([a-f0-9]*\)".*/\1/p' "$tmp/page" | head -n 1)"
+  test "${#download_review}" = 64
+  test "$(post /export-production --data-urlencode "token=$token" --data-urlencode "review_id=$download_review")" = 200
+  unzip -q "$tmp/page" -d "$destination"
+  test ! -e "$destination/.moonpress.json"
+  test -e "$destination/.nojekyll"
+}
 plan() {
   test "$(post /plan-production --data-urlencode "token=$token")" = 200
   review="$(sed -n 's/.*name="review_id" value="\([a-f0-9]*\)".*/\1/p' "$tmp/page" | head -n 1)"
@@ -59,6 +69,8 @@ test "$(build)" = 200
 test ! -e "$tmp/site/.moonpress-build/first.html"
 test "$(get /publish)" = 200
 grep -Fq 'excluded drafts: 1' "$tmp/page"
+download "$tmp/draft-excluded"
+test ! -e "$tmp/draft-excluded/first.html"
 test "$(get '/edit?name=first.md')" = 200
 version="$(sed -n 's/.*name="version" value="\([a-f0-9]*\)".*/\1/p' "$tmp/page" | head -n 1)"
 test "$(post /status --data-urlencode "token=$token" --data-urlencode name=first.md --data-urlencode "version=$version" --data-urlencode state=ready)" = 200
@@ -75,7 +87,12 @@ test "$(get /publish)" = 200
 grep -Fq 'Production files match saved ready sources' "$tmp/page"
 grep -Fq 'excluded drafts: 0' "$tmp/page"
 grep -Fq 'not deployment confirmation' "$tmp/page"
+download "$tmp/downloaded"
+cmp "$tmp/image.png" "$tmp/downloaded/moon.png"
+test -s "$tmp/downloaded/first.html"
 diff -r "$tmp/site" "$tmp/before-readiness"
 "$cli" build "$tmp/site" "$tmp/clean" >/dev/null
 diff -r "$tmp/clean" "$tmp/site/.moonpress-build"
-echo 'First-site journey passed: browser forms create/edit/upload/check, isolated linked preview, draft exclusion, ready transition, stale review refusal and current deterministic production output.'
+rm "$tmp/clean/.moonpress.json"
+diff -r "$tmp/clean" "$tmp/downloaded"
+echo 'First-site journey passed: browser forms create/edit/upload/check, isolated linked preview, draft exclusion, ready transition, stale review refusal and current deterministic production output and reviewed ZIP handoff.'

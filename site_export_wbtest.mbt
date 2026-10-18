@@ -66,3 +66,26 @@ test "verified production export filesystem probe" {
   )
   assert_eq(read_text(output + "/index.html"), "edited")
 }
+
+///|
+test "export failure descriptor lifecycle probe" {
+  guard @env.get_env_var("MOONPRESS_EXPORT_FAILURE_PROBE") is Some(root) else {
+    return
+  }
+  let input = root + "/site"
+  let output = root + "/out"
+  let id = review_build_plan(input, output).review_id
+  let before = @fs.read_dir("/proc/self/fd").length()
+  for i = 0; i < 16; i = i + 1 {
+    assert_true(
+      try {
+        export_site_to_file(input, output, id, root + "/failed.zip") |> ignore
+        false
+      } catch {
+        _ => true
+      },
+    )
+    assert_eq(path_kind(root + "/failed.zip"), 0)
+  }
+  assert_eq(@fs.read_dir("/proc/self/fd").length(), before)
+}

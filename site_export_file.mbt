@@ -2,6 +2,9 @@
 extern "C" fn directory_same(a : Int, b : Int) -> Int = "moonpress_dir_same"
 
 ///|
+extern "C" fn directory_within(directory : Int, root : Int) -> Int = "moonpress_dir_within"
+
+///|
 pub fn export_site_to_file(
   input : String,
   output : String,
@@ -30,6 +33,11 @@ pub fn export_site_to_file(
   defer directory_close(source.fd)
   if directory_same(directory.fd, source.fd) != 0 {
     raise InvalidInput("Save the ZIP outside the managed production output")
+  }
+  let project = open_authoring_directory(input)
+  defer directory_close(project.fd)
+  if directory_within(directory.fd, project.fd) != 0 {
+    raise InvalidInput("Save the ZIP outside the source site directory")
   }
   let snapshot = export_site(input, output, expected_review)
   directory.lock()

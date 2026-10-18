@@ -36,7 +36,9 @@ moonpress export site dist REVIEW_ID release.zip --json
 
 Use the returned `report.review_id` and identical site/output path spellings.
 The archive parent must already exist; `.zip` destinations must be new, visible
-files outside the managed output, including directory aliases. Existing files,
+files outside both the source site tree and managed output, including directory
+aliases. This prevents an archive from becoming an unsupported public asset or
+otherwise changing compiler inputs. Existing files,
 symlinks and directories are preserved. A caught write failure attempts to remove
 only the new partial file; cleanup failures report the path for inspection.
 Creation is exclusive, but writing is not crash-atomic. Do not consume the ZIP
@@ -47,3 +49,18 @@ form token and `review_id`, through the existing same-origin form parser. It
 returns a fixed `moonpress-site.zip` attachment, `no-store`, restrictive CSP and
 an `X-MoonPress-SHA256` header. No archive is saved on the server. A stale review
 returns an HTML error with links to recheck readiness and review production.
+
+## Verification and recovery
+
+The regression suite independently extracts archives with Info-ZIP, compares
+public files with a clean build and follows the browser create/edit/preview/
+ready/build/download journey. It exercises stale reviews, manual edits,
+unknown/missing files, symlinks, FIFOs and oversize manifest/output refusal.
+Injected write, flush and close failures verify partial-file cleanup and stream
+closure. Directory replacement at open/lock/create/cleanup boundaries verifies
+that writes remain attached to the retained destination, not a substituted path.
+
+If a process is killed or cleanup fails, inspect any reported partial archive
+and remove it yourself before retrying with a new filename. Successful ZIP
+creation does not replace the host's deployment/removal procedure. Review and
+build again after changing saved sources; unsaved editor text is never included.

@@ -122,7 +122,7 @@ fn usage(command : String) -> String {
 fn help_text(command : String) -> String {
   let description = match command {
     "export" =>
-      "Write a ZIP of verified current production files using a fresh review ID.\nThe destination must not exist and must be outside the managed output.\nExcludes drafts and build state. No build or hosting deployment is performed."
+      "Write a ZIP of verified current production files using a fresh review ID.\nThe destination must not exist and must be outside the source site tree and managed output.\nExcludes drafts and build state. No build or hosting deployment is performed."
     "settings-read" =>
       "Read raw site.json with its byte version, including malformed JSON for repair.\nAbsent settings return exists=false, digest=null and suggested empty-object text. No files written."
     "settings-save" =>
