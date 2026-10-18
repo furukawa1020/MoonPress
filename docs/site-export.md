@@ -70,3 +70,8 @@ permitted while scripts/forms remain disabled. See the
 [MDN sandbox policy reference](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/sandbox).
 HTTP regression asserts this exact policy. Cross-browser download/visual testing
 remains a release gate; HTTP tests alone do not establish browser usability.
+
+Source path identity follows the compiler's existing policy: ancestor aliases
+are accepted, but the final source root must be a real directory. This is a
+read-only identity lookup for source-tree exclusion. Destination/output handles
+still reject symlink ancestors. Review IDs continue to bind exact path spelling.

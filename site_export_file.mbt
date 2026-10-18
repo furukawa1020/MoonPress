@@ -5,6 +5,10 @@ extern "C" fn directory_same(a : Int, b : Int) -> Int = "moonpress_dir_same"
 extern "C" fn directory_within(directory : Int, root : Int) -> Int = "moonpress_dir_within"
 
 ///|
+#borrow(path)
+extern "C" fn input_directory_open(path : Bytes) -> Int = "moonpress_input_directory_open"
+
+///|
 pub fn export_site_to_file(
   input : String,
   output : String,
@@ -34,9 +38,18 @@ pub fn export_site_to_file(
   if directory_same(directory.fd, source.fd) != 0 {
     raise InvalidInput("Save the ZIP outside the managed production output")
   }
-  let project = open_authoring_directory(input)
-  defer directory_close(project.fd)
-  if directory_within(directory.fd, project.fd) != 0 {
+  if input.is_empty() || input.contains("\u0000") {
+    raise InvalidInput("Invalid source site directory")
+  }
+  let trimmed = input.trim_end(chars="/").to_owned()
+  let root = if trimmed.is_empty() { "/" } else { trimmed }
+  require_input_kind(root, 2)
+  let project = input_directory_open(@utf8.encode(root) + b"\x00")
+  if project < 0 {
+    raise io_failure("source directory identity", root)
+  }
+  defer directory_close(project)
+  if directory_within(directory.fd, project) != 0 {
     raise InvalidInput("Save the ZIP outside the source site directory")
   }
   let snapshot = export_site(input, output, expected_review)

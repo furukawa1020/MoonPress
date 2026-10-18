@@ -163,3 +163,8 @@ MOONBIT_FFI_EXPORT int moonpress_dir_within(int directory, int root) {
   close(current);
   return -1;
 }
+
+/* Read-only compiler input identity: ancestors may be aliases, final root may not. */
+MOONBIT_FFI_EXPORT int moonpress_input_directory_open(moonbit_bytes_t path) {
+  return open((const char *)path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+}
