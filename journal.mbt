@@ -1,4 +1,16 @@
 ///|
+fn read_publication_text(path : String, max_bytes : Int) -> String raise {
+  decode_text(read_opened_file(open_file(path, 0), path, max_bytes~), path)
+}
+
+///|
+fn require_publication_manifest_size(text : String) -> Unit raise {
+  if @utf8.encode(text).length() > 4 * 1024 * 1024 {
+    raise InvalidInput("Publication manifest exceeds 4 MiB")
+  }
+}
+
+///|
 priv struct PublicationJournal {
   schema : Int
   previous : String?
@@ -30,6 +42,9 @@ fn journal_names(names : Array[String]) -> Map[String, Bool] raise {
 
 ///|
 fn parse_journal(text : String) -> PublicationJournal raise {
+  if @utf8.encode(text).length() > 64 * 1024 * 1024 {
+    raise InvalidInput("Publication journal exceeds 64 MiB")
+  }
   let value = @json.parse(text)
   let _ = strict_json_object(
     value,
@@ -39,6 +54,10 @@ fn parse_journal(text : String) -> PublicationJournal raise {
   let journal : PublicationJournal = @json.from_json(value)
   if journal.schema != 1 {
     raise InvalidInput("Unsupported MoonPress publication journal version")
+  }
+  require_publication_manifest_size(journal.next)
+  if journal.previous is Some(text) {
+    require_publication_manifest_size(text)
   }
   let previous = match journal.previous {
     None => Map([])

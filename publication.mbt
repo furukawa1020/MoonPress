@@ -78,7 +78,12 @@ fn rollback_publication(
 fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
   let fresh = path_kind(output) == 0
   let marker = output + "/.moonpress.json"
-  let previous = if fresh { None } else { Some(read_text(marker)) }
+  let previous = if fresh {
+    None
+  } else {
+    Some(read_publication_text(marker, 4 * 1024 * 1024))
+  }
+  require_publication_manifest_size(plan.manifest)
   let manifest_changed = previous != Some(plan.manifest)
   if plan.report.written == 0 && plan.removed.is_empty() && !manifest_changed {
     return
