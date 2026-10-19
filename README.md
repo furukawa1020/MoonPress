@@ -261,6 +261,7 @@ reports (available on the CI Ubuntu runner); the MoonPress executable does not.
 ## Recover interrupted publication
 
 ```sh
+moonpress recovery-plan dist --json # inspect only; no files changed
 moonpress recover dist
 moonpress recover dist --json
 ```
@@ -270,6 +271,10 @@ anything. Before commit it restores the previous output; after a verified commit
 it completes staging cleanup. It needs no source directory and uses the same
 exclusive lock as build. Edited files, unknown entries and missing required
 backups are refused. A completed recovery can be followed by a normal build.
+`recovery-plan` runs the same validation without mutation. Its action and counts
+predict recovery of that snapshot; `recover` revalidates current state. The local
+admin `/recovery` page inspects the fixed production output and provides terminal
+guidance. It does not execute recovery or check hosting.
 
 Recovery requires a complete journal. Interruption before that record is ready,
 or in the final directory cleanup window after its removal, still needs a fresh

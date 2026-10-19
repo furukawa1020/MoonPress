@@ -146,3 +146,29 @@ Builds reject an oversized next manifest before creating staging or changing
 output. These are state-file limits, not a total output or artifact-size budget.
 Oversized state is refused without cleanup; keep the original directory intact
 and build a separate output after reducing the site if necessary.
+
+## Inspect before recovering
+
+Run `moonpress recovery-plan OUTPUT --json` before `moonpress recover OUTPUT --json`.
+Inspection uses the same full preflight, without changing output or staging files.
+The schema-1 envelope identifies `command: "recovery-plan"`; `report.action` uses
+these existing recovery result names as **prospective** outcomes:
+
+| Action | Meaning during inspection |
+| --- | --- |
+| `rolled_back` | Recovery would restore the prior output state. |
+| `finalized` | Recovery would keep the complete new tree and remove staging. |
+| `clean` | No stage is present; ownership validation passed. |
+| `absent` | Output does not exist; nothing needs recovery. |
+
+`restored` and `removed` count planned public-file operations, excluding staging
+cleanup. Restoring an available backup counts even when its bytes already match.
+This is not a reservation or approval token. An inspection cannot guarantee later
+I/O success; recovery reacquires its lock and revalidates all current state.
+Source edits do not participate in recovery, and a clean result does not say that
+output matches the latest sources. Review and build again after successful recovery.
+
+The administration `/recovery` page inspects only `<site>/.moonpress-build`, with
+no arbitrary output path or mutation endpoint. A blocked Publish page links to it.
+It reports prospective actions and terminal instructions; unknown/edited state
+still fails closed. The interruption and durability limits above are unchanged.

@@ -37,12 +37,28 @@ crash() {
   test "$status" -eq 137
   test ! -s "$tmp/stdout"
 }
+snapshot() {
+  if [[ -d "$tmp/out" ]]; then
+    find "$tmp/out" -printf '%P %y %l %i %m %s %T@\n' | sort
+    find "$tmp/out" -type f -exec sha256sum {} + | sort
+  else
+    printf 'absent\n'
+  fi
+}
 recover() {
+  snapshot > "$tmp/inspect-before"
+  "$cli" recovery-plan "$tmp/out" --json > "$tmp/plan-report" 2> "$tmp/stderr"
+  test ! -s "$tmp/stderr"
+  snapshot > "$tmp/inspect-after"
+  cmp "$tmp/inspect-before" "$tmp/inspect-after"
   "$cli" recover "$tmp/out" --json >"$tmp/report" 2>"$tmp/stderr"
   test ! -s "$tmp/stderr"
   jq -e --arg action "$1" '.schema == 1 and .command == "recover" and
     .include_drafts == false and .report.action == $action' "$tmp/report" >/dev/null
   test ! -e "$tmp/out/.moonpress-stage"
+  jq -S '.report' "$tmp/plan-report" > "$tmp/planned"
+  jq -S '.report' "$tmp/report" > "$tmp/actual"
+  cmp "$tmp/planned" "$tmp/actual"
 }
 for injection in \
   "MOONPRESS_TEST_KILL_BEFORE_RENAME=$tmp/out/a.html" \
@@ -168,6 +184,7 @@ for bad in output backup stage unknown backup-unknown stage-unknown symlink back
     missing-unchanged) rm "$tmp/out/keep.html" ;;
     marker) printf '{}' > "$tmp/out/.moonpress.json" ;;
   esac
+  reject recovery-plan "$tmp/out" --json
   reject recover "$tmp/out" --json
 done
 # No journal means no authority to remove even an empty foreign stage.

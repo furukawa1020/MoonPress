@@ -35,6 +35,7 @@ CommonMark compatibility or superiority to other site generators.
   regressions. Separate build/deployment, no undo journal or power-loss claim.
 - Output filename byte limits, strict manifest/journal field validation and source file-kind checks.
 - Staged preparation, per-file replacement and caught-error rollback; explicit recovery of journaled interruptions.
+- Read-only recovery inspection via API, `recovery-plan`, and the local production admin page; bounded recovery state reads.
 - Cooperative build/explain/plan/recover locking on local Linux filesystems, including new outputs.
 - Native tests and shell-only GitHub Actions workflows.
 
