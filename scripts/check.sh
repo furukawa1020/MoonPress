@@ -124,6 +124,7 @@ bash scripts/publication-test.sh
 bash scripts/journal-test.sh
 bash scripts/recovery-test.sh
 bash scripts/recovery-inspection-test.sh
+bash scripts/recovery-reader-lock-test.sh
 bash scripts/recovery-plan-cli-test.sh
 bash scripts/recovery-limits-test.sh
 bash scripts/admin-recovery-test.sh
