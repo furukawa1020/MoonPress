@@ -14,6 +14,17 @@ fn require_recovery_digest(path : String, expected : String) -> Unit raise {
 
 ///|
 pub fn recover_output(output : String) -> RecoveryReport raise {
+  recovery_operation(output, apply=true)
+}
+
+///|
+// Read-only snapshot; recover_output always revalidates current state.
+pub fn inspect_recovery(output : String) -> RecoveryReport raise {
+  recovery_operation(output, apply=false)
+}
+
+///|
+fn recovery_operation(output : String, apply~ : Bool) -> RecoveryReport raise {
   let output = output.trim_end(chars="/").to_owned()
   if output.is_empty() {
     raise InvalidInput("Root output directory is not allowed")
@@ -146,19 +157,25 @@ pub fn recover_output(output : String) -> RecoveryReport raise {
     for index = affected.length() - 1; index >= 0; index = index - 1 {
       let name = affected[index]
       if backups.contains(name) {
-        replace_staged_file(backup + "/" + name, output + "/" + name)
+        if apply {
+          replace_staged_file(backup + "/" + name, output + "/" + name)
+        }
         restored += 1
       } else if !present.contains(name) && current.contains(name) {
-        @fs.remove_file(output + "/" + name)
+        if apply {
+          @fs.remove_file(output + "/" + name)
+        }
         removed += 1
       }
     }
   }
   let staged = journal.writes.copy()
   staged.push(".moonpress.json")
-  cleanup_stage(stage, staged, affected, backup_kind == 2, true)
-  if !committed && journal.previous is None {
-    @fs.remove_dir(output)
+  if apply {
+    cleanup_stage(stage, staged, affected, backup_kind == 2, true)
+    if !committed && journal.previous is None {
+      @fs.remove_dir(output)
+    }
   }
   {
     action: if committed {
