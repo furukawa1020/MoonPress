@@ -136,3 +136,13 @@ Recovery tests kill actual processes around artifact writes, stale deletion,
 manifest replacement, backup cleanup and recovery itself. They cover prior file
 metadata, repeated recovery, equal manifests, fresh outputs, clean-build parity,
 preflight rejection without mutation and real competing recovery locks.
+
+### State file size limits
+
+Publication and recovery accept ownership manifests up to 4 MiB of UTF-8 bytes
+and publication journals up to 64 MiB. Recovery checks on-disk sizes before
+allocating text buffers, including a clean output without a staging directory.
+Builds reject an oversized next manifest before creating staging or changing
+output. These are state-file limits, not a total output or artifact-size budget.
+Oversized state is refused without cleanup; keep the original directory intact
+and build a separate output after reducing the site if necessary.

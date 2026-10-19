@@ -6,8 +6,14 @@ pub(all) struct RecoveryReport {
 } derive(ToJson)
 
 ///|
-fn require_recovery_digest(path : String, expected : String) -> Unit raise {
-  if path_kind(path) != 1 || digest_bytes(read_bytes(path)) != expected {
+fn require_recovery_digest(
+  path : String,
+  expected : String,
+  max_bytes? : Int = 2147483647,
+) -> Unit raise {
+  if path_kind(path) != 1 ||
+    digest_bytes(read_opened_file(open_file(path, 0), path, max_bytes~)) !=
+    expected {
     raise InvalidInput("Recovery found changed or non-regular file: " + path)
   }
 }
@@ -47,7 +53,7 @@ fn recovery_operation(output : String, apply~ : Bool) -> RecoveryReport raise {
       "Recovery requires a complete regular publication journal",
     )
   }
-  let journal_text = read_text(stage + "/journal")
+  let journal_text = read_publication_text(stage + "/journal", 64 * 1024 * 1024)
   let journal = parse_journal(journal_text)
   let previous = match journal.previous {
     None => Map([])
@@ -99,12 +105,19 @@ fn recovery_operation(output : String, apply~ : Bool) -> RecoveryReport raise {
     } else {
       raise InvalidInput("Unknown recovery staging entry: " + name)
     }
-    require_recovery_digest(stage + "/" + name, digest)
+    let max_bytes = if name == "journal" {
+      64 * 1024 * 1024
+    } else if name == ".moonpress.json" {
+      4 * 1024 * 1024
+    } else {
+      2147483647
+    }
+    require_recovery_digest(stage + "/" + name, digest, max_bytes~)
   }
   let marker = output + "/.moonpress.json"
   let current_manifest = match path_kind(marker) {
     0 => None
-    1 => Some(read_text(marker))
+    1 => Some(read_publication_text(marker, 4 * 1024 * 1024))
     _ => raise InvalidInput("Recovery manifest must be a regular file")
   }
   if current_manifest != journal.previous &&

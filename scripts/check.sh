@@ -125,6 +125,7 @@ bash scripts/journal-test.sh
 bash scripts/recovery-test.sh
 bash scripts/recovery-inspection-test.sh
 bash scripts/recovery-plan-cli-test.sh
+bash scripts/recovery-limits-test.sh
 
 bash scripts/io-cleanup-test.sh
 

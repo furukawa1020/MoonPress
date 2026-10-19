@@ -29,7 +29,7 @@ fn load_previous_state(output : String) -> PreviousOutput raise {
   if path_kind(marker) != 1 {
     raise InvalidInput("Existing output is not managed by MoonPress")
   }
-  let manifest = read_text(marker)
+  let manifest = read_publication_text(marker, 4 * 1024 * 1024)
   let state = parse_manifest(manifest)
   for artifact in state.artifacts {
     result[artifact.name] = artifact
