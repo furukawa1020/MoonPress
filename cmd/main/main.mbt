@@ -57,6 +57,7 @@ fn is_command(value : String) -> Bool {
   value == "build" ||
   value == "check" ||
   value == "explain" ||
+  value == "recovery-plan" ||
   value == "recover"
 }
 
@@ -112,6 +113,8 @@ fn usage(command : String) -> String {
     "new" => "Usage: moonpress new <site-directory> <slug> <title> [--json]"
     "posts" => "Usage: moonpress posts <site-directory> [--json]"
     "init" => "Usage: moonpress init <site-directory> [--json]"
+    "recovery-plan" =>
+      "Usage: moonpress recovery-plan <output-directory> [--json]"
     "recover" => "Usage: moonpress recover <output-directory> [--json]"
     "build" =>
       "Usage: moonpress build <site-directory> <output-directory> [--include-drafts] [--json]"
@@ -120,7 +123,7 @@ fn usage(command : String) -> String {
     "check" =>
       "Usage: moonpress check <site-directory> [--include-drafts] [--json]"
     _ =>
-      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <media-removal-plan|media-remove|export|settings-read|settings-save|media-read|media-replace|reference-summary|references|backlinks|review|build-reviewed|routes|plan|diff|impact|deps|audit|preview|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover> [--help|-h]"
+      "Usage: moonpress <build|explain> <site-directory> <output-directory> [--include-drafts] [--json]\n       moonpress check <site-directory> [--include-drafts] [--json]\n       moonpress init <site-directory> [--json]\n       moonpress recover <output-directory> [--json]\n       moonpress [--help|-h|--version]\n       moonpress <media-removal-plan|media-remove|export|settings-read|settings-save|media-read|media-replace|reference-summary|references|backlinks|review|build-reviewed|routes|plan|diff|impact|deps|audit|preview|admin|media-refs|media|import|init|duplicate|new|posts|read|save|status|build|check|explain|recover|recovery-plan> [--help|-h]"
   }
 }
 
@@ -182,6 +185,8 @@ fn help_text(command : String) -> String {
       "List all Markdown posts, including drafts and unlisted pages.\nRead metadata only; no layout, output or deployment validation is performed.\nNo files are written. Draft status is not a record of deployment."
     "init" =>
       "Create a ready-to-build Markdown/HTML/CSS starter in a new directory.\nThe parent must exist; existing targets are never overwritten.\nNo network access, Git initialization or hosting setup is performed."
+    "recovery-plan" =>
+      "Inspect interrupted publication without changing files.\nActions and counts predict recovery of the current snapshot; recover revalidates.\nReject edited files and incomplete journals. No site input needed."
     "recover" =>
       "Recover interrupted publication using its validated staging journal.\nRestore the previous output before commit; finalize cleanup after commit.\nReject edited files and incomplete journals before any change. No site input needed."
     "build" =>
@@ -191,7 +196,7 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  media-removal-plan  Inspect asset removal and known references.\n  media-remove  Permanently remove a reviewed unreferenced asset.\n  export   Save verified production files as a new ZIP.\n  settings-read  Inspect raw site settings and version.\n  settings-save  Save site settings with version protection.\n  media-read  Inspect one media asset and its version.\n  media-replace  Replace existing media with version protection.\n  reference-summary  Count authored references for every output.\n  references  Inspect authored local reference edges.\n  backlinks   Inspect references to/from an output filename.\n  review   Inspect a build plan and its review ID.\n  build-reviewed  Build only the reviewed plan.\n  routes   Inspect compiled output routes and their sources.\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  preview  View built files on an isolated read-only loopback server.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  recovery-plan  Inspect recovery without changing files.\n  media-removal-plan  Inspect asset removal and known references.\n  media-remove  Permanently remove a reviewed unreferenced asset.\n  export   Save verified production files as a new ZIP.\n  settings-read  Inspect raw site settings and version.\n  settings-save  Save site settings with version protection.\n  media-read  Inspect one media asset and its version.\n  media-replace  Replace existing media with version protection.\n  reference-summary  Count authored references for every output.\n  references  Inspect authored local reference edges.\n  backlinks   Inspect references to/from an output filename.\n  review   Inspect a build plan and its review ID.\n  build-reviewed  Build only the reviewed plan.\n  routes   Inspect compiled output routes and their sources.\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  preview  View built files on an isolated read-only loopback server.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
   if command == "reference-summary" ||
     command == "references" ||
@@ -222,6 +227,7 @@ fn help_text(command : String) -> String {
     command == "media-replace" ||
     command == "diff" ||
     command == "recover" ||
+    command == "recovery-plan" ||
     command == "init" ||
     command == "import" ||
     command == "media-refs" ||
@@ -299,6 +305,7 @@ fn main {
     command == "audit" ||
     command == "check" ||
     command == "recover" ||
+    command == "recovery-plan" ||
     command == "init" ||
     command == "media-refs" ||
     command == "media" ||
@@ -343,6 +350,7 @@ fn main {
         command != "diff" &&
         command != "audit" &&
         command != "recover" &&
+        command != "recovery-plan" &&
         command != "init" &&
         command != "import" &&
         command != "media-refs" &&
@@ -888,11 +896,20 @@ fn main {
           "See the generated README.md for editing, check and build commands.",
         )
       }
-    } else if command == "recover" {
-      let report = @lib.recover_output(args[2])
+    } else if command == "recover" || command == "recovery-plan" {
+      let report = if command == "recovery-plan" {
+        @lib.inspect_recovery(args[2])
+      } else {
+        @lib.recover_output(args[2])
+      }
       if json {
         print_report(command, false, report.to_json())
       } else {
+        if command == "recovery-plan" {
+          println(
+            "Recovery plan only; no files changed. Counts describe prospective operations.",
+          )
+        }
         println(
           "Recovery: \{report.action}, restored: \{report.restored}, removed: \{report.removed}",
         )
