@@ -130,6 +130,9 @@ fn admin_route(
     if request.target == "/site-settings" {
       return (200, admin_site_settings(input, token))
     }
+    if request.target == "/recovery" {
+      return admin_recovery(input)
+    }
     if request.target == "/publish" {
       return admin_publish(input, token)
     }

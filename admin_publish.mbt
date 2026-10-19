@@ -41,7 +41,7 @@ fn admin_publish(input : String, token : String) -> (Int, String) {
           "Publishing preparation blocked",
           "<p class=\"notice\">" +
           escape_html(error.to_string()) +
-          "</p><p>Repair the reported source/output problem, then review and build again. Existing files were not changed.</p><p><a href=\"/\">Edit articles</a> · <a href=\"/site-settings\">Site settings</a> · <a href=\"/workflow#review\">Review production</a> · <a href=\"/publish\">Check again</a></p>",
+          "</p><p>Repair the reported source/output problem, then review and build again. For an interrupted build, <a href=\"/recovery\">inspect production recovery</a>. Existing files were not changed.</p><p><a href=\"/\">Edit articles</a> · <a href=\"/site-settings\">Site settings</a> · <a href=\"/workflow#review\">Review production</a> · <a href=\"/publish\">Check again</a></p>",
         ),
       )
   }
