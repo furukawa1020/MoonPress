@@ -13,7 +13,8 @@ int flock(int fd, int operation) {
   int result = real_flock(fd, operation);
   const char *ready = getenv("MOONPRESS_TEST_LOCK_READY");
   const char *release = getenv("MOONPRESS_TEST_LOCK_RELEASE");
-  if (result == 0 && (operation & LOCK_EX) && ready && release) {
+  if (result == 0 && ((operation & LOCK_EX) ||
+      ((operation & LOCK_SH) && getenv("MOONPRESS_TEST_PAUSE_SHARED"))) && ready && release) {
     int marker = open(ready, O_WRONLY | O_CREAT | O_EXCL, 0600);
     if (marker < 0) _exit(92);
     close(marker);

@@ -151,6 +151,9 @@ and build a separate output after reducing the site if necessary.
 
 Run `moonpress recovery-plan OUTPUT --json` before `moonpress recover OUTPUT --json`.
 Inspection uses the same full preflight, without changing output or staging files.
+It takes a shared output-parent lock, allowing other shared readers on sibling
+outputs while excluding cooperative writers. Actual recovery takes an exclusive
+lock. A busy parent causes immediate refusal instead of waiting.
 The schema-1 envelope identifies `command: "recovery-plan"`; `report.action` uses
 these existing recovery result names as **prospective** outcomes:
 

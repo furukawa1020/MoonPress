@@ -35,7 +35,7 @@ fn recovery_operation(output : String, apply~ : Bool) -> RecoveryReport raise {
   if output.is_empty() {
     raise InvalidInput("Root output directory is not allowed")
   }
-  let lock = lock_output(output, shared=false)
+  let lock = lock_output(output, shared=!apply)
   defer native_unlock_output(lock)
   if path_kind(output) == 0 {
     return { action: "absent", restored: 0, removed: 0, }
