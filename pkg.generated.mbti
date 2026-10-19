@@ -66,6 +66,8 @@ pub fn inspect_media_removal(String, String) -> MediaRemovalPlan raise
 
 pub fn inspect_posts(String) -> PostInventory raise
 
+pub fn inspect_recovery(String) -> RecoveryReport raise
+
 pub fn inspect_reference_summary(String, include_drafts? : Bool) -> ReferenceSummary raise
 
 pub fn inspect_references(String, include_drafts? : Bool) -> ReferenceGraph raise
