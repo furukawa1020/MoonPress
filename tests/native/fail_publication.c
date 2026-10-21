@@ -27,6 +27,8 @@ static void crash_if(const char *key, const char *path) {
  * Production checks target absence with lstat immediately before O_TMPFILE open. */
 static char candidate[4096];
 static char anonymous_paths[256][4096];
+static int anonymous_synced[256];
+static int sync_interrupted;
 int lstat(const char *path, struct stat *st) {
   int (*real_lstat)(const char *, struct stat *) = dlsym(RTLD_NEXT, "lstat");
   if (!real_lstat) _exit(120);
@@ -44,8 +46,24 @@ int open(const char *path, int flags, ...) {
   if (anonymous && getenv("MOONPRESS_TEST_UNSUPPORTED_ANONYMOUS")) { errno = EOPNOTSUPP; return -1; }
   if (anonymous && matches("MOONPRESS_TEST_FAIL_OPEN", candidate)) { errno = ENOSPC; return -1; }
   int fd = real_open(path, flags, mode);
-  if (anonymous && fd >= 0 && fd < 256) snprintf(anonymous_paths[fd], 4096, "%s", candidate);
+  if (anonymous && fd >= 0 && fd < 256) {
+    snprintf(anonymous_paths[fd], 4096, "%s", candidate);
+    anonymous_synced[fd] = 0;
+  }
   return fd;
+}
+int fsync(int fd) {
+  int (*real_sync)(int) = dlsym(RTLD_NEXT, "fsync");
+  if (!real_sync) _exit(124);
+  if (fd >= 0 && fd < 256 && anonymous_paths[fd][0]) {
+    if (matches("MOONPRESS_TEST_FAIL_SYNC", anonymous_paths[fd])) { errno=EIO; return -1; }
+    if (!sync_interrupted && matches("MOONPRESS_TEST_INTERRUPT_SYNC", anonymous_paths[fd])) {
+      sync_interrupted=1; errno=EINTR; return -1;
+    }
+  }
+  int result=real_sync(fd);
+  if (result==0 && fd>=0 && fd<256) anonymous_synced[fd]=1;
+  return result;
 }
 static int stream_matches(const char *key, FILE *stream);
 
@@ -263,6 +281,12 @@ int unlinkat(int directory,const char *name,int flags) {
 int linkat(int source_dir,const char *source,int target_dir,const char *target,int flags) {
   int (*real_link)(int,const char*,int,const char*,int)=dlsym(RTLD_NEXT,"linkat");
   char path[8192]; at_path(target_dir,target,path,sizeof path);
+  if(matches("MOONPRESS_TEST_REQUIRE_SYNC",path)) {
+    int fd=-1;
+    if(sscanf(source,"/proc/self/fd/%d",&fd)!=1 || fd<0 || fd>=256 || !anonymous_synced[fd]) {
+      errno=EIO; return -1;
+    }
+  }
   if(matches("MOONPRESS_TEST_FAIL_INSTALL",path)) { errno=EACCES; return -1; }
   if(matches("MOONPRESS_TEST_FAIL_LINK",path)) { errno=EIO; return -1; }
   if(matches("MOONPRESS_TEST_CREATE_BEFORE_LINK",path)) {
