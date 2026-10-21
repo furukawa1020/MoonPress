@@ -30,6 +30,7 @@ static char anonymous_paths[256][4096];
 static int anonymous_synced[256];
 static int sync_interrupted;
 static int directory_sync_interrupted;
+static int selected_sync_calls;
 int lstat(const char *path, struct stat *st) {
   int (*real_lstat)(const char *, struct stat *) = dlsym(RTLD_NEXT, "lstat");
   if (!real_lstat) _exit(120);
@@ -90,7 +91,27 @@ int fsync(int fd) {
       sync_interrupted=1; errno=EINTR; return -1;
     }
   }
+  char fdname[64], synced_path[4096];
+  snprintf(fdname,sizeof fdname,"/proc/self/fd/%d",fd);
+  ssize_t length=readlink(fdname,synced_path,sizeof synced_path-1);
+  if(length>=0) {
+    synced_path[length]=0;
+    if(matches("MOONPRESS_TEST_FAIL_EXISTING_SYNC",synced_path)) {
+      const char *nth=getenv("MOONPRESS_TEST_FAIL_SYNC_ON_CALL");
+      selected_sync_calls++;
+      if(!nth || selected_sync_calls==atoi(nth)) { errno=EIO; return -1; }
+    }
+  }
   int result=real_sync(fd);
+  if(result==0 && length>=0) {
+    const char *trace=getenv("MOONPRESS_TEST_SYNC_TRACE");
+    if(trace) {
+      FILE *log=fopen(trace,"a");
+      if(!log) _exit(126);
+      fprintf(log,"sync %s\n",synced_path); fclose(log);
+    }
+    crash_if("MOONPRESS_TEST_KILL_AFTER_SYNC",synced_path);
+  }
   if (result==0 && fd>=0 && fd<256) anonymous_synced[fd]=1;
   return result;
 }
@@ -133,6 +154,12 @@ size_t fwrite(const void *data, size_t size, size_t count, FILE *stream) {
 int rename(const char *source, const char *target) {
   int (*real_rename)(const char *, const char *) = dlsym(RTLD_NEXT, "rename");
   if (!real_rename) _exit(93);
+  const char *trace=getenv("MOONPRESS_TEST_SYNC_TRACE");
+  if(trace) {
+    FILE *log=fopen(trace,"a");
+    if(!log) _exit(127);
+    fprintf(log,"rename %s\n",target); fclose(log);
+  }
   crash_if("MOONPRESS_TEST_KILL_BEFORE_RENAME", target);
   if (matches("MOONPRESS_TEST_FAIL_RENAME", target) ||
       (strstr(source, "/backup/") && matches("MOONPRESS_TEST_FAIL_ROLLBACK", target))) {

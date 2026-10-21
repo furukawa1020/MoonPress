@@ -9,7 +9,10 @@ complete copy is placed in `.moonpress-stage/journal` for legacy compatibility.
 Changed artifacts and the next manifest are installed complete-or-absent in the
 new `.moonpress-stage/` directory using anonymous files. Existing files that will
 be changed or deleted are preserved as hard links in `.moonpress-stage/backup/`.
-Backup failures abort before publication. The filesystem must support anonymous
+Backup failures abort before publication. Before the first public rename or
+deletion, MoonPress synchronizes backup file bytes and the old manifest, followed
+by the backup, staging, output and output-parent directories. A failed preparation
+barrier aborts before changing public artifacts. The filesystem must support anonymous
 temporary files and same-filesystem hard links.
 
 A journal is a recovery prerequisite, not permission for `build` to overwrite
@@ -122,8 +125,9 @@ still refused. New builds can be retried after an interrupted initial anonymous
 journal write (output is unchanged), or explicitly recovered after the parent
 journal is installed, including preparation and final cleanup interruptions.
 This requires Linux `O_TMPFILE`, `/proc/self/fd`, same-filesystem hard links and
-cooperative local writers. Output/staging creation, backup links, commit/rollback
-ordering and cleanup are not yet synchronized as a complete durability protocol.
+cooperative local writers. Preparation barriers cover output/staging creation
+and backup links. Commit/rollback ordering and cleanup are not yet synchronized
+as a complete durability protocol.
 File fsync alone does not establish power-loss recovery; no power-loss guarantee
 is made.
 

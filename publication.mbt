@@ -154,6 +154,17 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
     for name in plan.removed {
       backup_file(output, backup, name, backed)
     }
+    // Establish recovery prerequisites before the first public-file mutation.
+    for name in backed {
+      sync_publication_file(backup + "/" + name)
+    }
+    if previous is Some(_) {
+      sync_publication_file(marker)
+    }
+    sync_publication_directory(backup)
+    sync_publication_directory(stage)
+    sync_publication_directory(output)
+    sync_publication_directory(recovery_record_path(output), parent=true)
     publishing = true
     for item in plan.pending {
       if item.content is Some(_) {
