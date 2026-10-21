@@ -41,6 +41,7 @@ int open(const char *path, int flags, ...) {
     va_list args; va_start(args, flags); mode = va_arg(args, int); va_end(args);
   }
   int anonymous = (flags & O_TMPFILE) == O_TMPFILE;
+  if (anonymous && getenv("MOONPRESS_TEST_UNSUPPORTED_ANONYMOUS")) { errno = EOPNOTSUPP; return -1; }
   if (anonymous && matches("MOONPRESS_TEST_FAIL_OPEN", candidate)) { errno = ENOSPC; return -1; }
   int fd = real_open(path, flags, mode);
   if (anonymous && fd >= 0 && fd < 256) snprintf(anonymous_paths[fd], 4096, "%s", candidate);
@@ -261,6 +262,7 @@ int unlinkat(int directory,const char *name,int flags) {
 int linkat(int source_dir,const char *source,int target_dir,const char *target,int flags) {
   int (*real_link)(int,const char*,int,const char*,int)=dlsym(RTLD_NEXT,"linkat");
   char path[8192]; at_path(target_dir,target,path,sizeof path);
+  if(matches("MOONPRESS_TEST_FAIL_INSTALL",path)) { errno=EACCES; return -1; }
   if(matches("MOONPRESS_TEST_FAIL_LINK",path)) { errno=EIO; return -1; }
   if(matches("MOONPRESS_TEST_CREATE_BEFORE_LINK",path)) {
     FILE *other=fopen(path,"wbx");
