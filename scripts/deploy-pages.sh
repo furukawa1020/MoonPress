@@ -3,6 +3,8 @@ set -euo pipefail
 : "${GITHUB_REPOSITORY:?Run inside GitHub Actions}"
 : "${GITHUB_SHA:?Missing source revision}"
 : "${GH_TOKEN:?Missing scoped workflow token}"
+function git() { timeout 90 git "$@"; }
+function gh() { timeout 60 gh "$@"; }
 source_dir="$(realpath "${1:-dist}")"
 test -s "$source_dir/index.html"
 test -f "$source_dir/.nojekyll"
@@ -43,8 +45,7 @@ for attempt in $(seq 1 30); do
   expected="$(git -C "$repository_work" rev-parse HEAD)"
   if [[ "$deployed" == "$expected" && "$state" == built ]]; then
     url="$(jq -r .html_url "$work/pages.json")"
-    curl --fail --silent --show-error --retry 3 "$url" -o "$work/live.html"
-    grep -Eq '<h1( [^>]*)?>MoonPress</h1>' "$work/live.html"
+    timeout 600 bash "$(dirname "$0")/verify-pages.sh" "$work/bundle" "$url"
     echo "Published: $url"
     exit 0
   fi
