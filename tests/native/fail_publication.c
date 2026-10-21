@@ -100,7 +100,8 @@ int fsync(int fd) {
     if(matches("MOONPRESS_TEST_FAIL_EXISTING_SYNC",synced_path)) {
       const char *nth=getenv("MOONPRESS_TEST_FAIL_SYNC_ON_CALL");
       selected_sync_calls++;
-      if(!nth || selected_sync_calls==atoi(nth)) { errno=EIO; return -1; }
+      if(!nth || selected_sync_calls==atoi(nth) ||
+         (getenv("MOONPRESS_TEST_FAIL_SYNC_FROM_CALL") && selected_sync_calls>=atoi(nth))) { errno=EIO; return -1; }
     }
   }
   int result=real_sync(fd);

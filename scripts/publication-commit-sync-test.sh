@@ -48,4 +48,15 @@ test "$status" -eq 1
 test -f "$record"
 "$cli" recover "$tmp/out" >/dev/null
 diff -r "$tmp/old" "$tmp/out"
+# Repeated cleanup barrier failure must not forget the record after stage removal.
+rm -rf "$tmp/out"
+cp -a "$tmp/old" "$tmp/out"
+status=0
+env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_FAIL_EXISTING_SYNC="$tmp/out" MOONPRESS_TEST_FAIL_SYNC_ON_CALL=4 MOONPRESS_TEST_FAIL_SYNC_FROM_CALL=1 "$cli" build "$tmp/site" "$tmp/out" >/dev/null 2>&1 || status=$?
+test "$status" -eq 1
+test -f "$record"
+test ! -e "$tmp/out/.moonpress-stage"
+"$cli" recover "$tmp/out" >/dev/null
+diff -r "$tmp/new" "$tmp/out"
+test ! -e "$record"
 echo 'Commit synchronization passed: pre-commit rollback, uncertain commit retention, cleanup/recovery barriers and process restart.'

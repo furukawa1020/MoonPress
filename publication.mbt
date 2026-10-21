@@ -262,6 +262,8 @@ fn cleanup_stage(
   journal_created : Bool,
 ) -> Unit raise {
   if path_kind(stage) == 0 {
+    // Retry the parent barrier when a previous removal succeeded but sync failed.
+    sync_publication_directory(stage, parent=true)
     return
   }
   for name in names {
