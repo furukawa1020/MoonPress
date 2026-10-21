@@ -131,11 +131,13 @@ grep -Fq 'Post changed since' "$tmp/page"
 cmp "$tmp/after-fields" "$tmp/site/content/first.md"
 # Preview stale unsaved work without refreshing the version or touching files.
 cp -a "$tmp/site" "$tmp/before-preview"
-printf '%s\n' '# Preview heading' '' '**Unsaved** </textarea><script>bad</script>' '[next](guide.html) ![alt](image.png)' > "$tmp/preview-body"
+printf '%s\n' '# Preview heading' '' '**Unsaved** </textarea><script>bad</script>' '[next](guide.html) ![alt](image.png)' '' '| Column |' '| --- |' '| One |' '' 'Between tables' '' '| Other |' '| --- |' '| Two |' > "$tmp/preview-body"
 test "$(post /preview --data-urlencode "token=$token" --data-urlencode name=first.md --data-urlencode "version=$version" --data-urlencode title=Unsaved --data-urlencode description=Summary --data-urlencode date=invalid --data-urlencode tags=Moon --data-urlencode "body@$tmp/preview-body")" = 200
 grep -Fq '<strong>Unsaved</strong>' "$tmp/page"
 grep -Fq '&lt;/textarea&gt;&lt;script&gt;bad&lt;/script&gt;' "$tmp/page"
 grep -Fq 'data-preview-href="guide.html"' "$tmp/page"
+grep -Fq 'aria-label="Markdown preview table 1" tabindex="0"><table>' "$tmp/page"
+grep -Fq 'aria-label="Markdown preview table 2" tabindex="0"><table>' "$tmp/page"
 grep -Fq "name=\"version\" value=\"$version\"" "$tmp/page"
 grep -Fq '**Unsaved**' "$tmp/page"
 if grep -Fq '<script>' "$tmp/page"; then exit 1; fi

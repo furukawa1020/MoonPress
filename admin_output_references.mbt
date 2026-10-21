@@ -19,7 +19,9 @@ fn admin_reference_summary_table(
   out.write_string(
     "<p>Outputs: \{report.routes.length()}; authored edges: \{report.edges}. Page \{page} of \{pages}.</p>" +
     "<p>Incoming/outgoing counts include self references. Other referring outputs counts distinct consumers excluding this output. Zero counts do not prove deletion safety.</p>" +
-    "<table><thead><tr><th scope=\"col\">Output</th><th scope=\"col\">Kind</th><th scope=\"col\">Incoming</th><th scope=\"col\">Outgoing</th><th scope=\"col\">Self</th><th scope=\"col\">Other referring outputs</th></tr></thead><tbody>",
+    "" +
+    admin_table_start("Output references") +
+    "<thead><tr><th scope=\"col\">Output</th><th scope=\"col\">Kind</th><th scope=\"col\">Incoming</th><th scope=\"col\">Outgoing</th><th scope=\"col\">Self</th><th scope=\"col\">Other referring outputs</th></tr></thead><tbody>",
   )
   for i = start; i < end; i = i + 1 {
     let row = report.routes[i]
@@ -33,7 +35,7 @@ fn admin_reference_summary_table(
       "</td><td>\{row.incoming}</td><td>\{row.outgoing}</td><td>\{row.self_references}</td><td>\{row.referring_outputs}</td></tr>",
     )
   }
-  out.write_string("</tbody></table><p>")
+  out.write_string("</tbody></table></div><p>")
   if page > 1 {
     out.write_string(
       "<a href=\"" +

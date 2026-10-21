@@ -42,7 +42,8 @@ fn admin_production_plan_form(token : String) -> String {
 fn admin_production_changes(report : BuildReport) -> String {
   let out = StringBuilder()
   out.write_string(
-    "<table><thead><tr><th>Action</th><th>Path</th><th>Reason</th></tr></thead><tbody>",
+    admin_table_start("Planned output changes") +
+    "<thead><tr><th>Action</th><th>Path</th><th>Reason</th></tr></thead><tbody>",
   )
   for change in report.changes {
     out.write_string(
@@ -55,7 +56,7 @@ fn admin_production_changes(report : BuildReport) -> String {
       "</td></tr>",
     )
   }
-  out.write_string("</tbody></table>")
+  out.write_string("</tbody></table></div>")
   out.to_string()
 }
 

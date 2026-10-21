@@ -23,7 +23,8 @@ fn admin_reference_rows(title : String, edges : Array[ReferenceEdge]) -> String 
     )
   } else {
     out.write_string(
-      "<table><thead><tr><th scope=\"col\">Source</th><th scope=\"col\">Used by output</th><th scope=\"col\">Kind</th><th scope=\"col\">URL</th><th scope=\"col\">Target / fragment</th></tr></thead><tbody>",
+      admin_table_start(title) +
+      "<thead><tr><th scope=\"col\">Source</th><th scope=\"col\">Used by output</th><th scope=\"col\">Kind</th><th scope=\"col\">URL</th><th scope=\"col\">Target / fragment</th></tr></thead><tbody>",
     )
     for edge in edges {
       out.write_string(
@@ -42,7 +43,7 @@ fn admin_reference_rows(title : String, edges : Array[ReferenceEdge]) -> String 
         "</td></tr>",
       )
     }
-    out.write_string("</tbody></table>")
+    out.write_string("</tbody></table></div>")
   }
   out.to_string()
 }
