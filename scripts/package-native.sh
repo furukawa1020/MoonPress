@@ -46,7 +46,7 @@ From this directory:
   ./moonpress init my-site
   ./moonpress admin my-site 8080
 
-Open http://127.0.0.1:8080/workflow and keep the terminal open.
+Open http://127.0.0.1:8080/rooms and keep the terminal open.
 Create/save a draft, upload images from Media, then Build full preview files.
 Choose Open built preview (port 8081). Mark finished articles ready, inspect
 production changes, build the reviewed plan, then open Publish for next steps.
