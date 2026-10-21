@@ -46,7 +46,7 @@ grep -Fq 'scope=all&amp;output=%E6%9C%88%26a.png' "$tmp/page"
 for path in '/media-replace?name=missing.png' '/media-replace?name=..%2Fsecret' '/media-replace?name=x.png&extra=x' '/media-replace?name=x.png&name=y.png'; do
   test "$(get "$path")" = 400
 done
-test "$(get '/月%26a.png')" = 404
+test "$(get '/%E6%9C%88%26a.png')" = 404
 diff -r "$tmp/before" "$tmp/site"
 "$cli" build "$tmp/site" "$tmp/out" >/dev/null
 cp -a "$tmp/out" "$tmp/output-before"
