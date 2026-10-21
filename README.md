@@ -276,10 +276,15 @@ predict recovery of that snapshot; `recover` revalidates current state. The loca
 admin `/recovery` page inspects the fixed production output and provides terminal
 guidance. It does not execute recovery or check hosting.
 
-Recovery requires a complete journal. Interruption before that record is ready,
-or in the final directory cleanup window after its removal, still needs a fresh
-output directory. This does not provide whole-site atomic visibility or power-loss
-durability. See [publication and recovery](docs/publication.md) for exact limits,
+New builds install a complete recovery record in the output parent before
+creating output or staging, and retain it through final cleanup. Process exits
+during preparation or cleanup are covered by restart tests. Keep the sibling
+`.moonpress-recovery-*.json` record together with its output; do not rename or
+delete either while recovery is pending. Linux anonymous temporary files
+(`O_TMPFILE`), `/proc/self/fd`, hard links and a writable output parent are required;
+unsupported capabilities fail before public-file mutation. Legacy incomplete
+journals still need a fresh output directory. This does not provide whole-site
+atomic visibility or power-loss durability. See [publication and recovery](docs/publication.md) for exact limits,
 report fields and exit statuses.
 
 Verified production files can be handed off as a deterministic ZIP through

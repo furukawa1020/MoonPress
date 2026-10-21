@@ -35,6 +35,7 @@ CommonMark compatibility or superiority to other site generators.
   regressions. Separate build/deployment, no undo journal or power-loss claim.
 - Output filename byte limits, strict manifest/journal field validation and source file-kind checks.
 - Staged preparation, per-file replacement and caught-error rollback; explicit recovery of journaled interruptions.
+- Complete-or-absent anonymous publication writes and retained parent recovery intent, with process-kill preparation/cleanup and I/O fault regression tests.
 - Read-only recovery inspection via API, `recovery-plan`, and the local production admin page; bounded recovery state reads.
 - Cooperative build/explain/plan/recover locking on local Linux filesystems, including new outputs.
 - Native tests and shell-only GitHub Actions workflows.
@@ -47,9 +48,10 @@ See [content semantics](content.md), [contributing](../CONTRIBUTING.md) and
 | Gate | Evidence required | Tracking |
 | --- | --- | --- |
 | Reproducible toolchain | Fixed official binary/core archives with pinned checksums, native-only bundling, clean-install CI and tamper/version tests | [#11](https://github.com/furukawa1020/MoonPress/issues/11) |
-| Verified example deployment | Pages enabled and generated HTML/CSS retrieved from the public URL | [#3](https://github.com/furukawa1020/MoonPress/issues/3) |
-| Filesystem failure recovery | Journaled restart recovery implemented; pre-journal/final-cleanup gaps and power-loss durability remain open | [#49](https://github.com/furukawa1020/MoonPress/issues/49), [#53](https://github.com/furukawa1020/MoonPress/issues/53), [contract](publication.md) |
+| Verified example deployment | Pages enabled and all packaged public artifacts verified byte for byte at the public URL; actual hosting verification remains open | [#3](https://github.com/furukawa1020/MoonPress/issues/3) |
+| Filesystem failure recovery | Preparation and final-cleanup process-exit windows covered for new builds; legacy incomplete records and power-loss durability remain unsupported | [#49](https://github.com/furukawa1020/MoonPress/issues/49), [#53](https://github.com/furukawa1020/MoonPress/issues/53), [contract](publication.md) |
 | Concurrent writer protection | Implemented for cooperative local Linux builds; parent-directory scope and tested limits documented | [#50](https://github.com/furukawa1020/MoonPress/issues/50), [contract](concurrency.md) |
+| Real-browser authoring | Keyboard navigation, narrow screens, uploads, production ZIP download and reload verified in an actual browser; HTTP fixtures do not close this gate | [#111](https://github.com/furukawa1020/MoonPress/issues/111) |
 | Distribution and compatibility | Versioned native artifact/checksum process, install smoke test, supported-platform statement and API/schema migration policy | Preview packaging/test implemented; signed stable assets, compatibility matrix and schema migration policy remain |
 
 Current builds are not transactional. Cooperative writers use directory locks;

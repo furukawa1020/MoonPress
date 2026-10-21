@@ -62,7 +62,7 @@ pub fn audit_output(output : String) -> OutputAudit raise {
       status: "recovery",
       expected: None,
       actual: None,
-      message: "Retained recovery record present; run recovery-plan before building. Contents not read",
+      message: "Retained recovery record present; inspect with recovery-plan, then run recover before building. Contents not read",
     })
   }
   for artifact in manifest.artifacts {
