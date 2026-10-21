@@ -112,6 +112,7 @@ int remove(const char *path) {
 int rmdir(const char *path) {
   int (*real_rmdir)(const char *) = dlsym(RTLD_NEXT, "rmdir");
   if (!real_rmdir) _exit(103);
+  if (matches("MOONPRESS_TEST_FAIL_RMDIR", path)) { errno = EACCES; return -1; }
   int result = real_rmdir(path);
   if (result == 0) crash_if("MOONPRESS_TEST_KILL_AFTER_RMDIR", path);
   return result;
