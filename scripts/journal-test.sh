@@ -16,6 +16,8 @@ rm "$tmp/site/content/obsolete.md"
 printf '# New\n' > "$tmp/site/content/n.md"
 "$cli" build "$tmp/site" "$tmp/clean" >/dev/null
 reset_output() {
+  # Discard this test fixture together with its parent recovery record.
+  rm -f "$tmp/.moonpress-recovery-$(printf out | sha256sum | cut -d' ' -f1).json"
   rm -rf "$tmp/out"
   cp -a "$tmp/old" "$tmp/out"
 }

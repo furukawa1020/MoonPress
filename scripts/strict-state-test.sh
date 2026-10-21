@@ -29,15 +29,18 @@ status=0
 env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_KILL_BEFORE_RENAME="$tmp/out/a.html" "$cli" build "$tmp/site" "$tmp/out" > "$tmp/stdout" 2> "$tmp/error" || status=$?
 test "$status" = 137
 journal="$tmp/out/.moonpress-stage/journal"
+record="$tmp/.moonpress-recovery-$(printf out | sha256sum | cut -d' ' -f1).json"
 cp "$journal" "$tmp/original-journal"
 for mutation in '.unexpected=true' '.previous|=(fromjson|.unexpected=true|tojson)' '.next|=(fromjson|.artifacts[0].unexpected=true|tojson)' '.next|=(fromjson|.artifacts[0].dependencies[0].unexpected=true|tojson)'; do
   jq "$mutation" "$tmp/original-journal" > "$journal"
+  cp "$journal" "$record"
   cp -a "$tmp/out" "$tmp/before"
   reject "$cli" recover "$tmp/out" --json
   diff -r "$tmp/out" "$tmp/before"
   rm -rf "$tmp/before"
 done
 cp "$tmp/original-journal" "$journal"
+cp "$tmp/original-journal" "$record"
 "$cli" recover "$tmp/out" >/dev/null
 diff -r "$tmp/out" "$tmp/valid"
 "$cli" build "$tmp/site" "$tmp/out" >/dev/null

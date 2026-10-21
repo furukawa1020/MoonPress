@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <signal.h>
+#include <fcntl.h>
+#include <stdarg.h>
 
 static int matches(const char *key, const char *path) {
   const char *wanted = getenv(key);
@@ -20,6 +22,31 @@ static void crash_if(const char *key, const char *path) {
     _exit(102);
   }
 }
+
+/* Associate anonymous staging streams with their intended target for fault tests.
+ * Production checks target absence with lstat immediately before O_TMPFILE open. */
+static char candidate[4096];
+static char anonymous_paths[256][4096];
+int lstat(const char *path, struct stat *st) {
+  int (*real_lstat)(const char *, struct stat *) = dlsym(RTLD_NEXT, "lstat");
+  if (!real_lstat) _exit(120);
+  snprintf(candidate, sizeof candidate, "%s", path);
+  return real_lstat(path, st);
+}
+int open(const char *path, int flags, ...) {
+  int (*real_open)(const char *, int, ...) = dlsym(RTLD_NEXT, "open");
+  if (!real_open) _exit(121);
+  mode_t mode = 0;
+  if ((flags & O_CREAT) || (flags & O_TMPFILE) == O_TMPFILE) {
+    va_list args; va_start(args, flags); mode = va_arg(args, int); va_end(args);
+  }
+  int anonymous = (flags & O_TMPFILE) == O_TMPFILE;
+  if (anonymous && matches("MOONPRESS_TEST_FAIL_OPEN", candidate)) { errno = ENOSPC; return -1; }
+  int fd = real_open(path, flags, mode);
+  if (anonymous && fd >= 0 && fd < 256) snprintf(anonymous_paths[fd], 4096, "%s", candidate);
+  return fd;
+}
+static int stream_matches(const char *key, FILE *stream);
 
 FILE *fopen(const char *path, const char *mode) {
   FILE *(*real_open)(const char *, const char *) = dlsym(RTLD_NEXT, "fopen");
@@ -40,17 +67,17 @@ FILE *fopen(const char *path, const char *mode) {
 size_t fwrite(const void *data, size_t size, size_t count, FILE *stream) {
   size_t (*real_write)(const void *, size_t, size_t, FILE *) = dlsym(RTLD_NEXT, "fwrite");
   if (!real_write) _exit(92);
-  char fdpath[64], path[4096];
-  snprintf(fdpath, sizeof fdpath, "/proc/self/fd/%d", fileno(stream));
-  ssize_t n = readlink(fdpath, path, sizeof path - 1);
-  if (n >= 0) {
-    path[n] = '\0';
-    if (count > 1 && matches("MOONPRESS_TEST_FAIL_WRITE", path)) {
-      size_t written = real_write(data, size, count / 2, stream);
-      fflush(stream);
-      errno = ENOSPC;
-      return written;
-    }
+  if (count > 1 && stream_matches("MOONPRESS_TEST_FAIL_WRITE", stream)) {
+    size_t written = real_write(data, size, count / 2, stream);
+    fflush(stream);
+    errno = ENOSPC;
+    return written;
+  }
+  if (stream_matches("MOONPRESS_TEST_KILL_DURING_WRITE", stream)) {
+    real_write(data, size, count / 2, stream);
+    fflush(stream);
+    kill(getpid(), SIGKILL);
+    _exit(122);
   }
   return real_write(data, size, count, stream);
 }
@@ -96,10 +123,14 @@ int mkdir(const char *path, mode_t mode) {
     errno = ENOSPC;
     return -1;
   }
-  return real_mkdir(path, mode);
+  int result = real_mkdir(path, mode);
+  if (result == 0) crash_if("MOONPRESS_TEST_KILL_AFTER_MKDIR", path);
+  return result;
 }
 
 static int stream_matches(const char *key, FILE *stream) {
+  int fd = fileno(stream);
+  if (fd >= 0 && fd < 256 && anonymous_paths[fd][0]) return matches(key, anonymous_paths[fd]);
   char fdpath[64], path[4096];
   snprintf(fdpath, sizeof fdpath, "/proc/self/fd/%d", fileno(stream));
   ssize_t n = readlink(fdpath, path, sizeof path - 1);
@@ -123,7 +154,9 @@ int fclose(FILE *stream) {
   if (!real_close) _exit(97);
   int fail = stream_matches("MOONPRESS_TEST_FAIL_CLOSE", stream);
   int edit = stream_matches("MOONPRESS_TEST_EDIT_ON_CLOSE", stream);
+  int fd = fileno(stream);
   int result = real_close(stream);
+  if (fd >= 0 && fd < 256) anonymous_paths[fd][0] = 0;
   if (edit) {
     const char *target = getenv("MOONPRESS_TEST_EDIT_TARGET");
     if (!target) _exit(112);

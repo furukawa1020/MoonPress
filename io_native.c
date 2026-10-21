@@ -1,5 +1,5 @@
 /* Thin stdio operations only; ownership/error policy lives in MoonBit. */
-#define _POSIX_C_SOURCE 200809L
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -167,4 +167,27 @@ MOONBIT_FFI_EXPORT int moonpress_dir_within(int directory, int root) {
 /* Read-only compiler input identity: ancestors may be aliases, final root may not. */
 MOONBIT_FFI_EXPORT int moonpress_input_directory_open(moonbit_bytes_t path) {
   return open((const char *)path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+}
+
+/* Anonymous complete-or-absent publication, Linux local filesystems only. */
+MOONBIT_FFI_EXPORT FILE *moonpress_atomic_open(moonbit_bytes_t target) {
+  struct stat st;
+  if (lstat((const char *)target, &st) == 0) { errno = EEXIST; return NULL; }
+  if (errno != ENOENT) return NULL;
+  char *copy = strdup((const char *)target);
+  if (!copy) return NULL;
+  char *slash = strrchr(copy, '/');
+  if (slash) { if (slash == copy) slash[1] = 0; else *slash = 0; }
+  int fd = open(slash ? copy : ".", O_TMPFILE | O_RDWR | O_CLOEXEC, 0666);
+  int saved = errno;
+  free(copy);
+  if (fd < 0) { errno = saved; return NULL; }
+  FILE *file = fdopen(fd, "wb");
+  if (!file) { saved = errno; close(fd); errno = saved; }
+  return file;
+}
+MOONBIT_FFI_EXPORT int moonpress_atomic_install(FILE *file, moonbit_bytes_t target) {
+  char source[64];
+  snprintf(source, sizeof source, "/proc/self/fd/%d", fileno(file));
+  return linkat(AT_FDCWD, source, AT_FDCWD, (const char *)target, AT_SYMLINK_FOLLOW);
 }
