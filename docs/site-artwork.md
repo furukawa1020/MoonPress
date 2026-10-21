@@ -1,20 +1,17 @@
-# Site artwork
+# Pixel publishing workshop
 
-The public site uses original illustrations generated with the built-in imagegen
-on 2026-10-21, then encoded as JPEG at quality 82 with metadata removed.
-Text and navigation remain HTML; the illustrations are not screenshots of a UI.
+The site and native editor share `ui-assets/rooms.webp` (also copied to
+`site/public/publishing-rooms.webp`). Built-in imagegen prompt: original retro
+Japanese RPG pixel-art cutaway workshop with five connected rooms: moon-flag
+entrance, writing desk, preview mirror, glowing compiler furnace, and a gate to
+a moonlit sea. Small original hooded traveler, visible square pixels, midnight
+blue/lavender/teal/gold, no lettering or existing game characters. Generated
+2026-10-21, encoded WebP quality 85 for delivery. The illustration is a metaphor,
+not a screenshot or a claim of remotely deployed state.
 
-Assets in `site/public/`:
-- `moon-workshop.jpg`: a moon above a small print workshop, with loose pages.
-- `writing-desk.jpg`: a notebook, pen, booklets and moon printing block.
-- `paper-voyage.jpg`: a paper boat carrying a printed page beneath a crescent.
+DotGothic16 comes from https://github.com/google/fonts/tree/main/ofl/dotgothic16
+and is distributed under SIL OFL 1.1 (see ui-assets/OFL-DotGothic16.txt).
+All Unicode glyphs were retained in a WOFF conversion using fonttools.
+The font is bundled; no external font service is contacted at runtime.
 
-Prompt direction: handmade black woodcut / photocopied literary zine on warm
-ivory paper, tactile carved lines and imperfect print registration, a small muted
-vermilion accent, 3:2 landscape; no readable lettering, UI, gradients or glossy
-3D. Each image uses the subject described above. These are generated editorial
-illustrations, not photographs of the application or evidence of product use.
-
-HTML provides descriptive Japanese alt text, explicit 1536 × 1024 dimensions,
-and lazy loading for the two lower illustrations. The layout stacks at 700px.
-Real browser and assistive-technology review remains a release task.
+The former editorial woodcut direction was replaced following user feedback.

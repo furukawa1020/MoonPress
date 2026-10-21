@@ -140,3 +140,5 @@ bash scripts/utf8-input-test.sh
 bash scripts/pages-package-test.sh
 bash scripts/pages-verify-test.sh
 bash scripts/publication-sync-test.sh
+
+bash scripts/admin-rooms-test.sh

@@ -1,9 +1,10 @@
 ---
-{"title":"MoonPress — 小さな出版の道具","layout":"home.html","listed":false}
+{"title":"MoonPress","layout":"home.html","listed":false}
 ---
-# 書いたものを、自分の場所に。
+# MoonPress
 
-日記も、制作の記録も、長く残したい文章も。
-MoonPressは、手元のMarkdownから自分のウェブサイトをつくる、小さな出版の道具です。
+文章をたずさえて、月の工房へ。
 
-HTMLとCSS、そして画像。できあがったサイトは、そのまま好きな場所へ持っていけます。
+書斎で書く。鏡で見る。炉でサイトをつくる。扉をひとつずつ開いて、公開の港へ進む、小さな出版の冒険です。
+
+動かすのはMoonBitのネイティブコンパイラ。JavaScriptもTypeScriptも使いません。

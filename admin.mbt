@@ -14,7 +14,7 @@ fn admin_response(code : Int, html : String) -> Bytes {
   @utf8.encode(
     "HTTP/1.1 " +
     status +
-    "\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: \{bytes.length()}\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'\r\n\r\n",
+    "\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: \{bytes.length()}\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; img-src 'self'; font-src 'self'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'\r\n\r\n",
   ) +
   bytes
 }
@@ -78,7 +78,9 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
     } else {
       try {
         let (request, body) = admin_read_request(client, host)
-        if request.target == "/export-production" {
+        if request.target.has_prefix("/assets/") {
+          admin_ui_asset(request)
+        } else if request.target == "/export-production" {
           admin_export(input, request, body, token)
         } else if request.target == "/media-image" ||
           request.target.has_prefix("/media-image?") {

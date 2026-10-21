@@ -1,33 +1,43 @@
-# Getting started
+# 冒険のはじめ方
 
-## Prerequisites
+## 道具をそろえる
 
-Linux x86_64、Cコンパイラ、MoonBitの検証済みツールチェーンを使用します。
+いまのMoonPressはLinux x86_64向けのプレビュー版です。ソースから作る場合は、Git・Bash・Cコンパイラと検証済みMoonBitツールチェーンを使います。
 
 ```sh
+git clone https://github.com/furukawa1020/MoonPress.git
+cd MoonPress
 bash scripts/setup.sh
 export PATH="$HOME/.moon/bin:$PATH"
-bash scripts/check.sh
-moon run cmd/main --target native -- build site dist
+moon build --target native --release
 ```
 
-## Input contract
-
-site/content直下の.mdファイルを、同名の.htmlへ変換します。layout.htmlの{{title}}と{{content}}を置換し、style.cssをコピーします。
-
-最初のH1をページタイトルとして使います。本文中のHTMLはエスケープします。レイアウトとCSSは制作者が管理する信頼済みファイルです。
-
-## Supported Markdown
-
-1〜6段階の見出し、空行で区切る段落、バッククォート3個のコードフェンスに対応します。リンク・リスト・強調・frontmatter・ネストしたディレクトリは未対応です。CommonMark完全互換ではありません。
-
-## Safe output
-
-初回に生成した管理情報をもとに、変更されたページだけを再生成します。削除・リネームされた記事の古い出力は除去します。管理外のファイル、手動編集、シンボリックリンクを検出した場合は更新を中止します。
+## 自分の工房をひらく
 
 ```sh
-moonpress explain site dist
-moonpress build site dist
+moonpress="$PWD/_build/native/release/build/cmd/main/main.exe"
+"$moonpress" init ../my-site
+"$moonpress" admin ../my-site 8080
 ```
 
-explainは変更せずに更新予定と理由を表示します。同じ出力先への同時ビルドは未対応です。
+ブラウザで http://127.0.0.1:8080/rooms を開きます。ターミナルは開いたままにしてください。
+
+書斎で記事を書いて保存し、鏡の回廊でプレビュー、コンパイルの炉で変更計画を確認してビルドします。公開の港では、最新の生成物だけをZIPで持ち出せます。
+
+管理画面は自分のPCだけに開きます。ネット上のこのサイトは体験ガイドです。ここであなたのファイルを編集することはありません。
+
+## 公開の港から先へ
+
+生成したファイルをGitHub Pagesなどのホストへ配信します。ローカルでのビルド成功と、ホストへの公開成功は別々です。
+
+[GitHub Pagesへの詳しい道順](https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md)
+
+## MoonBitが担当すること
+
+HTMLフォームを受け取り、保存済み記事の検証・依存関係の解析・SHA-256による差分計画・確認済み計画のビルドをネイティブで実行します。ブラウザのJavaScriptやTypeScriptは使いません。
+
+記事はMarkdown、見た目はHTMLとCSS、画像はファイルとして手元に残ります。生成物もHTML・CSS・画像なので、配信先にMoonBitを入れる必要はありません。
+
+完全な電源断耐性、実ブラウザでの操作検証、安定版配布は引き続き開発中です。
+
+[入口へ戻る](index.html)

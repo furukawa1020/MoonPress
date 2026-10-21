@@ -6,3 +6,6 @@ dist/
 .DS_Store
 
 bench-results/
+
+/admin_font.generated.mbt
+/admin_room_art.generated.mbt

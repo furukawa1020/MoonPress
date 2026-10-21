@@ -19,6 +19,7 @@ bundle="$stage/moonpress-linux-x86_64"
 mkdir -p "$bundle/licenses"
 install -m 755 _build/native/release/build/cmd/main/main.exe "$bundle/moonpress"
 cp LICENSE "$bundle/LICENSE"
+cp ui-assets/OFL-DotGothic16.txt "$bundle/licenses/OFL-DotGothic16.txt"
 cp "$root/lib/core/LICENSE" "$bundle/licenses/MoonBit-LICENSE"
 cp "$root/lib/core/NOTICE" "$bundle/licenses/MoonBit-NOTICE"
 cp "$root/lib/core/moon.mod" "$bundle/licenses/core-package.txt"
@@ -27,6 +28,7 @@ cp .mooncakes/moonbitlang/x/bcrypt/LICENSE.pyca-bcrypt "$bundle/licenses/x-bcryp
 sed -n '1,16p' "$root/lib/runtime/runtime.c" > "$bundle/licenses/runtime-notice.txt"
 cat > "$bundle/licenses/COMPONENTS.txt" <<'TEXT'
 MoonPress: https://github.com/furukawa1020/MoonPress (Apache-2.0; see LICENSE)
+DotGothic16: https://github.com/fontworks-fonts/DotGothic16 (SIL OFL 1.1; see OFL-DotGothic16.txt)
 MoonBit core/runtime and moonbitlang/x: International Digital Economy Academy.
 https://github.com/moonbitlang/core
 https://github.com/moonbitlang/x
