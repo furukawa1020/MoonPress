@@ -125,6 +125,7 @@ bash scripts/publication-test.sh
 bash scripts/journal-test.sh
 bash scripts/recovery-test.sh
 bash scripts/recovery-cleanup-test.sh
+bash scripts/recovery-record-test.sh
 bash scripts/recovery-preparation-test.sh
 bash scripts/atomic-publication-test.sh
 bash scripts/recovery-inspection-test.sh
