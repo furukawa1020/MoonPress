@@ -29,6 +29,9 @@ get() { curl --max-time 8 -sS -o "$tmp/page" -w '%{http_code}' "$origin$1"; }
 post() { local path="$1"; shift; curl --max-time 8 -sS -o "$tmp/page" -w '%{http_code}' -H "Origin: $origin" "$@" "$origin$path"; }
 test "$(get /)" = 200
 grep -Fq 'New draft' "$tmp/page"
+grep -Fq 'href="#main">Skip to content</a>' "$tmp/page"
+grep -Fq '<nav aria-label="Main navigation">' "$tmp/page"
+grep -Fq '<main id="main" tabindex="-1">' "$tmp/page"
 token="$(sed -n 's/.*name="token" value="\([a-f0-9]*\)".*/\1/p' "$tmp/page")"
 test "${#token}" = 64
 # Guided authoring is read-only, even with malformed sources and absent templates.
