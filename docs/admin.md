@@ -322,3 +322,13 @@ content/public directory handles. Destination existence checks, exclusive open
 and caught-failure cleanup use that handle; duplicate source verification uses
 the locked content directory. Initial media-directory preparation and site
 initialization are separate operations, not a retained existing-directory edit.
+
+### Keyboard and narrow-screen navigation
+
+The first focusable link skips navigation and moves to the main content. Main
+navigation has an accessible label, and visible focus outlines remain enabled.
+Inventory tables keep their native table markup inside keyboard-focusable scroll
+regions; use horizontal scrolling when columns exceed the viewport. Long names
+wrap, and controls stay within their containing form. These changes have native
+and HTTP regression coverage; actual browser, touch and assistive-technology
+checks remain release gates rather than completed claims.
