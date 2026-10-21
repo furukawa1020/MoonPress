@@ -87,14 +87,20 @@ false`, and `report`. `--include-drafts` is not accepted. Exit codes match other
 commands: 0 success, 1 validation/I/O error, 2 invalid arguments. On failure,
 stdout is empty; errors go to stderr. Resolve I/O errors before retrying.
 
-**Limits:** recovery refuses a missing, partial or unsupported journal. A kill
-before journal completion, after its final removal but before staging `rmdir`,
-or during final fresh-output directory removal can leave remnants with no
-sufficient ownership record. Use a fresh output directory and keep the old one
-for inspection in those cases. Legacy pre-journal builds are also unsupported.
-There is no automatic cleanup of unrecognized remnants and no fsync guarantee.
-The supported contract is process interruption on the tested local Linux
-filesystem, not filesystem corruption or power loss.
+Before final cleanup, a complete journal is hard-linked exclusively into the
+output's parent as `.moonpress-recovery-<SHA256 of canonical output basename>.json`.
+The record remains until stage cleanup and fresh-output rollback removal finish.
+Recovery validates this record and any remaining stage before mutation. A stopped
+cleanup can be retried even after the stage or fresh output directory disappears.
+Build refuses retained records; run `recovery-plan` and `recover` first. Do not
+move/delete these records separately from interrupted outputs. Unknown or conflicting
+records are refused, never overwritten. Successful cleanup leaves no parent record.
+
+**Limits:** recovery still refuses a missing, partial or unsupported preparation
+journal. A kill before initial journal completion may leave unverifiable staging
+remnants. Legacy builds interrupted after journal deletion have no retained record
+and remain unsupported. Use a fresh output directory and keep those remnants for
+inspection. No fsync or power-loss guarantee is made.
 
 ## Limits and resource behavior
 
@@ -103,7 +109,7 @@ new file contents, but readers of several files can observe mixed versions, even
 during rollback. SIGKILL, power loss or interruption during rollback can leave
 partial output. No fsync/power-loss guarantee is made.
 [#49](https://github.com/furukawa1020/MoonPress/issues/49) tracks the remaining
-pre-journal/final-cleanup windows and durability work.
+pre-journal windows and durability work.
 
 Directory locks coordinate cooperating build/explain processes. External edits,
 old binaries without locking and hostile concurrent path changes are outside

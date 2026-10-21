@@ -37,24 +37,44 @@ fn recovery_operation(output : String, apply~ : Bool) -> RecoveryReport raise {
   }
   let lock = lock_output(output, shared=!apply)
   defer native_unlock_output(lock)
-  if path_kind(output) == 0 {
+  let record = recovery_record_path(output)
+  let record_kind = path_kind(record)
+  if record_kind != 0 && record_kind != 1 {
+    raise InvalidInput("Recovery record must be a regular file")
+  }
+  let output_kind = path_kind(output)
+  if output_kind == 0 && record_kind == 0 {
     return { action: "absent", restored: 0, removed: 0, }
   }
-  if path_kind(output) != 2 {
+  if output_kind != 0 && output_kind != 2 {
     raise InvalidInput("Recovery output must be a real directory")
   }
   let stage = output + "/.moonpress-stage"
-  if path_kind(stage) == 0 {
+  let stage_kind = path_kind(stage)
+  if stage_kind == 0 && record_kind == 0 {
     load_previous(output) |> ignore
     return { action: "clean", restored: 0, removed: 0, }
   }
-  if path_kind(stage) != 2 || path_kind(stage + "/journal") != 1 {
+  if stage_kind != 0 && stage_kind != 2 {
+    raise InvalidInput("Recovery staging must be a real directory")
+  }
+  let journal_path = if record_kind == 1 { record } else { stage + "/journal" }
+  if path_kind(journal_path) != 1 {
     raise InvalidInput(
       "Recovery requires a complete regular publication journal",
     )
   }
-  let journal_text = read_publication_text(stage + "/journal", 64 * 1024 * 1024)
+  let journal_text = read_publication_text(journal_path, 64 * 1024 * 1024)
   let journal = parse_journal(journal_text)
+  if output_kind == 0 {
+    if journal.previous is Some(_) {
+      raise InvalidInput("Recovery output unexpectedly missing")
+    }
+    if apply {
+      @fs.remove_file(record)
+    }
+    return { action: "rolled_back", restored: 0, removed: 0, }
+  }
   let previous = match journal.previous {
     None => Map([])
     Some(text) => artifact_map(parse_manifest(text).artifacts)
@@ -91,7 +111,8 @@ fn recovery_operation(output : String, apply~ : Bool) -> RecoveryReport raise {
     }
   }
   // Validate every staging entry, including payloads no longer needed by rollback.
-  for name in @fs.read_dir(stage) {
+  let stage_entries = if stage_kind == 2 { @fs.read_dir(stage) } else { [] }
+  for name in stage_entries {
     if name == "backup" {
       continue
     }
@@ -185,10 +206,14 @@ fn recovery_operation(output : String, apply~ : Bool) -> RecoveryReport raise {
   let staged = journal.writes.copy()
   staged.push(".moonpress.json")
   if apply {
+    if record_kind == 0 {
+      retain_recovery_record(output, stage)
+    }
     cleanup_stage(stage, staged, affected, backup_kind == 2, true)
     if !committed && journal.previous is None {
       @fs.remove_dir(output)
     }
+    @fs.remove_file(record)
   }
   {
     action: if committed {

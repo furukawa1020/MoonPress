@@ -11,6 +11,11 @@ fn load_previous(output : String) -> Map[String, Artifact] raise {
 
 ///|
 fn load_previous_state(output : String) -> PreviousOutput raise {
+  if path_kind(recovery_record_path(output)) != 0 {
+    raise InvalidInput(
+      "Output has retained recovery state; run moonpress recover: " + output,
+    )
+  }
   let result : Map[String, Artifact] = Map([])
   let kind = path_kind(output)
   if kind == 0 {

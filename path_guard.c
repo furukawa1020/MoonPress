@@ -69,3 +69,32 @@ MOONBIT_FFI_EXPORT int moonpress_replace_file(moonbit_bytes_t source, moonbit_by
 MOONBIT_FFI_EXPORT int moonpress_link_file(moonbit_bytes_t source, moonbit_bytes_t target) {
   return link((const char *)source, (const char *)target) == 0 ? 0 : errno;
 }
+
+/* Resolve an existing path, or a missing leaf beneath an existing parent.
+ * This is path calculation only; callers hold the output-parent lock. */
+MOONBIT_FFI_EXPORT int moonpress_resolve_output(moonbit_bytes_t path, moonbit_bytes_t buffer, int capacity) {
+  char *resolved = realpath((const char *)path, NULL);
+  if (!resolved) {
+    if (errno != ENOENT) return errno;
+    char *copy = strdup((const char *)path);
+    if (!copy) return ENOMEM;
+    char *slash = strrchr(copy, '/');
+    const char *leaf = slash ? slash + 1 : copy;
+    char *name = strdup(leaf);
+    if (!name) { free(copy); return ENOMEM; }
+    if (slash) { if (slash == copy) slash[1] = 0; else *slash = 0; }
+    char *parent = realpath(slash ? copy : ".", NULL);
+    free(copy);
+    if (!parent) { int saved = errno; free(name); return saved; }
+    size_t size = strlen(parent) + strlen(name) + 2;
+    resolved = malloc(size);
+    if (resolved) snprintf(resolved, size, "%s/%s", parent, name);
+    free(parent); free(name);
+    if (!resolved) return ENOMEM;
+  }
+  size_t size = strlen(resolved) + 1;
+  if (size > (size_t)capacity) { free(resolved); return ENAMETOOLONG; }
+  memcpy(buffer, resolved, size);
+  free(resolved);
+  return 0;
+}

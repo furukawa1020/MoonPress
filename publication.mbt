@@ -118,6 +118,7 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
   let applied : Array[String] = []
   let mut backup_created = false
   let mut journal_created = false
+  let mut record_retained = false
   let mut publishing = false
   let mut committed = false
   try {
@@ -179,7 +180,10 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
       replace_staged_file(stage + "/.moonpress.json", marker)
     }
     committed = true
+    retain_recovery_record(output, stage)
+    record_retained = true
     cleanup_stage(stage, staged, backed, backup_created, journal_created)
+    @fs.remove_file(recovery_record_path(output))
   } catch {
     error => {
       let rollback_error = if publishing && !committed {
@@ -197,9 +201,16 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
         false
       } else {
         try {
+          if publishing && !record_retained {
+            retain_recovery_record(output, stage)
+            record_retained = true
+          }
           cleanup_stage(stage, staged, backed, backup_created, journal_created)
           if fresh && !committed {
             @fs.remove_dir(output)
+          }
+          if record_retained {
+            @fs.remove_file(recovery_record_path(output))
           }
           true
         } catch {
@@ -231,13 +242,16 @@ fn cleanup_stage(
   backup_created : Bool,
   journal_created : Bool,
 ) -> Unit raise {
+  if path_kind(stage) == 0 {
+    return
+  }
   for name in names {
     let path = stage + "/" + name
     if path_kind(path) == 1 {
       @fs.remove_file(path)
     }
   }
-  if backup_created {
+  if backup_created && path_kind(stage + "/backup") != 0 {
     let backup = stage + "/backup"
     for name in backed {
       let path = backup + "/" + name
