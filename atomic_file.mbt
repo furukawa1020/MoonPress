@@ -1,4 +1,7 @@
 ///|
+extern "C" fn atomic_sync(file : NativeFile) -> Int = "moonpress_io_sync"
+
+///|
 #borrow(path)
 extern "C" fn atomic_open(path : Bytes) -> NativeFile = "moonpress_atomic_open"
 
@@ -23,6 +26,9 @@ fn write_atomic_new(path : String, bytes : Bytes) -> Unit raise {
   }
   if io_flush(file) != 0 {
     raise io_failure("flush", path)
+  }
+  if atomic_sync(file) != 0 {
+    raise io_failure("sync file", path)
   }
   if atomic_install(file, encoded) != 0 {
     raise io_failure("exclusive install", path)

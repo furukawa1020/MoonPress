@@ -94,6 +94,9 @@ Before output or staging creation, a complete journal is installed exclusively i
 output's parent as `.moonpress-recovery-<SHA256 of canonical output basename>.json`.
 The journal and staged payloads use Linux anonymous temporary files (`O_TMPFILE`)
 and exclusive link installation: interrupted writes leave no named partial file.
+Anonymous file bytes are flushed and fsynced before installation; interrupted
+fsync calls are retried, while other synchronization failures abort before naming
+the file. This synchronizes file contents only.
 Unsupported filesystems fail closed before output changes. The record remains
 until stage cleanup and fresh-output rollback removal finish.
 Recovery validates this record and any remaining stage before mutation. A stopped
@@ -116,14 +119,18 @@ still refused. New builds can be retried after an interrupted initial anonymous
 journal write (output is unchanged), or explicitly recovered after the parent
 journal is installed, including preparation and final cleanup interruptions.
 This requires Linux `O_TMPFILE`, `/proc/self/fd`, same-filesystem hard links and
-cooperative local writers. No fsync or power-loss guarantee is made.
+cooperative local writers. Directory entries, backup links, commit/rollback
+ordering and cleanup are not yet synchronized as a complete durability protocol.
+File fsync alone does not establish power-loss recovery; no power-loss guarantee
+is made.
 
 ## Limits and resource behavior
 
 This is **not a multi-file transaction** or a power-loss durability protocol. An individual rename exposes complete old or
 new file contents, but readers of several files can observe mixed versions, even
 during rollback. SIGKILL, power loss or interruption during rollback can leave
-partial output. No fsync/power-loss guarantee is made.
+partial output. File-data synchronization alone does not provide a complete
+power-loss durability guarantee.
 [#49](https://github.com/furukawa1020/MoonPress/issues/49) tracks the remaining
 remaining durability work.
 
