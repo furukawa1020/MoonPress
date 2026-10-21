@@ -11,6 +11,10 @@ for operation in OPEN WRITE FLUSH SYNC CLOSE INSTALL; do
   env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_FAIL_$operation=$tmp/atomic" MOONPRESS_ATOMIC_FAIL=1 MOONPRESS_ATOMIC_PROBE="$tmp/atomic" \
     moon test --target native --filter 'anonymous publication filesystem probe'
 done
+env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_INTERRUPT_DIR_SYNC="$tmp" MOONPRESS_TEST_REQUIRE_LINK_BEFORE_DIR_SYNC="$tmp/atomic" MOONPRESS_ATOMIC_PROBE="$tmp/atomic" moon test --target native --filter 'anonymous publication filesystem probe'
+for operation in DIR_OPEN DIR_SYNC DIR_CLOSE; do
+  env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_FAIL_$operation=$tmp" MOONPRESS_ATOMIC_FAIL=1 MOONPRESS_ATOMIC_PROBE="$tmp/atomic" moon test --target native --filter 'anonymous publication filesystem probe'
+done
 env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_UNSUPPORTED_ANONYMOUS=1 MOONPRESS_ATOMIC_FAIL=1 MOONPRESS_ATOMIC_PROBE="$tmp/atomic" \
   moon test --target native --filter 'anonymous publication filesystem probe'
 "$cli" init "$tmp/site" >/dev/null
@@ -18,7 +22,7 @@ env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_UNSUPPORTED_ANONYMOUS=1 MOONPRESS_
 cp -a "$tmp/out" "$tmp/before"
 printf '\nChanged\n' >> "$tmp/site/content/index.md"
 record="$tmp/.moonpress-recovery-$(printf out | sha256sum | cut -d' ' -f1).json"
-for injection in MOONPRESS_TEST_UNSUPPORTED_ANONYMOUS=1 "MOONPRESS_TEST_FAIL_INSTALL=$record" "MOONPRESS_TEST_FAIL_SYNC=$record" "MOONPRESS_TEST_FAIL_SYNC=$tmp/out/.moonpress-stage/index.html"; do
+for injection in MOONPRESS_TEST_UNSUPPORTED_ANONYMOUS=1 "MOONPRESS_TEST_FAIL_INSTALL=$record" "MOONPRESS_TEST_FAIL_DIR_SYNC=$tmp" "MOONPRESS_TEST_FAIL_DIR_SYNC=$tmp/out/.moonpress-stage" "MOONPRESS_TEST_FAIL_SYNC=$record" "MOONPRESS_TEST_FAIL_SYNC=$tmp/out/.moonpress-stage/index.html"; do
   status=0
   env LD_PRELOAD="$tmp/fault.so" "$injection" "$cli" build "$tmp/site" "$tmp/out" > "$tmp/stdout" 2> "$tmp/stderr" || status=$?
   test "$status" -eq 1

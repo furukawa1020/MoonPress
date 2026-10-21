@@ -96,7 +96,10 @@ The journal and staged payloads use Linux anonymous temporary files (`O_TMPFILE`
 and exclusive link installation: interrupted writes leave no named partial file.
 Anonymous file bytes are flushed and fsynced before installation; interrupted
 fsync calls are retried, while other synchronization failures abort before naming
-the file. This synchronizes file contents only.
+the file. The receiving directory is retained before installation and fsynced
+after the exclusive link. Directory open/sync/close failures are reported; after
+a successful link, caught failures remove only that newly installed file.
+Cleanup removal itself is not yet a durable transaction.
 Unsupported filesystems fail closed before output changes. The record remains
 until stage cleanup and fresh-output rollback removal finish.
 Recovery validates this record and any remaining stage before mutation. A stopped
@@ -119,7 +122,7 @@ still refused. New builds can be retried after an interrupted initial anonymous
 journal write (output is unchanged), or explicitly recovered after the parent
 journal is installed, including preparation and final cleanup interruptions.
 This requires Linux `O_TMPFILE`, `/proc/self/fd`, same-filesystem hard links and
-cooperative local writers. Directory entries, backup links, commit/rollback
+cooperative local writers. Output/staging creation, backup links, commit/rollback
 ordering and cleanup are not yet synchronized as a complete durability protocol.
 File fsync alone does not establish power-loss recovery; no power-loss guarantee
 is made.
@@ -132,7 +135,7 @@ during rollback. SIGKILL, power loss or interruption during rollback can leave
 partial output. File-data synchronization alone does not provide a complete
 power-loss durability guarantee.
 [#49](https://github.com/furukawa1020/MoonPress/issues/49) tracks the remaining
-remaining durability work.
+durability work.
 
 Directory locks coordinate cooperating build/explain processes. External edits,
 old binaries without locking and hostile concurrent path changes are outside

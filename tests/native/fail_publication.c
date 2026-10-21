@@ -29,6 +29,7 @@ static char candidate[4096];
 static char anonymous_paths[256][4096];
 static int anonymous_synced[256];
 static int sync_interrupted;
+static int directory_sync_interrupted;
 int lstat(const char *path, struct stat *st) {
   int (*real_lstat)(const char *, struct stat *) = dlsym(RTLD_NEXT, "lstat");
   if (!real_lstat) _exit(120);
@@ -43,6 +44,7 @@ int open(const char *path, int flags, ...) {
     va_list args; va_start(args, flags); mode = va_arg(args, int); va_end(args);
   }
   int anonymous = (flags & O_TMPFILE) == O_TMPFILE;
+  if (!anonymous && (flags & O_DIRECTORY) && matches("MOONPRESS_TEST_FAIL_DIR_OPEN", path)) { errno=EACCES; return -1; }
   if (anonymous && getenv("MOONPRESS_TEST_UNSUPPORTED_ANONYMOUS")) { errno = EOPNOTSUPP; return -1; }
   if (anonymous && matches("MOONPRESS_TEST_FAIL_OPEN", candidate)) { errno = ENOSPC; return -1; }
   int fd = real_open(path, flags, mode);
@@ -52,9 +54,36 @@ int open(const char *path, int flags, ...) {
   }
   return fd;
 }
+static int directory_matches(const char *key, int fd) {
+  struct stat st;
+  if (fstat(fd,&st)!=0 || !S_ISDIR(st.st_mode)) return 0;
+  char fdpath[64], path[4096];
+  snprintf(fdpath,sizeof fdpath,"/proc/self/fd/%d",fd);
+  ssize_t n=readlink(fdpath,path,sizeof path-1);
+  if(n<0) return 0;
+  path[n]=0;
+  return matches(key,path);
+}
+int close(int fd) {
+  int (*real_close)(int)=dlsym(RTLD_NEXT,"close");
+  if(!real_close) _exit(125);
+  int fail=directory_matches("MOONPRESS_TEST_FAIL_DIR_CLOSE",fd);
+  int result=real_close(fd);
+  if(fail) { errno=EIO; return -1; }
+  return result;
+}
 int fsync(int fd) {
   int (*real_sync)(int) = dlsym(RTLD_NEXT, "fsync");
   if (!real_sync) _exit(124);
+  if(directory_matches("MOONPRESS_TEST_FAIL_DIR_SYNC",fd)) { errno=EIO; return -1; }
+  if(!directory_sync_interrupted && directory_matches("MOONPRESS_TEST_INTERRUPT_DIR_SYNC",fd)) {
+    directory_sync_interrupted=1; errno=EINTR; return -1;
+  }
+  const char *required=getenv("MOONPRESS_TEST_REQUIRE_LINK_BEFORE_DIR_SYNC");
+  struct stat st;
+  if(required && fstat(fd,&st)==0 && S_ISDIR(st.st_mode) && lstat(required,&st)!=0) {
+    errno=EIO; return -1;
+  }
   if (fd >= 0 && fd < 256 && anonymous_paths[fd][0]) {
     if (matches("MOONPRESS_TEST_FAIL_SYNC", anonymous_paths[fd])) { errno=EIO; return -1; }
     if (!sync_interrupted && matches("MOONPRESS_TEST_INTERRUPT_SYNC", anonymous_paths[fd])) {
