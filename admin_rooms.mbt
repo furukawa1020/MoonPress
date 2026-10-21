@@ -36,7 +36,7 @@ fn room_title(room : PublishingRoom) -> String {
     Entrance => "01 はじまりの間"
     Writing => "02 ことばの書斎"
     Preview => "03 鏡の回廊"
-    Building => "04 コンパイルの炉"
+    Building => "04 製本室"
     Departure => "05 公開の港"
   }
 }
@@ -67,14 +67,14 @@ fn room_production_state(
   try {
     let report = inspect_release_readiness(input)
     let status = if report.current {
-      "<p class=\"notice\">炉の状態：保存済みの公開対象と生成物が一致しています。ローカルのビルド準備は完了です。ホストへの公開は未確認です。</p>"
+      "<p class=\"notice\">製本の状態：保存済みの公開対象と生成物が一致しています。ローカルのビルド準備は完了です。ホストへの公開は未確認です。</p>"
     } else {
-      "<p class=\"notice\">炉の状態：再ビルドが必要です。書き込み \{report.pending_writes} 件 / 削除 \{report.pending_deletes} 件。変更計画を確認してから進んでください。</p>"
+      "<p class=\"notice\">製本の状態：再ビルドが必要です。書き込み \{report.pending_writes} 件 / 削除 \{report.pending_deletes} 件。変更計画を確認してから進んでください。</p>"
     }
     status + (if export_zip { admin_export_form(report, token) } else { "" })
   } catch {
     error =>
-      "<p class=\"notice\">炉を確認できません：" +
+      "<p class=\"notice\">製本の状態を確認できません：" +
       escape_html(error.to_string()) +
       "</p><p>元の記事や出力を修復してから再確認してください。中断したビルドは <a href=\"/recovery\">復旧の案内所</a> へ。状態を確認できるまで公開用ZIPは作成しません。</p>"
   }
@@ -98,7 +98,7 @@ fn admin_room(
   let (body, back, next) = match room {
     Entrance =>
       (
-        "<p>ようこそ、月の出版工房へ。扉を開いて、文章をひとつのサイトにしていきましょう。</p><img class=\"room-art\" src=\"/assets/rooms.webp\" width=\"1536\" height=\"1024\" alt=\"書斎、鏡、炉、港へと扉と階段でつながるドット絵の工房\"><p>操作はリンクとフォームだけ。MoonBitのネイティブコンパイラが、保存・検証・差分ビルドを担当します。</p>",
+        "<p>ようこそ、月の出版工房へ。扉を開いて、文章をひとつのサイトにしていきましょう。</p><p>操作はリンクとフォームだけ。MoonBitのネイティブコンパイラが、保存・検証・差分ビルドを担当します。</p>",
         None,
         Some(Writing),
       )
@@ -118,7 +118,7 @@ fn admin_room(
       )
     Building =>
       (
-        "<p>炉に入れる前に、変わるファイルを確かめます。確認した計画と実際の入力が違えば、MoonBitが書き込みを止めます。</p>" +
+        "<p>ページを綴じる前に、変わるファイルを確かめます。確認した計画と実際の入力が違えば、MoonBitが書き込みを止めます。</p>" +
         room_production_state(input, token, false) +
         admin_production_plan_form(token) +
         "<p>表示された変更計画を読んで、Build reviewed production files を選んでください。更新のないページは書き換えません。</p>",

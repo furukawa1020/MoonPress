@@ -1,5 +1,5 @@
 ---
-{"title":"05 公開の港","layout":"room.html","listed":false}
+{"title":"05 公開の港","layout":"room-publish.html","listed":false}
 ---
 # 05 公開の港
 

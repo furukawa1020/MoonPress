@@ -33,6 +33,8 @@ diff -r "$tmp/site" "$tmp/before"
 for target in /rooms/nope '/rooms?complete=1' /assets/nope; do
   test "$(get "$target")" = 404
 done
+test "$(get /assets/logo.jpg)" = 200
+cmp "$tmp/page" docs/assets/social-preview.jpg
 test "$(get /assets/font.woff)" = 200
 grep -qi 'Content-Type: font/woff' "$tmp/headers"
 cmp "$tmp/page" ui-assets/dotgothic16.woff

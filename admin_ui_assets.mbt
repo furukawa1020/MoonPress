@@ -4,6 +4,7 @@ fn admin_ui_asset(request : AdminRequest) -> Bytes raise {
     raise InvalidInput("UI assets require GET")
   }
   let (mime, content) = match request.target {
+    "/assets/logo.jpg" => ("image/jpeg", admin_logo_data)
     "/assets/font.woff" => ("font/woff", admin_font_data)
     "/assets/rooms.webp" => ("image/webp", admin_room_art_data)
     _ =>
