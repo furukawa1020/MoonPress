@@ -137,3 +137,4 @@ bash scripts/admin-recovery-test.sh
 bash scripts/io-cleanup-test.sh
 
 bash scripts/utf8-input-test.sh
+bash scripts/pages-package-test.sh
