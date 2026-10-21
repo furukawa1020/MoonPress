@@ -31,6 +31,10 @@ done
 mkdir -p "$tmp/fault/public"
 printf '\211PNG\r\n\032\noriginal' > "$tmp/fault/public/a.png"
 for fault in READ SEEK SIZE CLOSE; do
-  env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_FAIL_$fault=$tmp/fault/public/a.png" MOONPRESS_IMAGE_FAILURE_PROBE="$tmp/fault" timeout 30 moon test --target native --filter 'media preview refuses substituted paths and closes failed streams'
+  echo "Media preview fault probe: $fault"
+  if ! env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_FAIL_$fault=$tmp/fault/public/a.png" MOONPRESS_IMAGE_FAILURE_PROBE="$tmp/fault" timeout 30 moon test --target native --filter 'media preview refuses substituted paths and closes failed streams'; then
+    nm -D _build/native/debug/test/moonpress.whitebox_test.exe | grep -E 'fread|fseek|ftell|fclose|readlink'
+    exit 1
+  fi
 done
 echo 'Media preview guard tests passed: substituted symlinks/FIFOs, retained root/public handles, read/seek/size/close faults and no descriptor growth.'
