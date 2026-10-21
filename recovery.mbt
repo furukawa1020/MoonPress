@@ -206,14 +206,13 @@ fn recovery_operation(output : String, apply~ : Bool) -> RecoveryReport raise {
   let staged = journal.writes.copy()
   staged.push(".moonpress.json")
   if apply {
-    if record_kind == 0 {
-      retain_recovery_record(output, stage)
-    }
     cleanup_stage(stage, staged, affected, backup_kind == 2, true)
     if !committed && journal.previous is None {
       @fs.remove_dir(output)
     }
-    @fs.remove_file(record)
+    if record_kind == 1 {
+      @fs.remove_file(record)
+    }
   }
   {
     action: if committed {
