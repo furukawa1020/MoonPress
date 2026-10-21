@@ -108,6 +108,7 @@ bash scripts/json-report-test.sh
 bash scripts/strict-state-test.sh
 bash scripts/manifest-preflight-test.sh
 bash scripts/output-audit-test.sh
+bash scripts/audit-recovery-test.sh
 bash scripts/build-plan-test.sh
 bash scripts/reviewed-api-test.sh
 bash scripts/reviewed-cli-test.sh
