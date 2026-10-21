@@ -53,7 +53,8 @@ fn admin_dependency_review(plan : DetailedBuildPlan) -> String {
       )
     } else {
       out.write_string(
-        "<table><caption>Dependency changes for " +
+        admin_table_start("Dependency changes for " + output.name) +
+        "<caption>Dependency changes for " +
         escape_html(output.name) +
         "</caption><thead><tr><th scope=\"col\">Dependency</th><th scope=\"col\">Change</th></tr></thead><tbody>",
       )
@@ -66,7 +67,7 @@ fn admin_dependency_review(plan : DetailedBuildPlan) -> String {
           "</td></tr>",
         )
       }
-      out.write_string("</tbody></table>")
+      out.write_string("</tbody></table></div>")
     }
     out.write_string(
       "<details><summary>Inspect observed SHA-256 digests</summary><p>Output before: " +

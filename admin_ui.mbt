@@ -5,12 +5,7 @@ fn admin_page(title : String, body : String) -> String {
   " — MoonPress</title><style>body{font:17px/1.6 system-ui;max-width:64rem;margin:auto;padding:2rem;background:#f6f7fa;color:#182236;overflow-wrap:anywhere}nav{padding:1rem 0;border-bottom:1px solid #ccd3de}a{color:#204ea5}.table-scroll{max-width:100%;overflow-x:auto;margin:1rem 0}table{width:100%;min-width:36rem;border-collapse:collapse}td,th{text-align:left;padding:.7rem;border-bottom:1px solid #ccd3de}form{margin:1.5rem 0;padding:1rem;background:white;border:1px solid #ccd3de;border-radius:.5rem}label{display:block;margin:.7rem 0}input,textarea,button{font:inherit;box-sizing:border-box;max-width:100%}input,textarea{width:100%;padding:.5rem}textarea{min-height:24rem;overflow-wrap:normal;font-family:monospace}button{padding:.5rem 1rem;cursor:pointer}input[type=hidden]{display:none}:focus-visible{outline:3px solid #bb6b10;outline-offset:3px}.notice{padding:1rem;background:#fff3d6}pre{max-width:100%;overflow-x:auto;white-space:pre-wrap}nav{overflow-wrap:normal}nav a{display:inline-block;padding:.25rem 0}@media(max-width:40rem){body{padding:1rem}td,th{padding:.45rem}form{padding:.75rem}textarea{min-height:16rem}button{white-space:normal}}.skip-link{position:absolute;left:-10000px;top:0}.skip-link:focus{left:1rem;top:1rem;background:white;padding:.5rem;z-index:10}</style><a class=\"skip-link\" href=\"#main\">Skip to content</a><nav aria-label=\"Main navigation\"><strong>MoonPress</strong> · <a href=\"/workflow\">Start here</a> · <a href=\"/\">Posts</a> · <a href=\"/media\">Media</a> · <a href=\"/reference-outputs\">Output references</a> · <a href=\"/site-settings\">Site settings</a> · <a href=\"/publish\">Publish</a> · Local administration</nav><main id=\"main\" tabindex=\"-1\"><h1>" +
   escape_html(title) +
   "</h1>" +
-  body
-  .replace_all(
-    old="<table>",
-    new="<div class=\"table-scroll\" role=\"region\" aria-label=\"Scrollable table\" tabindex=\"0\"><table>",
-  )
-  .replace_all(old="</table>", new="</table></div>") +
+  body +
   "</main></html>"
 }
 
@@ -487,4 +482,11 @@ fn admin_route(
       )
     }
   }
+}
+
+///|
+fn admin_table_start(label : String) -> String {
+  "<div class=\"table-scroll\" role=\"region\" aria-label=\"" +
+  escape_html(label) +
+  "\" tabindex=\"0\"><table>"
 }

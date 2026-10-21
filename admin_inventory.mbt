@@ -55,7 +55,9 @@ fn admin_posts(
     out.write_string("<p>No matching posts.</p>")
   }
   out.write_string(
-    "<p>Ready posts enter normal builds. Changes here do not deploy your site.</p><table><thead><tr><th>Title</th><th>State</th><th>Source</th></tr></thead><tbody>",
+    "<p>Ready posts enter normal builds. Changes here do not deploy your site.</p>" +
+    admin_table_start("Posts inventory") +
+    "<thead><tr><th>Title</th><th>State</th><th>Source</th></tr></thead><tbody>",
   )
   for index = start; index < end; index = index + 1 {
     let post = matches[index]
@@ -74,7 +76,7 @@ fn admin_posts(
     )
   }
   out.write_string(
-    "</tbody></table>" +
+    "</tbody></table></div>" +
     admin_post_navigation(query, state, page, pages) +
     admin_post_problems(inventory.problems) +
     "<h2 id=\"new-draft\">New draft</h2><form method=\"post\" action=\"/new\">" +
