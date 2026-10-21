@@ -100,6 +100,8 @@ cmp "$tmp/out/a.html" "$tmp/clean/a.html"
 test -f "$tmp/out/n.html"
 test ! -e "$tmp/out/obsolete.html"
 test -f "$tmp/out/.moonpress-stage/backup/a.html"
+"$cli" recover "$tmp/out" >/dev/null
+diff -r "$tmp/out" "$tmp/clean"
 # An ordinary failure on a fresh output returns it to absence.
 status=0
 env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_FAIL_RENAME="$tmp/fresh/z.html" \

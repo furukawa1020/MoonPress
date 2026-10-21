@@ -196,10 +196,11 @@ reset_output
 crash "MOONPRESS_TEST_KILL_AFTER_RENAME=$tmp/out/.moonpress.json" build "$tmp/site" "$tmp/out"
 rm "$tmp/out/n.html"
 reject recover "$tmp/out" --json
-# Killing final cleanup after journal deletion deliberately requires a fresh output.
+# The retained parent record closes the final journal-unlink window.
 reset_output
 crash "MOONPRESS_TEST_KILL_AFTER_REMOVE=$tmp/out/.moonpress-stage/journal" build "$tmp/site" "$tmp/out"
-reject recover "$tmp/out"
+recover finalized
+diff -r "$tmp/out" "$tmp/clean"
 # A real competing process holds the same output-parent lock during recovery.
 rm -rf "$tmp/out"
 cp -a "$tmp/crashed" "$tmp/out"
