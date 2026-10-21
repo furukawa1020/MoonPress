@@ -71,7 +71,7 @@ fn recovery_operation(output : String, apply~ : Bool) -> RecoveryReport raise {
       raise InvalidInput("Recovery output unexpectedly missing")
     }
     if apply {
-      @fs.remove_file(record)
+      remove_recovery_record(output)
     }
     return { action: "rolled_back", restored: 0, removed: 0, }
   }
@@ -212,12 +212,18 @@ fn recovery_operation(output : String, apply~ : Bool) -> RecoveryReport raise {
   let staged = journal.writes.copy()
   staged.push(".moonpress.json")
   if apply {
+    // Never discard backups until the selected public state is persistent.
+    sync_publication_directory(output)
+    if backup_kind == 2 {
+      sync_publication_directory(backup)
+    }
     cleanup_stage(stage, staged, affected, backup_kind == 2, true)
     if !committed && journal.previous is None {
       @fs.remove_dir(output)
+      sync_publication_directory(output, parent=true)
     }
     if record_retained {
-      @fs.remove_file(record)
+      remove_recovery_record(output)
     }
   }
   {

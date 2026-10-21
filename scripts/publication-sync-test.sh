@@ -14,6 +14,7 @@ for injection in "MOONPRESS_TEST_FAIL_EXISTING_SYNC=$tmp/out/.moonpress-stage/ba
   status=0
   env LD_PRELOAD="$tmp/fault.so" "$injection" "$cli" build "$tmp/site" "$tmp/out" >/dev/null 2>&1 || status=$?
   test "$status" -eq 1
+  if [[ -f "$record" ]]; then "$cli" recover "$tmp/out" >/dev/null; fi
   diff -r "$tmp/old" "$tmp/out"
   test ! -e "$record"
 done

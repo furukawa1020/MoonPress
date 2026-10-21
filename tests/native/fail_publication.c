@@ -31,6 +31,7 @@ static int anonymous_synced[256];
 static int sync_interrupted;
 static int directory_sync_interrupted;
 static int selected_sync_calls;
+static int selected_kill_sync_calls;
 int lstat(const char *path, struct stat *st) {
   int (*real_lstat)(const char *, struct stat *) = dlsym(RTLD_NEXT, "lstat");
   if (!real_lstat) _exit(120);
@@ -110,7 +111,13 @@ int fsync(int fd) {
       if(!log) _exit(126);
       fprintf(log,"sync %s\n",synced_path); fclose(log);
     }
-    crash_if("MOONPRESS_TEST_KILL_AFTER_SYNC",synced_path);
+    if(matches("MOONPRESS_TEST_KILL_AFTER_SYNC",synced_path)) {
+      const char *nth=getenv("MOONPRESS_TEST_KILL_SYNC_ON_CALL");
+      selected_kill_sync_calls++;
+      if(!nth || selected_kill_sync_calls==atoi(nth)) {
+        kill(getpid(),SIGKILL); _exit(102);
+      }
+    }
   }
   if (result==0 && fd>=0 && fd<256) anonymous_synced[fd]=1;
   return result;

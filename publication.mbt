@@ -106,6 +106,7 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
   let mut stage_created = false
   let mut publishing = false
   let mut committed = false
+  let mut commit_synced = false
   try {
     let writes = plan.pending.filter_map(item => {
       if item.content is Some(_) {
@@ -181,17 +182,26 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
         applied.push(name)
       }
     }
+    // Persist artifact names before the manifest can identify the new tree.
+    sync_publication_directory(output)
+    sync_publication_directory(stage)
     if manifest_changed {
       replace_staged_file(stage + "/.moonpress.json", marker)
     }
     committed = true
+    // A failed barrier after rename must retain the journal, never roll back.
+    sync_publication_directory(output)
+    sync_publication_directory(stage)
+    commit_synced = true
     cleanup_stage(stage, staged, backed, backup_created, journal_created)
-    @fs.remove_file(recovery_record_path(output))
+    remove_recovery_record(output)
   } catch {
     error => {
       let rollback_error = if publishing && !committed {
         try {
           rollback_publication(output, backup, applied, backed)
+          sync_publication_directory(output)
+          sync_publication_directory(backup)
           None
         } catch {
           cause => Some("\{cause}")
@@ -200,7 +210,8 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
         None
       }
       // Failed rollback keeps remaining backups for inspection; never discard them.
-      let cleaned = if rollback_error is Some(_) {
+      let cleaned = if rollback_error is Some(_) ||
+        (committed && !commit_synced) {
         false
       } else {
         try {
@@ -215,9 +226,10 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
           }
           if output_created && !committed {
             @fs.remove_dir(output)
+            sync_publication_directory(output, parent=true)
           }
           if record_retained {
-            @fs.remove_file(recovery_record_path(output))
+            remove_recovery_record(output)
           }
           true
         } catch {
@@ -266,11 +278,15 @@ fn cleanup_stage(
         @fs.remove_file(path)
       }
     }
+    sync_publication_directory(backup)
     @fs.remove_dir(backup)
+    sync_publication_directory(stage)
   }
   if journal_created && path_kind(stage + "/journal") == 1 {
     @fs.remove_file(stage + "/journal")
   }
+  sync_publication_directory(stage)
   // Never recursively delete unknown entries.
   @fs.remove_dir(stage)
+  sync_publication_directory(stage, parent=true)
 }

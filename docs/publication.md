@@ -102,7 +102,9 @@ fsync calls are retried, while other synchronization failures abort before namin
 the file. The receiving directory is retained before installation and fsynced
 after the exclusive link. Directory open/sync/close failures are reported; after
 a successful link, caught failures remove only that newly installed file.
-Cleanup removal itself is not yet a durable transaction.
+Cleanup synchronizes each emptied directory before removing it and synchronizes
+its parent afterward. The output parent is synchronized before and after removing
+the retained recovery record.
 Unsupported filesystems fail closed before output changes. The record remains
 until stage cleanup and fresh-output rollback removal finish.
 Recovery validates this record and any remaining stage before mutation. A stopped
@@ -126,8 +128,11 @@ journal write (output is unchanged), or explicitly recovered after the parent
 journal is installed, including preparation and final cleanup interruptions.
 This requires Linux `O_TMPFILE`, `/proc/self/fd`, same-filesystem hard links and
 cooperative local writers. Preparation barriers cover output/staging creation
-and backup links. Commit/rollback ordering and cleanup are not yet synchronized
-as a complete durability protocol.
+and backup links. Artifacts and staging renames are synchronized before the manifest rename.
+After the manifest rename, output and staging are synchronized again before
+cleanup. A failure in this post-rename barrier retains journal and backups and
+never rolls back the visible new manifest. Rollback and recovery synchronize
+the restored output before discarding remaining recovery data.
 File fsync alone does not establish power-loss recovery; no power-loss guarantee
 is made.
 
@@ -211,3 +216,14 @@ The administration `/recovery` page inspects only `<site>/.moonpress-build`, wit
 no arbitrary output path or mutation endpoint. A blocked Publish page links to it.
 It reports prospective actions and terminal instructions; unknown/edited state
 still fails closed. The interruption and durability limits above are unchanged.
+
+## Commit and cleanup barrier verification
+
+`scripts/publication-commit-sync-test.sh` injects directory synchronization errors
+and SIGKILL after the pre-manifest, post-manifest and stage-removal barriers.
+Before commit it requires old-tree restoration; after commit it requires the
+complete new tree. A failed post-commit barrier must retain both journal and
+backup. Recovery synchronization failure retains intent for another attempt.
+These tests exercise real native syscalls and restart behavior; they do not
+emulate lost volatile storage caches or certify arbitrary hardware/filesystems.
+Authoring source writes have a separate durability contract.
