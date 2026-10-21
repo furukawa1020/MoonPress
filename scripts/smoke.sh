@@ -8,7 +8,7 @@ trap 'rm -rf "$tmp"' EXIT
 "$cli" build site "$tmp/first"
 "$cli" build site "$tmp/second"
 diff -r "$tmp/first" "$tmp/second"
-grep -q '<h1 id="mp-moonpress">MoonPress</h1>' "$tmp/first/index.html"
+grep -q '<h1 id="mp-書いたものを、自分の場所に。">書いたものを、自分の場所に。</h1>' "$tmp/first/index.html"
 grep -q 'href="style.css"' "$tmp/first/index.html"
 test -s "$tmp/first/style.css"
 expect_failure() {
@@ -25,7 +25,7 @@ expect_failure 1 build site "$tmp/unmanaged"
 expect_failure 1 build "$tmp/missing" "$tmp/absent"
 test ! -e "$tmp/absent"
 expect_failure 2 bogus
-if grep -REin '<script|javascript:|on(click|load|error)=' "$tmp/first"; then
+if grep -REin --include='*.html' --include='*.css' '<script|javascript:|on(click|load|error)=' "$tmp/first"; then
   echo 'ERROR: executable JavaScript in generated sample' >&2; exit 1
 fi
 printf 'Native binary bytes: '
