@@ -6,9 +6,9 @@ fn admin_production_output(input : String) -> String {
 ///|
 fn admin_production_form(token : String, review_id? : String = "") -> String {
   if review_id.is_empty() {
-    return "<p><a href=\"/rooms/build\">◀ 製本室</a> · <a href=\"/rooms/publish\">▶ 公開の港へ</a></p><h2>Production files</h2><p>Inspect production changes first. The inspection page provides the button to build exactly the reviewed plan. <a href=\"/workflow#review\">Review production changes</a>.</p>"
+    return "<p><a href=\"/rooms/build\">◀ こんぱいら〜る〜む</a> · <a href=\"/rooms/publish\">▶ おひろめる〜むへ</a></p><h2>Production files</h2><p>Inspect production changes first. The inspection page provides the button to build exactly the reviewed plan. <a href=\"/workflow#review\">Review production changes</a>.</p>"
   }
-  "<p><a href=\"/rooms/build\">◀ 製本室</a> · <a href=\"/rooms/publish\">▶ 公開の港へ</a></p><h2>Production files</h2><form method=\"post\" action=\"/build-production\">" +
+  "<p><a href=\"/rooms/build\">◀ こんぱいら〜る〜む</a> · <a href=\"/rooms/publish\">▶ おひろめる〜むへ</a></p><h2>Production files</h2><form method=\"post\" action=\"/build-production\">" +
   admin_hidden("token", token) +
   admin_hidden("review_id", review_id) +
   "<p>Build the changes shown above into <code>.moonpress-build</code>. If the plan changes, the build stops and asks you to inspect again. Drafts and unsaved text are excluded. Hosting deployment is a separate step.</p><button>Build production files</button></form>"

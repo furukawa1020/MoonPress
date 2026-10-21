@@ -33,11 +33,11 @@ fn room_path(room : PublishingRoom) -> String {
 ///|
 fn room_title(room : PublishingRoom) -> String {
   match room {
-    Entrance => "01 はじまりの間"
-    Writing => "02 ことばの書斎"
-    Preview => "03 鏡の回廊"
-    Building => "04 製本室"
-    Departure => "05 公開の港"
+    Entrance => "01 はじまりのおへや"
+    Writing => "02 かきかきる〜む"
+    Preview => "03 ぷれびゅ〜る〜む"
+    Building => "04 こんぱいら〜る〜む"
+    Departure => "05 おひろめる〜む"
   }
 }
 
@@ -67,14 +67,14 @@ fn room_production_state(
   try {
     let report = inspect_release_readiness(input)
     let status = if report.current {
-      "<p class=\"notice\">製本の状態：保存済みの公開対象と生成物が一致しています。ローカルのビルド準備は完了です。ホストへの公開は未確認です。</p>"
+      "<p class=\"notice\">ビルドの状態：保存済みの公開対象と生成物が一致しています。ローカルのビルド準備は完了です。ホストへの公開は未確認です。</p>"
     } else {
-      "<p class=\"notice\">製本の状態：再ビルドが必要です。書き込み \{report.pending_writes} 件 / 削除 \{report.pending_deletes} 件。変更計画を確認してから進んでください。</p>"
+      "<p class=\"notice\">ビルドの状態：再ビルドが必要です。書き込み \{report.pending_writes} 件 / 削除 \{report.pending_deletes} 件。変更計画を確認してから進んでください。</p>"
     }
     status + (if export_zip { admin_export_form(report, token) } else { "" })
   } catch {
     error =>
-      "<p class=\"notice\">製本の状態を確認できません：" +
+      "<p class=\"notice\">ビルドの状態を確認できません：" +
       escape_html(error.to_string()) +
       "</p><p>元の記事や出力を修復してから再確認してください。中断したビルドは <a href=\"/recovery\">復旧の案内所</a> へ。状態を確認できるまで公開用ZIPは作成しません。</p>"
   }
@@ -98,19 +98,19 @@ fn admin_room(
   let (body, back, next) = match room {
     Entrance =>
       (
-        "<p>ようこそ、月の出版工房へ。扉を開いて、文章をひとつのサイトにしていきましょう。</p><p>操作はリンクとフォームだけ。MoonBitのネイティブコンパイラが、保存・検証・差分ビルドを担当します。</p>",
+        "<p>ようこそ、MoonPressのおへやへ。ひとつずつ扉をあけて、あなたのサイトをつくっていこう。</p><p>操作はリンクとフォームだけ。MoonBitのネイティブコンパイラが、保存・検証・差分ビルドを担当します。</p>",
         None,
         Some(Writing),
       )
     Writing =>
       (
-        "<p>机に向かって、最初の文章を書きましょう。保存した記事と画像は、あなたのPCに残ります。</p><div class=\"room-actions\"><a href=\"/#new-draft\">▶ 新しい下書きをつくる</a><a href=\"/\">▶ 記事をひらく</a><a href=\"/media\">▶ 画像の道具箱をひらく</a></div><p>書き終えたら保存して、次の扉へ。未保存の文章は鏡には映りません。</p>",
+        "<p>まずは、すきなことをひとつ書いてみよう。保存した記事と画像は、あなたのPCに残ります。</p><div class=\"room-actions\"><a href=\"/#new-draft\">▶ 新しい下書きをつくる</a><a href=\"/\">▶ 記事をひらく</a><a href=\"/media\">▶ 画像の道具箱をひらく</a></div><p>書けたら保存して、つぎのおへやへ。保存していない文章はプレビューに反映されません。</p>",
         Some(Entrance),
         Some(Preview),
       )
     Preview =>
       (
-        "<p>鏡には、保存した下書きも含めたサイトが映ります。下のボタンで生成し、上の Open built preview を開いて確認してください。</p>" +
+        "<p>できあがりを見てみよう。保存した下書きもプレビューに含まれます。下のボタンで生成し、上の Open built preview を開いて確認してください。</p>" +
         admin_build_form(token) +
         "<p>よければ <a href=\"/?state=draft\">下書きをひらき</a>、Set ready for build を選びます。下書きのままの記事は公開用ビルドから除外されます。</p>",
         Some(Writing),
@@ -118,7 +118,7 @@ fn admin_room(
       )
     Building =>
       (
-        "<p>ページを綴じる前に、変わるファイルを確かめます。確認した計画と実際の入力が違えば、MoonBitが書き込みを止めます。</p>" +
+        "<p>ここで、書いたものをサイトにしていこう。まずは、変わるファイルを確かめます。確認した計画と実際の入力が違えば、MoonBitが書き込みを止めます。</p>" +
         room_production_state(input, token, false) +
         admin_production_plan_form(token) +
         "<p>表示された変更計画を読んで、Build reviewed production files を選んでください。更新のないページは書き換えません。</p>",
@@ -127,7 +127,7 @@ fn admin_room(
       )
     Departure =>
       (
-        "<p>ここから先は、公開の旅です。生成物が最新なら、下に公開用ZIPの持ち出しボタンが現れます。</p>" +
+        "<p>できたサイトを、みんなに見てもらおう。生成物が最新なら、下に公開用ZIPの持ち出しボタンが現れます。</p>" +
         room_production_state(input, token, true) +
         "<ol><li>ZIPを展開し、ホストへアップロードするか、設定済みのGitHub Actionsで配信します。</li><li>ホストのデプロイ成功を確認します。</li><li>公開URLを開き、記事・画像・CSSと削除したページを確認します。</li></ol><p class=\"notice\">ホスティング：未確認。この部屋に入っただけでは公開完了になりません。ローカル管理画面はホストの認証情報を持ちません。</p><div class=\"room-actions\"><a href=\"/publish\">▶ 公開先設定と持ち出しの詳細</a><a href=\"https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md\">▶ GitHub Pagesへの道順</a></div>",
         Some(Building),
@@ -148,19 +148,19 @@ fn admin_room(
   doors.write_string("<nav class=\"room-doors\" aria-label=\"次の扉\">")
   if back is Some(previous) {
     doors.write_string(
-      "<a href=\"" + room_path(previous) + "\">◀ 前の部屋へ</a>",
+      "<a href=\"" + room_path(previous) + "\">◀ まえのおへやへ</a>",
     )
   }
   if next is Some(following) {
     doors.write_string(
       "<a href=\"" +
       room_path(following) +
-      "\">▶ 扉をあける：" +
+      "\">▶ つぎのおへやへ：" +
       room_title(following) +
       "</a>",
     )
   } else {
-    doors.write_string("<a href=\"/rooms\">地図の入口へ戻る</a>")
+    doors.write_string("<a href=\"/rooms\">はじまりにもどる</a>")
   }
   doors.write_string("</nav>")
   admin_page(

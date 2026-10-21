@@ -30,6 +30,8 @@ always labels hosting unverified; it cannot upload or check remote deployment.
 The public website offers a static room tour and directs users to the local
 editor. Actual browser/assistive-technology testing remains outstanding.
 
-The building room is now presented as the bookbinding room (製本室); its route
+The rooms use relaxed Japanese names: はじまりのおへや, かきかきる〜む,
+ぷれびゅ〜る〜む, こんぱいら〜る〜む and おひろめる〜む.
+The compiler room retains the bookbinding artwork; its route
 remains `/rooms/build`. The original project logo is a third fixed embedded
 asset. Room descriptions and controls use open typography rather than panels.

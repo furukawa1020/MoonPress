@@ -1,12 +1,12 @@
 ---
-{"title":"02 ことばの書斎","layout":"room-write.html","listed":false}
+{"title":"02 かきかきる〜む","layout":"room-write.html","listed":false}
 ---
-# 02 ことばの書斎
+# 02 かきかきる〜む
 
-机には、まだ白いページ。
+すきなことから、かきかき。
 
 ローカル管理画面で下書きをつくり、文章を保存します。画像の道具箱から画像を添えることもできます。元のデータはあなたのPCのファイルに残ります。
 
-[▶ 扉をあける：鏡の回廊](room-preview.html)
+[▶ つぎのおへやへ：ぷれびゅ〜る〜む](room-preview.html)
 
-[◀ 前の部屋へ](index.html) · [地図の入口へ](index.html)
+[◀ まえのおへやへ](index.html) · [はじまりにもどる](index.html)
