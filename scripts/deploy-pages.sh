@@ -8,18 +8,21 @@ test -s "$source_dir/index.html"
 test -f "$source_dir/.nojekyll"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
+bash "$(dirname "$0")/prepare-pages.sh" "$source_dir" "$work/bundle"
+repository_work="$work/repository"
+mkdir "$repository_work"
 repo="https://github.com/$GITHUB_REPOSITORY.git"
-git -C "$work" init -q
-if git -C "$work" ls-remote --exit-code "$repo" refs/heads/gh-pages >/dev/null 2>&1; then
-  git -C "$work" fetch --depth=1 "$repo" gh-pages
-  git -C "$work" checkout --detach FETCH_HEAD
-  git -C "$work" rm -rf --ignore-unmatch .
+git -C "$repository_work" init -q
+if git -C "$repository_work" ls-remote --exit-code "$repo" refs/heads/gh-pages >/dev/null 2>&1; then
+  git -C "$repository_work" fetch --depth=1 "$repo" gh-pages
+  git -C "$repository_work" checkout --detach FETCH_HEAD
+  git -C "$repository_work" rm -rf --ignore-unmatch .
 fi
-cp -a "$source_dir/." "$work/"
-git -C "$work" add .
-if ! git -C "$work" diff --cached --quiet || ! git -C "$work" rev-parse HEAD >/dev/null 2>&1; then
-  git -C "$work" -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Deploy MoonPress from $GITHUB_SHA"
-  git -C "$work" -c credential.helper='!gh auth git-credential' push "$repo" HEAD:refs/heads/gh-pages
+cp -a "$work/bundle/." "$repository_work/"
+git -C "$repository_work" add .
+if ! git -C "$repository_work" diff --cached --quiet || ! git -C "$repository_work" rev-parse HEAD >/dev/null 2>&1; then
+  git -C "$repository_work" -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Deploy MoonPress from $GITHUB_SHA"
+  git -C "$repository_work" -c credential.helper='!gh auth git-credential' push "$repo" HEAD:refs/heads/gh-pages
 fi
 # GITHUB_TOKEN cannot create a Pages site. Detect setup rather than pretending
 # branch publication means the site has been deployed.
@@ -37,7 +40,7 @@ for attempt in $(seq 1 30); do
   gh api "repos/$GITHUB_REPOSITORY/pages/builds/latest" > "$work/status.json"
   state="$(jq -r .status "$work/status.json")"
   deployed="$(jq -r .commit "$work/status.json")"
-  expected="$(git -C "$work" rev-parse HEAD)"
+  expected="$(git -C "$repository_work" rev-parse HEAD)"
   if [[ "$deployed" == "$expected" && "$state" == built ]]; then
     url="$(jq -r .html_url "$work/pages.json")"
     curl --fail --silent --show-error --retry 3 "$url" -o "$work/live.html"
