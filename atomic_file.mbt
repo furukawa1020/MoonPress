@@ -1,4 +1,14 @@
 ///|
+#borrow(path)
+extern "C" fn atomic_parent_open(path : Bytes) -> Int = "moonpress_atomic_parent_open"
+
+///|
+extern "C" fn atomic_parent_sync(fd : Int) -> Int = "moonpress_atomic_parent_sync"
+
+///|
+extern "C" fn atomic_parent_close(fd : Int) -> Int = "moonpress_atomic_parent_close"
+
+///|
 extern "C" fn atomic_sync(file : NativeFile) -> Int = "moonpress_io_sync"
 
 ///|
@@ -21,6 +31,12 @@ fn write_atomic_new(path : String, bytes : Bytes) -> Unit raise {
   }
   let mut closed = false
   defer (if !closed { io_close(file) |> ignore })
+  let parent = atomic_parent_open(encoded)
+  if parent < 0 {
+    raise io_failure("open parent", path)
+  }
+  let mut parent_closed = false
+  defer (if !parent_closed { atomic_parent_close(parent) |> ignore })
   if io_write(file, bytes, bytes.length()) != bytes.length() {
     raise io_failure("write", path)
   }
@@ -33,10 +49,23 @@ fn write_atomic_new(path : String, bytes : Bytes) -> Unit raise {
   if atomic_install(file, encoded) != 0 {
     raise io_failure("exclusive install", path)
   }
+  if atomic_parent_sync(parent) != 0 {
+    let error = io_failure("sync parent", path)
+    @fs.remove_file(path)
+    raise error
+  }
   let result = io_close(file)
   closed = true
   if result != 0 {
+    let error = io_failure("close", path)
     @fs.remove_file(path)
-    raise io_failure("close", path)
+    raise error
+  }
+  let parent_result = atomic_parent_close(parent)
+  parent_closed = true
+  if parent_result != 0 {
+    let error = io_failure("close parent", path)
+    @fs.remove_file(path)
+    raise error
   }
 }

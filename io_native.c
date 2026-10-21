@@ -196,3 +196,22 @@ MOONBIT_FFI_EXPORT int moonpress_atomic_install(FILE *file, moonbit_bytes_t targ
   snprintf(source, sizeof source, "/proc/self/fd/%d", fileno(file));
   return linkat(AT_FDCWD, source, AT_FDCWD, (const char *)target, AT_SYMLINK_FOLLOW);
 }
+
+/* Retain the receiving directory until its new entry has been synchronized. */
+MOONBIT_FFI_EXPORT int moonpress_atomic_parent_open(moonbit_bytes_t target) {
+  char *copy = strdup((const char *)target);
+  if (!copy) return -1;
+  char *slash = strrchr(copy, '/');
+  if (slash) { if (slash == copy) slash[1] = 0; else *slash = 0; }
+  int fd = open(slash ? copy : ".", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+  int saved = errno;
+  free(copy);
+  errno = saved;
+  return fd;
+}
+MOONBIT_FFI_EXPORT int moonpress_atomic_parent_sync(int fd) {
+  int result;
+  do { result = fsync(fd); } while (result != 0 && errno == EINTR);
+  return result;
+}
+MOONBIT_FFI_EXPORT int moonpress_atomic_parent_close(int fd) { return close(fd); }
