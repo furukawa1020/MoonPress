@@ -1,45 +1,38 @@
 <!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="MoonPress — MoonBitで書いた、小さな出版の道具。">
-<title>Getting started · MoonPress</title>
-<link rel="stylesheet" href="style.css">
-<link rel="alternate" type="application/rss+xml" title="MoonPress" href="rss.xml">
-</head>
-<body>
-<a class="skip" href="#main">本文へ</a>
-<header><a class="brand" href="index.html">MoonPress</a><nav aria-label="メインナビゲーション"><a href="guide.html">使い方</a><a href="articles.html">読みもの</a><a href="https://github.com/furukawa1020/MoonPress">GitHub ↗</a></nav></header>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="MoonBitで動く、出版の小さな冒険。JavaScriptなしで書く・見る・ビルドする。"><title>冒険のはじめ方 · MoonPress</title><link rel="stylesheet" href="style.css"><link rel="alternate" type="application/rss+xml" title="MoonPress" href="rss.xml"></head>
+<body><a class="skip" href="#main">本文へ</a><header><a class="brand" href="index.html">☾ MoonPress</a><nav aria-label="メインメニュー"><a href="index.html">入口</a><a href="guide.html">操作の書</a><a href="https://github.com/furukawa1020/MoonPress">GitHub ↗</a></nav></header>
 <main id="main"><nav class="toc" aria-label="Table of contents">
 <ol>
-<li class="toc-level-1"><a href="#mp-getting-started">Getting started</a></li>
-<li class="toc-level-2"><a href="#mp-prerequisites">Prerequisites</a></li>
-<li class="toc-level-2"><a href="#mp-input-contract">Input contract</a></li>
-<li class="toc-level-2"><a href="#mp-supported-markdown">Supported Markdown</a></li>
-<li class="toc-level-2"><a href="#mp-safe-output">Safe output</a></li>
+<li class="toc-level-1"><a href="#mp-%E5%86%92%E9%99%BA%E3%81%AE%E3%81%AF%E3%81%98%E3%82%81%E6%96%B9">冒険のはじめ方</a></li>
+<li class="toc-level-2"><a href="#mp-%E9%81%93%E5%85%B7%E3%82%92%E3%81%9D%E3%82%8D%E3%81%88%E3%82%8B">道具をそろえる</a></li>
+<li class="toc-level-2"><a href="#mp-%E8%87%AA%E5%88%86%E3%81%AE%E5%B7%A5%E6%88%BF%E3%82%92%E3%81%B2%E3%82%89%E3%81%8F">自分の工房をひらく</a></li>
+<li class="toc-level-2"><a href="#mp-%E5%85%AC%E9%96%8B%E3%81%AE%E6%B8%AF%E3%81%8B%E3%82%89%E5%85%88%E3%81%B8">公開の港から先へ</a></li>
+<li class="toc-level-2"><a href="#mp-moonbit%E3%81%8C%E6%8B%85%E5%BD%93%E3%81%99%E3%82%8B%E3%81%93%E3%81%A8">MoonBitが担当すること</a></li>
 </ol>
 </nav>
-<h1 id="mp-getting-started">Getting started</h1>
-<h2 id="mp-prerequisites">Prerequisites</h2>
-<p>Linux x86_64、Cコンパイラ、MoonBitの検証済みツールチェーンを使用します。</p>
-<pre><code class="language-sh">bash scripts/setup.sh
+<h1 id="mp-冒険のはじめ方">冒険のはじめ方</h1>
+<h2 id="mp-道具をそろえる">道具をそろえる</h2>
+<p>いまのMoonPressはLinux x86_64向けのプレビュー版です。ソースから作る場合は、Git・Bash・Cコンパイラと検証済みMoonBitツールチェーンを使います。</p>
+<pre><code class="language-sh">git clone https://github.com/furukawa1020/MoonPress.git
+cd MoonPress
+bash scripts/setup.sh
 export PATH=&quot;$HOME/.moon/bin:$PATH&quot;
-bash scripts/check.sh
-moon run cmd/main --target native -- build site dist
+moon build --target native --release
 </code></pre>
-<h2 id="mp-input-contract">Input contract</h2>
-<p>site/content直下の.mdファイルを、同名の.htmlへ変換します。layout.htmlの{{title}}と{{content}}を置換し、style.cssをコピーします。</p>
-<p>最初のH1をページタイトルとして使います。本文中のHTMLはエスケープします。レイアウトとCSSは制作者が管理する信頼済みファイルです。</p>
-<h2 id="mp-supported-markdown">Supported Markdown</h2>
-<p>1〜6段階の見出し、空行で区切る段落、バッククォート3個のコードフェンスに対応します。リンク・リスト・強調・frontmatter・ネストしたディレクトリは未対応です。CommonMark完全互換ではありません。</p>
-<h2 id="mp-safe-output">Safe output</h2>
-<p>初回に生成した管理情報をもとに、変更されたページだけを再生成します。削除・リネームされた記事の古い出力は除去します。管理外のファイル、手動編集、シンボリックリンクを検出した場合は更新を中止します。</p>
-<pre><code class="language-sh">moonpress explain site dist
-moonpress build site dist
+<h2 id="mp-自分の工房をひらく">自分の工房をひらく</h2>
+<pre><code class="language-sh">moonpress=&quot;$PWD/_build/native/release/build/cmd/main/main.exe&quot;
+&quot;$moonpress&quot; init ../my-site
+&quot;$moonpress&quot; admin ../my-site 8080
 </code></pre>
-<p>explainは変更せずに更新予定と理由を表示します。同じ出力先への同時ビルドは未対応です。</p>
-</main>
-<footer><span>MoonPress / 小さな出版の道具</span><span>Made with MoonBit. Delivered as HTML.</span><a href="https://github.com/furukawa1020/MoonPress/issues">開発ノート ↗</a></footer>
-</body>
-</html>
+<p>ブラウザで http://127.0.0.1:8080/rooms を開きます。ターミナルは開いたままにしてください。</p>
+<p>書斎で記事を書いて保存し、鏡の回廊でプレビュー、コンパイルの炉で変更計画を確認してビルドします。公開の港では、最新の生成物だけをZIPで持ち出せます。</p>
+<p>管理画面は自分のPCだけに開きます。ネット上のこのサイトは体験ガイドです。ここであなたのファイルを編集することはありません。</p>
+<h2 id="mp-公開の港から先へ">公開の港から先へ</h2>
+<p>生成したファイルをGitHub Pagesなどのホストへ配信します。ローカルでのビルド成功と、ホストへの公開成功は別々です。</p>
+<p><a href="https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md">GitHub Pagesへの詳しい道順</a></p>
+<h2 id="mp-moonbitが担当すること">MoonBitが担当すること</h2>
+<p>HTMLフォームを受け取り、保存済み記事の検証・依存関係の解析・SHA-256による差分計画・確認済み計画のビルドをネイティブで実行します。ブラウザのJavaScriptやTypeScriptは使いません。</p>
+<p>記事はMarkdown、見た目はHTMLとCSS、画像はファイルとして手元に残ります。生成物もHTML・CSS・画像なので、配信先にMoonBitを入れる必要はありません。</p>
+<p>完全な電源断耐性、実ブラウザでの操作検証、安定版配布は引き続き開発中です。</p>
+<p><a href="index.html">入口へ戻る</a></p>
+</main><footer><span>MoonBit native · No JavaScript / TypeScript</span><a href="font-license.txt">フォントのライセンス</a><a href="https://github.com/furukawa1020/MoonPress/issues">冒険の記録 ↗</a></footer></body></html>

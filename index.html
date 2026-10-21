@@ -1,32 +1,8 @@
 <!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="手元のMarkdownから、自分のウェブサイトをつくる。MoonBitで書いた小さな出版の道具、MoonPress。">
-<title>MoonPress — 小さな出版の道具</title>
-<link rel="stylesheet" href="style.css">
-<link rel="alternate" type="application/rss+xml" title="MoonPress" href="rss.xml">
-</head>
-<body>
-<a class="skip" href="#main">本文へ</a>
-<header><a class="brand" href="index.html">MoonPress</a><nav aria-label="メインナビゲーション"><a href="guide.html">使い方</a><a href="articles.html">読みもの</a><a href="https://github.com/furukawa1020/MoonPress">GitHub ↗</a></nav></header>
-<main id="main">
-<p class="edition">A SMALL TOOL FOR PUBLISHING · 開発中のプレビュー版</p>
-<section class="hero" aria-label="MoonPressについて">
-<div><h1 id="mp-書いたものを、自分の場所に。">書いたものを、自分の場所に。</h1>
-<p>日記も、制作の記録も、長く残したい文章も。
-MoonPressは、手元のMarkdownから自分のウェブサイトをつくる、小さな出版の道具です。</p>
-<p>HTMLとCSS、そして画像。できあがったサイトは、そのまま好きな場所へ持っていけます。</p>
-<div class="links"><a href="guide.html">使い方を読む →</a><a href="https://github.com/furukawa1020/MoonPress">ソースコードを見る ↗</a></div></div>
-<figure><img src="moon-workshop.jpg" width="1536" height="1024" alt="大きな月の下の小さな印刷工房から、紙が夜空へ広がる版画風の挿絵"><figcaption>01 / 小さな工房から、ウェブへ。</figcaption></figure>
-</section>
-<div class="spread">
-<article><img src="writing-desk.jpg" width="1536" height="1024" loading="lazy" alt="開いたノート、ペン、刷り上がった小冊子が並ぶ机の挿絵"><p class="caption">02 / 書く場所は、手元に。</p><h2>文章と道具の、近い関係。</h2><p>Markdownを直接書いても、ローカルの管理画面から記事を編集しても。下書きをプレビューし、画像を添えて、自分のペースで仕上げられます。</p><p>元の文章は手元のファイルに。編集画面は自分のPCで起動します。</p><a href="https://github.com/furukawa1020/MoonPress/blob/main/docs/first-site-ja.md">最初の記事をつくる →</a></article>
-<article><img src="paper-voyage.jpg" width="1536" height="1024" loading="lazy" alt="月の下、印刷した一枚の紙を載せて波を進む紙の舟の挿絵"><p class="caption">03 / ページは、どこへでも。</p><h2>できあがったら、送り出す。</h2><p>変更するページを確認してからビルド。生成したHTML・CSS・画像は、GitHub Pagesなどの静的ホスティングへ公開できます。</p><p>読む人にJavaScriptの実行環境は不要です。このサイトも、MoonPressで生成しています。</p><a href="https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md">公開の手順を読む →</a></article>
-</div>
-<aside class="colophon" aria-label="開発状況"><h2>まだ、制作の途中です。</h2><div><p>MoonPressはLinux x86_64向けのプレビュー版です。サイトの生成・ローカルでの記事編集・画像管理が使えます。安定版配布、実ブラウザでの検証、完全な電源断対策は開発中です。</p><p>MoonBitのネイティブ実行ファイルとして動き、Node.jsは使いません。<a href="https://github.com/furukawa1020/MoonPress">導入方法と開発状況はGitHubへ。</a></p></div></aside>
-</main>
-<footer><span>MoonPress / 小さな出版の道具</span><span>Made with MoonBit. Delivered as HTML.</span><a href="https://github.com/furukawa1020/MoonPress/issues">開発ノート ↗</a></footer>
-</body>
-</html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="MoonBitで動く、出版の小さな冒険。JavaScriptなしで書く・見る・ビルドする。"><title>MoonPress · MoonPress</title><link rel="stylesheet" href="style.css"><link rel="alternate" type="application/rss+xml" title="MoonPress" href="rss.xml"></head>
+<body><a class="skip" href="#main">本文へ</a><header><a class="brand" href="index.html">☾ MoonPress</a><nav aria-label="メインメニュー"><a href="index.html">入口</a><a href="guide.html">操作の書</a><a href="https://github.com/furukawa1020/MoonPress">GitHub ↗</a></nav></header>
+<main id="main"><p class="status">MOONPRESS / 出版の冒険 / プレビュー版</p><img class="scene" src="publishing-rooms.webp" width="1536" height="1024" alt="月夜の城。書斎、鏡の部屋、炉、海へ出る門が階段でつながるドット絵"><section class="dialogue"><h1 id="mp-moonpress">MoonPress</h1>
+<p>文章をたずさえて、月の工房へ。</p>
+<p>書斎で書く。鏡で見る。炉でサイトをつくる。扉をひとつずつ開いて、公開の港へ進む、小さな出版の冒険です。</p>
+<p>動かすのはMoonBitのネイティブコンパイラ。JavaScriptもTypeScriptも使いません。</p>
+</section><div class="command"><a href="room-write.html">▶ 扉をあける</a><a href="guide.html">▶ PCで冒険をはじめる</a></div><p class="status">ここは公開サイトの体験ガイドです。実際の記事編集はPCで起動するローカル管理画面で行います。</p><nav class="map" aria-label="部屋の地図"><a href="index.html">01 入口</a><a href="room-write.html">02 書斎</a><a href="room-preview.html">03 鏡の回廊</a><a href="room-build.html">04 コンパイルの炉</a><a href="room-publish.html">05 公開の港</a></nav></main><footer><span>MoonBit native · No JavaScript / TypeScript</span><a href="font-license.txt">フォントのライセンス</a><a href="https://github.com/furukawa1020/MoonPress/issues">冒険の記録 ↗</a></footer></body></html>
