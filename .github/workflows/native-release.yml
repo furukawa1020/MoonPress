@@ -1,0 +1,93 @@
+name: Native release candidate
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/native-release.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: native-release-candidate
+  cancel-in-progress: false
+jobs:
+  package:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - name: Fetch exact source revision
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+      - name: Set up pinned native toolchain
+        run: |
+          bash scripts/setup.sh
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Validate and package
+        run: |
+          bash scripts/check.sh
+          bash scripts/package-native.sh "$RUNNER_TEMP/package"
+          bash scripts/release-smoke.sh "$RUNNER_TEMP/package"
+      - name: Stage immutable candidate assets
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+        run: |
+          tag="preview-${REVISION:0:12}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          printf 'tag=%s\n' "$tag" >> "$GITHUB_OUTPUT"
+          cat > "$RUNNER_TEMP/notes.md" <<EOF
+          Native Linux x86_64 release candidate from $REVISION.
+
+          Built on Ubuntu 22.04 with the pinned MoonBit native toolchain.
+          The same archive must pass installation tests on Ubuntu 22.04 and 24.04 before publication.
+          Download both assets, run sha256sum --check SHA256SUMS, then extract the archive.
+          BUILD.txt records source, toolchain and builder runtime; licenses are bundled.
+
+          This is a prerelease, not the stable version. Physical power-cut validation,
+          source-authoring durability and real-browser authoring verification remain open.
+          Checksums detect corruption but are not release signatures.
+          EOF
+          gh release create "$tag" --repo "$REPOSITORY" --target "$REVISION" --draft --prerelease --title "MoonPress native candidate $tag" --notes-file "$RUNNER_TEMP/notes.md"
+          gh release upload "$tag" "$RUNNER_TEMP/package/moonpress-linux-x86_64.tar.gz" "$RUNNER_TEMP/package/SHA256SUMS" --repo "$REPOSITORY"
+  install:
+    needs: package
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - name: Fetch verification script and candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+          TAG: ${{ needs.package.outputs.tag }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+          mkdir "$RUNNER_TEMP/download"
+          gh release download "$TAG" --repo "$REPOSITORY" --dir "$RUNNER_TEMP/download"
+          bash scripts/release-smoke.sh "$RUNNER_TEMP/download"
+  publish:
+    needs: [package, install]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Publish verified candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          TAG: ${{ needs.package.outputs.tag }}
+        run: gh release edit "$TAG" --repo "$REPOSITORY" --draft=false --prerelease --latest=false
