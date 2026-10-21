@@ -50,9 +50,21 @@ pub fn audit_output(output : String) -> OutputAudit raise {
   defer native_unlock_output(lock)
   require_input_kind(output, 2)
   require_input_kind(output + "/.moonpress.json", 1)
-  let manifest = parse_manifest(read_text(output + "/.moonpress.json"))
+  let manifest = parse_manifest(
+    read_publication_text(output + "/.moonpress.json", 4 * 1024 * 1024),
+  )
   let tracked : Map[String, Bool] = Map([])
   let findings : Array[OutputFinding] = []
+  let record = recovery_record_path(output)
+  if path_kind(record) != 0 {
+    findings.push({
+      path: record,
+      status: "recovery",
+      expected: None,
+      actual: None,
+      message: "Retained recovery record present; run recovery-plan before building. Contents not read",
+    })
+  }
   for artifact in manifest.artifacts {
     tracked[artifact.name] = true
     let file = output + "/" + artifact.name
