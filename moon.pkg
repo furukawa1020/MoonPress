@@ -13,6 +13,11 @@ import {
 options(
   "pre-build": [
     {
+      "input": "ui-assets/moonpress-logo.jpg",
+      "output": "admin_logo.generated.mbt",
+      "command": ":embed --binary --name admin_logo_data -i $input -o $output",
+    },
+    {
       "input": "ui-assets/rooms.webp",
       "output": "admin_room_art.generated.mbt",
       "command": ":embed --binary --name admin_room_art_data -i $input -o $output",

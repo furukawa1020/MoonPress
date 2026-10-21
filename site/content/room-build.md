@@ -1,7 +1,7 @@
 ---
-{"title":"04 コンパイルの炉","layout":"room.html","listed":false}
+{"title":"04 製本室","layout":"room-build.html","listed":false}
 ---
-# 04 コンパイルの炉
+# 04 製本室
 
 どのページが変わるか、先に確かめる。
 

@@ -11,7 +11,7 @@ fn admin_build_preview(input : String, token : String) -> String raise {
   let report = compile_site(input, output, include_drafts=true)
   admin_page(
     "Full preview files built",
-    "<p><a href=\"/rooms/preview\">◀ 鏡の回廊へ</a> · <a href=\"/rooms/build\">▶ コンパイルの炉へ進む</a></p>" +
+    "<p><a href=\"/rooms/preview\">◀ 鏡の回廊へ</a> · <a href=\"/rooms/build\">▶ 製本室へ進む</a></p>" +
     "<p>Built from saved sources, including drafts. No deployment performed.</p><p>Pages: \{report.pages}; written: \{report.written}; unchanged: \{report.skipped}; deleted: \{report.deleted}.</p><p>Choose Open built preview in the navigation to view the site with images and links. Generated files are in <code>" +
     escape_html(output) +
     "</code>. This directory can contain private draft content; do not publish it as your production site. Generated project HTML is not served on the administration origin.</p>" +

@@ -30,3 +30,10 @@ GitHub recommends 1280 × 640 for best display; this asset uses the same
 ```text
 Use case: ads-marketing / logo-brand. Create a finished GitHub repository social-preview banner for MoonPress, a native MoonBit static-site compiler. Output a wide 2:1 image, exactly 1280 x 640 pixels if possible, solid opaque background. Reference image is MoonBit's official rabbit icon: use its distinctive rounded M-shaped floppy ears, purple-magenta color, white tech visor, and lunar motif as visual inspiration, but make an original MoonPress adaptation: a sleek simple purple rabbit emblem rising from two open folded page shapes / a crescent, conveying compiling Markdown into published pages. Flat, precise, vector-like graphic with gentle restrained depth; premium open-source developer brand, no noisy textures. Icon takes the left third, large readable wordmark on the right; generous safe margins of 80 pixels all around so sharing crops remain legible. Deep midnight navy background, magenta/violet emblem, icy cyan small accents, white typography. Exact text only: 'MoonPress' in large modern bold sans-serif, and below it 'Native MoonBit static-site compiler' in smaller clean sans-serif. No additional copy, no GitHub/X logos, no watermarks, no code screenshots, no UI frames. Avoid copying the reference word/numbers in the visor; use a simple page/angle-bracket motif instead. Keep typography accurate and aligned, strong contrast and clean silhouette. This is the user's MoonPress project graphic, not an official MoonBit announcement.
 ```
+
+## Site and local editor — 2026-10-21
+
+The original JPEG is now displayed unchanged in public page headers and the
+local editor navigation. Public pages also reference it as their OG image.
+This reuse does not change the repository Social preview setting described
+above; no external sharing cache refresh is claimed.

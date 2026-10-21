@@ -1,5 +1,5 @@
 ---
-{"title":"02 ことばの書斎","layout":"room.html","listed":false}
+{"title":"02 ことばの書斎","layout":"room-write.html","listed":false}
 ---
 # 02 ことばの書斎
 
