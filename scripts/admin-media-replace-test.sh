@@ -9,6 +9,7 @@ cleanup() {
   rm -rf "$tmp"
 }
 trap cleanup EXIT
+trap 'printf "Media replacement test failed at line %s\n" "$LINENO" >&2; cat "$tmp/error" >&2; head -c 1024 "$tmp/page" >&2' ERR
 "$cli" init "$tmp/site" >/dev/null
 mkdir "$tmp/site/public"
 name='月&a.png'
