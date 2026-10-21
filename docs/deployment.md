@@ -22,7 +22,9 @@ The script explicitly requests a Pages build after publishing, because a
 workflow-token push does not automatically trigger a build. It waits for
 the expected commit to be built, then retrieves every packaged artifact and
 compares its bytes before success. Git and API calls have finite timeouts, as do
-individual HTTP requests and the complete verification step. A matching homepage
+individual HTTP requests and the complete verification step. Stale successful
+responses are retried with cache-busting for up to 600 seconds to allow CDN
+propagation; persistent differences or missing artifacts still fail. A matching homepage
 heading alone is insufficient.
 Relative CSS/navigation links work under the `/MoonPress/` project prefix.
 
@@ -58,7 +60,8 @@ that hosting is configured or that a deployment succeeded.
 Publication packaging is also available locally as
 `bash scripts/prepare-pages.sh dist NEW_DIRECTORY`. It refuses unhealthy output
 and copies only manifest-owned bytes. `bash scripts/verify-pages.sh DIRECTORY URL`
-checks a prepared bundle against an HTTP(S) host. Local fixture success is not
+checks a prepared bundle against an HTTP(S) host once. Add a third argument
+from 1 to 600 to wait that many seconds for all bytes to match. Local fixture success is not
 evidence that the demonstration Pages site is configured or reachable.
 
 ## Verification status (2026-10-21)
