@@ -102,10 +102,14 @@ Build refuses retained records; run `recovery-plan` and `recover` first. Do not
 move/delete these records separately from interrupted outputs. Unknown or conflicting
 records are refused, never overwritten. Successful cleanup leaves no parent record.
 
-Legacy stage-only recovery does not require installing a new parent record.
-It preserves compatibility with writable outputs in read-only parents, but cannot
-recover a second interruption after its only journal has been removed. New builds
-require a writable parent and establish that requirement before public mutation.
+Legacy stage-only recovery of an existing output does not require a new parent
+record, preserving compatibility with writable outputs in read-only parents.
+A legacy first-build rollback must remove the output directory itself, so it
+installs complete parent intent before any rollback mutation. Denied parent
+writes leave that remnant unchanged; failed final removal remains retryable.
+Legacy cleanup without a parent record cannot recover a second interruption
+after its only journal has been removed. New builds always require a writable
+parent and establish that requirement before public mutation.
 
 **Limits:** legacy interruptions without a complete journal or retained record are
 still refused. New builds can be retried after an interrupted initial anonymous

@@ -185,6 +185,12 @@ fn recovery_operation(output : String, apply~ : Bool) -> RecoveryReport raise {
     }
   }
   // No filesystem mutation above this line. Cleanup removes the journal last.
+  let mut record_retained = record_kind == 1
+  if apply && !record_retained && !committed && journal.previous is None {
+    // Removing a fresh output needs parent write access; retain intent first.
+    write_atomic_new(record, @utf8.encode(journal_text))
+    record_retained = true
+  }
   let mut restored = 0
   let mut removed = 0
   if !committed {
@@ -210,7 +216,7 @@ fn recovery_operation(output : String, apply~ : Bool) -> RecoveryReport raise {
     if !committed && journal.previous is None {
       @fs.remove_dir(output)
     }
-    if record_kind == 1 {
+    if record_retained {
       @fs.remove_file(record)
     }
   }
