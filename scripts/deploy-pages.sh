@@ -45,7 +45,7 @@ for attempt in $(seq 1 30); do
   expected="$(git -C "$repository_work" rev-parse HEAD)"
   if [[ "$deployed" == "$expected" && "$state" == built ]]; then
     url="$(jq -r .html_url "$work/pages.json")"
-    timeout 600 bash "$(dirname "$0")/verify-pages.sh" "$work/bundle" "$url"
+    timeout 600 bash "$(dirname "$0")/verify-pages.sh" "$work/bundle" "$url" 600
     echo "Published: $url"
     exit 0
   fi
