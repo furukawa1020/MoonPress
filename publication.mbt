@@ -94,24 +94,7 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
     @fs.read_dir(output).filter(name => name != ".moonpress.json")
   }
   present.sort()
-  if fresh {
-    @fs.create_dir(output)
-  }
   let stage = output + "/.moonpress-stage"
-  // mkdir must succeed exclusively before this build owns the staging area.
-  @fs.create_dir(stage) catch {
-    error => {
-      if fresh {
-        @fs.remove_dir(output) catch {
-          _ => ()
-        }
-      }
-      let cause : Error = error
-      raise InvalidInput(
-        "Cannot create staging directory " + stage + ": \{cause}",
-      )
-    }
-  }
   let staged : Array[String] = []
   let backup = stage + "/backup"
   let backed : Array[String] = []
@@ -119,29 +102,11 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
   let mut backup_created = false
   let mut journal_created = false
   let mut record_retained = false
+  let mut output_created = false
+  let mut stage_created = false
   let mut publishing = false
   let mut committed = false
   try {
-    for item in plan.pending {
-      if item.content is Some(bytes) {
-        staged.push(item.artifact.name)
-        write_bytes(stage + "/" + item.artifact.name, bytes)
-      }
-    }
-    if manifest_changed {
-      staged.push(".moonpress.json")
-      write_text(stage + "/.moonpress.json", plan.manifest)
-    }
-    @fs.create_dir(backup)
-    backup_created = true
-    for item in plan.pending {
-      if item.content is Some(_) {
-        backup_file(output, backup, item.artifact.name, backed)
-      }
-    }
-    for name in plan.removed {
-      backup_file(output, backup, name, backed)
-    }
     let writes = plan.pending.filter_map(item => {
       if item.content is Some(_) {
         Some(item.artifact.name)
@@ -158,8 +123,37 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
     }
     let text = ToJson::to_json(journal).stringify() + "\n"
     parse_journal(text) |> ignore
+
+    write_atomic_new(recovery_record_path(output), @utf8.encode(text))
+    record_retained = true
+    if fresh {
+      @fs.create_dir(output)
+      output_created = true
+    }
+    @fs.create_dir(stage)
+    stage_created = true
+    write_atomic_new(stage + "/journal", @utf8.encode(text))
     journal_created = true
-    write_text(stage + "/journal", text)
+    for item in plan.pending {
+      if item.content is Some(bytes) {
+        staged.push(item.artifact.name)
+        write_atomic_new(stage + "/" + item.artifact.name, bytes)
+      }
+    }
+    if manifest_changed {
+      staged.push(".moonpress.json")
+      write_atomic_new(stage + "/.moonpress.json", @utf8.encode(plan.manifest))
+    }
+    @fs.create_dir(backup)
+    backup_created = true
+    for item in plan.pending {
+      if item.content is Some(_) {
+        backup_file(output, backup, item.artifact.name, backed)
+      }
+    }
+    for name in plan.removed {
+      backup_file(output, backup, name, backed)
+    }
     publishing = true
     for item in plan.pending {
       if item.content is Some(_) {
@@ -180,8 +174,6 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
       replace_staged_file(stage + "/.moonpress.json", marker)
     }
     committed = true
-    retain_recovery_record(output, stage)
-    record_retained = true
     cleanup_stage(stage, staged, backed, backup_created, journal_created)
     @fs.remove_file(recovery_record_path(output))
   } catch {
@@ -205,8 +197,12 @@ fn apply_plan(output : String, plan : BuildPlan) -> Unit raise {
             retain_recovery_record(output, stage)
             record_retained = true
           }
-          cleanup_stage(stage, staged, backed, backup_created, journal_created)
-          if fresh && !committed {
+          if stage_created {
+            cleanup_stage(
+              stage, staged, backed, backup_created, journal_created,
+            )
+          }
+          if output_created && !committed {
             @fs.remove_dir(output)
           }
           if record_retained {

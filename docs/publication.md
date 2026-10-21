@@ -1,18 +1,21 @@
 # Publication and recovery
 
-After source/output validation and planning, MoonPress writes changed artifacts
-and the next manifest into a newly-created `.moonpress-stage/` directory.
-Before publication, it preserves existing files that will be changed or deleted
-as hard links in `.moonpress-stage/backup/`. The filesystem must support hard
-links within the output directory; backup failures abort before publication.
+After source/output validation and planning, MoonPress validates a versioned
+journal containing exact old/next manifests, planned writes and prior presence.
+It installs this complete journal in the output parent before creating output
+or staging directories. The parent record is never overwritten. A second
+complete copy is placed in `.moonpress-stage/journal` for legacy compatibility.
 
-After preparation, MoonPress writes a versioned `journal` in the staging
-directory, containing exact old/next manifests, planned writes and prior file
-presence. The journal is validated and fully closed before any public artifact
-is changed. Journal write failures abort publication; owned cleanup removes the
-journal last. A journal is a recovery prerequisite, not permission for `build`
-to overwrite crash remnants. Journals are integrity records, not authenticated
-proof of ownership against deliberate tampering.
+Changed artifacts and the next manifest are installed complete-or-absent in the
+new `.moonpress-stage/` directory using anonymous files. Existing files that will
+be changed or deleted are preserved as hard links in `.moonpress-stage/backup/`.
+Backup failures abort before publication. The filesystem must support anonymous
+temporary files and same-filesystem hard links.
+
+A journal is a recovery prerequisite, not permission for `build` to overwrite
+crash remnants. Journals are integrity records, not authenticated proof of
+ownership against deliberate tampering. The parent record is removed only after
+staging cleanup and any fresh-output rollback removal finish.
 
 MoonBit records each successful artifact rename or stale-file deletion.
 The manifest is replaced last. Its successful replacement is the commit point;
@@ -87,20 +90,24 @@ false`, and `report`. `--include-drafts` is not accepted. Exit codes match other
 commands: 0 success, 1 validation/I/O error, 2 invalid arguments. On failure,
 stdout is empty; errors go to stderr. Resolve I/O errors before retrying.
 
-Before final cleanup, a complete journal is hard-linked exclusively into the
+Before output or staging creation, a complete journal is installed exclusively in the
 output's parent as `.moonpress-recovery-<SHA256 of canonical output basename>.json`.
-The record remains until stage cleanup and fresh-output rollback removal finish.
+The journal and staged payloads use Linux anonymous temporary files (`O_TMPFILE`)
+and exclusive link installation: interrupted writes leave no named partial file.
+Unsupported filesystems fail closed before output changes. The record remains
+until stage cleanup and fresh-output rollback removal finish.
 Recovery validates this record and any remaining stage before mutation. A stopped
 cleanup can be retried even after the stage or fresh output directory disappears.
 Build refuses retained records; run `recovery-plan` and `recover` first. Do not
 move/delete these records separately from interrupted outputs. Unknown or conflicting
 records are refused, never overwritten. Successful cleanup leaves no parent record.
 
-**Limits:** recovery still refuses a missing, partial or unsupported preparation
-journal. A kill before initial journal completion may leave unverifiable staging
-remnants. Legacy builds interrupted after journal deletion have no retained record
-and remain unsupported. Use a fresh output directory and keep those remnants for
-inspection. No fsync or power-loss guarantee is made.
+**Limits:** legacy interruptions without a complete journal or retained record are
+still refused. New builds can be retried after an interrupted initial anonymous
+journal write (output is unchanged), or explicitly recovered after the parent
+journal is installed, including preparation and final cleanup interruptions.
+This requires Linux `O_TMPFILE`, `/proc/self/fd`, same-filesystem hard links and
+cooperative local writers. No fsync or power-loss guarantee is made.
 
 ## Limits and resource behavior
 
@@ -109,7 +116,7 @@ new file contents, but readers of several files can observe mixed versions, even
 during rollback. SIGKILL, power loss or interruption during rollback can leave
 partial output. No fsync/power-loss guarantee is made.
 [#49](https://github.com/furukawa1020/MoonPress/issues/49) tracks the remaining
-pre-journal windows and durability work.
+remaining durability work.
 
 Directory locks coordinate cooperating build/explain processes. External edits,
 old binaries without locking and hostile concurrent path changes are outside
