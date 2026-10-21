@@ -11,5 +11,17 @@ import {
 } for "wbtest"
 
 options(
+  "pre-build": [
+    {
+      "input": "ui-assets/rooms.webp",
+      "output": "admin_room_art.generated.mbt",
+      "command": ":embed --binary --name admin_room_art_data -i $input -o $output",
+    },
+    {
+      "input": "ui-assets/dotgothic16.woff",
+      "output": "admin_font.generated.mbt",
+      "command": ":embed --binary --name admin_font_data -i $input -o $output",
+    },
+  ],
   "native-stub": [ "path_guard.c", "io_native.c", "admin_native.c" ],
 )

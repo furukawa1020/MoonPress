@@ -21,7 +21,7 @@ fn admin_workflow(input : String, token : String) -> String raise {
   let inventory = inspect_posts(input)
   admin_page(
     "From draft to published site",
-    "<p>Follow these steps using saved articles. Keep this terminal open while writing.</p>" +
+    "<p class=\"notice\"><a href=\"/rooms\">▶ 出版の冒険をはじめる — 部屋を進んでサイトをつくる</a></p><p>Follow these steps using saved articles. Keep this terminal open while writing.</p>" +
     admin_workflow_summary(inventory) +
     admin_post_problems(inventory.problems) +
     "<section id=\"write\"><h2>1. Write and save</h2><p><a href=\"/#new-draft\">Create a draft</a>, or <a href=\"/\">choose an article to edit</a>. Save article before continuing. <a href=\"/media\">Upload images</a> and paste their Markdown snippets into the body.</p></section>" +
