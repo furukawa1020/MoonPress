@@ -41,3 +41,12 @@ fn sync_publication_directory(
     raise io_failure("close recovery directory", path)
   }
 }
+
+///|
+fn remove_recovery_record(output : String) -> Unit raise {
+  let record = recovery_record_path(output)
+  // Establish prior cleanup/removal before forgetting the recovery intent.
+  sync_publication_directory(record, parent=true)
+  @fs.remove_file(record)
+  sync_publication_directory(record, parent=true)
+}

@@ -27,6 +27,9 @@ for injection in MOONPRESS_TEST_UNSUPPORTED_ANONYMOUS=1 "MOONPRESS_TEST_FAIL_INS
   env LD_PRELOAD="$tmp/fault.so" "$injection" "$cli" build "$tmp/site" "$tmp/out" > "$tmp/stdout" 2> "$tmp/stderr" || status=$?
   test "$status" -eq 1
   test ! -s "$tmp/stdout"
+  # Cleanup synchronization failure retains intent; recovery without the fault
+  # must safely finish cleanup without changing existing artifacts.
+  if [[ -f "$record" ]]; then "$cli" recover "$tmp/out" >/dev/null; fi
   test ! -e "$record"
   diff -r "$tmp/out" "$tmp/before"
 done
