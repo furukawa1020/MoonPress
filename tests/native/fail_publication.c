@@ -264,6 +264,19 @@ size_t fread(void *data, size_t size, size_t count, FILE *stream) {
   return real_read(data, size, count, stream);
 }
 
+/* Fortified glibc builds call this entry point instead of fread. Keep the
+ * real bounds check and inject the same short-read fault as the plain symbol. */
+size_t __fread_chk(void *data, size_t capacity, size_t size, size_t count, FILE *stream) {
+  size_t (*real_read)(void *, size_t, size_t, size_t, FILE *) = dlsym(RTLD_NEXT, "__fread_chk");
+  if (!real_read) _exit(128);
+  if (count > 1 && stream_matches("MOONPRESS_TEST_FAIL_READ", stream)) {
+    size_t result = real_read(data, capacity, size, count / 2, stream);
+    errno = EIO;
+    return result;
+  }
+  return real_read(data, capacity, size, count, stream);
+}
+
 int fseek(FILE *stream, long offset, int whence) {
   int (*real_seek)(FILE *, long, int) = dlsym(RTLD_NEXT, "fseek");
   if (!real_seek) _exit(99);
