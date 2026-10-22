@@ -9,7 +9,7 @@ mkdir -p "$tmp/site/content"
 printf '%s\n' '---' '{"title":"Draft\nTitle","draft":true,"listed":false,"slug":"hello","date":"2026-01-01","tags":["月"]}' '---' '# Body' > "$tmp/site/content/a.md"
 printf '# 公開候補\n' > "$tmp/site/content/月.md"
 cp -a "$tmp/site" "$tmp/before"
-"$cli" posts "$tmp/site" --json | jq -e '.report.posts | length == 2 and .[0] == {source:"content/a.md",output:"hello.html",title:"Draft\nTitle",draft:true,listed:false,date:"2026-01-01",tags:["月"]} and .[1].draft == false' >/dev/null
+"$cli" posts "$tmp/site" --json | jq -e '.report.posts | length == 2 and .[0] == {kind:"post",source:"content/a.md",output:"hello.html",title:"Draft\nTitle",draft:true,listed:false,date:"2026-01-01",tags:["月"]} and .[1].draft == false' >/dev/null
 "$cli" posts "$tmp/site" > "$tmp/text"
 grep -Fq 'Draft\nTitle' "$tmp/text"
 test "$(wc -l < "$tmp/text")" = 3
