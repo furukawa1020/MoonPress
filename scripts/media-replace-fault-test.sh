@@ -24,7 +24,7 @@ cc -Wall -Wextra -Werror -shared -fPIC tests/native/fail_publication.c -ldl -o "
 cc -Wall -Wextra -Werror -shared -fPIC tests/native/pause_lock.c -ldl -o "$tmp/pause.so"
 failure() { local expected="$1" code=0; shift; "$@" > "$tmp/stdout" 2> "$tmp/stderr" || code=$?; test "$code" = "$expected"; test ! -s "$tmp/stdout"; if [[ "$expected" != 137 ]]; then test -s "$tmp/stderr"; fi; }
 unchanged() { diff -r "$tmp/before" "$tmp/site"; test "$(stat -c '%i %a %Y' "$asset")" = "$metadata"; }
-for fault in OPEN WRITE FLUSH CLOSE; do
+for fault in OPEN WRITE FLUSH EXISTING_SYNC CLOSE; do
   failure 1 env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_FAIL_$fault=$stage" "$cli" media-replace "$tmp/site" a.png "$version" "$tmp/replacement" --json
   test ! -e "$stage"
   unchanged

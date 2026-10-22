@@ -55,7 +55,7 @@ test "$(cat "$stage")" = sentinel
 rm "$stage"
 cc -Wall -Wextra -Werror -shared -fPIC tests/native/fail_publication.c -ldl -o "$tmp/fault.so"
 metadata="$(stat -c '%i %a %Y' "$post")"
-for fault in OPEN WRITE FLUSH CLOSE; do
+for fault in OPEN WRITE FLUSH EXISTING_SYNC CLOSE; do
   failure 1 env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_FAIL_$fault=$stage" "$cli" save "$tmp/site" article.md "$version" "$tmp/replacement"
   test ! -e "$stage"
   diff -r "$tmp/site" "$tmp/before"
