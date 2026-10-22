@@ -235,3 +235,10 @@ MOONBIT_FFI_EXPORT int moonpress_atomic_parent_close(int fd) { return close(fd);
 MOONBIT_FFI_EXPORT int moonpress_io_private(FILE *file) {
   return fchmod(fileno(file), 0600);
 }
+
+/* Authentication records are read only from owner-only regular inodes. */
+MOONBIT_FFI_EXPORT int moonpress_access_private_file(FILE *file) {
+  struct stat st;
+  return fstat(fileno(file), &st) == 0 && S_ISREG(st.st_mode) &&
+    st.st_uid == geteuid() && (st.st_mode & 077) == 0 && st.st_nlink == 1;
+}
