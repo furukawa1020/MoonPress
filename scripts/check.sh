@@ -164,3 +164,5 @@ bash scripts/admin-kind-test.sh
 bash scripts/categories-test.sh
 
 bash scripts/category-archives-test.sh
+
+bash scripts/shared-fixture-test.sh
