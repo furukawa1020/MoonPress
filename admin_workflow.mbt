@@ -28,7 +28,7 @@ fn admin_workflow(input : String, token : String) -> String raise {
     "<section id=\"preview\"><h2>2. Preview your saved drafts</h2><p>Use the full-site preview to see the theme, images and links. After building, choose Open built preview in the navigation. It opens on a separate local port; reload after rebuilding.</p>" +
     admin_build_form(token) +
     "</section>" +
-    "<section id=\"ready\"><h2>3. Choose what goes live</h2><p><a href=\"/?state=draft\">Open a draft</a>, save its final text, then choose <strong>Set ready for build</strong>. Ready articles enter normal builds. Drafts stay out; making an article ready does not upload it.</p></section>" +
+    "<section id=\"ready\"><h2>3. Choose what goes live</h2><p><a href=\"/?state=draft\">Open a draft</a>, save its final text, then choose <strong><!--mp:ja-->公開対象にする<!--mp:en-->Set ready for build<!--mp:end--></strong>. Ready articles enter normal builds. Drafts stay out; making an article ready does not upload it.</p></section>" +
     "<section id=\"review\"><h2>4. Review before building</h2><p>Inspect which files will be created, kept or removed. Fix any reported source or output problem first.</p>" +
     admin_production_plan_form(token) +
     "</section>" +

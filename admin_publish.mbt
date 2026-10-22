@@ -18,7 +18,7 @@ fn admin_publish_report(report : ReleaseReadiness) -> String {
   url +
   "<p>Production output: <code>" +
   escape_html(report.output) +
-  "</code>.</p><p><a href=\"/workflow#review\">Review and build production files</a> · <a href=\"/workflow#preview\">Preview saved drafts</a> · <a href=\"/publish\">Check again</a></p>" +
+  "</code>.</p><p><a href=\"/workflow#review\">Review and build production files</a> · <a href=\"/workflow#preview\">Preview saved drafts</a> · <a href=\"/publish\"><!--mp:ja-->もう一度確認<!--mp:en-->Check again<!--mp:end--></a></p>" +
   "<h2>Publish through your host</h2><ol><li>Upload the generated production files from the directory above using your host's deployment tool. Preserve relative filenames and include .nojekyll for GitHub Pages. Keep .moonpress.json as local build state; do not publish it.</li><li>Use your host's synchronization/removal procedure so deleted pages disappear too. Never upload .moonpress-preview: it can contain private drafts.</li><li>Open the actual public URL and check the home page, a recent article, CSS, images and removed URLs. Record the host's deployment result.</li></ol><p><a href=\"https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md\">GitHub Actions demonstration setup</a></p><p>MoonPress has not uploaded these files or checked hosting status. This page is a read-only local snapshot, not deployment confirmation; unsaved editor changes are excluded.</p>"
 }
 
@@ -41,7 +41,7 @@ fn admin_publish(input : String, token : String) -> (Int, String) {
           "Publishing preparation blocked",
           "<p class=\"notice\">" +
           escape_html(error.to_string()) +
-          "</p><p>Repair the reported source/output problem, then review and build again. For an interrupted build, <a href=\"/recovery\">inspect production recovery</a>. Existing files were not changed.</p><p><a href=\"/\">Edit articles</a> · <a href=\"/site-settings\">Site settings</a> · <a href=\"/workflow#review\">Review production</a> · <a href=\"/publish\">Check again</a></p>",
+          "</p><p>Repair the reported source/output problem, then review and build again. For an interrupted build, <a href=\"/recovery\">inspect production recovery</a>. Existing files were not changed.</p><p><a href=\"/\">Edit articles</a> · <a href=\"/site-settings\"><!--mp:ja-->サイト設定<!--mp:en-->Site settings<!--mp:end--></a> · <a href=\"/workflow#review\">Review production</a> · <a href=\"/publish\"><!--mp:ja-->もう一度確認<!--mp:en-->Check again<!--mp:end--></a></p>",
         ),
       )
   }
@@ -57,14 +57,14 @@ fn admin_export_form(
     return ""
   }
   if japanese {
-    return "<h2>公開用ZIPをもちだす</h2><p>確認済みのHTML・CSS・画像と .nojekyll が入ります。下書き・ソース・管理用の記録は含まれません。上限64 MiB・10000ファイル。ダウンロード時に状態を再確認します。</p><form method=\"post\" action=\"/export-production\">" +
+    return "<h2><!--mp:ja-->公開用ZIPをもちだす<!--mp:en-->Take your production ZIP<!--mp:end--></h2><p><!--mp:ja-->確認済みのHTML・CSS・画像と .nojekyll が入ります。下書き・ソース・管理用の記録は含まれません。上限64 MiB・10000ファイル。ダウンロード時に状態を再確認します。<!--mp:en-->Includes verified HTML, CSS, images and .nojekyll. Drafts, sources and internal state are excluded. Maximum 64 MiB and 10000 files. The download rechecks current files.<!--mp:end--></p><form method=\"post\" action=\"/export-production\">" +
       admin_hidden("token", token) +
       admin_hidden("review_id", report.review_id) +
-      "<button>公開用ZIPをダウンロード</button></form><p>ZIPを展開して、公開先へファイルを送ってください。削除したページも公開先で取り除きます。ダウンロードだけでは公開されません。</p>"
+      "<button><!--mp:ja-->公開用ZIPをダウンロード<!--mp:en-->Download production ZIP<!--mp:end--></button></form><p><!--mp:ja-->ZIPを展開して、公開先へファイルを送ってください。削除したページも公開先で取り除きます。ダウンロードだけでは公開されません。<!--mp:en-->Extract the ZIP and upload its contents to your host. Remove deleted pages there too. A download does not deploy your site.<!--mp:end--></p>"
   }
-  "<h2>Download production ZIP</h2><p>Includes the verified generated HTML, CSS, public assets and .nojekyll. Excludes drafts, source files and .moonpress.json. Maximum 64 MiB and 10000 files. The download rechecks this review; if saved sources or output change, check readiness again.</p><form method=\"post\" action=\"/export-production\"><input type=\"hidden\" name=\"token\" value=\"" +
+  "<h2><!--mp:ja-->公開用ZIPをダウンロード<!--mp:en-->Download production ZIP<!--mp:end--></h2><p>Includes the verified generated HTML, CSS, public assets and .nojekyll. Excludes drafts, source files and .moonpress.json. Maximum 64 MiB and 10000 files. The download rechecks this review; if saved sources or output change, check readiness again.</p><form method=\"post\" action=\"/export-production\"><input type=\"hidden\" name=\"token\" value=\"" +
   escape_html(token) +
   "\"><input type=\"hidden\" name=\"review_id\" value=\"" +
   escape_html(report.review_id) +
-  "\"><button type=\"submit\">Download production ZIP</button></form><p>Extract the ZIP before uploading its files unless your host explicitly accepts ZIP archives. Follow your host's removal process for deleted pages. Downloading does not deploy or verify your public website.</p>"
+  "\"><button type=\"submit\"><!--mp:ja-->公開用ZIPをダウンロード<!--mp:en-->Download production ZIP<!--mp:end--></button></form><p>Extract the ZIP before uploading its files unless your host explicitly accepts ZIP archives. Follow your host's removal process for deleted pages. Downloading does not deploy or verify your public website.</p>"
 }

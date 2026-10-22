@@ -25,6 +25,7 @@ priv struct AdminRequest {
   target : String
   length : Int
   boundary : String?
+  language : String
   if_none_match : String?
 }
 
@@ -119,6 +120,10 @@ fn admin_headers(
     length,
     boundary,
     if_none_match: headers.get("if-none-match"),
+    language: admin_language(
+      headers.get("accept-language").unwrap_or(""),
+      headers.get("cookie").unwrap_or(""),
+    ),
   }
 }
 

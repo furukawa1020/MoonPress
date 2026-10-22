@@ -2,7 +2,13 @@
 extern "C" fn admin_flush() -> Unit = "moonpress_admin_flush"
 
 ///|
-fn admin_response(code : Int, html : String) -> Bytes {
+fn admin_response(code : Int, html : String, language? : String = "") -> Bytes {
+  let html = admin_render_language(html, language)
+  let content_language = if html.has_prefix("<!doctype html><html lang=\"ja\">") {
+    "ja"
+  } else {
+    "en"
+  }
   let bytes = @utf8.encode(html)
   let status = if code == 200 {
     "200 OK"
@@ -14,7 +20,9 @@ fn admin_response(code : Int, html : String) -> Bytes {
   @utf8.encode(
     "HTTP/1.1 " +
     status +
-    "\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: \{bytes.length()}\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: same-origin\r\nContent-Security-Policy: default-src 'none'; img-src 'self'; font-src 'self'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'\r\n\r\n",
+    "\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: \{bytes.length()}\r\nContent-Language: " +
+    content_language +
+    "\r\nVary: Accept-Language, Cookie\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: same-origin\r\nContent-Security-Policy: default-src 'none'; img-src 'self'; font-src 'self'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'\r\n\r\n",
   ) +
   bytes
 }
@@ -74,9 +82,13 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
         input.trim_end(chars="/").to_owned() + "/.moonpress-preview",
       )
     } else {
+      let mut language = ""
       try {
         let (request, body) = admin_read_request(client, host)
-        if request.target.has_prefix("/assets/") {
+        language = request.language
+        if request.target.has_prefix("/language/") {
+          admin_language_response(request)
+        } else if request.target.has_prefix("/assets/") {
           admin_ui_asset(request)
         } else if request.target == "/export-production" {
           admin_export(input, request, body, token)
@@ -85,7 +97,11 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
           admin_media_image(input, request)
         } else {
           let (code, html) = admin_dispatch(input, request, body, token)
-          admin_response(code, admin_preview_navigation(html, preview_port))
+          let html = admin_preview_navigation(html, preview_port).replace_all(
+            old="<main id=",
+            new=admin_language_navigation(request.target) + "<main id=",
+          )
+          admin_response(code, html, language~)
         }
       } catch {
         error =>
@@ -97,8 +113,9 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
               escape_html(error.to_string()) +
               "</p>" +
               admin_recovery_links() +
-              "<p><a href=\"/publish\">Check publication readiness</a> · <a href=\"/workflow#review\">Review production</a> · <a href=\"/\">Return to posts</a></p>",
+              "<p><a href=\"/publish\">Check publication readiness</a> · <a href=\"/workflow#review\">Review production</a> · <a href=\"/\"><!--mp:ja-->記事へ戻る<!--mp:en-->Return to posts<!--mp:end--></a></p>",
             ),
+            language~,
           )
       }
     }
@@ -114,6 +131,6 @@ extern "C" fn admin_wait_listener(admin : Int, preview : Int) -> Int = "moonpres
 fn admin_preview_navigation(html : String, port : Int) -> String {
   html.replace_all(
     old=" · Local administration</nav>",
-    new=" · <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"http://127.0.0.1:\{port}/\">Open built preview</a> · Local administration</nav>",
+    new=" · <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"http://127.0.0.1:\{port}/\"><!--mp:ja-->生成したプレビューを開く<!--mp:en-->Open built preview<!--mp:end--></a> · Local administration</nav>",
   )
 }

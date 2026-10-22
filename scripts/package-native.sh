@@ -52,6 +52,8 @@ Open http://127.0.0.1:8080/rooms and keep the terminal open.
 Create/save a draft, upload images from Media, then Build full preview files.
 Choose Open built preview (port 8081). Mark finished articles ready, inspect
 production changes, build the reviewed plan, then open Publish for next steps.
+The browser language chooses Japanese or English. Use the language links to
+override it or return to Auto; save edits before switching.
 Port 8080 and 8081 must both be free. Ctrl-C stops both local listeners.
 
 Use Publish > Download production ZIP to save verified public files. Extract

@@ -47,5 +47,5 @@ fn admin_recovery(input : String) -> (Int, String) {
 
 ///|
 fn admin_recovery_links() -> String {
-  "<p>保存途中のデータは <a href=\"/authoring-recovery\">編集データの案内所</a>、生成途中のサイトは <a href=\"/recovery\">ビルド出力の復旧</a> で確認できます。送信した文章が表示されている場合は、再読み込み前にコピーしてください。</p>"
+  "<p><!--mp:ja-->保存途中のデータは <!--mp:en-->For interrupted source saves, use <!--mp:end--><a href=\"/authoring-recovery\"><!--mp:ja-->編集データの案内所<!--mp:en-->source editing recovery<!--mp:end--></a><!--mp:ja-->、生成途中のサイトは <!--mp:en-->; for interrupted generated output, use <!--mp:end--><a href=\"/recovery\"><!--mp:ja-->ビルド出力の復旧<!--mp:en-->Generated-output recovery<!--mp:end--></a><!--mp:ja--> で確認できます。送信した文章が表示されている場合は、再読み込み前にコピーしてください。<!--mp:en-->. Copy any retained submitted text before reloading.<!--mp:end--></p>"
 }

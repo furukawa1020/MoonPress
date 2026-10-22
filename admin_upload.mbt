@@ -169,7 +169,7 @@ fn admin_upload_form(token : String, name : String) -> String {
   admin_hidden("token", token) +
   "<p>Select one image or attachment. The complete request must fit within 8 MiB. Use Prepare media storage on the Media screen if needed. Existing names are never overwritten.</p><label>Destination filename<input name=\"name\" required value=\"" +
   escape_html(name) +
-  "\"></label><label>File<input type=\"file\" name=\"file\" required></label><button>Upload media</button></form>"
+  "\"></label><label><!--mp:ja-->ファイル<!--mp:en-->File<!--mp:end--><input type=\"file\" name=\"file\" required></label><button><!--mp:ja-->画像・ファイルを追加<!--mp:en-->Upload media<!--mp:end--></button></form>"
 }
 
 ///|
@@ -196,9 +196,9 @@ fn admin_dispatch(
           "Media uploaded",
           "<p>Uploaded " +
           escape_html(item.source) +
-          " (\{item.bytes} bytes). No deployment performed.</p><label>Markdown snippet<textarea readonly rows=\"2\" style=\"min-height:4rem\">\n" +
+          " (\{item.bytes} bytes). No deployment performed.</p><label><!--mp:ja-->本文に貼るMarkdown<!--mp:en-->Markdown snippet<!--mp:end--><textarea readonly rows=\"2\" style=\"min-height:4rem\">\n" +
           escape_html(media_snippet(item)) +
-          "</textarea></label><p><a href=\"/media\">Return to media</a></p>",
+          "</textarea></label><p><a href=\"/media\"><!--mp:ja-->画像とファイルへ戻る<!--mp:en-->Return to media<!--mp:end--></a></p>",
         ),
       )
     } catch {

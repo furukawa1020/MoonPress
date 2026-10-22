@@ -332,3 +332,6 @@ regions; use horizontal scrolling when columns exceed the viewport. Long names
 wrap, and controls stay within their containing form. These changes have native
 and HTTP regression coverage; actual browser, touch and assistive-technology
 checks remain release gates rather than completed claims.
+
+See [administration languages](languages.md) for automatic Japanese/English
+selection and persistent browser overrides. Save before switching language.

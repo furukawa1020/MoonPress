@@ -49,7 +49,7 @@ class Browser:
     def __init__(self, port, download, profile):
         self.base = f'http://127.0.0.1:{port}'
         self.session = None
-        options = {'binary': CHROME, 'args': ['--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--no-proxy-server', '--window-size=1280,900', f'--user-data-dir={profile}'], 'prefs': {'profile.managed_default_content_settings.javascript': 2, 'download.default_directory': str(download), 'download.prompt_for_download': False, 'download.directory_upgrade': True}}
+        options = {'binary': CHROME, 'args': ['--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--no-proxy-server', '--window-size=1280,900', f'--user-data-dir={profile}'], 'prefs': {'intl.accept_languages': 'en-US,en', 'profile.managed_default_content_settings.javascript': 2, 'download.default_directory': str(download), 'download.prompt_for_download': False, 'download.directory_upgrade': True}}
         result = self.call('POST', '/session', {'capabilities': {'alwaysMatch': {'browserName': 'chrome', 'goog:chromeOptions': options}}})
         self.session = result['sessionId']
         self.capabilities = result['capabilities']
@@ -107,6 +107,15 @@ def run():
                 wait_until(lambda: HTTP.open(origin + '/rooms', timeout=1).status == 200)
                 wait_until(lambda: HTTP.open(f'http://127.0.0.1:{driver_port}/status', timeout=1).status == 200)
                 browser = Browser(driver_port, download, tmp / 'profile')
+                browser.go(origin + '/rooms')
+                browser.expect_text('The beginning room')
+                browser.click('a[lang="ja"][href^="/language/ja"]')
+                browser.expect_text('はじまりのおへや')
+                browser.go(origin + '/rooms/write')
+                browser.expect_text('かきかきる〜む')
+                browser.click('a[href^="/language/auto"]')
+                browser.expect_text('The writing room')
+                steps.append('automatic English, persistent Japanese override, return to browser language')
                 browser.go(origin + '/rooms')
                 browser.screenshot('entrance-desktop')
                 for route in ['/rooms/write', '/rooms/preview', '/rooms/build', '/rooms/publish']:

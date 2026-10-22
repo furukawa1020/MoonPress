@@ -76,7 +76,7 @@ fn admin_remove_media(
         "Media removed",
         "<p>Permanently removed <code>" +
         escape_html(report.item.source) +
-        "</code>. No undo. Generated files and hosting were not changed.</p><p><a href=\"/workflow#review\">Review and build production changes</a> · <a href=\"/media\">Return to media</a></p>",
+        "</code>. No undo. Generated files and hosting were not changed.</p><p><a href=\"/workflow#review\">Review and build production changes</a> · <a href=\"/media\"><!--mp:ja-->画像とファイルへ戻る<!--mp:en-->Return to media<!--mp:end--></a></p>",
       ),
     )
   } catch {
@@ -89,7 +89,7 @@ fn admin_remove_media(
           escape_html(error.to_string()) +
           "</p><p><a href=\"/media-remove?name=" +
           url_component(name) +
-          "\">Inspect removal again</a> · <a href=\"/media\">Return to media</a></p>",
+          "\">Inspect removal again</a> · <a href=\"/media\"><!--mp:ja-->画像とファイルへ戻る<!--mp:en-->Return to media<!--mp:end--></a></p>",
         ),
       )
   }
