@@ -111,3 +111,8 @@ MOONBIT_FFI_EXPORT int moonpress_dir_prepare_private(int fd, moonbit_bytes_t nam
   if (result != 0) return -1;
   return created ? 0 : 1;
 }
+
+#include <time.h>
+MOONBIT_FFI_EXPORT int64_t moonpress_authoring_time(void) {
+  return (int64_t)time(NULL);
+}
