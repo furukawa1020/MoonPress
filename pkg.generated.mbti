@@ -90,6 +90,8 @@ pub fn list_post_revisions(String, String) -> Array[RevisionSummary] raise
 
 pub fn list_posts(String) -> PostsReport raise
 
+pub fn list_trashed_posts(String) -> Array[RevisionSummary] raise
+
 pub fn markdown_images(String) -> Array[String]
 
 pub fn markdown_links(String) -> Array[String]
@@ -122,6 +124,8 @@ pub fn read_post_revision(String, String) -> RevisionSnapshot raise
 
 pub fn read_site_settings(String) -> SiteSettingsSnapshot raise
 
+pub fn read_trashed_post(String, String) -> RevisionSnapshot raise
+
 pub fn rebuild_reason(Artifact?, Array[Dependency]) -> String?
 
 pub fn recover_output(String) -> RecoveryReport raise
@@ -149,6 +153,8 @@ pub fn rescue_authoring_stage(String, String, String, String) -> AuthoringRescue
 pub fn resolve_redirects(Array[Redirect], Array[String]) -> Array[Redirect] raise
 
 pub fn restore_post_revision(String, String, String, String) -> SavePostReport raise
+
+pub fn restore_trashed_post(String, String, String) -> SavePostReport raise
 
 pub fn review_build_plan(String, String, include_drafts? : Bool) -> ReviewedBuildPlan raise
 
@@ -185,6 +191,8 @@ pub fn tag_filename(String) -> String
 pub fn template_links(String) -> Array[String] raise
 
 pub fn template_sources(String) -> Array[String] raise
+
+pub fn trash_post(String, String, String) -> RevisionSummary raise
 
 pub fn url_component(String) -> String
 
