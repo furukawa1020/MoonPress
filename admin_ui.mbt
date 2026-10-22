@@ -115,6 +115,14 @@ fn admin_edit(input : String, name : String, token : String) -> String raise {
     "<p><a href=\"/references?name=" +
     url_component(name) +
     "\">Inspect saved article references</a> before changing its URL or removing a source.</p>" +
+    "<p><a href=\"/history?name=" +
+    url_component(name) +
+    "\">" +
+    admin_i18n(
+      "履歴を確認・復元する（先に本文を保存してください）",
+      "Inspect and restore history (save your edits first)",
+    ) +
+    "</a></p>" +
     editor +
     settings +
     admin_duplicate_form(token, name, snapshot.digest, "", copy_title) +
@@ -136,6 +144,18 @@ fn admin_route(
   token : String,
 ) -> (Int, String) raise {
   if request.verb == "GET" {
+    if request.target.has_prefix("/history?") {
+      return (
+        200,
+        admin_history(input, token, admin_form(request.target[9:].to_owned())),
+      )
+    }
+    if request.target.has_prefix("/revision?") {
+      return (
+        200,
+        admin_revision(input, token, admin_form(request.target[10:].to_owned())),
+      )
+    }
     if request.target == "/reference-outputs" {
       return admin_output_references(input, Map([]))
     }
@@ -221,6 +241,11 @@ fn admin_route(
   let fields = admin_form(body)
   if admin_field(fields, "token") != token {
     raise InvalidInput("Form token rejected; reload the page")
+  }
+  if ["/history-enable", "/checkpoint", "/restore-revision"].contains(
+      request.target,
+    ) {
+    return (200, admin_history_action(input, token, request.target, fields))
   }
   if request.target == "/remove-media" {
     return admin_remove_media(input, fields)
