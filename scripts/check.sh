@@ -40,6 +40,7 @@ bash scripts/creation-directory-test.sh
 bash scripts/post-editor-test.sh
 bash scripts/post-directory-test.sh
 bash scripts/post-status-test.sh
+python3 scripts/http-buffer-test.py
 bash scripts/admin-test.sh
 bash scripts/admin-language-test.sh
 bash scripts/preview-server-test.sh
