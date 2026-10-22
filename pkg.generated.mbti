@@ -299,6 +299,7 @@ pub(all) struct DetailedBuildPlan {
 pub fn DetailedBuildPlan::to_json(Self) -> Json
 
 pub(all) struct Document {
+  kind : String
   title : String
   description : String
   tags : Array[String]
