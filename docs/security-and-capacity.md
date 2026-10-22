@@ -47,3 +47,26 @@ References: [WordPress hardening](https://developer.wordpress.org/advanced-admin
 [NGINX request limiting](https://nginx.org/en/docs/http/ngx_http_limit_req_module.html).
 Rate limits must use the real client address only behind explicitly trusted
 proxies; a client-supplied forwarding header is not an identity boundary.
+
+## NGINX origin template
+
+`deploy/nginx/moonpress.conf` is an `http {}` include for a dedicated static
+origin. Load `include /etc/nginx/mime.types;` in the containing `http {}` block. Set its root to the verified public bundle and choose the intended
+listen address/port and server name. It serves GET/HEAD only, rejects hidden and
+source/runtime files, refuses symlinks, caps body/header/time resources and sends
+security headers on errors as well as successful responses. There is no PHP,
+FastCGI or admin proxy. `python3 scripts/nginx-origin-test.py` exercises the shipped
+configuration against a real NGINX process in CI.
+
+Terminate HTTPS at your CDN/load balancer or add certificates and TLS listeners;
+port 8080 in the template does not provide TLS. Restrict origin ingress to the
+trusted edge if applicable. Configure HSTS on the HTTPS endpoint after validating
+all affected hostnames; the HTTP example intentionally does not assert it.
+Use immutable release directories with atomic origin switching when deploying;
+NGINX reads are not coordinated with MoonPress output locks. Publish a copied,
+verified bundle, not a directory being rebuilt. No-cache forces revalidation for
+mutable filenames; tune CDN caching with tested invalidation and private paths.
+Timeouts here limit inactivity rather than a complete-connection lifetime.
+Per-IP rate limiting is deployment-specific (shared NAT/proxies matter); volumetric
+protection belongs at a suitably provisioned edge and is not established by this
+configuration or the localhost benchmark.

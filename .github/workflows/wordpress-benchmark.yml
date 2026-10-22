@@ -1,10 +1,10 @@
 name: WordPress comparable benchmark
 on:
   pull_request:
-    paths: ['benchmarks/wordpress/**', '.github/workflows/wordpress-benchmark.yml', '**/*.mbt', '**/*.c', 'scripts/browser-test.py']
+    paths: ['benchmarks/wordpress/**', '.github/workflows/wordpress-benchmark.yml', '**/*.mbt', '**/*.c', 'scripts/browser-test.py', 'deploy/nginx/**', 'scripts/nginx-origin-test.py']
   push:
     branches: [main]
-    paths: ['benchmarks/wordpress/**', '.github/workflows/wordpress-benchmark.yml', '**/*.mbt', '**/*.c', 'scripts/browser-test.py']
+    paths: ['benchmarks/wordpress/**', '.github/workflows/wordpress-benchmark.yml', '**/*.mbt', '**/*.c', 'scripts/browser-test.py', 'deploy/nginx/**', 'scripts/nginx-origin-test.py']
   workflow_dispatch:
 permissions:
   contents: read
@@ -36,5 +36,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y nginx php8.3-fpm
           sudo systemctl stop nginx php8.3-fpm
+      - name: Verify hardened public origin
+        run: python3 scripts/nginx-origin-test.py
       - name: Compare actual WordPress and native output
         run: bash benchmarks/wordpress/run.sh
