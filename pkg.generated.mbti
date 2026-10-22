@@ -22,6 +22,8 @@ pub fn compare_manifest_files(String, String) -> ManifestDiff raise
 
 pub fn compare_manifests(String, String) -> ManifestDiff raise
 
+pub fn compare_post_revision(String, String, String) -> RevisionComparison raise
+
 pub fn compile_reviewed_site(String, String, String, include_drafts? : Bool) -> BuildReport raise
 
 pub fn compile_site(String, String, dry_run? : Bool, include_drafts? : Bool) -> BuildReport raise
@@ -561,6 +563,20 @@ pub(all) struct ReviewedBuildPlan {
   plan : DetailedBuildPlan
 } derive(ToJson)
 pub fn ReviewedBuildPlan::to_json(Self) -> Json
+
+pub(all) struct RevisionComparison {
+  name : String
+  current_digest : String
+  revision_digest : String
+  lines : Array[RevisionLine]
+} derive(ToJson)
+pub fn RevisionComparison::to_json(Self) -> Json
+
+pub(all) struct RevisionLine {
+  action : String
+  text : String
+} derive(ToJson)
+pub fn RevisionLine::to_json(Self) -> Json
 
 pub(all) struct RevisionSnapshot {
   revision : RevisionSummary

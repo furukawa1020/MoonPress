@@ -98,6 +98,13 @@ fn admin_revision(
   let current = read_post(input, name)
   admin_page(
     "Inspect article revision",
+    "<p><a href=\"/revision-diff?name=" +
+    url_component(name) +
+    "&amp;id=" +
+    revision.revision.id +
+    "\">" +
+    admin_i18n("現在の内容と比較する", "Compare with current content") +
+    "</a></p>" +
     "<p><a href=\"/history?name=" +
     url_component(name) +
     "\">" +
