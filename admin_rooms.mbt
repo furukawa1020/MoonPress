@@ -109,6 +109,32 @@ fn room_preview_state(input : String) -> String {
 }
 
 ///|
+fn room_next_step(input : String, inventory : PostInventory) -> String {
+  let suggestion = if inventory.problems.length() > 0 {
+    "<a href=\"/\">▶ まず、要修復の記事を確認する</a>"
+  } else if inventory.posts.is_empty() {
+    "<a href=\"/rooms/write\">▶ 最初の下書きをつくる</a>"
+  } else {
+    try {
+      let report = inspect_release_readiness(input)
+      if report.current {
+        "<a href=\"/rooms/publish\">▶ 最新の公開用ファイルをもちだす</a>"
+      } else if report.drafts > 0 {
+        "<a href=\"/rooms/preview\">▶ 保存した下書きをプレビューする</a>"
+      } else {
+        "<a href=\"/rooms/build\">▶ 公開対象の変更計画を確認する</a>"
+      }
+    } catch {
+      _ =>
+        "<a href=\"/rooms/build\">▶ ビルドの状態と修復の案内を確認する</a>"
+    }
+  }
+  "<h2>いまのつづきから</h2><p>" +
+  suggestion +
+  "</p><p>保存済みの状態に合わせた道案内です。下書きを公開するかは自分で選べます。<a href=\"/?state=draft\">下書きを見直す</a> · <a href=\"/rooms/write\">新しく書く</a></p>"
+}
+
+///|
 fn admin_room(
   input : String,
   token : String,
@@ -126,7 +152,8 @@ fn admin_room(
   let (body, back, next) = match room {
     Entrance =>
       (
-        "<p>ようこそ、MoonPressのおへやへ。ひとつずつ扉をあけて、あなたのサイトをつくっていこう。</p><p>操作はリンクとフォームだけ。MoonBitのネイティブコンパイラが、保存・検証・差分ビルドを担当します。</p>",
+        "<p>ようこそ、MoonPressのおへやへ。ひとつずつ扉をあけて、あなたのサイトをつくっていこう。</p><p>操作はリンクとフォームだけ。MoonBitのネイティブコンパイラが、保存・検証・差分ビルドを担当します。</p>" +
+        room_next_step(input, inventory),
         None,
         Some(Writing),
       )

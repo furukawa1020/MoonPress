@@ -30,13 +30,18 @@ done
 grep -q 'ホスティング：未確認' "$tmp/page"
 ! grep -q 'action="/export-production"' "$tmp/page"
 diff -r "$tmp/site" "$tmp/before"
+test "$(get /rooms)" = 200
+grep -Fq '公開対象の変更計画を確認する' "$tmp/page"
+printf '%s\n' '---' '{"draft":true}' '---' '# Private draft' > "$tmp/site/content/draft.md"
+test "$(get /rooms)" = 200
+grep -Fq '保存した下書きをプレビューする' "$tmp/page"
 test "$(get /rooms/preview)" = 200
 grep -Fq 'プレビュー：まだ生成していません' "$tmp/page"
 test ! -e "$tmp/site/.moonpress-preview"
 "$cli" build "$tmp/site" "$tmp/site/.moonpress-preview" --include-drafts >/dev/null
 test "$(get /rooms/preview)" = 200
 grep -Fq 'プレビュー：保存済みの記事と一致' "$tmp/page"
-printf '\nChanged draft\n' >> "$tmp/site/content/hello.md"
+printf '\nChanged draft\n' >> "$tmp/site/content/draft.md"
 test "$(get /rooms/preview)" = 200
 grep -Fq 'プレビュー：再生成が必要' "$tmp/page"
 cp "$tmp/site/.moonpress-preview/index.html" "$tmp/original-preview"
@@ -61,6 +66,12 @@ grep -qi 'Content-Type: image/webp' "$tmp/headers"
 cmp "$tmp/page" ui-assets/rooms.webp
 test "$(curl --max-time 10 -sS -o "$tmp/page" -w '%{http_code}' -H "Origin: $origin" --data 'token=bad' "$origin/rooms/build")" = 400
 "$cli" build "$tmp/site" "$tmp/site/.moonpress-build" >/dev/null
+test "$(get /rooms)" = 200
+grep -Fq '最新の公開用ファイルをもちだす' "$tmp/page"
+printf '%s\n' '---' '{bad json}' '---' > "$tmp/site/content/broken.md"
+test "$(get /rooms)" = 200
+grep -Fq 'まず、要修復の記事を確認する' "$tmp/page"
+rm "$tmp/site/content/broken.md"
 test "$(get /rooms/publish)" = 200
 grep -q 'action="/export-production"' "$tmp/page"
 grep -Fq '<button>公開用ZIPをダウンロード</button>' "$tmp/page"
