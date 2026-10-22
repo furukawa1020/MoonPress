@@ -22,10 +22,10 @@ Plugin extensions are an open-ended ecosystem, not a finite core checklist.
 | Permalinks / redirects | Flat slugs, reviewed local redirects, reference validation; no arbitrary nested permalink routing |
 | Feeds / discovery | RSS, sitemap, tag/category archives, table of contents; no public full-text search yet |
 | Languages | Automatic Japanese/English administration language with manual override; article translation is not automatic |
-| User accounts / roles | Native private principals, five fixed roles and implemented-capability decisions, generated revocable credentials; [access foundation](native-access.md). Local operator editor is still not a multiuser interface |
+| User accounts / roles | Native private principals, five fixed roles and implemented-capability decisions, generated revocable credentials; [access foundation](native-access.md). REST existing-article edits enforce ownership/role; local operator editor is still not a multiuser interface |
 | Private / password posts | Missing; never treat listed=false as private |
 | Comments / moderation | Missing |
-| REST / XML-RPC / application passwords | [Read-only native REST subset](native-rest.md): discovery, public posts/pages and authenticated users/me using generated Basic credentials. Writes, raw edit contexts, broad query compatibility, WordPress password import and XML-RPC remain missing |
+| REST / XML-RPC / application passwords | [Native REST subset](native-rest.md): public posts/pages, users/me, ownership-authorized edit context and guarded updates of existing articles. Create/delete, broad query compatibility, WordPress password import and XML-RPC remain missing |
 | Multisite / network administration | Missing |
 | Plugins / hooks / custom post types | Missing; WordPress plugins cannot run in the native runtime |
 | Import / export | Verified static-site ZIP plus WXR export and reviewed private-draft intake; documented subset with explicit refusals |

@@ -21,6 +21,7 @@ extern "C" fn admin_random(bytes : Bytes) -> Int = "moonpress_admin_random"
 
 ///|
 priv struct AdminRequest {
+  if_match : String?
   authorization : String?
   verb : String
   target : String
@@ -35,6 +36,7 @@ fn admin_headers(
   raw : String,
   host : String,
   allow_head? : Bool = false,
+  rest? : Bool = false,
 ) -> AdminRequest raise {
   let lines = raw.split("\r\n").map(s => s.to_owned()).to_array()
   let start = lines[0].split(" ").map(s => s.to_owned()).to_array()
@@ -96,7 +98,8 @@ fn admin_headers(
     length = length * 10 + c.to_int() - 48
   }
   let content_type = headers.get("content-type").unwrap_or("")
-  let boundary = if start[0] == "POST" &&
+  let boundary = if !rest &&
+    start[0] == "POST" &&
     (start[1] == "/upload" || start[1] == "/replace-media") {
     Some(admin_multipart_boundary(content_type))
   } else {
@@ -108,14 +111,23 @@ fn admin_headers(
   }
   if start[0] == "POST" {
     if !headers.contains("content-length") ||
-      headers.get("origin") != Some("http://" + host) ||
-      (boundary is None && content_type != "application/x-www-form-urlencoded") {
+      (if rest {
+        content_type != "application/json" &&
+        content_type != "application/json; charset=utf-8"
+      } else {
+        headers.get("origin") != Some("http://" + host) ||
+        (
+          boundary is None &&
+          content_type != "application/x-www-form-urlencoded"
+        )
+      }) {
       raise InvalidInput("POST requires same-origin form encoding")
     }
   } else if length != 0 {
     raise InvalidInput("GET body rejected")
   }
   {
+    if_match: headers.get("if-match"),
     authorization: headers.get("authorization"),
     verb: start[0],
     target: start[1],
@@ -134,6 +146,7 @@ fn admin_read_request(
   fd : Int,
   host : String,
   allow_head? : Bool = false,
+  rest? : Bool = false,
   on_head? : () -> Unit = fn() { () },
 ) -> (AdminRequest, Bytes) raise {
   let buffer = Bytes::make(4096, 0)
@@ -179,7 +192,7 @@ fn admin_read_request(
   if raw.is_empty() {
     raise InvalidInput("Headers too large (16 KiB limit)")
   }
-  let request = admin_headers(raw, host, allow_head~)
+  let request = admin_headers(raw, host, allow_head~, rest~)
   let body : FixedArray[Byte] = FixedArray::make(request.length, 0)
   // A socket read may contain both headers and binary body bytes. Copy the
   // suffix exactly; never decode it as text or allocate from unvalidated length.

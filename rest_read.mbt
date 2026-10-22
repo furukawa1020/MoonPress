@@ -1,5 +1,6 @@
 ///|
 priv struct RestResponse {
+  etag : String?
   code : Int
   value : Json
   total : Int?
@@ -9,6 +10,7 @@ priv struct RestResponse {
 ///|
 fn rest_error(code : Int, label : String) -> RestResponse {
   {
+    etag: None,
     code,
     value: {
       "code": label.to_json(),
@@ -21,8 +23,8 @@ fn rest_error(code : Int, label : String) -> RestResponse {
 }
 
 ///|
-fn rest_ok(value : Json) -> RestResponse {
-  { code: 200, value, total: None, pages: None, }
+fn rest_ok(value : Json, etag? : String? = None) -> RestResponse {
+  { etag, code: 200, value, total: None, pages: None, }
 }
 
 ///|
@@ -148,6 +150,10 @@ fn rest_route(
       "namespace": "wp/v2".to_json(),
       "methods": ["GET", "HEAD"].to_json(),
     }
+    let edit_route : Json = {
+      "namespace": "wp/v2".to_json(),
+      "methods": ["GET", "HEAD", "POST"].to_json(),
+    }
     return rest_ok({
       "name": "MoonPress".to_json(),
       "url": base.to_json(),
@@ -160,13 +166,15 @@ fn rest_route(
       "routes": {
         "/wp/v2/posts": route,
         "/wp/v2/pages": route,
+        "/wp/v2/posts/(?P<id>[0-9]+)": edit_route,
+        "/wp/v2/pages/(?P<id>[0-9]+)": edit_route,
         "/wp/v2/users/me": route,
       },
       "moonpress": {
-        "read_only": true.to_json(),
-        "contexts": ["view"].to_json(),
+        "read_only": false.to_json(),
+        "contexts": ["view", "edit"].to_json(),
         "unsupported": [
-          "writes", "raw-content", "taxonomy-ids", "embeds", "xml-rpc", "php-plugins",
+          "create", "delete", "taxonomy-ids", "embeds", "xml-rpc", "php-plugins",
         ].to_json(),
       },
     })
@@ -279,6 +287,7 @@ fn rest_route(
     values.push(rest_post_value(posts[i].document, posts[i].stem, base))
   }
   {
+    etag: None,
     code: 200,
     value: values.to_json(),
     total: Some(total),

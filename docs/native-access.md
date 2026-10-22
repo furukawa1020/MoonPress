@@ -45,9 +45,10 @@ read. Contributors can edit/delete posts; authors additionally publish and
 upload; editors manage others' posts and pages; administrators additionally
 manage user and site options. `role_can_edit` also checks ownership, post/page
 type and published-edit capability. Legacy unassigned ownership is reserved to
-editors/administrators. The isolated [REST subset](native-rest.md) authenticates identity and exposes the
-current role only to its owner; it currently allows no content mutations or private
-content reads. Capabilities do not imply an implemented endpoint or complete
+editors/administrators. The isolated [REST subset](native-rest.md) authenticates identity and enforces
+ownership/role capabilities for existing-article edit reads and guarded saves.
+The access lock stays held through source publication; the local editor remains
+a trusted owner tool. Capabilities do not imply an implemented endpoint or complete
 WordPress role parity. Custom roles, per-user capability overrides, multisite,
 human password login and account recovery are not implemented.
 
