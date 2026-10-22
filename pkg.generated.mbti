@@ -50,6 +50,8 @@ pub fn export_site(String, String, String) -> SiteExport raise
 
 pub fn export_site_to_file(String, String, String, String) -> SiteExportReport raise
 
+pub fn export_wordpress(String, String) -> WxrExport raise
+
 pub fn filter_media_references(Array[MediaUsage], String, String) -> Array[MediaUsage] raise
 
 pub fn filter_post_kind(Array[PostSummary], String) -> Array[PostSummary] raise
@@ -693,6 +695,13 @@ pub(all) struct TrashPurgeReport {
   purged : Bool
 } derive(ToJson)
 pub fn TrashPurgeReport::to_json(Self) -> Json
+
+pub(all) struct WxrExport {
+  xml : String
+  posts : Int
+  warnings : Array[String]
+} derive(ToJson)
+pub fn WxrExport::to_json(Self) -> Json
 
 pub(all) struct ZipEntry {
   name : String

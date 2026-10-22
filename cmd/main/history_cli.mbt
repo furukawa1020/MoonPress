@@ -4,8 +4,8 @@ fn is_revision_command(command : String) -> Bool {
     return true
   }
   [
-    "post-schedule", "post-categories", "post-kind", "history-enable", "history",
-    "checkpoint", "revision", "restore-revision", "compare-revision",
+    "wxr-export", "post-schedule", "post-categories", "post-kind", "history-enable",
+    "history", "checkpoint", "revision", "restore-revision", "compare-revision",
   ].contains(command)
 }
 
@@ -29,6 +29,7 @@ fn revision_usage(command : String) -> String {
     return trash_usage(command)
   }
   let suffix = match command {
+    "wxr-export" => " <source-site-base-url> [--json]"
     "post-schedule" =>
       " <article.md> <expected-digest> <UTC-timestamp|empty-string> [--json]"
     "post-categories" =>
@@ -50,6 +51,7 @@ fn revision_run(args : Array[String]) -> Json raise {
     return trash_run(args)
   }
   match args[1] {
+    "wxr-export" => @lib.export_wordpress(args[2], args[3]).to_json()
     "post-schedule" =>
       @lib.save_post_schedule(args[2], args[3], args[4], args[5]).to_json()
     "post-categories" =>

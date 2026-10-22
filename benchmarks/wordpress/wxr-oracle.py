@@ -1,0 +1,24 @@
+"""Generate a native export and verify it through the official WP importer."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+wordpress, plugin, work = map(Path,sys.argv[1:])
+cli=Path('_build/native/release/build/cmd/main/main.exe').resolve()
+site=work/'wxr-site'
+subprocess.run([cli,'init',site],check=True,stdout=subprocess.DEVNULL)
+expected=[]
+for slug,extra,status in [('oracle-post',{},'publish'),('oracle-draft',{'draft':True},'draft'),('oracle-unlisted',{'listed':False},'draft'),('oracle-future',{'publish_at':'2099-01-01T00:00:00Z'},'future'),('oracle-page',{'kind':'page'},'publish')]:
+    fields={'title':'MoonPress WXR '+slug+' 日本語 & text','date':'2020-01-01','tags':['WXR tag'], 'categories':['WXR category'],**extra}
+    if fields.get('kind')=='page': fields.update(tags=[],categories=[])
+    source='---\n'+json.dumps(fields,ensure_ascii=False)+'\n---\n# Oracle\n\nExact text & <escaped> data.\n'
+    (site/'content'/f'{slug}.md').write_text(source,encoding='utf-8')
+    expected.append(dict(slug=slug,source=source,title=fields['title'],kind=fields.get('kind','post'),status=status,tags=fields['tags'],categories=fields['categories']))
+result=json.loads(subprocess.check_output([cli,'wxr-export',site,'https://example.test/','--json'],text=True))['report']
+xml=work/'oracle.xml';xml.write_text(result['xml'],encoding='utf-8')
+ns={'wp':'http://wordpress.org/export/1.2/','content':'http://purl.org/rss/1.0/modules/content/'}
+items={item.findtext('wp:post_name',namespaces=ns):item for item in ET.fromstring(result['xml']).findall('./channel/item')}
+for row in expected:row['html']=items[row['slug']].findtext('content:encoded',namespaces=ns)
+metadata=work/'oracle.json';metadata.write_text(json.dumps(expected,ensure_ascii=False),encoding='utf-8')
+subprocess.run(['php','benchmarks/wordpress/wxr-oracle.php',wordpress,plugin,xml,metadata],check=True)
