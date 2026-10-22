@@ -12,6 +12,7 @@ fn plan_site(
   previous : Map[String, Artifact],
   output : String?,
   include_drafts? : Bool = false,
+  publication_time? : Int64? = None,
 ) -> BuildPlan raise {
   if input.is_empty() {
     raise InvalidInput("Input directory must not be empty")
@@ -22,6 +23,7 @@ fn plan_site(
   require_input_kind(input + "/content", 2)
   require_input_kind(input + "/layout.html", 1)
   require_input_kind(input + "/style.css", 1)
+  let instant = publication_time.unwrap_or_else(authoring_time)
   let config = read_site_config(input)
   let base_url = config.base_url
   let layouts = load_layouts(input)
@@ -53,6 +55,10 @@ fn plan_site(
       let document = parse_document(source, stem, filename=path)
       if document.draft && !include_drafts {
         record_event(log, "skip", "content/" + name, "draft")
+        continue
+      }
+      if !include_drafts && !publication_due(document.publish_at, instant) {
+        record_event(log, "skip", "content/" + name, "scheduled")
         continue
       }
       let route = document.slug.unwrap_or(stem) + ".html"

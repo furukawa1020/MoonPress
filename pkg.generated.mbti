@@ -116,6 +116,8 @@ pub fn post_settings(String, filename? : String) -> PostSettings raise
 
 pub fn prepare_media(String) -> Bool raise
 
+pub fn publication_timestamp(String) -> Int64 raise
+
 pub fn purge_trashed_post(String, String, String, Bool) -> TrashPurgeReport raise
 
 pub fn query_references(ReferenceGraph, String) -> RouteReferences raise
@@ -175,6 +177,8 @@ pub fn save_post_fields(String, String, String, PostFields) -> SavePostReport ra
 pub fn save_post_from_file(String, String, String, String) -> SavePostReport raise
 
 pub fn save_post_kind(String, String, String, String) -> SavePostReport raise
+
+pub fn save_post_schedule(String, String, String, String) -> SavePostReport raise
 
 pub fn save_post_settings(String, String, String, PostSettings) -> SavePostReport raise
 
@@ -316,6 +320,7 @@ pub(all) struct Document {
   draft : Bool
   listed : Bool
   layout : String?
+  publish_at : String?
   date : String?
   slug : String?
 }

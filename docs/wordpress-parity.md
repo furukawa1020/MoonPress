@@ -11,7 +11,7 @@ Plugin extensions are an open-ended ecosystem, not a finite core checklist.
 | --- | --- |
 | Posts / fixed pages | Native metadata, browser type form and inventory filter; flat source/output names |
 | Drafts / ready / unlisted | Supported; unlisted is public and is not access control |
-| Scheduled publication | Missing; `date` orders content and never schedules it |
+| Scheduled publication | Strict UTC `publish_at`, guarded CLI/browser edits and production exclusion; due-time rebuild/deployment requires hosting automation |
 | Revisions / rollback | Explicit opt-in, immutable distinct-version preimages, manual checkpoints, browser/CLI diff and current-version-bound restore; not every save event |
 | Trash / restore / purge | Private durable records, reviewed source removal, restore to vacant original name as mode 0600, individual acknowledged purge; no timed automatic purge |
 | Categories / tags | Separate flat metadata, escaped indexes/archives, pagination; category hierarchy missing |
@@ -31,8 +31,8 @@ Plugin extensions are an open-ended ecosystem, not a finite core checklist.
 | Import / export | Verified static-site ZIP export; WXR/content migration missing |
 | Deployment / updates | Native release candidates and configured static hosting; a local build is not a deployment |
 
-Next implementation priorities are scheduled publication with explicit clocks,
-content migration, public search, attachment metadata, then a designed multiuser
+Next implementation priorities are content migration with reviewed imports,
+public search, attachment metadata, then a designed multiuser
 storage/authentication boundary before roles, comments and public APIs. These are
 remaining work, not hidden behind placeholder UI.
 
@@ -54,3 +54,5 @@ from this small local benchmark. PHP process RSS is a snapshot, not per-request
 allocation, and excludes the database's memory unless separately reported.
 
 Security and load acceptance: [security-and-capacity.md](security-and-capacity.md).
+
+Scheduled publication is implemented with strict UTC `publish_at`, guarded editing and production exclusion; see [scheduled-publication.md](scheduled-publication.md). Automatic rebuild/deployment at the due instant still requires hosting automation.

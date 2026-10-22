@@ -9,6 +9,7 @@ pub(all) struct Document {
   draft : Bool
   listed : Bool
   layout : String?
+  publish_at : String?
   date : String?
   slug : String?
 }
@@ -27,6 +28,7 @@ pub fn parse_document(
   let mut explicit_title : String? = None
   let mut description = ""
   let mut layout : String? = None
+  let mut publish_at : String? = None
   let mut date : String? = None
   let mut slug : String? = None
   let mut draft = false
@@ -49,6 +51,10 @@ pub fn parse_document(
           )
         }
         layout = Some(name)
+      }
+      ("publish_at", String(value)) => {
+        publication_timestamp(value) |> ignore
+        publish_at = Some(value)
       }
       ("date", String(value)) => {
         if !valid_publication_date(value) {
@@ -132,6 +138,7 @@ pub fn parse_document(
         | "draft"
         | "listed"
         | "layout"
+        | "publish_at"
         | "date"
         | "slug",
         _,
@@ -156,6 +163,7 @@ pub fn parse_document(
     draft,
     listed,
     layout,
+    publish_at,
     date,
     slug,
   }
