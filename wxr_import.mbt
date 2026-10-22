@@ -249,7 +249,7 @@ fn wxr_candidate(item : WxrXml, id : String, title : String) -> WxrCandidate {
       let (original, body) = document_parts(source, title)
       metadata = original
       warnings.push(
-        "Native source metadata preserved; publication is forced to draft and any slug is removed for the selected new filename.",
+        "Native source metadata preserved; publication is forced to draft; slug, native identity and author are cleared for the new site.",
       )
       body
     } else {
@@ -291,6 +291,8 @@ fn wxr_candidate(item : WxrXml, id : String, title : String) -> WxrCandidate {
       _ => raise InvalidInput("Invalid metadata")
     }
     fields["draft"] = true.to_json()
+    fields.remove("wp_id")
+    fields.remove("author")
     fields.remove("slug")
     let source = "---\n" + metadata.stringify() + "\n---\n" + body
     if @utf8.encode(source).length() > 4194304 {

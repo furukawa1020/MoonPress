@@ -93,6 +93,8 @@ test "date layout substitution is escaped and single pass" {
   let page : @moonpress.Page = {
     output: "a.html",
     document: {
+      wp_id: None,
+      author: 0,
       title: "A",
       description: "",
       tags: [],

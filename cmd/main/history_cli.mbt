@@ -7,9 +7,9 @@ fn is_revision_command(command : String) -> Bool {
     return true
   }
   [
-    "wxr-inspect", "wxr-import", "wxr-export", "post-schedule", "post-categories",
-    "post-kind", "history-enable", "history", "checkpoint", "revision", "restore-revision",
-    "compare-revision",
+    "post-identity", "wxr-inspect", "wxr-import", "wxr-export", "post-schedule",
+    "post-categories", "post-kind", "history-enable", "history", "checkpoint", "revision",
+    "restore-revision", "compare-revision",
   ].contains(command)
 }
 
@@ -23,7 +23,7 @@ fn revision_required(command : String) -> Int {
   }
   match command {
     "wxr-inspect" => 3
-    "wxr-import" => 7
+    "post-identity" | "wxr-import" => 7
     "post-schedule" | "post-categories" | "post-kind" => 6
     "history-enable" => 3
     "checkpoint" | "compare-revision" => 5
@@ -41,6 +41,8 @@ fn revision_usage(command : String) -> String {
     return trash_usage(command)
   }
   let suffix = match command {
+    "post-identity" =>
+      " <article.md> <expected-digest> <positive-id> <author-id|0> [--json]"
     "wxr-inspect" => " [--json]"
     "wxr-import" =>
       " <wxr-file> <inspected-digest> <post-id> <new-stem> [--json]"
@@ -65,6 +67,9 @@ fn revision_usage(command : String) -> String {
 
 ///|
 fn revision_run(args : Array[String]) -> Json raise {
+  if args[1] == "post-identity" {
+    return @lib.save_post_identity(args[2], args[3], args[4], args[5], args[6]).to_json()
+  }
   if is_access_command(args[1]) {
     return access_run(args)
   }

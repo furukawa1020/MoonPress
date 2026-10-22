@@ -8,7 +8,7 @@ def run(*args,ok=True):
 with tempfile.TemporaryDirectory() as temporary:
     root=pathlib.Path(temporary);source=root/'source';target=root/'target';xml=root/'migration.xml'
     run('init',source);run('init',target)
-    (source/'content/original.md').write_text('---\n{"title":"Native 月", "kind":"page","listed":false,"slug":"old-route"}\n---\n# Heading\n\n**Native** text & data.\n',encoding='utf-8')
+    (source/'content/original.md').write_text('---\n{"title":"Native 月","wp_id":12345,"author":17, "kind":"page","listed":false,"slug":"old-route"}\n---\n# Heading\n\n**Native** text & data.\n',encoding='utf-8')
     (source/'content/scheduled.md').write_text('---\n{"title":"Native scheduled","publish_at":"2030-01-01T00:00:00Z"}\n---\n# Scheduled\n',encoding='utf-8')
     xml.write_text(run('wxr-export',source,'https://example.test/')['xml'],encoding='utf-8')
     plan=run('wxr-inspect',xml)
@@ -17,7 +17,7 @@ with tempfile.TemporaryDirectory() as temporary:
     assert any('Original authors' in warning and '_encloseme' in warning for warning in item['warnings'])
     imported=run('wxr-import',target,xml,plan['digest'],item['id'],'migrated')
     path=target/'content/migrated.md';data=path.read_text(encoding='utf-8');meta=json.loads(data.split('\n---\n')[0][4:])
-    assert meta['draft'] and meta['kind']=='page' and meta['listed'] is False and 'slug' not in meta
+    assert meta['draft'] and meta['kind']=='page' and meta['listed'] is False and 'slug' not in meta and 'wp_id' not in meta and 'author' not in meta
     assert '**Native** text & data.' in data and (path.stat().st_mode & 0o777)==0o600
     before=path.read_bytes()
     run('wxr-import',target,xml,plan['digest'],item['id'],'migrated',ok=False)

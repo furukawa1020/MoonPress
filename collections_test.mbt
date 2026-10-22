@@ -22,6 +22,8 @@ test "collections escape metadata and URLs" {
   let page : @moonpress.Page = {
     output: "a\".html",
     document: {
+      wp_id: None,
+      author: 0,
       title: "<x>",
       description: "&",
       tags: [],

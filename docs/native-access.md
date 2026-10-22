@@ -45,8 +45,9 @@ read. Contributors can edit/delete posts; authors additionally publish and
 upload; editors manage others' posts and pages; administrators additionally
 manage user and site options. `role_can_edit` also checks ownership, post/page
 type and published-edit capability. Legacy unassigned ownership is reserved to
-editors/administrators. These library decisions are not yet wired into an HTTP
-content API. Capabilities do not imply an implemented endpoint or complete
+editors/administrators. The isolated [REST subset](native-rest.md) authenticates identity and exposes the
+current role only to its owner; it currently allows no content mutations or private
+content reads. Capabilities do not imply an implemented endpoint or complete
 WordPress role parity. Custom roles, per-user capability overrides, multisite,
 human password login and account recovery are not implemented.
 
@@ -68,4 +69,5 @@ credential cache. Valid digest comparisons perform the same 64-byte XOR/OR
 loop. This is a source-level fixed-work property, not a machine-code timing
 proof. Lock contention and corrupt/missing vaults raise errors that an HTTP
 adapter must handle without falling back to anonymous privileged access.
-This boundary has no public listener and no network throughput claim.
+The REST adapter binds only loopback; there is no public listener or authentication
+throughput claim.

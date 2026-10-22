@@ -15,6 +15,8 @@ fn duplicate_source(
   }
   fields["title"] = title.to_json()
   fields["draft"] = true.to_json()
+  fields.remove("wp_id")
+  fields.remove("author")
   fields.remove("slug")
   fields.remove("date")
   "---\n" + metadata.stringify() + "\n---\n" + body
