@@ -54,3 +54,7 @@ Version/configuration, FPM runtime OPcache/Xdebug checks, raw groups and request
 are retained in the same compressed evidence as serial/build measurements.
 `python3 scripts/capacity-test.py` validates accounting against an actual HTTP
 fixture including wrong hashes and HTTP failures.
+Each load group also records `/proc` RSS and user/system CPU tick snapshots for
+NGINX/FPM and their descendants before/after measurement. Tick frequency is
+recorded. RSS can double-count shared pages, is not peak memory, and excludes
+the separate MySQL service; it must not be compared with native generation peak.
