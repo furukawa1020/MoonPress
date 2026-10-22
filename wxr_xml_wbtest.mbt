@@ -37,3 +37,16 @@ test "WXR simple HTML preserves browser whitespace semantics" {
   assert_eq(wxr_body("<h2> Heading\n next </h2>"), "## Heading next\n\n")
   assert_eq(wxr_body("    literal text"), "literal text")
 }
+
+///|
+test "WXR plain HTML entities decode once with bare ampersands preserved" {
+  assert_eq(wxr_body("A &amp; B & C"), "A & B & C")
+  assert_eq(wxr_html_entities("&amp;lt;"), "&lt;")
+  assert_eq(wxr_html_entities("x &nbsp; y"), "x \u00A0 y")
+}
+
+///|
+test "WXR text comparisons and setext markers remain literal" {
+  assert_eq(wxr_body("2 < 3"), "2 < 3")
+  assert_false(render_markdown(wxr_body("Title\n===")).contains("<h1"))
+}

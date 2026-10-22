@@ -31,7 +31,7 @@ foreach ($expected as $row) {
         if ($actual !== $names) { throw new RuntimeException('Taxonomy differs: ' . $row['slug']); }
     }
 }
-echo 'WXR actual WordPress import passed: ' . count($expected) . " posts/pages; titles/content/status/source/taxonomy verified.\n";
+$success = 'WXR actual WordPress import passed: ' . count($expected) . " posts/pages; titles/content/status/source/taxonomy verified.\n";
 // Also exercise actual core export in the opposite direction.
 $plain_id = wp_insert_post(['post_type'=>'post', 'post_status'=>'publish', 'post_title'=>'WordPress native intake oracle', 'post_name'=>'wp-native-intake-oracle', 'post_content'=>'<h2>Heading</h2><p>Native intake text &amp; data.</p>', 'post_date'=>'2020-01-01 00:00:00', 'post_date_gmt'=>'2020-01-01 00:00:00'], true);
 if (is_wp_error($plain_id)) { throw new RuntimeException($plain_id->get_error_message()); }
@@ -40,3 +40,5 @@ ob_start();
 export_wp(['content'=>'post']);
 $wxr = ob_get_clean();
 if (file_put_contents(dirname($argv[3]) . '/wordpress-export.xml', $wxr) === false) { throw new RuntimeException('Cannot retain core WXR export'); }
+
+echo $success;

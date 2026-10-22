@@ -66,3 +66,5 @@ CI checks actual core WordPress export -> native inspection -> private draft
 intake in addition to native export -> official WordPress importer. The official
 Importer 0.9.6 archive is pinned to SHA256
 `85cfad65e24eb3b25ed536f52ce52c3971bd42a852d6f2c6a5bea8c5c429c323`.
+
+Transient WordPress `_edit_lock`, `_edit_last`, `_encloseme` and `_pingme` records are ignored with an explicit warning; user-defined custom fields still produce unsupported-item errors.

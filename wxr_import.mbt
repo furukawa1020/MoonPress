@@ -24,11 +24,40 @@ pub extend WxrImportPlan with ToJson::{to_json}
 fn wxr_plain_markdown(text : String) -> String {
   let out = StringBuilder()
   for c in text {
-    if "\\`*_{}[]()#+-.!>|~".contains(c.to_string()) {
+    if "\\`*_{}[]()#+-.!>|~=".contains(c.to_string()) {
       out.write_string("\\")
     }
     out.write_char(c)
   }
+  out.to_string()
+}
+
+///|
+fn wxr_html_entities(text : String) -> String raise {
+  let out = StringBuilder()
+  let mut rest = text[:]
+  while rest.split_once("&") is Some((before, after)) {
+    out.write_string(before.to_owned())
+    match after.split_once(";") {
+      Some((entity, next)) if !entity.is_empty() &&
+        entity.length() <= 32 &&
+        !entity.any(c => c.is_whitespace() || c == '&' || c == '<') => {
+        out.write_string(
+          if entity == "nbsp" {
+            "\u00A0"
+          } else {
+            wxr_decode("&" + entity.to_owned() + ";")
+          },
+        )
+        rest = next
+      }
+      _ => {
+        out.write_string("&")
+        rest = after
+      }
+    }
+  }
+  out.write_string(rest.to_owned())
   out.to_string()
 }
 
@@ -53,9 +82,24 @@ fn wxr_html_whitespace(text : String) -> String {
 }
 
 ///|
+fn wxr_has_markup(text : String) -> Bool {
+  let mut remaining = text[:]
+  while remaining.split_once("<") is Some((_, after)) {
+    if !after.is_empty() &&
+      after[:1].any(c => {
+        c.is_ascii_alphabetic() || c == '/' || c == '!' || c == '?'
+      }) {
+      return true
+    }
+    remaining = after
+  }
+  false
+}
+
+///|
 fn wxr_body(content : String) -> String raise {
-  if !content.contains("<") {
-    return content
+  if !wxr_has_markup(content) {
+    return wxr_html_entities(content)
       .split("\n")
       .map(line => wxr_plain_markdown(line.trim(chars=" \t\r").to_owned()))
       .to_array()
@@ -161,7 +205,9 @@ fn wxr_candidate(item : WxrXml, id : String, title : String) -> WxrCandidate {
         if key != "_moonpress_source_v1" &&
           key != "_moonpress_filename_v1" &&
           key != "_edit_lock" &&
-          key != "_edit_last" {
+          key != "_edit_last" &&
+          key != "_encloseme" &&
+          key != "_pingme" {
           raise InvalidInput("Unsupported custom field: " + key)
         }
       }
@@ -185,6 +231,20 @@ fn wxr_candidate(item : WxrXml, id : String, title : String) -> WxrCandidate {
           "Native source metadata conflicts with WordPress fields",
         )
       }
+      let native_name = meta.get("_moonpress_filename_v1").unwrap_or("")
+      require_post_name(native_name)
+      let native_stem = native_name[:native_name.length() - 3].to_owned()
+      let native_date = match document.publish_at {
+        Some(timestamp) =>
+          timestamp[:19].to_owned().replace_all(old="T", new=" ")
+        None => document.date.unwrap_or("1970-01-01") + " 00:00:00"
+      }
+      if document.slug.unwrap_or(native_stem) != item.field("wp:post_name") ||
+        native_date != item.field("wp:post_date_gmt") {
+        raise InvalidInput(
+          "Native route/date metadata conflicts with WordPress fields",
+        )
+      }
       let (original, body) = document_parts(source, title)
       metadata = original
       warnings.push(
@@ -197,10 +257,14 @@ fn wxr_candidate(item : WxrXml, id : String, title : String) -> WxrCandidate {
           "Gutenberg/shortcode content requires migration support",
         )
       }
+      let excerpt = item.field("excerpt:encoded")
+      if excerpt.contains("<") {
+        raise InvalidInput("HTML excerpts require migration support")
+      }
       metadata = {
         "title": title,
         "kind": kind,
-        "description": item.field("excerpt:encoded").to_json(),
+        "description": wxr_html_entities(excerpt).to_json(),
         "tags": tags.to_json(),
         "categories": categories.to_json(),
       }

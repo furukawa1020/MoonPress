@@ -9,6 +9,7 @@ with tempfile.TemporaryDirectory() as temporary:
     root=pathlib.Path(temporary);source=root/'source';target=root/'target';xml=root/'migration.xml'
     run('init',source);run('init',target)
     (source/'content/original.md').write_text('---\n{"title":"Native 月", "kind":"page","listed":false,"slug":"old-route"}\n---\n# Heading\n\n**Native** text & data.\n',encoding='utf-8')
+    (source/'content/scheduled.md').write_text('---\n{"title":"Native scheduled","publish_at":"2030-01-01T00:00:00Z"}\n---\n# Scheduled\n',encoding='utf-8')
     xml.write_text(run('wxr-export',source,'https://example.test/')['xml'],encoding='utf-8')
     plan=run('wxr-inspect',xml)
     item=next(item for item in plan['items'] if item['title']=='Native 月')
@@ -22,6 +23,16 @@ with tempfile.TemporaryDirectory() as temporary:
     run('wxr-import',target,xml,'0'*64,item['id'],'newname',ok=False)
     run('wxr-import',target,xml,plan['digest'],item['id'],'../escape',ok=False)
     assert path.read_bytes()==before and not (target/'content/newname.md').exists()
+    original_xml=xml.read_text(encoding='utf-8')
+    for changed in (original_xml.replace('1970-01-01 00:00:00','2030-01-01 00:00:00'),original_xml.replace('<wp:post_name>old-route</wp:post_name>','<wp:post_name>changed-route</wp:post_name>')):
+        xml.write_text(changed,encoding='utf-8');conflict=run('wxr-inspect',xml)
+        candidate=next(item for item in conflict['items'] if item['title']=='Native 月')
+        assert candidate.get('source') is None and 'conflicts' in candidate['error'],candidate
+    xml.write_text(original_xml.replace('2030-01-01 00:00:00','2040-01-01 00:00:00'),encoding='utf-8')
+    conflict=run('wxr-inspect',xml)
+    scheduled=next(item for item in conflict['items'] if item['title']=='Native scheduled')
+    assert scheduled.get('source') is None and 'conflicts' in scheduled['error']
+    xml.write_text(original_xml,encoding='utf-8')
     header='<rss version="2.0" xmlns:wp="http://wordpress.org/export/1.2/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/"><channel><wp:wxr_version>1.2</wp:wxr_version>'
     def fixture(body,status='publish',extra=''):
         return header+'<item><title>WP &amp; 月</title><wp:post_id>123</wp:post_id><wp:post_type>post</wp:post_type><wp:status>'+status+'</wp:status><content:encoded><![CDATA['+body+']]></content:encoded><wp:post_date_gmt>2020-01-01 00:00:00</wp:post_date_gmt>'+extra+'</item></channel></rss>'
