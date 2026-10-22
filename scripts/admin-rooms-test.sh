@@ -56,6 +56,9 @@ test "$(get /rooms/preview)" = 200
 grep -Fq '<button>プレビューをつくる</button>' "$tmp/page"
 test "$(get /rooms/build)" = 200
 grep -Fq '<button>変更計画をみる</button>' "$tmp/page"
+test "$(get '/edit?name=index.md')" = 200
+grep -Fq '移動する前に、下の編集内容を保存' "$tmp/page"
+grep -Fq 'href="/rooms/preview"' "$tmp/page"
 test "$(get /assets/logo.jpg)" = 200
 cmp "$tmp/page" docs/assets/social-preview.jpg
 test "$(get /assets/font.woff)" = 200

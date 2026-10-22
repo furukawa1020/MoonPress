@@ -93,6 +93,7 @@ fn admin_edit(input : String, name : String, token : String) -> String raise {
   }
   admin_page(
     "Edit " + name,
+    "<p><a href=\"/rooms/write\">◀ かきかきる〜む</a> · <a href=\"/rooms/preview\">▶ 保存した記事をプレビューする</a>。移動する前に、下の編集内容を保存してください。</p>" +
     "<p><a href=\"/workflow\">Writing and publishing steps</a>. Save your article, preview it, then set it ready for build.</p>" +
     "<p><a href=\"/references?name=" +
     url_component(name) +
@@ -398,7 +399,7 @@ fn admin_route(
         "Saved",
         "<p>Source saved. No deployment performed.</p><p><a href=\"/edit?name=" +
         url_component(name) +
-        "\">Continue editing</a> · <a href=\"/workflow\">Next: preview and review</a> · <a href=\"/\">All posts</a></p>",
+        "\">Continue editing</a> · <a href=\"/rooms/preview\">▶ ぷれびゅ〜る〜むへ</a> · <a href=\"/rooms/write\">かきかきる〜むへ</a> · <a href=\"/workflow\">Next: preview and review</a> · <a href=\"/\">All posts</a></p>",
       ),
     )
   } catch {
