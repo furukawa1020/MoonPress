@@ -138,31 +138,40 @@ fn admin_read_request(
   let header = StringBuilder()
   let mut raw = ""
   let mut state = 0
-  for i = 0; i < 16384; i = i + 1 {
-    if admin_recv(fd, buffer, 1) != 1 {
+  let mut header_bytes = 0
+  let mut received = 0
+  let mut consumed = 0
+  while raw.is_empty() && header_bytes < 16384 {
+    received = admin_recv(fd, buffer, 4096)
+    if received <= 0 {
       raise InvalidInput("Incomplete request or timeout")
     }
-    let n = buffer[0].to_int()
-    if n > 127 || n == 0 {
-      raise InvalidInput("Non-ASCII header")
-    }
-    header.write_char(n.unsafe_to_char())
-    // Observe HEAD before header/framing errors, including incomplete headers.
-    if i == 4 && header.to_string() == "HEAD " {
-      on_head()
-    }
-    state = if (state == 0 || state == 2) && n == 13 {
-      state + 1
-    } else if (state == 1 || state == 3) && n == 10 {
-      state + 1
-    } else if n == 13 {
-      1
-    } else {
-      0
-    }
-    if state == 4 {
-      raw = header.to_string()
-      break
+    consumed = 0
+    while consumed < received && header_bytes < 16384 {
+      let n = buffer[consumed].to_int()
+      consumed += 1
+      header_bytes += 1
+      if n > 127 || n == 0 {
+        raise InvalidInput("Non-ASCII header")
+      }
+      header.write_char(n.unsafe_to_char())
+      // Observe HEAD even when malformed headers arrive in a single read.
+      if header_bytes == 5 && header.to_string() == "HEAD " {
+        on_head()
+      }
+      state = if (state == 0 || state == 2) && n == 13 {
+        state + 1
+      } else if (state == 1 || state == 3) && n == 10 {
+        state + 1
+      } else if n == 13 {
+        1
+      } else {
+        0
+      }
+      if state == 4 {
+        raw = header.to_string()
+        break
+      }
     }
   }
   if raw.is_empty() {
@@ -170,7 +179,15 @@ fn admin_read_request(
   }
   let request = admin_headers(raw, host, allow_head~)
   let body : FixedArray[Byte] = FixedArray::make(request.length, 0)
-  let mut offset = 0
+  // A socket read may contain both headers and binary body bytes. Copy the
+  // suffix exactly; never decode it as text or allocate from unvalidated length.
+  let mut offset = received - consumed
+  if offset > request.length {
+    raise InvalidInput("Unexpected bytes after request")
+  }
+  for i = 0; i < offset; i = i + 1 {
+    body[i] = buffer[consumed + i]
+  }
   while offset < request.length {
     let remaining = request.length - offset
     let n = admin_recv(
