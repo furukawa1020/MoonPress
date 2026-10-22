@@ -1,5 +1,8 @@
 ///|
 fn is_revision_command(command : String) -> Bool {
+  if is_trash_command(command) {
+    return true
+  }
   [
     "history-enable", "history", "checkpoint", "revision", "restore-revision", "compare-revision",
   ].contains(command)
@@ -7,6 +10,9 @@ fn is_revision_command(command : String) -> Bool {
 
 ///|
 fn revision_required(command : String) -> Int {
+  if is_trash_command(command) {
+    return trash_required(command)
+  }
   match command {
     "history-enable" => 3
     "checkpoint" | "compare-revision" => 5
@@ -17,6 +23,9 @@ fn revision_required(command : String) -> Int {
 
 ///|
 fn revision_usage(command : String) -> String {
+  if is_trash_command(command) {
+    return trash_usage(command)
+  }
   let suffix = match command {
     "history-enable" => " [--json]"
     "history" => " <article.md> [--json]"
@@ -30,6 +39,9 @@ fn revision_usage(command : String) -> String {
 
 ///|
 fn revision_run(args : Array[String]) -> Json raise {
+  if is_trash_command(args[1]) {
+    return trash_run(args)
+  }
   match args[1] {
     "history-enable" => @lib.enable_post_history(args[2]).to_json()
     "history" => @lib.list_post_revisions(args[2], args[3]).to_json()
