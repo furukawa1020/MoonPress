@@ -21,3 +21,13 @@ text='\n'.join(lines)+'\n\nWarm serial loopback requests using PHP development s
 print(text)
 if os.environ.get('GITHUB_STEP_SUMMARY'):
     with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as file: file.write(text)
+
+if 'capacity' in http:
+    capacity_lines = ['\nNGINX (2 workers) + PHP-FPM (4 children), 1,000 articles; closed-loop loopback, new connections.', '| Concurrent | Variant | Repeat | Valid req/s | p95 ms | p99 ms | Errors |', '| --- | --- | --- | --- | --- | --- | --- |']
+    for row in http['capacity']['groups']:
+        capacity_lines.append(f"| {row['concurrency']} | {row['variant']} | {row['repeat']} | {row['valid_rps']:.1f} | {row['p95_ms']:.3f} | {row['p99_ms']:.3f} | {row['errors']} |")
+    capacity_text = '\n'.join(capacity_lines) + '\nClient shares host; observed throughput is not maximum production capacity. Raw requests retained in compressed log evidence.\n'
+    print(capacity_text)
+    if os.environ.get('GITHUB_STEP_SUMMARY'):
+        with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as file:
+            file.write(capacity_text)
