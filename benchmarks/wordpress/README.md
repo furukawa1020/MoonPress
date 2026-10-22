@@ -36,3 +36,5 @@ Raw JSON is gzip/base64-encoded into the job log with an uncompressed SHA-256,
 using only Python/shell and GitHub APIs rather than Node artifact actions. This
 is synthetic public test data; no credentials are emitted. Decode the marker
 `MOONPRESS_WORDPRESS_RAW_GZIP_BASE64` and verify `MOONPRESS_WORDPRESS_RAW_SHA256`.
+
+Actual October 22, 2026 results and complete raw records: [measured comparison](../../docs/wordpress-benchmark-2026-10-22.md). The cached WordPress control is explicitly retained even when it has a lower median than MoonPress.
