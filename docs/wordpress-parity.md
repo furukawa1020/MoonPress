@@ -28,10 +28,10 @@ Plugin extensions are an open-ended ecosystem, not a finite core checklist.
 | REST / XML-RPC / application passwords | Missing; local form endpoints are not a public API compatibility layer |
 | Multisite / network administration | Missing |
 | Plugins / hooks / custom post types | Missing; WordPress plugins cannot run in the native runtime |
-| Import / export | Verified static-site ZIP export; WXR/content migration missing |
+| Import / export | Verified static-site ZIP plus WXR export and reviewed private-draft intake; documented subset with explicit refusals |
 | Deployment / updates | Native release candidates and configured static hosting; a local build is not a deployment |
 
-Next implementation priorities are content migration with reviewed imports,
+Next implementation priorities are broader WXR content conversion,
 public search, attachment metadata, then a designed multiuser
 storage/authentication boundary before roles, comments and public APIs. These are
 remaining work, not hidden behind placeholder UI.
@@ -56,3 +56,5 @@ allocation, and excludes the database's memory unless separately reported.
 Security and load acceptance: [security-and-capacity.md](security-and-capacity.md).
 
 Scheduled publication is implemented with strict UTC `publish_at`, guarded editing and production exclusion; see [scheduled-publication.md](scheduled-publication.md). Automatic rebuild/deployment at the due instant still requires hosting automation.
+
+WXR content interchange now includes bounded native export, reviewed private-draft intake and actual WordPress importer/core-export oracle tests; [migration scope and unsupported cases](wordpress-migration.md). This is not arbitrary WordPress theme/plugin/runtime compatibility.

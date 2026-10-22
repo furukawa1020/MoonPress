@@ -141,7 +141,9 @@ fn usage(command : String) -> String {
 fn help_text(command : String) -> String {
   if is_revision_command(command) {
     return revision_usage(command) +
-      (if command == "wxr-export" {
+      (if command == "wxr-inspect" || command == "wxr-import" {
+        "\n\nInspect bounded WXR 1.2 candidates, then import one reviewed item as a new private draft. Unsupported content is refused. No overwrite, network fetch, build or deployment."
+      } else if command == "wxr-export" {
         "\n\nRead-only private WXR 1.2 migration export returned as JSON with xml/posts/warnings. Includes drafts and exact source. Keep output private; themes/plugins/users/media are not migrated."
       } else if is_trash_command(command) {
         "\n\nPrivate article trash. trash-post removes the live source after durable backup. trash-list/read inspect it; trash-restore creates a private source at an unoccupied original name. trash-purge permanently deletes only the reviewed record with confirm-permanent. No build or deployment is performed."

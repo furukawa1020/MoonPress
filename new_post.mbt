@@ -24,6 +24,7 @@ fn create_draft_content(
   slug : String,
   content : String,
   verify : (AuthoringDirectory) -> Unit raise,
+  private_mode? : Bool = false,
 ) -> NewPostReport raise {
   if !valid_slug(slug) {
     raise InvalidInput(
@@ -44,7 +45,7 @@ fn create_draft_content(
   if directory.kind(name) != 0 {
     raise InvalidInput("Article target must not exist: " + path)
   }
-  directory.write_new(name, @utf8.encode(content))
+  directory.write_new(name, @utf8.encode(content), private_mode~)
   { source, output: slug + ".html", title: document.title, draft: true, }
 }
 
