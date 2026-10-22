@@ -28,14 +28,14 @@ def generate(destination, count):
     (destination / 'dataset.json').write_bytes(encoded)
     site = destination / 'site'
     (site / 'content').mkdir(parents=True)
-    (site / 'layout.html').write_text('<!doctype html><html lang="en"><head><meta charset="utf-8"><title>{{title}}</title></head><body><main><h1>{{title}}</h1>{{content}}</main></body></html>\n')
-    (site / 'style.css').write_text('body { font-family: sans-serif; }\n')
+    (site / 'layout.html').write_text('<!doctype html><html lang="en"><head><meta charset="utf-8"><title>{{title}}</title></head><body><main><h1>{{title}}</h1>{{content}}</main></body></html>\n', encoding="utf-8")
+    (site / 'style.css').write_text('body { font-family: sans-serif; }\n', encoding="utf-8")
     for article in data['articles']:
         header = json.dumps({'title': article['title']}, sort_keys=True, separators=(',', ':'))
-        (site / 'content' / (article['slug'] + '.md')).write_text('---\n' + header + '\n---\n' + '\n\n'.join(article['paragraphs']) + '\n')
+        (site / 'content' / (article['slug'] + '.md')).write_text('---\n' + header + '\n---\n' + '\n\n'.join(article['paragraphs']) + '\n', encoding="utf-8")
     manifest = {'schema': 1, 'count': count, 'dataset_sha256': sha256(encoded),
                 'site_files': {str(p.relative_to(site)): sha256(p.read_bytes()) for p in sorted(site.rglob('*')) if p.is_file()}}
-    (destination / 'fixture-manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True) + '\n')
+    (destination / 'fixture-manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True) + '\n', encoding="utf-8")
     return manifest
 
 

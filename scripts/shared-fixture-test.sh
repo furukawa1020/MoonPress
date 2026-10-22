@@ -12,10 +12,13 @@ import importlib.util,json,sys
 from pathlib import Path
 spec=importlib.util.spec_from_file_location('fixture','benchmarks/wordpress/fixture.py')
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-for article in json.loads(Path(sys.argv[1]).read_text())['articles']:
+for article in json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))['articles']:
     module.verify_html((Path(sys.argv[2])/(article['slug']+'.html')).read_bytes(),article)
 try: module.verify_html(b'<main><h1>Wrong</h1></main>',article)
 except ValueError: pass
 else: raise AssertionError('Mismatch must fail')
 PY
 echo 'Shared fixture passed: deterministic corpus hashes and exact rendered article text, mismatch refusal.'
+
+LC_ALL=C PYTHONUTF8=0 python3 benchmarks/wordpress/fixture.py "$tmp/c" 10 > "$tmp/c-manifest"
+diff -r "$tmp/a" "$tmp/c"
