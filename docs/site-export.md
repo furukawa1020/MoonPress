@@ -39,10 +39,13 @@ The archive parent must already exist; `.zip` destinations must be new, visible
 files outside both the source site tree and managed output, including directory
 aliases. This prevents an archive from becoming an unsupported public asset or
 otherwise changing compiler inputs. Existing files,
-symlinks and directories are preserved. A caught write failure attempts to remove
-only the new partial file; cleanup failures report the path for inspection.
-Creation is exclusive, but writing is not crash-atomic. Do not consume the ZIP
-until the command succeeds. No server upload or implicit build occurs.
+symlinks and directories are preserved. The writer uses an anonymous inode in
+the retained destination directory. Data is flushed, fsynced and closed before
+exclusive link publication, then the directory is fsynced. Pre-install errors or
+process interruption leave no named partial ZIP. If the directory barrier fails
+after installation, a complete ZIP remains visible with unconfirmed durability;
+the command reports failure and does not delete it. No server upload or implicit
+build occurs. Filesystems without O_TMPFILE support fail closed.
 
 The local admin also serves `POST /export-production` with exactly the current
 form token and `review_id`, through the existing same-origin form parser. It
@@ -56,12 +59,13 @@ The regression suite independently extracts archives with Info-ZIP, compares
 public files with a clean build and follows the browser create/edit/preview/
 ready/build/download journey. It exercises stale reviews, manual edits,
 unknown/missing files, symlinks, FIFOs and oversize manifest/output refusal.
-Injected write, flush and close failures verify partial-file cleanup and stream
-closure. Directory replacement at open/lock/create/cleanup boundaries verifies
+Injected write, flush, sync, close and install failures verify absent final names
+and stream closure. Directory replacement at open/lock/create boundaries verifies
 that writes remain attached to the retained destination, not a substituted path.
 
-If a process is killed or cleanup fails, inspect any reported partial archive
-and remove it yourself before retrying with a new filename. Successful ZIP
+After interruption, an existing final ZIP must be complete, but a reported failed
+directory barrier does not prove durability. Inspect and retain it; use a new
+filename for a fresh verified export. Successful ZIP
 creation does not replace the host's deployment/removal procedure. Review and
 build again after changing saved sources; unsaved editor text is never included.
 

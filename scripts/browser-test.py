@@ -133,7 +133,7 @@ def run():
                 window = browser.call('GET', '/window/rect')
                 assert rect['x'] >= 0 and rect['x'] + rect['width'] <= window['width']
                 browser.fill('textarea[name="body"]', '\ue004', clear=False)
-                assert browser.call('GET', '/element/active')
+                assert browser.call('GET', '/element/active')['element-6066-11e4-a52e-4f735466cecf'] == browser.element('form[action="/fields"] button:not([formaction])')
                 steps.append('narrow viewport and keyboard Tab')
                 browser.call('POST', '/window/rect', {'width': 1280, 'height': 900})
                 browser.go(origin + '/media')
