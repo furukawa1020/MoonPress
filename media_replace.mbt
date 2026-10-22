@@ -44,12 +44,14 @@ pub fn replace_media(
     )
   }
   if bytes == current_bytes {
+    directory.sync()
     return { item: current, previous_digest: current.digest, changed: false, }
   }
   let item = media_item(name, bytes)
   let file = directory.create(".moonpress-media-edit")
   let mut prepared = false
   let mut verified = false
+  let mut committed = false
   try {
     directory.write(file, ".moonpress-media-edit", bytes, Some(name))
     prepared = true
@@ -57,8 +59,15 @@ pub fn replace_media(
     verified = true
     require_media_version(media_item(name, directory.read(name)), expected)
     directory.publish(".moonpress-media-edit", name, false)
+    committed = true
+    directory.sync()
   } catch {
     error => {
+      if committed {
+        raise InvalidInput(
+          "Media replacement is visible, but durability is unconfirmed; reload before retrying: \{error}",
+        )
+      }
       let cleanup = if prepared && !verified {
         "; unverified staging path retained for inspection: " + stage
       } else {

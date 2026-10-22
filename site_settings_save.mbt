@@ -55,6 +55,7 @@ pub fn save_site_settings(
   }
   let digest = digest_text(content)
   if current.exists && content == current.content {
+    directory.sync()
     return { digest, changed: false, created: false, }
   }
   let bytes = @utf8.encode(content)
@@ -80,11 +81,13 @@ pub fn save_site_settings(
     if current.exists {
       directory.publish(".moonpress-settings-edit", "site.json", false)
       committed = true
+      directory.sync()
     } else {
       // Hard-link publication is exclusive: an unexpectedly appearing target
       // cannot be overwritten between the absence check and publication.
       directory.publish(".moonpress-settings-edit", "site.json", true)
       committed = true
+      directory.sync()
       verify_settings_stage(directory, bytes)
       directory.remove(".moonpress-settings-edit")
     }
@@ -92,7 +95,7 @@ pub fn save_site_settings(
     error => {
       if committed {
         raise InvalidInput(
-          "Site settings were saved, but staging cleanup failed; reload and inspect " +
+          "Site settings were saved, but staging cleanup failed or durability is unconfirmed; reload and inspect " +
           stage +
           ": \{error}",
         )
