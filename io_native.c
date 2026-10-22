@@ -231,3 +231,7 @@ MOONBIT_FFI_EXPORT int moonpress_atomic_parent_sync(int fd) {
   return result;
 }
 MOONBIT_FFI_EXPORT int moonpress_atomic_parent_close(int fd) { return close(fd); }
+
+MOONBIT_FFI_EXPORT int moonpress_io_private(FILE *file) {
+  return fchmod(fileno(file), 0600);
+}

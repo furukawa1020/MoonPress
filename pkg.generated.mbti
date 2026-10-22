@@ -52,6 +52,8 @@ pub fn import_media(String, String, String) -> MediaItem raise
 
 pub fn init_site(String) -> InitReport raise
 
+pub fn inspect_authoring_stage(String, String) -> AuthoringStage raise
+
 pub fn inspect_backlinks(String, String, include_drafts? : Bool) -> RouteReferences raise
 
 pub fn inspect_build_plan(String, String, include_drafts? : Bool) -> DetailedBuildPlan raise
@@ -132,6 +134,8 @@ pub fn replace_media(String, String, String, Bytes) -> ReplaceMediaReport raise
 
 pub fn replace_media_from_file(String, String, String, String) -> ReplaceMediaReport raise
 
+pub fn rescue_authoring_stage(String, String, String, String) -> AuthoringRescue raise
+
 pub fn resolve_redirects(Array[Redirect], Array[String]) -> Array[Redirect] raise
 
 pub fn review_build_plan(String, String, include_drafts? : Bool) -> ReviewedBuildPlan raise
@@ -194,6 +198,22 @@ pub fn Artifact::equal(Self, Self) -> Bool
 pub fn Artifact::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Artifact::not_equal(Self, Self) -> Bool
 pub fn Artifact::to_json(Self) -> Json
+
+pub(all) struct AuthoringRescue {
+  stage : String
+  backup : String
+  bytes : Int
+  digest : String
+} derive(ToJson)
+pub fn AuthoringRescue::to_json(Self) -> Json
+
+pub(all) struct AuthoringStage {
+  stage : String
+  exists : Bool
+  bytes : Int
+  digest : String?
+} derive(ToJson)
+pub fn AuthoringStage::to_json(Self) -> Json
 
 pub(all) struct BuildEvent {
   action : String

@@ -13,6 +13,7 @@ fn AuthoringDirectory::write_new(
   self : AuthoringDirectory,
   name : String,
   bytes : Bytes,
+  private_mode? : Bool = false,
 ) -> Unit raise {
   let encoded = authoring_name(name)
   let path = self.path + "/" + name
@@ -24,6 +25,11 @@ fn AuthoringDirectory::write_new(
     raise io_failure(
       "anonymous authoring open (filesystem must support O_TMPFILE)", path,
     )
+  }
+  if private_mode && io_private(file) != 0 {
+    let error = io_failure("restrict backup permissions", path)
+    io_close(file) |> ignore
+    raise error
   }
   // Retain the anonymous inode while checking fclose before publication.
   let source = io_duplicate(file)
@@ -46,3 +52,6 @@ fn AuthoringDirectory::write_new(
       )
   }
 }
+
+///|
+extern "C" fn io_private(file : NativeFile) -> Int = "moonpress_io_private"
