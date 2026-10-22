@@ -102,7 +102,7 @@ def compare(wordpress, archive, cli, samples):
     shutil.copyfile(HERE/'theme.php', theme/'index.php')
     (theme/'style.css').write_text('/*\nTheme Name: MoonPress benchmark\nVersion: 1\n*/\n', encoding="utf-8")
     probe = wordpress/'moonpress-benchmark-runtime.php'
-    probe.write_text("<?php echo json_encode(['opcache_enabled'=>function_exists('opcache_get_status') && (opcache_get_status(false)['opcache_enabled'] ?? false), 'xdebug_mode'=>ini_get('xdebug.mode'), 'php_version'=>PHP_VERSION]);", encoding="utf-8")
+    probe.write_text("<?php echo json_encode(['opcache_enabled'=>function_exists('opcache_get_status') && (opcache_get_status(false)['opcache_enabled'] ?? false), 'xdebug_loaded'=>extension_loaded('xdebug'), 'xdebug_mode'=>ini_get('xdebug.mode'), 'php_version'=>PHP_VERSION]);", encoding="utf-8")
     dynamic_port, static_port = free_port(), free_port()
     if dynamic_port == static_port:
         static_port = free_port()
@@ -127,7 +127,7 @@ def compare(wordpress, archive, cli, samples):
             with server(wordpress,dynamic_port) as dynamic, server(serve,static_port) as static:
                 probe_body,_ = request(dynamic_origin+'/moonpress-benchmark-runtime.php')
                 runtime = json.loads(probe_body)
-                if runtime['opcache_enabled'] is not True or runtime['xdebug_mode'] != 'off':
+                if runtime['opcache_enabled'] is not True or (runtime['xdebug_loaded'] and runtime['xdebug_mode'] != 'off'):
                     raise ValueError('Unexpected PHP benchmark runtime: '+str(runtime))
                 result['php_server_runtime'] = runtime
                 # Validate every imported dynamic article, cache the actual response and
