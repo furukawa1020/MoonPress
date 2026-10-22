@@ -50,6 +50,19 @@ printf 'manual edit' >> "$tmp/site/.moonpress-preview/index.html"
 test "$(get /rooms/preview)" = 200
 grep -Fq 'プレビューを確認できません' "$tmp/page"
 cp "$tmp/original-preview" "$tmp/site/.moonpress-preview/index.html"
+# A real interrupted preview points at its own output recovery, not source rescue.
+cc -Wall -Wextra -Werror -shared -fPIC tests/native/fail_publication.c -ldl -o "$tmp/fault.so"
+code=0
+env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_KILL_BEFORE_RENAME=$tmp/site/.moonpress-preview/.moonpress.json" "$cli" build "$tmp/site" "$tmp/site/.moonpress-preview" --include-drafts >/dev/null 2>&1 || code=$?
+test "$code" = 137
+cp -a "$tmp/site" "$tmp/interrupted-preview"
+test "$(get /rooms/preview)" = 200
+grep -Fq "$tmp/site/.moonpress-preview" "$tmp/page"
+grep -Fq 'moonpress recovery-plan PREVIEW_DIRECTORY --json' "$tmp/page"
+grep -Fq 'moonpress recover PREVIEW_DIRECTORY --json' "$tmp/page"
+diff -r "$tmp/site" "$tmp/interrupted-preview"
+"$cli" recovery-plan "$tmp/site/.moonpress-preview" --json | jq -e '.report.action == "rolled_back"' >/dev/null
+"$cli" recover "$tmp/site/.moonpress-preview" >/dev/null
 for target in /rooms/nope '/rooms?complete=1' /assets/nope; do
   test "$(get "$target")" = 404
 done

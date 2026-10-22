@@ -240,5 +240,5 @@ workflow separately.
 
 Run `moonpress admin my-site 8080` for the local post-management interface.
 See [local administration](admin.md) for creation, editing, status controls and
-the local-only trust boundary. Open `/workflow` for the ordered writing,
+the local-only trust boundary. Open `/rooms` for the guided publishing rooms, or `/workflow` for the ordered writing,
 preview and production-build steps. Remote hosting requires separate setup.

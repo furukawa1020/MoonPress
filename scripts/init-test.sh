@@ -22,6 +22,7 @@ failure() {
 "$cli" init "$tmp/projects/My 月 site/" --json > "$tmp/report"
 jq -e --arg directory "$tmp/projects/My 月 site" '.schema == 1 and .command == "init" and .include_drafts == false and .report.directory == $directory and (.report.files | sort) == ["README.md","content/guide.md","content/index.md","layout.html","layouts/post.html","site.json","style.css"]' "$tmp/report" >/dev/null
 site="$tmp/projects/My 月 site"
+grep -Fq "http://127.0.0.1:8080/rooms" "$site/README.md"
 "$cli" init "$tmp/projects/second" > "$tmp/text"
 grep -Fq '7 files' "$tmp/text"
 diff -r "$site" "$tmp/projects/second"
