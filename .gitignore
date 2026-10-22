@@ -11,3 +11,5 @@ bench-results/
 /admin_room_art.generated.mbt
 
 /admin_logo.generated.mbt
+
+__pycache__/
