@@ -32,6 +32,24 @@ def report(raw_file, output, date):
         require(len(values)==http['conditions']['samples_per_variant_per_count'], "Raw evidence validation failed at check 32")
         require(statistics.median(values)==row['total_ms']['median'], "Raw evidence validation failed at check 33")
         require(sorted(values)[math.ceil(.95*len(values))-1]==row['total_ms']['p95'], "Raw evidence validation failed at check 34")
+    expected_groups = {(count, scenario) for count in (10,100,1000) for scenario in ('clean','noop','one-edit')}
+    require(len(native['summary']) == len(expected_groups), 'Native summary coverage differs')
+    require({(r['count'],r['scenario']) for r in native['summary']} == expected_groups, 'Native groups differ')
+    require(len(native['samples']) == len(expected_groups)*native['repeats'], 'Native sample count differs')
+    for row in native['summary']:
+        samples = [s for s in native['samples'] if s['count']==row['count'] and s['scenario']==row['scenario']]
+        require(len(samples) == native['repeats'], 'Native repeat count differs')
+        require({s['repeat'] for s in samples} == set(range(1,native['repeats']+1)), 'Native repeat IDs differ')
+        for sample in samples:
+            count, scenario = sample['count'], sample['scenario']
+            written = count+3 if scenario=='clean' else (0 if scenario=='noop' else 1)
+            require(sample['pages']==count and sample['written']==written and sample['skipped']==count+3-written and sample['deleted']==0,
+                    'Native build work counts differ from the shared fixture contract')
+        for metric in ('elapsed_ms','peak_rss_kib'):
+            values = sorted(s[metric] for s in samples)
+            require(all(math.isfinite(value) and value>0 for value in values), 'Invalid native metric')
+            summary = {'median':statistics.median(values),'p95':values[math.ceil(.95*len(values))-1], 'min':values[0], 'max':values[-1]}
+            require(summary == row[metric], 'Native timing/RSS summary differs from raw samples')
     run = ci['GITHUB_RUN_ID']
     repository = ci['GITHUB_REPOSITORY']
     lines=[f'# WordPress / MoonPress measured comparison — {date}', '',

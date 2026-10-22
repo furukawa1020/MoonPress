@@ -166,3 +166,5 @@ bash scripts/categories-test.sh
 bash scripts/category-archives-test.sh
 
 bash scripts/shared-fixture-test.sh
+
+bash scripts/benchmark-report-test.sh

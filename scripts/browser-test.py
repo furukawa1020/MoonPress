@@ -68,7 +68,22 @@ class Browser:
     def element(self, selector):
         return self.call('POST', '/element', {'using': 'css selector', 'value': selector})['element-6066-11e4-a52e-4f735466cecf']
     def click(self, selector):
+        # Form submission can begin after the click command has returned. Wait
+        # for the old document to be replaced before allowing another navigation.
+        # Download responses keep the current document, so they use file checks.
+        submitted = 'button' in selector and '/export-production' not in selector
+        previous = self.element('html') if submitted else None
         self.call('POST', '/element/' + self.element(selector) + '/click', {})
+        if previous:
+            def replaced():
+                try:
+                    self.call('GET', '/element/' + previous + '/name')
+                except RuntimeError as error:
+                    if 'stale element reference' in str(error) or 'no such element' in str(error):
+                        return True
+                    raise
+                return False
+            wait_until(replaced)
     def fill(self, selector, value, clear=True):
         element = self.element(selector)
         if clear:
@@ -156,6 +171,7 @@ def run():
                 browser.expect_text('History is enabled')
                 browser.click('form[action="/checkpoint"] button')
                 browser.expect_text('History is enabled')
+                assert len(list((site / '.moonpress-history').glob('*.json'))) == 1
                 browser.go(origin + '/edit?name=journey-article.md')
                 browser.fill('textarea[name="body"]', '# Journey article\n\nHistory edited text.\n')
                 browser.click('form[action="/fields"] button:not([formaction])')
