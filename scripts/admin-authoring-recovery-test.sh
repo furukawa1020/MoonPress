@@ -49,4 +49,8 @@ grep -Fq 'supported byte-buffer length' "$tmp/page"
 test "$(stat -c %s "$tmp/site/content/.moonpress-edit")" = 8388609
 test "$(get '/authoring-recovery?site=elsewhere')" = 404
 test "$(curl --max-time 8 -sS -o "$tmp/page" -w '%{http_code}' -H "Origin: $origin" --data token=invalid "$origin/authoring-recovery")" = 400
+test "$(get /rooms/write)" = 200
+grep -Fq 'href="/authoring-recovery"' "$tmp/page"
+test "$(get /recovery)" = 200
+grep -Fq 'href="/authoring-recovery"' "$tmp/page"
 echo 'Authoring recovery screen: read-only bounded inspection, no staged-body disclosure or mutation, unsafe entry refusal.'

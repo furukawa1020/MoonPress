@@ -24,7 +24,8 @@ fn admin_recovery(input : String) -> (Int, String) {
         "<p>" +
         state +
         "</p><p>Prospective file restores: \{report.restored}; removals: \{report.removed}. Counts exclude staging cleanup.</p>" +
-        guidance,
+        guidance +
+        admin_recovery_links(),
       ),
     )
   } catch {
@@ -37,8 +38,14 @@ fn admin_recovery(input : String) -> (Int, String) {
           "<p class=\"notice\">" +
           escape_html(error.to_string()) +
           "</p>" +
-          guidance,
+          guidance +
+          admin_recovery_links(),
         ),
       )
   }
+}
+
+///|
+fn admin_recovery_links() -> String {
+  "<p>保存途中のデータは <a href=\"/authoring-recovery\">編集データの案内所</a>、生成途中のサイトは <a href=\"/recovery\">ビルド出力の復旧</a> で確認できます。送信した文章が表示されている場合は、再読み込み前にコピーしてください。</p>"
 }
