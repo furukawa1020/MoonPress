@@ -30,3 +30,10 @@ test "WXR XML entities CDATA UTF8 and namespace boundaries" {
   }
   assert_true(rejected)
 }
+
+///|
+test "WXR simple HTML preserves browser whitespace semantics" {
+  assert_eq(wxr_body("<p>    Text\n\n  more</p>"), "Text more\n\n")
+  assert_eq(wxr_body("<h2> Heading\n next </h2>"), "## Heading next\n\n")
+  assert_eq(wxr_body("    literal text"), "literal text")
+}

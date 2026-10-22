@@ -33,9 +33,33 @@ fn wxr_plain_markdown(text : String) -> String {
 }
 
 ///|
+fn wxr_html_whitespace(text : String) -> String {
+  let out = StringBuilder()
+  let mut pending = false
+  let mut written = false
+  for c in text {
+    if c == ' ' || c == '\t' || c == '\r' || c == '\n' {
+      pending = written
+    } else {
+      if pending {
+        out.write_string(" ")
+      }
+      out.write_char(c)
+      written = true
+      pending = false
+    }
+  }
+  out.to_string()
+}
+
+///|
 fn wxr_body(content : String) -> String raise {
   if !content.contains("<") {
-    return wxr_plain_markdown(content)
+    return content
+      .split("\n")
+      .map(line => wxr_plain_markdown(line.trim(chars=" \t\r").to_owned()))
+      .to_array()
+      .join("\n")
   }
   // Deliberately refuse arbitrary HTML, Gutenberg/shortcodes and scripts rather
   // than pretending an escaped or lossy conversion is compatible.
@@ -60,10 +84,9 @@ fn wxr_body(content : String) -> String raise {
       "h6" => "###### "
       _ => raise InvalidInput("Unsupported HTML element: " + child.name)
     }
-    if child.text.contains("\n") && child.name != "p" {
-      raise InvalidInput("Multiline HTML heading is unsupported")
-    }
-    body.write_string(prefix + wxr_plain_markdown(child.text) + "\n\n")
+    body.write_string(
+      prefix + wxr_plain_markdown(wxr_html_whitespace(child.text)) + "\n\n",
+    )
   }
   body.to_string()
 }
