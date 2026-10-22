@@ -4,8 +4,8 @@ fn is_revision_command(command : String) -> Bool {
     return true
   }
   [
-    "post-categories", "post-kind", "history-enable", "history", "checkpoint", "revision",
-    "restore-revision", "compare-revision",
+    "post-schedule", "post-categories", "post-kind", "history-enable", "history",
+    "checkpoint", "revision", "restore-revision", "compare-revision",
   ].contains(command)
 }
 
@@ -15,7 +15,7 @@ fn revision_required(command : String) -> Int {
     return trash_required(command)
   }
   match command {
-    "post-categories" | "post-kind" => 6
+    "post-schedule" | "post-categories" | "post-kind" => 6
     "history-enable" => 3
     "checkpoint" | "compare-revision" => 5
     "restore-revision" => 6
@@ -29,6 +29,8 @@ fn revision_usage(command : String) -> String {
     return trash_usage(command)
   }
   let suffix = match command {
+    "post-schedule" =>
+      " <article.md> <expected-digest> <UTC-timestamp|empty-string> [--json]"
     "post-categories" =>
       " <article.md> <expected-digest> <newline-separated-categories> [--json]"
     "post-kind" => " <article.md> <expected-digest> <post|page> [--json]"
@@ -48,6 +50,8 @@ fn revision_run(args : Array[String]) -> Json raise {
     return trash_run(args)
   }
   match args[1] {
+    "post-schedule" =>
+      @lib.save_post_schedule(args[2], args[3], args[4], args[5]).to_json()
     "post-categories" =>
       @lib.save_post_categories(args[2], args[3], args[4], args[5]).to_json()
     "post-kind" =>

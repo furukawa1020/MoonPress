@@ -173,3 +173,5 @@ bash scripts/benchmark-report-test.sh
 python3 scripts/capacity-test.py
 
 python3 scripts/capacity-report-test.py
+
+python3 scripts/schedule-test.py
