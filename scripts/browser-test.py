@@ -185,11 +185,14 @@ def run():
                 steps.append('ZIP download and full production byte parity')
                 browser.go(origin + '/workflow')
                 browser.click('form[action="/plan-production"] button')
+                review_element = wait_until(lambda: browser.element('form[action="/build-production"] input[name="review_id"]'))
+                reviewed = browser.call('GET', f'/element/{review_element}/property/value')
+                assert len(reviewed) == 64
                 before = (site / '.moonpress-build/browser-moon.html').read_bytes()
                 with (site / 'content/browser-moon.md').open('a') as source:
                     source.write('\nExternal change after review.\n')
                 browser.click('form[action="/build-production"] button')
-                wait_until(lambda: 'changed' in browser.text().lower())
+                browser.expect_text('Reviewed build plan changed')
                 assert (site / '.moonpress-build/browser-moon.html').read_bytes() == before
                 steps.append('stale reviewed build refused without output mutation')
                 report = {'browser': browser.capabilities['browserVersion'], 'javascript': 'disabled by managed browser preference; no injected scripts', 'steps': steps}
