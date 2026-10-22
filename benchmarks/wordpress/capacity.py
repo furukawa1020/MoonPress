@@ -6,6 +6,7 @@ import http.client
 import itertools
 import json
 import math
+import os
 import pathlib
 import socket
 import statistics
@@ -120,7 +121,7 @@ http {{
     with (work / 'process.log').open('wb') as log:
         processes = []
         try:
-            processes.append(subprocess.Popen(['php-fpm8.3', '-F', '-y', str(fpm)], stdout=log, stderr=log))
+            processes.append(subprocess.Popen(['php-fpm8.3', '-d', 'xdebug.mode=off', '-F', '-y', str(fpm)], stdout=log, stderr=log, env={**os.environ, 'XDEBUG_MODE':'off'}))
             processes.append(subprocess.Popen(['nginx', '-c', str(config), '-g', 'daemon off;'], stdout=log, stderr=log))
             for endpoint in (fpm_port, port):
                 for _ in range(100):
