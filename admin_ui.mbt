@@ -144,6 +144,12 @@ fn admin_route(
   token : String,
 ) -> (Int, String) raise {
   if request.verb == "GET" {
+    if request.target.has_prefix("/revision-diff?") {
+      return (
+        200,
+        admin_revision_diff(input, admin_form(request.target[15:].to_owned())),
+      )
+    }
     if request.target.has_prefix("/history?") {
       return (
         200,

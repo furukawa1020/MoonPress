@@ -27,6 +27,9 @@ test "$(post --data-urlencode name=index.md --data-urlencode "version=$version" 
 id="$("$cli" history "$tmp/site" index.md --json | jq -r '.report[0].id')"
 printf '# Updated\n' > "$tmp/new-source"
 "$cli" save "$tmp/site" index.md "$version" "$tmp/new-source" >/dev/null
+"$cli" compare-revision "$tmp/site" index.md "$id" --json | jq -e '[.report.lines[].action] | index("add") != null' >/dev/null
+test "$(get "/revision-diff?name=index.md&id=$id")" = 200
+grep -Fq 'Revision comparison' "$tmp/page"
 current="$("$cli" read "$tmp/site" index.md --json | jq -r '.report.digest')"
 test "$(get "/revision?name=index.md&id=$id")" = 200
 grep -Fq 'Restore this reviewed version' "$tmp/page"
