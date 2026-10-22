@@ -32,7 +32,15 @@ fn admin_build_production(
 }
 
 ///|
-fn admin_production_plan_form(token : String) -> String {
+fn admin_production_plan_form(
+  token : String,
+  japanese? : Bool = false,
+) -> String {
+  if japanese {
+    return "<h2>変わるファイルをたしかめる</h2><form method=\"post\" action=\"/plan-production\">" +
+      admin_hidden("token", token) +
+      "<p>公開対象の保存済み記事を検証し、追加・更新・削除するファイルを表示します。下書きと未保存の文章は含まれません。この確認ではファイルを書き込みません。</p><button>変更計画をみる</button></form>"
+  }
   "<h2>Inspect production changes</h2><form method=\"post\" action=\"/plan-production\">" +
   admin_hidden("token", token) +
   "<p>Validate saved ready articles and inspect planned changes to <code>.moonpress-build</code>. Drafts and unsaved text are excluded. No files or output directory are created.</p><button>Inspect production changes</button></form>"
