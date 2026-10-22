@@ -32,12 +32,12 @@ mkfifo "$tmp/site/content/fifo.md"
 for name in link.md fifo.md; do reject 1 timeout 5 "$cli" duplicate "$tmp/site" "$name" "$version" bad Title; done
 rm "$tmp/site/content/link.md" "$tmp/site/content/fifo.md"
 cc -Wall -Wextra -Werror -shared -fPIC tests/native/fail_publication.c -ldl -o "$tmp/fault.so"
-for fault in OPEN WRITE FLUSH CLOSE; do
+for fault in OPEN WRITE FLUSH SYNC CLOSE INSTALL; do
   reject 1 env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_FAIL_$fault=$tmp/site/content/fail.md" "$cli" duplicate "$tmp/site" original.md "$version" fail Title
   test ! -e "$tmp/site/content/fail.md"
   diff -r "$tmp/before" "$tmp/site"
 done
-reject 1 env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_CREATE_BEFORE_OPEN=$tmp/site/content/race.md" "$cli" duplicate "$tmp/site" original.md "$version" race Title
+reject 1 env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_CREATE_BEFORE_LINK=$tmp/site/content/race.md" "$cli" duplicate "$tmp/site" original.md "$version" race Title
 test "$(cat "$tmp/site/content/race.md")" = 'competing writer'
 rm "$tmp/site/content/race.md"
 # Recheck source after the real authoring lock has been acquired.

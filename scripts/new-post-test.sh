@@ -46,20 +46,27 @@ failure 2 "$cli" new "$tmp/site" post Title --include-drafts
 failure 2 "$cli" new "$tmp/site" post Title --json --json
 failure 2 "$cli" new "$tmp/site" post Title extra
 cc -Wall -Wextra -Werror -shared -fPIC tests/native/fail_publication.c -ldl -o "$tmp/fault.so"
-for fault in OPEN WRITE FLUSH CLOSE; do
+for fault in OPEN WRITE FLUSH SYNC CLOSE INSTALL; do
   failure 1 env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_FAIL_$fault=$tmp/site/content/fail.md" "$cli" new "$tmp/site" fail Title
   test ! -e "$tmp/site/content/fail.md"
   diff -r "$tmp/site" "$tmp/before"
 done
 # A competing creator between preflight and fopen must not be overwritten/deleted.
-failure 1 env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_CREATE_BEFORE_OPEN=$tmp/site/content/race.md" "$cli" new "$tmp/site" race Title
+failure 1 env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_CREATE_BEFORE_LINK=$tmp/site/content/race.md" "$cli" new "$tmp/site" race Title
 test "$(cat "$tmp/site/content/race.md")" = 'competing writer'
 rm "$tmp/site/content/race.md"
 failure 1 env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_FAIL_WRITE=$tmp/site/content/fail.md" "MOONPRESS_TEST_FAIL_REMOVE=$tmp/site/content/fail.md" "$cli" new "$tmp/site" fail Title
-grep -Fq 'cleanup incomplete' "$tmp/stderr"
-test -f "$tmp/site/content/fail.md"
-failure 1 "$cli" new "$tmp/site" fail Title
-rm "$tmp/site/content/fail.md"
+test ! -e "$tmp/site/content/fail.md"
+diff -r "$tmp/site" "$tmp/before"
+# Process death while streaming never leaves a partial visible draft.
+code=0
+env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_KILL_DURING_WRITE="$tmp/site/content/interrupted.md" "$cli" new "$tmp/site" interrupted Title >/dev/null 2>&1 || code=$?
+test "$code" = 137
+test ! -e "$tmp/site/content/interrupted.md"
+"$cli" new "$tmp/site" interrupted Title >/dev/null
+failure 1 env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_FAIL_DIR_SYNC="$tmp/site/content" "$cli" new "$tmp/site" uncertain Title
+grep -Fq 'Creation is visible, but durability is unconfirmed' "$tmp/stderr"
+grep -Fq '"draft":true' "$tmp/site/content/uncertain.md"
 cc -Wall -Wextra -Werror -shared -fPIC tests/native/pause_lock.c -ldl -o "$tmp/pause.so"
 MOONPRESS_TEST_LOCK_READY="$tmp/ready" MOONPRESS_TEST_LOCK_RELEASE="$tmp/release" LD_PRELOAD="$tmp/pause.so" "$cli" new "$tmp/site" first Title > "$tmp/first" 2> "$tmp/first-error" &
 writer=$!
