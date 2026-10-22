@@ -14,6 +14,7 @@ with tempfile.TemporaryDirectory() as temporary:
     plan=run('wxr-inspect',xml)
     item=next(item for item in plan['items'] if item['title']=='Native 月')
     assert item['source'] and not item.get('error'),item
+    assert any('Original authors' in warning and '_encloseme' in warning for warning in item['warnings'])
     imported=run('wxr-import',target,xml,plan['digest'],item['id'],'migrated')
     path=target/'content/migrated.md';data=path.read_text(encoding='utf-8');meta=json.loads(data.split('\n---\n')[0][4:])
     assert meta['draft'] and meta['kind']=='page' and meta['listed'] is False and 'slug' not in meta

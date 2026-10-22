@@ -139,6 +139,7 @@ fn wxr_body(content : String) -> String raise {
 fn wxr_candidate(item : WxrXml, id : String, title : String) -> WxrCandidate {
   let warnings : Array[String] = [
     "Imported as a private draft. Review links/assets and publication settings before marking ready.",
+    "Original authors, URLs, GUIDs, discussion settings, sticky state, ordering and site-level options are not applied. Transient WordPress _edit_lock, _edit_last, _encloseme and _pingme markers are ignored.",
   ]
   let title = if title.trim().is_empty() {
     warnings.push("Empty WordPress title replaced with post ID label.")
