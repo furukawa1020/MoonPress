@@ -98,3 +98,16 @@ MOONBIT_FFI_EXPORT int moonpress_resolve_output(moonbit_bytes_t path, moonbit_by
   free(resolved);
   return 0;
 }
+
+/* Private authoring records are never served or copied as public assets. */
+MOONBIT_FFI_EXPORT int moonpress_dir_prepare_private(int fd, moonbit_bytes_t name) {
+  int created = mkdirat(fd, (const char *)name, 0700) == 0;
+  if (!created && errno != EEXIST) return -1;
+  struct stat st;
+  if (fstatat(fd, (const char *)name, &st, AT_SYMLINK_NOFOLLOW) != 0 ||
+      !S_ISDIR(st.st_mode) || (st.st_mode & 077) != 0) return -1;
+  int result;
+  do { result = fsync(fd); } while (result != 0 && errno == EINTR);
+  if (result != 0) return -1;
+  return created ? 0 : 1;
+}

@@ -34,6 +34,8 @@ pub fn digest_text(String) -> String
 
 pub fn duplicate_post(String, String, String, String, String) -> NewPostReport raise
 
+pub fn enable_post_history(String) -> Bool raise
+
 pub fn encode_site_zip(Array[ZipEntry]) -> Bytes raise
 
 pub fn escape_html(String) -> String
