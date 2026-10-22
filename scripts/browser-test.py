@@ -76,6 +76,8 @@ class Browser:
         self.call('POST', f'/element/{element}/value', {'text': value})
     def text(self, selector='body'):
         return self.call('GET', '/element/' + self.element(selector) + '/text')
+    def expect_text(self, text):
+        wait_until(lambda: text in self.text())
     def go(self, url):
         self.call('POST', '/url', {'url': url})
     def screenshot(self, name):
@@ -109,19 +111,19 @@ def run():
                 browser.screenshot('entrance-desktop')
                 for route in ['/rooms/write', '/rooms/preview', '/rooms/build', '/rooms/publish']:
                     browser.click(f'a[href="{route}"]')
-                    assert browser.call('GET', '/url').endswith(route)
+                    wait_until(lambda: browser.call('GET', '/url').endswith(route))
                     assert browser.text('h1')
                 steps.append('five rooms through links')
                 browser.go(origin + '/')
                 browser.fill('form[action="/new"] input[name="title"]', 'Browser moon')
                 browser.fill('form[action="/new"] input[name="slug"]', 'browser-moon')
                 browser.click('form[action="/new"] button')
-                assert (site / 'content/browser-moon.md').exists(), browser.text()
+                wait_until(lambda: (site / 'content/browser-moon.md').exists())
                 browser.go(origin + '/edit?name=browser-moon.md')
                 body = '# Browser moon\n\nSaved through a real browser.\n'
                 browser.fill('textarea[name="body"]', body)
                 browser.click('form[action="/fields"] button:not([formaction])')
-                assert 'Source saved' in browser.text(), browser.text()
+                browser.expect_text('Source saved')
                 browser.go(origin + '/edit?name=browser-moon.md')
                 browser.call('POST', '/refresh', {})
                 element = browser.element('textarea[name="body"]')
@@ -144,24 +146,25 @@ def run():
                 browser.fill('form[action="/upload"] input[name="name"]', 'moon.png')
                 browser.fill('input[type="file"]', str(image), clear=False)
                 browser.click('form[action="/upload"] button')
-                assert (site / 'public/moon.png').read_bytes() == image.read_bytes(), browser.text()
+                wait_until(lambda: (site / 'public/moon.png').exists())
+                assert (site / 'public/moon.png').read_bytes() == image.read_bytes()
                 steps.append('browser file upload and byte equality')
                 browser.go(origin + '/edit?name=browser-moon.md')
                 browser.fill('textarea[name="body"]', body + '\n![Moon](moon.png)\n')
                 browser.click('form[action="/fields"] button:not([formaction])')
                 browser.go(origin + '/workflow')
                 browser.click('form[action="/build-preview"] button')
-                assert 'Full preview files built' in browser.text(), browser.text()
+                browser.expect_text('Full preview files built')
                 browser.go(f'http://127.0.0.1:{port+1}/browser-moon.html')
-                assert 'Saved through a real browser.' in browser.text()
-                assert browser.call('GET', '/element/' + browser.element('img') + '/property/naturalWidth') == 1
+                browser.expect_text('Saved through a real browser.')
+                wait_until(lambda: browser.call('GET', '/element/' + browser.element('img') + '/property/naturalWidth') == 1)
                 steps.append('draft preview on separate origin with loaded image')
                 browser.go(origin + '/edit?name=browser-moon.md')
                 browser.click('button[name="state"][value="ready"]')
                 browser.go(origin + '/workflow')
                 browser.click('form[action="/plan-production"] button')
                 browser.click('form[action="/build-production"] button')
-                assert (site / '.moonpress-build/browser-moon.html').exists(), browser.text()
+                wait_until(lambda: (site / '.moonpress-build/browser-moon.html').exists())
                 steps.append('ready transition, review and production build')
                 browser.go(origin + '/publish')
                 browser.screenshot('publish-desktop')
@@ -180,8 +183,8 @@ def run():
                 with (site / 'content/browser-moon.md').open('a') as source:
                     source.write('\nExternal change after review.\n')
                 browser.click('form[action="/build-production"] button')
+                wait_until(lambda: 'changed' in browser.text().lower())
                 assert (site / '.moonpress-build/browser-moon.html').read_bytes() == before
-                assert 'changed' in browser.text().lower(), browser.text()
                 steps.append('stale reviewed build refused without output mutation')
                 report = {'browser': browser.capabilities['browserVersion'], 'javascript': 'disabled by managed browser preference; no injected scripts', 'steps': steps}
                 (ARTIFACTS / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
