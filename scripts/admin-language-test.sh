@@ -53,6 +53,9 @@ for target in '%2F%2Fevil.test' '%2Fedit%0D%0AX-Injected%3Ayes' '%2F%5Cevil.test
 done
 test "$(request "$origin/language/xx")" = 400
 test "$(request -H "Origin: $origin" --data token=invalid "$origin/language/en")" = 400
+test "$(request -H 'Accept-Language: ja' "$origin/assets/unknown")" = 404
+grep -Fq '<html lang="ja">' "$tmp/page"
+grep -Fq 'Content-Language: ja' "$tmp/headers"
 diff -r "$tmp/site" "$tmp/before"
 # Application copy is marked explicitly. User text that resembles a marker is escaped.
 "$cli" new "$tmp/site" language-data 'Media 日本語' >/dev/null

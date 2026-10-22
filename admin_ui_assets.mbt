@@ -11,6 +11,7 @@ fn admin_ui_asset(request : AdminRequest) -> Bytes raise {
       return admin_response(
         404,
         admin_page("Not found", "<p>Unknown UI asset.</p>"),
+        language=request.language,
       )
   }
   @utf8.encode(
