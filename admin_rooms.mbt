@@ -86,6 +86,29 @@ fn room_production_state(
 }
 
 ///|
+fn room_preview_state(input : String) -> String {
+  try {
+    let output = input.trim_end(chars="/").to_owned() + "/.moonpress-preview"
+    let review = review_build_plan(input, output, include_drafts=true)
+    let summary = review.plan.summary
+    if review.previous_manifest_digest is None {
+      "<p class=\"notice\">プレビュー：まだ生成していません。下のボタンでつくってください。</p>"
+    } else if !review.manifest_changed &&
+      summary.written == 0 &&
+      summary.deleted == 0 {
+      "<p class=\"notice\">プレビュー：保存済みの記事と一致しています。上の Open built preview から開き、見た目を確認してください。未保存の文章は含まれません。</p>"
+    } else {
+      "<p class=\"notice\">プレビュー：再生成が必要です。書き込み \{summary.written} 件 / 削除 \{summary.deleted} 件。前のプレビューには最新の保存内容が反映されていません。</p>"
+    }
+  } catch {
+    error =>
+      "<p class=\"notice\">プレビューを確認できません：" +
+      escape_html(error.to_string()) +
+      "</p><p>元の記事と生成物を確認してください。<a href=\"/authoring-recovery\">編集データの案内所</a>も利用できます。</p>"
+  }
+}
+
+///|
 fn admin_room(
   input : String,
   token : String,
@@ -116,6 +139,7 @@ fn admin_room(
     Preview =>
       (
         "<p>できあがりを見てみよう。保存した下書きもプレビューに含まれます。下のボタンで生成し、上の Open built preview を開いて確認してください。</p>" +
+        room_preview_state(input) +
         admin_build_form(token, japanese=true) +
         "<p>よければ <a href=\"/?state=draft\">下書きをひらき</a>、Set ready for build を選びます。下書きのままの記事は公開用ビルドから除外されます。</p>",
         Some(Writing),

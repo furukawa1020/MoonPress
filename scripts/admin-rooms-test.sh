@@ -30,6 +30,20 @@ done
 grep -q 'ホスティング：未確認' "$tmp/page"
 ! grep -q 'action="/export-production"' "$tmp/page"
 diff -r "$tmp/site" "$tmp/before"
+test "$(get /rooms/preview)" = 200
+grep -Fq 'プレビュー：まだ生成していません' "$tmp/page"
+test ! -e "$tmp/site/.moonpress-preview"
+"$cli" build "$tmp/site" "$tmp/site/.moonpress-preview" --include-drafts >/dev/null
+test "$(get /rooms/preview)" = 200
+grep -Fq 'プレビュー：保存済みの記事と一致' "$tmp/page"
+printf '\nChanged draft\n' >> "$tmp/site/content/hello.md"
+test "$(get /rooms/preview)" = 200
+grep -Fq 'プレビュー：再生成が必要' "$tmp/page"
+cp "$tmp/site/.moonpress-preview/index.html" "$tmp/original-preview"
+printf 'manual edit' >> "$tmp/site/.moonpress-preview/index.html"
+test "$(get /rooms/preview)" = 200
+grep -Fq 'プレビューを確認できません' "$tmp/page"
+cp "$tmp/original-preview" "$tmp/site/.moonpress-preview/index.html"
 for target in /rooms/nope '/rooms?complete=1' /assets/nope; do
   test "$(get "$target")" = 404
 done
