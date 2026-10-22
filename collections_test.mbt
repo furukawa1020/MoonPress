@@ -28,6 +28,7 @@ test "collections escape metadata and URLs" {
       body: "",
       draft: false,
       listed: true,
+      kind: "post",
       layout: None,
       slug: None,
       date: None,

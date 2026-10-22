@@ -103,6 +103,7 @@ pub fn save_post(
     let vault = open_authoring_subdirectory(input, ".moonpress-history")
     defer directory_close(vault.fd)
     vault.lock()
+    require_same_authoring_site(directory, vault)
     store_authoring_record(vault, name, current.content) |> ignore
   }
   let bytes = @utf8.encode(content)

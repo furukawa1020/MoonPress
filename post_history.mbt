@@ -175,6 +175,7 @@ pub fn checkpoint_post(
   let vault = open_authoring_subdirectory(input, ".moonpress-history")
   defer directory_close(vault.fd)
   vault.lock()
+  require_same_authoring_site(content, vault)
   store_authoring_record(vault, name, snapshot.content).revision
 }
 

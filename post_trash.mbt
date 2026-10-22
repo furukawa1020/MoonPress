@@ -19,6 +19,7 @@ pub fn trash_post(
   let vault = open_authoring_subdirectory(input, ".moonpress-trash")
   defer directory_close(vault.fd)
   vault.lock()
+  require_same_authoring_site(content, vault)
   let record = store_authoring_record(vault, name, snapshot.content)
   require_post_version(read_post_at(content, name), expected)
   content.remove(name)
@@ -58,6 +59,7 @@ pub fn restore_trashed_post(
   let vault = open_authoring_subdirectory(input, ".moonpress-trash")
   defer directory_close(vault.fd)
   vault.lock()
+  require_same_authoring_site(content, vault)
   let record = read_authoring_record(vault, id)
   if record.revision.record_digest != expected_record {
     raise InvalidInput("Trash record changed; inspect again")

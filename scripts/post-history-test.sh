@@ -15,3 +15,7 @@ mkdir -p "$tmp/transitions/content"
 printf '# Original\n' > "$tmp/transitions/content/a.md"
 MOONPRESS_HISTORY_TRANSITIONS="$tmp/transitions" moon test --target native --filter 'enabled history save and restore filesystem probe'
 echo 'Immutable checkpoints passed: exact private bytes, deduplication, source-version refusal and bounded content.'
+
+mkdir -p "$tmp/isolation/content" "$tmp/isolation/.moonpress-history" "$tmp/isolation/foreign/.moonpress-history"
+chmod 700 "$tmp/isolation/.moonpress-history" "$tmp/isolation/foreign/.moonpress-history"
+MOONPRESS_HISTORY_FOREIGN="$tmp/isolation" moon test --target native --filter 'vault must share retained content parent'

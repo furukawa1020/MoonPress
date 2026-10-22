@@ -1,5 +1,6 @@
 ///|
 pub(all) struct Document {
+  kind : String
   title : String
   description : String
   tags : Array[String]
@@ -29,6 +30,7 @@ pub fn parse_document(
   let mut slug : String? = None
   let mut draft = false
   let mut listed = true
+  let mut kind = "post"
   let tags : Array[String] = []
   for key, value in fields {
     match (key, value) {
@@ -64,6 +66,12 @@ pub fn parse_document(
         }
         slug = Some(value)
       }
+      ("kind", String(value)) => {
+        if value != "post" && value != "page" {
+          raise InvalidInput(filename + ":2: kind must be post or page")
+        }
+        kind = value
+      }
       ("description", String(text)) => description = text
       ("draft", True) => draft = true
       ("draft", False) => draft = false
@@ -90,7 +98,8 @@ pub fn parse_document(
           }
         }
       (
-        "title"
+        "kind"
+        | "title"
         | "description"
         | "tags"
         | "draft"
@@ -109,7 +118,7 @@ pub fn parse_document(
     Some(text) => text
     None => page_title(body, fallback)
   }
-  { title, description, tags, body, draft, listed, layout, date, slug, }
+  { kind, title, description, tags, body, draft, listed, layout, date, slug, }
 }
 
 ///|

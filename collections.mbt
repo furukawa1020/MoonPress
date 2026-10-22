@@ -35,6 +35,7 @@ pub fn metadata_digest(page : Page) -> String {
   digest_text(
     [
       page.output,
+      page.document.kind,
       page.document.title,
       page.document.description,
       page.document.tags.to_json().stringify(),

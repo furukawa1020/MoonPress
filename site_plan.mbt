@@ -112,7 +112,9 @@ fn plan_site(
     raise InvalidInput("No published .md pages found")
   }
   documents.sort_by((a, b) => a.output.compare(b.output))
-  let listed = documents.filter(page => page.document.listed)
+  let listed = documents.filter(page => {
+    page.document.listed && page.document.kind == "post"
+  })
   for archive in article_archives(listed, config.page_size) {
     page_layouts[archive.output] = collection_template
     route_info.push({
