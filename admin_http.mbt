@@ -21,6 +21,7 @@ extern "C" fn admin_random(bytes : Bytes) -> Int = "moonpress_admin_random"
 
 ///|
 priv struct AdminRequest {
+  authorization : String?
   verb : String
   target : String
   length : Int
@@ -115,6 +116,7 @@ fn admin_headers(
     raise InvalidInput("GET body rejected")
   }
   {
+    authorization: headers.get("authorization"),
     verb: start[0],
     target: start[1],
     length,

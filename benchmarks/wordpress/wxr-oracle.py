@@ -10,7 +10,7 @@ site=work/'wxr-site'
 subprocess.run([cli,'init',site],check=True,stdout=subprocess.DEVNULL)
 expected=[]
 for slug,extra,status in [('oracle-post',{},'publish'),('oracle-draft',{'draft':True},'draft'),('oracle-unlisted',{'listed':False},'draft'),('oracle-future',{'publish_at':'2099-01-01T00:00:00Z'},'future'),('oracle-page',{'kind':'page'},'publish')]:
-    fields={'title':'MoonPress WXR '+slug+' 日本語 & text','date':'2020-01-01','tags':['WXR tag'], 'categories':['WXR category'],**extra}
+    fields={'title':'MoonPress WXR '+slug+' 日本語 & text','description':'Oracle excerpt','date':'2020-01-01','tags':['WXR tag'], 'categories':['WXR category'],**extra}
     if fields.get('kind')=='page': fields.update(tags=[],categories=[])
     source='---\n'+json.dumps(fields,ensure_ascii=False)+'\n---\n# Oracle\n\nExact text & <escaped> data.\n'
     (site/'content'/f'{slug}.md').write_text(source,encoding='utf-8')
@@ -35,3 +35,5 @@ print('WXR actual core export -> native inspection -> private draft import passe
 roles=[json.loads(subprocess.check_output([cli,'access-role',role,'--json'],text=True))['report'] for role in ['subscriber','contributor','author','editor','administrator']]
 roles_path=work/'roles.json';roles_path.write_text(json.dumps(roles),encoding='utf-8')
 subprocess.run(['php','benchmarks/wordpress/access-oracle.php',wordpress,roles_path],check=True)
+
+subprocess.run([sys.executable,'benchmarks/wordpress/rest-oracle.py',wordpress,work],check=True)

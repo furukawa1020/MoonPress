@@ -196,6 +196,8 @@ pub fn save_post_fields(String, String, String, PostFields) -> SavePostReport ra
 
 pub fn save_post_from_file(String, String, String, String) -> SavePostReport raise
 
+pub fn save_post_identity(String, String, String, String, String) -> SavePostReport raise
+
 pub fn save_post_kind(String, String, String, String) -> SavePostReport raise
 
 pub fn save_post_schedule(String, String, String, String) -> SavePostReport raise
@@ -211,6 +213,8 @@ pub fn serialize_manifest(Array[Artifact]) -> String
 pub fn serve_admin(String, Int) -> Unit raise
 
 pub fn serve_preview(String, Int) -> Unit raise
+
+pub fn serve_wordpress_rest(String, Int) -> Unit raise
 
 pub fn set_post_draft(String, String, String, Bool) -> SavePostReport raise
 
@@ -351,6 +355,8 @@ pub(all) struct DetailedBuildPlan {
 pub fn DetailedBuildPlan::to_json(Self) -> Json
 
 pub(all) struct Document {
+  wp_id : Int?
+  author : Int
   kind : String
   title : String
   description : String

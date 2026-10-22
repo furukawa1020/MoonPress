@@ -181,3 +181,5 @@ python3 scripts/wxr-export-test.py
 python3 scripts/wxr-import-test.py
 
 python3 scripts/access-test.py
+
+python3 scripts/rest-test.py

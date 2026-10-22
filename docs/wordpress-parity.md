@@ -25,7 +25,7 @@ Plugin extensions are an open-ended ecosystem, not a finite core checklist.
 | User accounts / roles | Native private principals, five fixed roles and implemented-capability decisions, generated revocable credentials; [access foundation](native-access.md). Local operator editor is still not a multiuser interface |
 | Private / password posts | Missing; never treat listed=false as private |
 | Comments / moderation | Missing |
-| REST / XML-RPC / application passwords | Native generated application credentials are implemented; HTTP Basic, WordPress password import, REST routes and XML-RPC are not implemented yet |
+| REST / XML-RPC / application passwords | [Read-only native REST subset](native-rest.md): discovery, public posts/pages and authenticated users/me using generated Basic credentials. Writes, raw edit contexts, broad query compatibility, WordPress password import and XML-RPC remain missing |
 | Multisite / network administration | Missing |
 | Plugins / hooks / custom post types | Missing; WordPress plugins cannot run in the native runtime |
 | Import / export | Verified static-site ZIP plus WXR export and reviewed private-draft intake; documented subset with explicit refusals |

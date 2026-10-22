@@ -49,6 +49,7 @@ fn is_command(value : String) -> Bool {
   value == "media-refs" ||
   value == "media" ||
   value == "preview" ||
+  value == "rest" ||
   value == "admin" ||
   value == "status" ||
   value == "read" ||
@@ -112,6 +113,7 @@ fn usage(command : String) -> String {
     "media-refs" => "Usage: moonpress media-refs <site-directory> [--json]"
     "media" => "Usage: moonpress media <site-directory> [--json]"
     "preview" => "Usage: moonpress preview <output-directory> <port>"
+    "rest" => "Usage: moonpress rest <site-directory> <port>"
     "admin" => "Usage: moonpress admin <site-directory> <port>"
     "status" =>
       "Usage: moonpress status <site-directory> <filename.md> <expected-digest> <draft|ready> [--json]"
@@ -149,6 +151,8 @@ fn help_text(command : String) -> String {
         "\n\nLocal owner controls for native role principals and revocable generated application credentials. Capture the secret privately: it is returned only on grant/rotate. Not a login gate for the operator editor."
       } else if is_trash_command(command) {
         "\n\nPrivate article trash. trash-post removes the live source after durable backup. trash-list/read inspect it; trash-restore creates a private source at an unoccupied original name. trash-purge permanently deletes only the reviewed record with confirm-permanent. No build or deployment is performed."
+      } else if command == "post-identity" {
+        "\n\nAssign a stable positive REST identity and local author ID with current-source version protection. An assigned identity cannot be renumbered here. REST refuses duplicates or public sources lacking IDs; local source owners remain trusted."
       } else if command == "post-schedule" ||
         command == "post-kind" ||
         command == "post-categories" {
@@ -202,6 +206,8 @@ fn help_text(command : String) -> String {
       "List public assets with byte counts, digests and article URLs; no files written."
     "preview" =>
       "View built files on a read-only loopback server. Only intact manifest-tracked files are served.\nBuild first; no automatic rebuild or deployment. Use a different port from administration.\nPort: 1024–65535. No flags. Ctrl-C stops the server."
+    "rest" =>
+      "Start the native read-only WordPress REST subset on loopback. GET/HEAD only; generated Basic credentials for users/me. Public articles require explicit wp_id metadata. Do not proxy the operator editor. Port 1024–65535; no flags."
     "admin" =>
       "Start the local browser editor on http://127.0.0.1:<port>/.\nAdmin uses this port and the next port for isolated preview.\nPort must be 1024–65534. Ctrl-C stops both listeners. No deployment or --json option.\nUse only on a trusted local machine; do not expose through a proxy or tunnel."
     "status" =>
@@ -229,7 +235,7 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  history-enable / history / checkpoint / revision / compare-revision / restore-revision  Private article revisions.\n  trash-post / trash-list / trash-read / trash-restore / trash-purge  Reviewed private trash; move removes live source, purge is permanent.\n  post-kind / post-categories  Save article type and category metadata.\n  authoring-stage  Inspect interrupted source editing.\n  authoring-rescue  Back up interrupted edits and clear their stage.\n  recovery-plan  Inspect recovery without changing files.\n  media-removal-plan  Inspect asset removal and known references.\n  media-remove  Permanently remove a reviewed unreferenced asset.\n  export   Save verified production files as a new ZIP.\n  settings-read  Inspect raw site settings and version.\n  settings-save  Save site settings with version protection.\n  media-read  Inspect one media asset and its version.\n  media-replace  Replace existing media with version protection.\n  reference-summary  Count authored references for every output.\n  references  Inspect authored local reference edges.\n  backlinks   Inspect references to/from an output filename.\n  review   Inspect a build plan and its review ID.\n  build-reviewed  Build only the reviewed plan.\n  routes   Inspect compiled output routes and their sources.\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  preview  View built files on an isolated read-only loopback server.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  history-enable / history / checkpoint / revision / compare-revision / restore-revision  Private article revisions.\n  trash-post / trash-list / trash-read / trash-restore / trash-purge  Reviewed private trash; move removes live source, purge is permanent.\n  access-role / access-read / access-change  Native roles and generated revocable credentials.\n  rest     Serve the native read-only WordPress REST subset on loopback.\n  post-identity  Assign a stable REST post ID and local author.\n  post-kind / post-categories  Save article type and category metadata.\n  authoring-stage  Inspect interrupted source editing.\n  authoring-rescue  Back up interrupted edits and clear their stage.\n  recovery-plan  Inspect recovery without changing files.\n  media-removal-plan  Inspect asset removal and known references.\n  media-remove  Permanently remove a reviewed unreferenced asset.\n  export   Save verified production files as a new ZIP.\n  settings-read  Inspect raw site settings and version.\n  settings-save  Save site settings with version protection.\n  media-read  Inspect one media asset and its version.\n  media-replace  Replace existing media with version protection.\n  reference-summary  Count authored references for every output.\n  references  Inspect authored local reference edges.\n  backlinks   Inspect references to/from an output filename.\n  review   Inspect a build plan and its review ID.\n  build-reviewed  Build only the reviewed plan.\n  routes   Inspect compiled output routes and their sources.\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  preview  View built files on an isolated read-only loopback server.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
   if command == "reference-summary" ||
     command == "references" ||
@@ -248,7 +254,7 @@ fn help_text(command : String) -> String {
       usage(command) +
       "\n\n--json prints a schema-1 report. No --include-drafts option.\nExit status: 0 healthy, 1 findings or validation/I/O failure, 2 incorrect arguments.\nFindings exit 1 with the complete report on stdout; operation errors use stderr with empty stdout."
   }
-  if command == "admin" || command == "preview" {
+  if command == "admin" || command == "preview" || command == "rest" {
     return description + "\n\n" + usage(command)
   }
   if command == "authoring-stage" ||
@@ -402,10 +408,13 @@ fn main {
         command != "read" &&
         command != "save" &&
         command != "status" &&
+        command != "rest" &&
         command != "admin" &&
         command != "preview" => include_drafts = true
-      "--json" if !json && command != "admin" && command != "preview" =>
-        json = true
+      "--json" if !json &&
+        command != "admin" &&
+        command != "preview" &&
+        command != "rest" => json = true
       _ => valid = false
     }
   }
@@ -426,7 +435,8 @@ fn main {
     valid = false
   }
   let mut port = 0
-  if (command == "admin" || command == "preview") && args.length() >= 4 {
+  if (command == "admin" || command == "preview" || command == "rest") &&
+    args.length() >= 4 {
     if args[3].is_empty() ||
       args[3].length() > 5 ||
       !args[3].all(c => c.is_ascii_digit()) {
@@ -803,6 +813,8 @@ fn main {
       }
     } else if command == "preview" {
       @lib.serve_preview(args[2], port)
+    } else if command == "rest" {
+      @lib.serve_wordpress_rest(args[2], port)
     } else if command == "admin" {
       @lib.serve_admin(args[2], port)
     } else if command == "status" {

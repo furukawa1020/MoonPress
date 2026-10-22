@@ -1,5 +1,7 @@
 ///|
 pub(all) struct Document {
+  wp_id : Int?
+  author : Int
   kind : String
   title : String
   description : String
@@ -25,6 +27,8 @@ pub fn parse_document(
     Object(fields) => fields
     _ => raise InvalidInput(filename + ":2: frontmatter must be a JSON object")
   }
+  let mut wp_id : Int? = None
+  let mut author = 0
   let mut explicit_title : String? = None
   let mut description = ""
   let mut layout : String? = None
@@ -38,6 +42,12 @@ pub fn parse_document(
   let categories : Array[String] = []
   for key, value in fields {
     match (key, value) {
+      ("wp_id", Number(n, ..)) if n >= 1 &&
+        n <= 2147483647 &&
+        n.to_int().to_double() == n => wp_id = Some(n.to_int())
+      ("author", Number(n, ..)) if n >= 0 &&
+        n <= 2147483647 &&
+        n.to_int().to_double() == n => author = n.to_int()
       ("title", String(text)) => {
         if text.trim().is_empty() {
           raise InvalidInput(filename + ":2: title must not be empty")
@@ -130,7 +140,9 @@ pub fn parse_document(
           }
         }
       (
-        "categories"
+        "wp_id"
+        | "author"
+        | "categories"
         | "kind"
         | "title"
         | "description"
@@ -154,6 +166,8 @@ pub fn parse_document(
     None => page_title(body, fallback)
   }
   {
+    wp_id,
+    author,
     categories,
     kind,
     title,
