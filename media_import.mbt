@@ -40,18 +40,6 @@ pub fn store_media(
   if directory.kind(name) != 0 {
     raise InvalidInput("Media target must not exist: " + path)
   }
-  let file = directory.create(name)
-  directory.write(file, name, bytes, None) catch {
-    error => {
-      let cleanup = try {
-        directory.require_file(name)
-        directory.remove(name)
-        ""
-      } catch {
-        cause => "; cleanup incomplete; inspect " + path + ": \{cause}"
-      }
-      raise InvalidInput("Media import failed: \{error}" + cleanup)
-    }
-  }
+  directory.write_new(name, bytes)
   media_item(name, bytes)
 }

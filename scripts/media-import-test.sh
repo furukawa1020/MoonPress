@@ -34,19 +34,27 @@ reject "$cli" import "$tmp/site" "$tmp/source" link.png
 rm "$tmp/site/public/link.png"
 diff -r "$tmp/site" "$tmp/before"
 cc -Wall -Wextra -Werror -shared -fPIC tests/native/fail_publication.c -ldl -o "$tmp/fault.so"
-for fault in OPEN WRITE FLUSH CLOSE; do
+for fault in OPEN WRITE FLUSH SYNC CLOSE INSTALL; do
   reject env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_FAIL_$fault=$tmp/site/public/fail.png" "$cli" import "$tmp/site" "$tmp/source" fail.png --json
   test ! -e "$tmp/site/public/fail.png"
   diff -r "$tmp/site" "$tmp/before"
 done
-reject env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_CREATE_BEFORE_OPEN=$tmp/site/public/race.png" "$cli" import "$tmp/site" "$tmp/source" race.png --json
+reject env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_CREATE_BEFORE_LINK=$tmp/site/public/race.png" "$cli" import "$tmp/site" "$tmp/source" race.png --json
 test "$(cat "$tmp/site/public/race.png")" = 'competing writer'
 rm "$tmp/site/public/race.png"
 reject env LD_PRELOAD="$tmp/fault.so" "MOONPRESS_TEST_FAIL_WRITE=$tmp/site/public/fail.png" "MOONPRESS_TEST_FAIL_REMOVE=$tmp/site/public/fail.png" "$cli" import "$tmp/site" "$tmp/source" fail.png --json
-grep -Fq 'cleanup incomplete' "$tmp/stderr"
-test -f "$tmp/site/public/fail.png"
-reject "$cli" import "$tmp/site" "$tmp/source" fail.png --json
-rm "$tmp/site/public/fail.png"
+test ! -e "$tmp/site/public/fail.png"
+code=0
+env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_KILL_DURING_WRITE="$tmp/site/public/interrupted.png" "$cli" import "$tmp/site" "$tmp/source" interrupted.png >/dev/null 2>&1 || code=$?
+test "$code" = 137
+test ! -e "$tmp/site/public/interrupted.png"
+"$cli" import "$tmp/site" "$tmp/source" interrupted.png >/dev/null
+cmp "$tmp/source" "$tmp/site/public/interrupted.png"
+rm "$tmp/site/public/interrupted.png"
+reject env LD_PRELOAD="$tmp/fault.so" MOONPRESS_TEST_FAIL_DIR_SYNC="$tmp/site/public" "$cli" import "$tmp/site" "$tmp/source" uncertain.png
+grep -Fq 'Creation is visible, but durability is unconfirmed' "$tmp/stderr"
+cmp "$tmp/source" "$tmp/site/public/uncertain.png"
+rm "$tmp/site/public/uncertain.png"
 cmp "$tmp/source" "$tmp/source-before"
 diff -r "$tmp/site" "$tmp/before"
 "$cli" import --help | grep -Fq 'No --include-drafts option'
