@@ -57,7 +57,7 @@ fn admin_posts(
   out.write_string(
     "<p>Ready posts enter normal builds. Changes here do not deploy your site.</p>" +
     admin_table_start("Posts inventory") +
-    "<thead><tr><th>Title</th><th>State</th><th>Source</th></tr></thead><tbody>",
+    "<thead><tr><th><!--mp:ja-->タイトル<!--mp:en-->Title<!--mp:end--></th><th>State</th><th><!--mp:ja-->ソース<!--mp:en-->Source<!--mp:end--></th></tr></thead><tbody>",
   )
   for index = start; index < end; index = index + 1 {
     let post = matches[index]
@@ -79,9 +79,9 @@ fn admin_posts(
     "</tbody></table></div>" +
     admin_post_navigation(query, state, page, pages) +
     admin_post_problems(inventory.problems) +
-    "<h2 id=\"new-draft\">New draft</h2><form method=\"post\" action=\"/new\">" +
+    "<h2 id=\"new-draft\"><!--mp:ja-->新しい下書き<!--mp:en-->New draft<!--mp:end--></h2><form method=\"post\" action=\"/new\">" +
     admin_hidden("token", token) +
-    "<label>Title<input name=\"title\" required></label><label>File stem (for example, first-post)<input name=\"slug\" required></label><button>Create draft</button></form>",
+    "<label><!--mp:ja-->タイトル<!--mp:en-->Title<!--mp:end--><input name=\"title\" required></label><label>File stem (for example, first-post)<input name=\"slug\" required></label><button><!--mp:ja-->下書きをつくる<!--mp:en-->Create draft<!--mp:end--></button></form>",
   )
   admin_page(
     "Posts",

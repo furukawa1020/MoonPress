@@ -31,6 +31,8 @@ production output. **Open built preview** opens the themed site on port 8081;
 **Publish** checks whether production files match saved ready articles.
 Upload production output through your configured host;
 local build success does not report a deployment. No JavaScript is needed.
+The local interface follows the browser language (Japanese/English); the language
+links override it or restore Auto. Save edits before switching. See [languages](docs/languages.md).
 Both adjacent ports must be free. See [preview](docs/preview.md) and the
 [standalone Linux preview package](docs/native-package.md).
 

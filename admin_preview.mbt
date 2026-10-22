@@ -18,5 +18,5 @@ fn admin_body_preview(body : String) -> String {
   }
   "<section aria-label=\"Markdown body preview\"><h2>Unsaved body preview</h2><p class=\"notice\">Nothing was saved, built or deployed. This previews Markdown only, without the site theme, images or active links. Metadata and site links are validated separately when saving or checking the site.</p><article>" +
   preview.to_string() +
-  "</article></section><h2>Continue editing</h2>"
+  "</article></section><h2><!--mp:ja-->編集を続ける<!--mp:en-->Continue editing<!--mp:end--></h2>"
 }

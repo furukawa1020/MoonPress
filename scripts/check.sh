@@ -41,6 +41,7 @@ bash scripts/post-editor-test.sh
 bash scripts/post-directory-test.sh
 bash scripts/post-status-test.sh
 bash scripts/admin-test.sh
+bash scripts/admin-language-test.sh
 bash scripts/preview-server-test.sh
 bash scripts/admin-preview-server-test.sh
 bash scripts/publish-readiness-test.sh

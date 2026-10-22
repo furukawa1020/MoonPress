@@ -24,7 +24,7 @@ fn admin_reference_rows(title : String, edges : Array[ReferenceEdge]) -> String 
   } else {
     out.write_string(
       admin_table_start(title) +
-      "<thead><tr><th scope=\"col\">Source</th><th scope=\"col\">Used by output</th><th scope=\"col\">Kind</th><th scope=\"col\">URL</th><th scope=\"col\">Target / fragment</th></tr></thead><tbody>",
+      "<thead><tr><th scope=\"col\"><!--mp:ja-->ソース<!--mp:en-->Source<!--mp:end--></th><th scope=\"col\">Used by output</th><th scope=\"col\">Kind</th><th scope=\"col\">URL</th><th scope=\"col\">Target / fragment</th></tr></thead><tbody>",
     )
     for edge in edges {
       out.write_string(

@@ -6,7 +6,7 @@ fn admin_media_replace_form(
 ) -> String {
   "<p><a href=\"/media-replace?name=" +
   url_component(name) +
-  "\">Reload current media version</a> · <a href=\"/media\">Return to media</a> · <a href=\"/reference-outputs?scope=all&amp;output=" +
+  "\">Reload current media version</a> · <a href=\"/media\"><!--mp:ja-->画像とファイルへ戻る<!--mp:en-->Return to media<!--mp:end--></a> · <a href=\"/reference-outputs?scope=all&amp;output=" +
   url_component(name) +
   "\">Inspect saved references</a></p>" +
   "<form method=\"post\" action=\"/replace-media\" enctype=\"multipart/form-data\">" +
@@ -64,7 +64,7 @@ fn admin_replace_upload(
         "<p>Current SHA-256: <code>" +
         report.item.digest +
         "</code>.</p>" +
-        "<p>Inspect the production plan and review before building the new bytes.</p><p><a href=\"/workflow\">Writing and publishing steps</a> · <a href=\"/media\">Return to media</a></p>",
+        "<p>Inspect the production plan and review before building the new bytes.</p><p><a href=\"/workflow\"><!--mp:ja-->執筆から公開までの手順<!--mp:en-->Writing and publishing steps<!--mp:end--></a> · <a href=\"/media\"><!--mp:ja-->画像とファイルへ戻る<!--mp:en-->Return to media<!--mp:end--></a></p>",
       ),
     )
   } catch {

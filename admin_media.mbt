@@ -34,7 +34,7 @@ fn admin_media(
       admin_post_problems(report.problems) +
       "<p>Media storage has not been prepared for this site.</p><form method=\"post\" action=\"/prepare-media\">" +
       admin_hidden("token", token) +
-      "<p>Create an empty public directory for images and attachments. Existing files are never replaced.</p><button>Prepare media storage</button></form>",
+      "<p>Create an empty public directory for images and attachments. Existing files are never replaced.</p><button><!--mp:ja-->画像の保管場所をつくる<!--mp:en-->Prepare media storage<!--mp:end--></button></form>",
     )
   }
   let out = StringBuilder()
@@ -66,14 +66,14 @@ fn admin_media(
       item.digest +
       "</code></p>" +
       admin_media_thumbnail(item) +
-      "<label>Markdown snippet<textarea readonly rows=\"2\" style=\"min-height:4rem\">\n" +
+      "<label><!--mp:ja-->本文に貼るMarkdown<!--mp:en-->Markdown snippet<!--mp:end--><textarea readonly rows=\"2\" style=\"min-height:4rem\">\n" +
       escape_html(media_snippet(item)) +
       "</textarea></label>" +
       "<p><a href=\"/media-replace?name=" +
       url_component(item.source[7:].to_owned()) +
       "\">Replace this media at the same URL</a> · <a href=\"/media-remove?name=" +
       url_component(item.source[7:].to_owned()) +
-      "\">Review removal</a></p>" +
+      "\"><!--mp:ja-->削除を確認<!--mp:en-->Review removal<!--mp:end--></a></p>" +
       admin_media_posts(asset.posts) +
       "</section>",
     )
@@ -95,7 +95,7 @@ fn admin_import_form(token : String, source : String, name : String) -> String {
   escape_html(source) +
   "\"></label><label>Destination filename (for example, photo.png)<input name=\"name\" required value=\"" +
   escape_html(name) +
-  "\"></label><button>Import media</button></form>"
+  "\"></label><button><!--mp:ja-->ファイルを取り込む<!--mp:en-->Import media<!--mp:end--></button></form>"
 }
 
 ///|
