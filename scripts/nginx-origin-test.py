@@ -12,6 +12,7 @@ with tempfile.TemporaryDirectory(prefix='moonpress-origin-') as temporary:
     public = work / 'public'
     public.mkdir()
     (public / 'index.html').write_bytes(b'<!doctype html><h1>Public</h1>')
+    (public / '.nojekyll').write_bytes(b'')
     (public / 'style.css').write_bytes(b'body{color:navy}')
     for name in ('.moonpress.json', '.env', 'source.md', 'dump.sql', 'index.php', 'INDEX.PHP', 'config.ini', 'source.mbt'):
         (public / name).write_bytes(b'PRIVATE SENTINEL')
@@ -56,6 +57,7 @@ with tempfile.TemporaryDirectory(prefix='moonpress-origin-') as temporary:
                 finally:
                     client.close()
             assert request('/')[0] == 200
+            assert request('/.nojekyll') == (200, b'')
             assert request('/style.css')[0] == 200
             assert request('/', 'HEAD') == (200, b'')
             for path in ('/.moonpress.json', '/%2eenv', '/source.md', '/dump.sql', '/index.php', '/INDEX.PHP', '/config.ini', '/source.mbt', '/.moonpress-history/revision.json', '/index.php/path', '/missing'):
