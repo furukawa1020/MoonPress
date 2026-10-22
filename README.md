@@ -24,7 +24,7 @@ moonpress="$PWD/_build/native/release/build/cmd/main/main.exe"
 "$moonpress" admin ../my-site 8080
 ```
 
-Open **http://127.0.0.1:8080/workflow** and keep the terminal open.
+Open **http://127.0.0.1:8080/rooms** and keep the terminal open.
 The guided browser workflow walks through creating and saving a draft,
 building a themed preview, marking it ready, reviewing changes and generating
 production output. **Open built preview** opens the themed site on port 8081;
