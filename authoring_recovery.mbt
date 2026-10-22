@@ -46,7 +46,7 @@ pub fn inspect_authoring_stage(
   if directory.kind(name) == 0 {
     return { stage, exists: false, bytes: 0, digest: None, }
   }
-  let bytes = directory.read(name)
+  let bytes = directory.read(name, max_bytes=8388608)
   {
     stage,
     exists: true,
@@ -90,7 +90,7 @@ pub fn rescue_authoring_stage(
   let (directory, stage_name) = authoring_stage_location(input, kind)
   defer directory_close(directory.fd)
   directory.lock()
-  let bytes = directory.read(stage_name)
+  let bytes = directory.read(stage_name, max_bytes=8388608)
   if digest_bytes(bytes) != expected {
     raise InvalidInput("Authoring stage changed; inspect again before rescuing")
   }
@@ -100,7 +100,7 @@ pub fn rescue_authoring_stage(
     destination.lock()
   }
   destination.write_new(name, bytes, private_mode=true)
-  if directory.read(stage_name) != bytes {
+  if directory.read(stage_name, max_bytes=8388608) != bytes {
     raise InvalidInput(
       "Authoring stage changed; backup retained, stage not removed",
     )

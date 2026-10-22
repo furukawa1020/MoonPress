@@ -55,13 +55,14 @@ fn AuthoringDirectory::kind(
 fn AuthoringDirectory::read(
   self : AuthoringDirectory,
   name : String,
+  max_bytes? : Int = 2147483647,
 ) -> Bytes raise {
   let file = directory_read(self.fd, authoring_name(name))
   let path = self.path + "/" + name
   if io_is_null(file) != 0 {
     raise io_failure("directory-relative read", path)
   }
-  read_opened_file(file, path)
+  read_opened_file(file, path, max_bytes~)
 }
 
 ///|
