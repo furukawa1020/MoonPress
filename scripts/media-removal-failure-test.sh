@@ -15,6 +15,11 @@ cc -shared -fPIC tests/native/fail_publication.c -ldl -o "$tmp/fail.so"
 fail env LD_PRELOAD="$tmp/fail.so" MOONPRESS_TEST_FAIL_REMOVE="$tmp/site/public/a.png" "$cli" media-remove "$tmp/site" a.png "$id" confirm-unscanned-removal
 diff -r "$tmp/before" "$tmp/site"
 env LD_PRELOAD="$tmp/fail.so" MOONPRESS_TEST_FAIL_REMOVE="$tmp/site/public/a.png" MOONPRESS_REMOVAL_FAILURE_PROBE="$tmp" moon test --target native --filter 'media removal failure descriptor lifecycle probe'
+# A failed post-unlink sync cannot be reported as if the image still existed.
+fail env LD_PRELOAD="$tmp/fail.so" MOONPRESS_TEST_FAIL_DIR_SYNC="$tmp/site/public" "$cli" media-remove "$tmp/site" a.png "$id" confirm-unscanned-removal
+grep -Fq 'Removal is visible, but durability is unconfirmed' "$tmp/stderr"
+test ! -e "$tmp/site/public/a.png"
+cp "$tmp/before/public/a.png" "$tmp/site/public/a.png"
 for kind in symlink fifo directory; do
   rm "$tmp/site/public/a.png"
   case "$kind" in
