@@ -36,4 +36,15 @@ grep -Fq 'Restore to original filename' "$tmp/page"
 test "$(post --data-urlencode "id=$id" --data-urlencode "version=$record" "$origin/trash-restore")" = 200
 cmp "$tmp/original" "$tmp/site/content/trash-demo.md"
 "$cli" trash-list "$tmp/site" --json | jq -e '.report|length==0' >/dev/null
+version="$("$cli" read "$tmp/site" trash-demo.md --json | jq -r '.report.digest')"
+test "$(post --data-urlencode name=trash-demo.md --data-urlencode "version=$version" "$origin/trash-post")" = 200
+"$cli" trash-list "$tmp/site" --json > "$tmp/list"
+id="$(jq -r '.report[0].id' "$tmp/list")"
+record="$(jq -r '.report[0].record_digest' "$tmp/list")"
+test "$(post --data-urlencode "id=$id" --data-urlencode "version=$record" "$origin/trash-purge")" = 400
+test "$(get "/trash-item?id=$id")" = 200
+grep -Fq 'Permanently purge reviewed record' "$tmp/page"
+test "$(post --data-urlencode "id=$id" --data-urlencode "version=$record" --data-urlencode confirm=permanent "$origin/trash-purge")" = 200
+"$cli" trash-list "$tmp/site" --json | jq -e '.report|length==0' >/dev/null
+test ! -e "$tmp/site/content/trash-demo.md"
 echo 'Browser trash HTTP passed: read-only inventory/review/detail, reviewed move, exact restore and no implicit build.'
