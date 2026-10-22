@@ -166,6 +166,8 @@ pub fn safe_output_name(String) -> Bool
 
 pub fn save_post(String, String, String, String) -> SavePostReport raise
 
+pub fn save_post_categories(String, String, String, String) -> SavePostReport raise
+
 pub fn save_post_fields(String, String, String, PostFields) -> SavePostReport raise
 
 pub fn save_post_from_file(String, String, String, String) -> SavePostReport raise
@@ -306,6 +308,7 @@ pub(all) struct Document {
   kind : String
   title : String
   description : String
+  categories : Array[String]
   tags : Array[String]
   body : String
   draft : Bool

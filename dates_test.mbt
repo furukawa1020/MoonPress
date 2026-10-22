@@ -100,6 +100,7 @@ test "date layout substitution is escaped and single pass" {
       draft: false,
       listed: true,
       kind: "post",
+      categories: [],
       layout: None,
       slug: None,
       date: Some("\"><x>"),
