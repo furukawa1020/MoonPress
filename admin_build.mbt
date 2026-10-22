@@ -1,5 +1,10 @@
 ///|
-fn admin_build_form(token : String) -> String {
+fn admin_build_form(token : String, japanese? : Bool = false) -> String {
+  if japanese {
+    return "<h2>保存した記事をプレビューにする</h2><form method=\"post\" action=\"/build-preview\">" +
+      admin_hidden("token", token) +
+      "<p>下書きも含め、保存済みの記事・画像・テーマからプレビューを生成します。未保存の文章は含まれません。公開はしません。</p><button>プレビューをつくる</button></form>"
+  }
   "<h2>Full-site preview files</h2><form method=\"post\" action=\"/build-preview\">" +
   admin_hidden("token", token) +
   "<p>Compile saved articles, including drafts, with the site theme and assets into <code>.moonpress-preview</code> inside this site. This writes local preview files only. Unsaved editor text is excluded; nothing is deployed.</p><button>Build full preview files</button></form>"

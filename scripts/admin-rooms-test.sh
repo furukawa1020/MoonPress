@@ -33,6 +33,10 @@ diff -r "$tmp/site" "$tmp/before"
 for target in /rooms/nope '/rooms?complete=1' /assets/nope; do
   test "$(get "$target")" = 404
 done
+test "$(get /rooms/preview)" = 200
+grep -Fq '<button>プレビューをつくる</button>' "$tmp/page"
+test "$(get /rooms/build)" = 200
+grep -Fq '<button>変更計画をみる</button>' "$tmp/page"
 test "$(get /assets/logo.jpg)" = 200
 cmp "$tmp/page" docs/assets/social-preview.jpg
 test "$(get /assets/font.woff)" = 200
@@ -45,6 +49,7 @@ test "$(curl --max-time 10 -sS -o "$tmp/page" -w '%{http_code}' -H "Origin: $ori
 "$cli" build "$tmp/site" "$tmp/site/.moonpress-build" >/dev/null
 test "$(get /rooms/publish)" = 200
 grep -q 'action="/export-production"' "$tmp/page"
+grep -Fq '<button>公開用ZIPをダウンロード</button>' "$tmp/page"
 grep -q 'ホスティング：未確認' "$tmp/page"
 printf '\nChanged after build\n' >> "$tmp/site/content/index.md"
 test "$(get /rooms/publish)" = 200

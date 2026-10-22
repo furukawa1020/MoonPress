@@ -71,7 +71,12 @@ fn room_production_state(
     } else {
       "<p class=\"notice\">ビルドの状態：再ビルドが必要です。書き込み \{report.pending_writes} 件 / 削除 \{report.pending_deletes} 件。変更計画を確認してから進んでください。</p>"
     }
-    status + (if export_zip { admin_export_form(report, token) } else { "" })
+    status +
+    (if export_zip {
+      admin_export_form(report, token, japanese=true)
+    } else {
+      ""
+    })
   } catch {
     error =>
       "<p class=\"notice\">ビルドの状態を確認できません：" +
@@ -111,7 +116,7 @@ fn admin_room(
     Preview =>
       (
         "<p>できあがりを見てみよう。保存した下書きもプレビューに含まれます。下のボタンで生成し、上の Open built preview を開いて確認してください。</p>" +
-        admin_build_form(token) +
+        admin_build_form(token, japanese=true) +
         "<p>よければ <a href=\"/?state=draft\">下書きをひらき</a>、Set ready for build を選びます。下書きのままの記事は公開用ビルドから除外されます。</p>",
         Some(Writing),
         Some(Building),
@@ -120,7 +125,7 @@ fn admin_room(
       (
         "<p>ここで、書いたものをサイトにしていこう。まずは、変わるファイルを確かめます。確認した計画と実際の入力が違えば、MoonBitが書き込みを止めます。</p>" +
         room_production_state(input, token, false) +
-        admin_production_plan_form(token) +
+        admin_production_plan_form(token, japanese=true) +
         "<p>表示された変更計画を読んで、Build reviewed production files を選んでください。更新のないページは書き換えません。</p>",
         Some(Preview),
         Some(Departure),

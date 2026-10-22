@@ -48,9 +48,19 @@ fn admin_publish(input : String, token : String) -> (Int, String) {
 }
 
 ///|
-fn admin_export_form(report : ReleaseReadiness, token : String) -> String {
+fn admin_export_form(
+  report : ReleaseReadiness,
+  token : String,
+  japanese? : Bool = false,
+) -> String {
   if !report.current {
     return ""
+  }
+  if japanese {
+    return "<h2>公開用ZIPをもちだす</h2><p>確認済みのHTML・CSS・画像と .nojekyll が入ります。下書き・ソース・管理用の記録は含まれません。上限64 MiB・10000ファイル。ダウンロード時に状態を再確認します。</p><form method=\"post\" action=\"/export-production\">" +
+      admin_hidden("token", token) +
+      admin_hidden("review_id", report.review_id) +
+      "<button>公開用ZIPをダウンロード</button></form><p>ZIPを展開して、公開先へファイルを送ってください。削除したページも公開先で取り除きます。ダウンロードだけでは公開されません。</p>"
   }
   "<h2>Download production ZIP</h2><p>Includes the verified generated HTML, CSS, public assets and .nojekyll. Excludes drafts, source files and .moonpress.json. Maximum 64 MiB and 10000 files. The download rechecks this review; if saved sources or output change, check readiness again.</p><form method=\"post\" action=\"/export-production\"><input type=\"hidden\" name=\"token\" value=\"" +
   escape_html(token) +
