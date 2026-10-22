@@ -76,6 +76,7 @@ jobs:
           REVISION: ${{ github.sha }}
           TAG: ${{ needs.package.outputs.tag }}
           MOONPRESS_VERIFY_BROWSER: "1"
+          MOONPRESS_EXPECT_REVISION: ${{ github.sha }}
         run: |
           git init .
           git remote add origin "https://github.com/$REPOSITORY.git"

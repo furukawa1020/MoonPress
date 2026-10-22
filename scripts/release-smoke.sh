@@ -8,6 +8,9 @@ trap 'rm -rf "$work"' EXIT
 tar -xzf "$package/moonpress-linux-x86_64.tar.gz" -C "$work"
 bundle="$work/moonpress-linux-x86_64"
 (cd "$bundle" && sha256sum --check EXECUTABLE.sha256)
+if [[ -n "${MOONPRESS_EXPECT_REVISION:-}" ]]; then
+  bash "$(dirname "$0")/verify-package-provenance.sh" "$bundle" "$MOONPRESS_EXPECT_REVISION"
+fi
 cli="$bundle/moonpress"
 env -i PATH=/usr/bin:/bin "$cli" --version
 env -i PATH=/usr/bin:/bin "$cli" init "$work/site"
