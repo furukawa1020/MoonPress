@@ -77,3 +77,9 @@ O_TMPFILE creation: write, flush, file fsync and checked close precede exclusive
 link publication and directory fsync. An interrupted pre-publication write leaves
 no named partial file; unsupported filesystems fail closed. These barriers assume
 a filesystem/device honoring fsync and do not constitute a physical power-cut test.
+
+The local `/authoring-recovery` screen inspects the three known stages without
+reading their content into the page or changing files. Reads are capped at 8 MiB;
+oversized remnants are preserved and require manual inspection. It shows digest,
+size and terminal rescue guidance. Use a backup destination outside the source
+tree. It cannot recover browser text that was never submitted.
