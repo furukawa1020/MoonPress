@@ -3,6 +3,7 @@ pub(all) struct Document {
   kind : String
   title : String
   description : String
+  categories : Array[String]
   tags : Array[String]
   body : String
   draft : Bool
@@ -32,6 +33,7 @@ pub fn parse_document(
   let mut listed = true
   let mut kind = "post"
   let tags : Array[String] = []
+  let categories : Array[String] = []
   for key, value in fields {
     match (key, value) {
       ("title", String(text)) => {
@@ -77,6 +79,30 @@ pub fn parse_document(
       ("draft", False) => draft = false
       ("listed", True) => listed = true
       ("listed", False) => listed = false
+      ("categories", Array(items)) => {
+        if items.length() > 64 {
+          raise InvalidInput(filename + ":2: at most 64 categories")
+        }
+        for item in items {
+          match item {
+            String(value) => {
+              let category = value.trim().to_owned()
+              if category.is_empty() || @utf8.encode(category).length() > 96 {
+                raise InvalidInput(
+                  filename + ":2: categories must contain 1–96 UTF-8 bytes",
+                )
+              }
+              if !categories.contains(category) {
+                categories.push(category)
+              }
+            }
+            _ =>
+              raise InvalidInput(
+                filename + ":2: categories must be an array of strings",
+              )
+          }
+        }
+      }
       ("tags", Array(items)) =>
         for item in items {
           match item {
@@ -98,7 +124,8 @@ pub fn parse_document(
           }
         }
       (
-        "kind"
+        "categories"
+        | "kind"
         | "title"
         | "description"
         | "tags"
@@ -114,11 +141,24 @@ pub fn parse_document(
     }
   }
   tags.sort()
+  categories.sort()
   let title = match explicit_title {
     Some(text) => text
     None => page_title(body, fallback)
   }
-  { kind, title, description, tags, body, draft, listed, layout, date, slug, }
+  {
+    categories,
+    kind,
+    title,
+    description,
+    tags,
+    body,
+    draft,
+    listed,
+    layout,
+    date,
+    slug,
+  }
 }
 
 ///|
