@@ -37,3 +37,10 @@ grep -Fq 'href="/edit?name=kind-demo.md"' "$tmp/page"
 test "$(get '/?kind=bogus')" = 400
 "$cli" history "$tmp/site" kind-demo.md --json | jq -e '.report|length==2' >/dev/null
 echo 'Kind controls passed: native/HTTP changes, stale refusal, inventory filters and retained preimages.'
+
+test "$(get '/edit?name=kind-demo.md')" = 200
+grep -Fq 'action="/categories"' "$tmp/page"
+version="$("$cli" read "$tmp/site" kind-demo.md --json | jq -r '.report.digest')"
+test "$(post --data-urlencode name=kind-demo.md --data-urlencode "version=$version" --data-urlencode $'categories=Science\n月' "$origin/categories")" = 200
+"$cli" read "$tmp/site" kind-demo.md --json | jq -e '.report.content|contains("Science")' >/dev/null
+test "$(post --data-urlencode name=kind-demo.md --data-urlencode "version=$version" --data-urlencode categories=stale "$origin/categories")" = 400

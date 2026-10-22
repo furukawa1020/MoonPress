@@ -54,7 +54,7 @@ fn collection_dependencies(
   layout_source? : String = "layout.html",
 ) -> Array[Dependency] {
   let deps : Array[Dependency] = [
-    { name: "collection-renderer", digest: digest_text("collection-v5"), },
+    { name: "collection-renderer", digest: digest_text("collection-v6"), },
     { name: layout_source, digest: layout_digest, },
     {
       name: "members",
@@ -109,8 +109,26 @@ pub fn render_collection(title : String, pages : Array[Page]) -> String {
       }
       out.write_string("</ul>")
     }
+    if !page.document.categories.is_empty() {
+      out.write_string("<ul class=\"categories\">")
+      for category in page.document.categories {
+        out.write_string(
+          "<li><a href=\"" +
+          category_filename(category) +
+          "\">" +
+          escape_html(category) +
+          "</a></li>",
+        )
+      }
+      out.write_string("</ul>")
+    }
     out.write_string("</li>\n")
   }
   out.write_string("</ul>\n")
   out.to_string()
+}
+
+///|
+pub fn category_filename(category : String) -> String {
+  "category-" + @crypto.bytes_to_hex_string(@utf8.encode(category)) + ".html"
 }

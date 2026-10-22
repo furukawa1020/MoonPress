@@ -8,12 +8,17 @@ priv struct TagSummary {
 fn tag_index_dependencies(
   tags : Array[TagSummary],
   layout_digest : String,
+  categories? : Array[TagSummary] = [],
   layout_source? : String = "layout.html",
 ) -> Array[Dependency] {
   [
-    { name: "tag-index-renderer", digest: digest_text("tag-index-v1"), },
+    { name: "tag-index-renderer", digest: digest_text("tag-index-v2"), },
     { name: layout_source, digest: layout_digest, },
     { name: "tag-counts", digest: digest_text(tags.to_json().stringify()), },
+    {
+      name: "category-counts",
+      digest: digest_text(categories.to_json().stringify()),
+    },
   ]
 }
 
@@ -34,5 +39,24 @@ fn render_tag_index(tags : Array[TagSummary]) -> String {
     )
   }
   out.write_string("</ul>\n")
+  out.to_string()
+}
+
+///|
+fn render_category_index(categories : Array[TagSummary]) -> String {
+  let out = StringBuilder()
+  out.write_string("<h1>Categories</h1><ul class=\"category-index\">")
+  for category in categories {
+    out.write_string(
+      "<li><a href=\"" +
+      category_filename(category.name) +
+      "\">" +
+      escape_html(category.name) +
+      "</a> (" +
+      category.count.to_string() +
+      ")</li>",
+    )
+  }
+  out.write_string("</ul>")
   out.to_string()
 }
