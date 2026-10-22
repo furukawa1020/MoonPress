@@ -161,8 +161,8 @@ fn admin_language_target(target : String) -> String {
   if [
       "/", "/rooms", "/rooms/write", "/rooms/preview", "/rooms/build", "/rooms/publish",
       "/workflow", "/edit", "/media", "/media-replace", "/media-remove", "/references",
-      "/reference-outputs", "/history", "/revision-diff", "/revision", "/site-settings",
-      "/recovery", "/authoring-recovery", "/publish",
+      "/reference-outputs", "/history", "/trash", "/trash-item", "/trash-post", "/revision-diff",
+      "/revision", "/site-settings", "/recovery", "/authoring-recovery", "/publish",
     ].contains(path) {
     target
   } else {
@@ -224,6 +224,9 @@ fn admin_language_response(request : AdminRequest) -> Bytes raise {
 fn admin_title_ja(title : String) -> String {
   match title {
     "Revision comparison" => "記事の差分"
+    "Article trash" => "記事のゴミ箱"
+    "Inspect trashed article" => "ゴミ箱の記事を確認"
+    "Review move to trash" => "ゴミ箱への移動を確認"
     "Article history" => "記事の履歴"
     "Inspect article revision" => "記事の過去の版を確認"
     "Posts" => "記事"
