@@ -83,3 +83,21 @@ site; keep the deployment gate open until the public endpoint is checked.
 - Verified public example deployment and general host integration/status. The Publish screen is local readiness only.
 - Signed/versioned release assets and installation verification across supported Linux distributions; other operating systems remain unverified.
 - Isolated preview intentionally disables project scripts/forms/external resource loads; it is not a full hosting emulator.
+
+## October 2026 authoring batch
+
+Implemented explicit native revision history/checkpoints, pre-save capture, bounded
+comparison and guarded restoration; private recoverable trash with acknowledged
+per-record purge; post/fixed-page kinds and inventory filters; separate flat
+categories with escaped archives, counts and pagination. Japanese/English admin
+language follows the browser with a manual/Auto override.
+
+The complete lifecycle passed real Chrome with JavaScript disabled on Ubuntu
+22.04 and 24.04 ([run](https://github.com/furukawa1020/MoonPress/actions/runs/39734354366)),
+in addition to 238 native tests and all CLI/HTTP/failure-injection scripts.
+[Actual performance measurements](wordpress-benchmark-2026-10-22.md) include
+raw evidence and a cached WordPress control; they do not establish CMS parity.
+[WordPress capability coverage](wordpress-parity.md) records remaining work,
+including scheduling, users/roles, comments, public APIs and plugin compatibility.
+This remains an experimental native preview; physical power-cut validation and
+other platform/browser readiness requirements above are not completed by this batch.

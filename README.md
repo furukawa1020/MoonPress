@@ -7,6 +7,8 @@ written in **MoonBit**. Native executable in,
 HTML + CSS out. No TypeScript, JavaScript, Node.js or npm in the application
 or CI workflow. Experimental; see the [release-readiness roadmap](docs/roadmap.md) and
 [WordPress capability coverage](docs/wordpress-parity.md).
+[Actual WordPress comparison and raw evidence](docs/wordpress-benchmark-2026-10-22.md)
+separate dynamic WordPress, cached WordPress HTML and native-generated HTML.
 
 ## Quick start
 
@@ -61,7 +63,7 @@ redirect an in-flight save into another location. Read the precise
 
 The starter includes tag/category navigation, pagination settings and a writing guide.
 Article history, recoverable trash, fixed-page types and separate categories are
-available through native CLI/browser forms. See [types](docs/authoring-kinds.md)
+available through native CLI/browser forms. See [types](docs/authoring-kinds.md),
 [categories](docs/categories.md) and [history/trash](docs/history-and-trash.md).
 No public URL is needed for local authoring; add your real `base_url` when ready
 to generate a sitemap or enable RSS.
