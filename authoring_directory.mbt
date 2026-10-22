@@ -177,7 +177,16 @@ fn AuthoringDirectory::remove(
   if directory_remove(self.fd, authoring_name(name)) != 0 {
     raise io_failure("directory-relative cleanup", self.path + "/" + name)
   }
-  self.sync()
+  self.sync() catch {
+    error =>
+      raise InvalidInput(
+        "Removal is visible, but durability is unconfirmed; reload and inspect " +
+        self.path +
+        "/" +
+        name +
+        ": \{error}",
+      )
+  }
 }
 
 ///|
