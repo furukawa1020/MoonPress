@@ -138,6 +138,22 @@ MOONBIT_FFI_EXPORT int moonpress_dir_remove(int directory, moonbit_bytes_t name)
   return unlinkat(directory, (const char *)name, 0);
 }
 
+MOONBIT_FFI_EXPORT FILE *moonpress_dir_anonymous(int directory) {
+  int fd = openat(directory, ".", O_TMPFILE | O_RDWR | O_CLOEXEC, 0666);
+  if (fd < 0) return NULL;
+  FILE *file = fdopen(fd, "wb");
+  if (!file) { int saved = errno; close(fd); errno = saved; }
+  return file;
+}
+MOONBIT_FFI_EXPORT int moonpress_io_duplicate(FILE *file) {
+  return fcntl(fileno(file), F_DUPFD_CLOEXEC, 0);
+}
+MOONBIT_FFI_EXPORT int moonpress_dir_install(int directory, int fd, moonbit_bytes_t name) {
+  char source[64];
+  snprintf(source, sizeof source, "/proc/self/fd/%d", fd);
+  return linkat(AT_FDCWD, source, directory, (const char *)name, AT_SYMLINK_FOLLOW);
+}
+
 MOONBIT_FFI_EXPORT int moonpress_dir_same(int a, int b) {
   struct stat left, right;
   if (fstat(a, &left) != 0 || fstat(b, &right) != 0) return -1;

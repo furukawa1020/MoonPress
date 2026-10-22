@@ -29,7 +29,7 @@ static void swap_at(int fd, const char *event) {
 int openat(int parent,const char *name,int flags,...) {
   int (*real_open)(int,const char*,int,...)=dlsym(RTLD_NEXT,"openat");
   mode_t mode=0;
-  if(flags&O_CREAT) { va_list ap; va_start(ap,flags); mode=va_arg(ap,int); va_end(ap); swap_at(parent,"create"); }
+  if((flags&O_CREAT) || (flags&O_TMPFILE)==O_TMPFILE) { va_list ap; va_start(ap,flags); mode=va_arg(ap,int); va_end(ap); swap_at(parent,"create"); }
   int fd=real_open(parent,name,flags,mode);
   if(flags&O_DIRECTORY) swap_at(fd,"open");
   return fd;
