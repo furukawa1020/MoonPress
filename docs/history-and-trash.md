@@ -27,7 +27,9 @@ than silently discarding versions. There is no automatic retention/pruning yet.
 
 CLI: `history-enable`, `history`, `checkpoint`, `revision`, `compare-revision`,
 `restore-revision`, `trash-post`, `trash-list`, `trash-read`, `trash-restore`, and
-`trash-purge`. Each accepts `--help`; mutation commands require inspected hashes.
+`trash-purge`. Each accepts `--help`. `history-enable SITE [--json]` creates
+the private history vault without a hash argument. Checkpoint, source restoration,
+trash moves/restoration and purge require the inspected source or record hash.
 Permanent purge additionally requires the literal `confirm-permanent`.
 
 ## 日本語での操作
