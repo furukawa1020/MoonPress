@@ -128,6 +128,8 @@ fn vault_records(
   if input.is_empty() {
     raise InvalidInput("Site directory must not be empty")
   }
+  require_input_kind(input, 2)
+  require_input_kind(input + "/content", 2)
   let path = input + "/" + vault
   if path_kind(path) == 0 {
     return []

@@ -394,6 +394,11 @@ fn main {
       _ => valid = false
     }
   }
+  if command == "trash-purge" &&
+    args.length() >= 6 &&
+    args[5] != "confirm-permanent" {
+    valid = false
+  }
   if command == "status" &&
     args.length() >= 6 &&
     args[5] != "draft" &&

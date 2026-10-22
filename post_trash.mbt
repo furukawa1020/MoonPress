@@ -80,3 +80,38 @@ pub fn restore_trashed_post(
   vault.remove(id)
   { source: "content/" + name, digest: record.revision.digest, changed: true, }
 }
+
+///|
+pub(all) struct TrashPurgeReport {
+  id : String
+  name : String
+  purged : Bool
+} derive(ToJson)
+
+///|
+pub extend TrashPurgeReport with ToJson::{to_json}
+
+///|
+pub fn purge_trashed_post(
+  input : String,
+  id : String,
+  expected_record : String,
+  acknowledged : Bool,
+) -> TrashPurgeReport raise {
+  if !acknowledged || !valid_digest(expected_record) {
+    raise InvalidInput(
+      "Permanent purge requires acknowledgement and the inspected record digest",
+    )
+  }
+  let vault = open_authoring_subdirectory(input, ".moonpress-trash")
+  defer directory_close(vault.fd)
+  vault.lock()
+  let record = read_authoring_record(vault, id)
+  if record.revision.record_digest != expected_record {
+    raise InvalidInput(
+      "Trash record changed; inspect again before permanent purge",
+    )
+  }
+  vault.remove(id)
+  { id, name: record.revision.name, purged: true, }
+}

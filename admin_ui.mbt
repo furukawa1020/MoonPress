@@ -278,7 +278,7 @@ fn admin_route(
   if admin_field(fields, "token") != token {
     raise InvalidInput("Form token rejected; reload the page")
   }
-  if ["/trash-post", "/trash-restore"].contains(request.target) {
+  if ["/trash-post", "/trash-restore", "/trash-purge"].contains(request.target) {
     return (200, admin_trash_action(input, request.target, fields))
   }
   if ["/history-enable", "/checkpoint", "/restore-revision"].contains(

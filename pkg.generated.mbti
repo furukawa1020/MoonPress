@@ -112,6 +112,8 @@ pub fn post_settings(String, filename? : String) -> PostSettings raise
 
 pub fn prepare_media(String) -> Bool raise
 
+pub fn purge_trashed_post(String, String, String, Bool) -> TrashPurgeReport raise
+
 pub fn query_references(ReferenceGraph, String) -> RouteReferences raise
 
 pub fn read_media(String, String) -> MediaItem raise
@@ -668,6 +670,13 @@ pub(all) struct SiteSettingsSnapshot {
   digest : String?
 } derive(ToJson)
 pub fn SiteSettingsSnapshot::to_json(Self) -> Json
+
+pub(all) struct TrashPurgeReport {
+  id : String
+  name : String
+  purged : Bool
+} derive(ToJson)
+pub fn TrashPurgeReport::to_json(Self) -> Json
 
 pub(all) struct ZipEntry {
   name : String

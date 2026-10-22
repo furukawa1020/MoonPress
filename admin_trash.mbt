@@ -65,6 +65,21 @@ fn admin_trash_item(
     hidden +
     "<button>" +
     admin_i18n("元の場所へ復元する", "Restore to original filename") +
+    "</button></form><form method=\"post\" action=\"/trash-purge\">" +
+    hidden +
+    "<p>" +
+    admin_i18n(
+      "この保管データを完全に削除します。元に戻せません。現在ある記事や生成物は変更しません。",
+      "Permanently remove this retained trash record. There is no undo. Existing live source and generated output are not changed.",
+    ) +
+    "</p><label><input type=\"checkbox\" name=\"confirm\" value=\"permanent\" required>" +
+    admin_i18n(
+      "元に戻せないことを確認しました", "I understand this cannot be undone",
+    ) +
+    "</label><button>" +
+    admin_i18n(
+      "確認した保管データを完全削除", "Permanently purge reviewed record",
+    ) +
     "</button></form>",
   )
 }
@@ -111,6 +126,19 @@ fn admin_trash_action(
   target : String,
   fields : Map[String, String],
 ) -> String raise {
+  if target == "/trash-purge" {
+    if fields.length() != 4 || admin_field(fields, "confirm") != "permanent" {
+      raise InvalidInput("Permanent purge requires explicit acknowledgement")
+    }
+    purge_trashed_post(
+      input,
+      admin_field(fields, "id"),
+      admin_field(fields, "version"),
+      true,
+    )
+    |> ignore
+    return admin_trash(input)
+  }
   if fields.length() != 3 {
     raise InvalidInput("Invalid trash operation fields")
   }
