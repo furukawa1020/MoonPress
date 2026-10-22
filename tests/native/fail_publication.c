@@ -326,11 +326,28 @@ static void at_path(int directory, const char *name, char *path, size_t size) {
   parent[n]=0;
   if (snprintf(path,size,"%s/%s",parent,name)>=(int)size) _exit(116);
 }
+int fstatat(int directory, const char *name, struct stat *st, int flags) {
+  int (*real_stat)(int,const char*,struct stat*,int)=dlsym(RTLD_NEXT,"fstatat");
+  if (!real_stat) _exit(129);
+  at_path(directory,name,candidate,sizeof candidate);
+  return real_stat(directory,name,st,flags);
+}
 int openat(int directory, const char *name, int flags, ...) {
   int (*real_open)(int,const char*,int,...)=dlsym(RTLD_NEXT,"openat");
   mode_t mode=0;
-  if(flags&O_CREAT) { va_list ap; va_start(ap,flags); mode=va_arg(ap,int); va_end(ap); }
+  int anonymous=(flags&O_TMPFILE)==O_TMPFILE;
+  if((flags&O_CREAT) || anonymous) { va_list ap; va_start(ap,flags); mode=va_arg(ap,int); va_end(ap); }
   char path[8192]; at_path(directory,name,path,sizeof path);
+  if(anonymous) {
+    if(getenv("MOONPRESS_TEST_UNSUPPORTED_ANONYMOUS")) { errno=EOPNOTSUPP; return -1; }
+    if(matches("MOONPRESS_TEST_FAIL_OPEN",candidate)) { errno=ENOSPC; return -1; }
+    int fd=real_open(directory,name,flags,mode);
+    if(fd>=0 && fd<256) {
+      snprintf(anonymous_paths[fd],4096,"%s",candidate);
+      anonymous_synced[fd]=0;
+    }
+    return fd;
+  }
   if((flags&O_CREAT) && matches("MOONPRESS_TEST_FAIL_OPEN",path)) { errno=ENOSPC; return -1; }
   if((flags&O_EXCL) && matches("MOONPRESS_TEST_CREATE_BEFORE_OPEN",path)) {
     int other=real_open(directory,name,O_WRONLY|O_CREAT|O_EXCL,0600);
