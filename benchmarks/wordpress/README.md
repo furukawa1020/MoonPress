@@ -58,3 +58,5 @@ Each load group also records `/proc` RSS and user/system CPU tick snapshots for
 NGINX/FPM and their descendants before/after measurement. Tick frequency is
 recorded. RSS can double-count shared pages, is not peak memory, and excludes
 the separate MySQL service; it must not be compared with native generation peak.
+
+Published concurrent evidence: [2026-10-22 report](../../docs/wordpress-capacity-2026-10-22.md), including raw records and deterministic regeneration.

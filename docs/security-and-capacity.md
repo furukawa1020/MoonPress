@@ -70,3 +70,5 @@ Timeouts here limit inactivity rather than a complete-connection lifetime.
 Per-IP rate limiting is deployment-specific (shared NAT/proxies matter); volumetric
 protection belongs at a suitably provisioned edge and is not established by this
 configuration or the localhost benchmark.
+
+Measured baseline: [concurrent WordPress / MoonPress report](wordpress-capacity-2026-10-22.md).

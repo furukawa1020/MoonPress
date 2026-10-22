@@ -171,3 +171,5 @@ bash scripts/shared-fixture-test.sh
 bash scripts/benchmark-report-test.sh
 
 python3 scripts/capacity-test.py
+
+python3 scripts/capacity-report-test.py
