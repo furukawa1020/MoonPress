@@ -30,3 +30,14 @@ jobs:
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
       - name: Check, test, compile and exercise CLI
         run: bash scripts/check.sh
+      - name: Exercise local admin in real Chrome without JavaScript
+        run: |
+          google-chrome --version
+          chromedriver --version
+          python3 scripts/browser-test.py
+      - name: Show browser diagnostics on failure
+        if: failure()
+        run: |
+          for report in _build/browser-verification/report.json _build/browser-verification/admin.log _build/browser-verification/driver.log _build/browser-verification/failure.html; do
+            if test -f "$report"; then tail -c 20000 "$report"; fi
+          done
