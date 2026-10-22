@@ -18,10 +18,12 @@ plugins or JavaScript. The minimal PHP theme returns only equivalent article
 text. Every dynamic article and native output is validated before timing.
 
 For each corpus, three representative articles receive five warmups per variant
-and 50 interleaved serial samples per variant. WordPress cached HTML means an
+and 60 interleaved serial samples per variant. WordPress cached HTML means an
 actual captured response served statically, not a named cache plugin. Native and
 cached HTML use the same static PHP server; dynamic WordPress uses another
-instance of the same executable, with CLI opcache explicitly disabled for both.
+instance of the same executable, with OPcache enabled and Xdebug disabled for both. A live PHP probe verifies
+the settings. All six request orders are counterbalanced equally; each raw
+sample records its order.
 Response header availability and complete-body clocks, bytes, hashes, PHP RSS
 snapshots and separate MySQL-service RSS are retained. No production throughput,
 concurrency, cold-cache or language-only conclusion is justified.

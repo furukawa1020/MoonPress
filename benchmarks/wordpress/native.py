@@ -18,7 +18,7 @@ def command(*args):
 
 
 def environment(cli):
-    cpu = next((line.split(':', 1)[1].strip() for line in Path('/proc/cpuinfo').read_text().splitlines() if line.startswith('model name')), 'unknown')
+    cpu = next((line.split(':', 1)[1].strip() for line in Path('/proc/cpuinfo').read_text(encoding="utf-8").splitlines() if line.startswith('model name')), 'unknown')
     return {'source_revision': command('git', 'rev-parse', 'HEAD'),
             'source_tree': command('git', 'rev-parse', 'HEAD^{tree}'),
             'worktree_dirty': bool(command('git', 'status', '--porcelain')),
@@ -33,7 +33,7 @@ def measure(helper, cli, site, output, rss):
     report_text = run.stdout
     elapsed = (time.perf_counter_ns() - start) / 1_000_000
     report = json.loads(report_text)['report']
-    return {'elapsed_ms': elapsed, 'peak_rss_kib': int(rss.read_text()),
+    return {'elapsed_ms': elapsed, 'peak_rss_kib': int(rss.read_text(encoding="utf-8")),
             'pages': report['pages'], 'written': report['written'], 'skipped': report['skipped'], 'deleted': report['deleted']}
 
 

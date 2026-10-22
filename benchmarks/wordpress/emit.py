@@ -7,8 +7,8 @@ import os
 from pathlib import Path
 import sys
 
-native = json.loads(Path(sys.argv[1]).read_text())
-http = json.loads(Path(sys.argv[2]).read_text())
+native = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+http = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 record = {'schema':1,'native':native,'http':http,
           'ci':{key:os.environ.get(key) for key in ('GITHUB_REPOSITORY','GITHUB_RUN_ID','GITHUB_RUN_ATTEMPT','GITHUB_SHA','RUNNER_OS','RUNNER_ARCH')}}
 raw = (json.dumps(record,sort_keys=True,separators=(',',':'))+'\n').encode()

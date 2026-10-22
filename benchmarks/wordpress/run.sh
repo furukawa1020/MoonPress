@@ -7,6 +7,7 @@ work="$(mktemp -d "$RUNNER_TEMP/moonpress-wordpress.XXXXXXXX")"
 trap 'rm -rf "$work"' EXIT
 php --version
 php -m | grep -Fx mysqli
+php -m | grep -Fx 'Zend OPcache'
 sudo systemctl start mysql
 root=(mysql --protocol=socket -u root -proot)
 if ! "${root[@]}" -Nse 'SELECT 1' >/dev/null 2>&1; then root=(sudo mysql --protocol=socket); fi

@@ -2,6 +2,7 @@
 import argparse
 import contextlib
 import json
+import itertools
 import math
 import os
 from pathlib import Path
@@ -43,7 +44,7 @@ def request(url):
 @contextlib.contextmanager
 def server(root, port):
     with tempfile.TemporaryFile() as log:
-        process = subprocess.Popen(['php', '-d', 'opcache.enable_cli=0', '-S', f'127.0.0.1:{port}', '-t', str(root)], stdout=log, stderr=log)
+        process = subprocess.Popen(['php', '-d', 'opcache.enable_cli=1', '-d', 'opcache.enable=1', '-d', 'xdebug.mode=off', '-S', f'127.0.0.1:{port}', '-t', str(root)], stdout=log, stderr=log, env={**os.environ, 'XDEBUG_MODE':'off'})
         try:
             for _ in range(100):
                 if process.poll() is not None:
@@ -68,7 +69,7 @@ def rss_kib(pid):
     if pid is None:
         return None
     try:
-        status = Path(f'/proc/{pid}/status').read_text()
+        status = Path(f'/proc/{pid}/status').read_text(encoding="utf-8")
         return int(next(line for line in status.splitlines() if line.startswith('VmRSS:')).split()[1])
     except (OSError, StopIteration):
         return None
@@ -83,9 +84,9 @@ def compare(wordpress, archive, cli, samples):
               'wordpress_archive_sha256':sha256(Path(archive).read_bytes()),
               'wordpress_archive_url':'https://wordpress.org/wordpress-7.1.3.tar.gz',
               'theme_sha256':sha256((HERE/'theme.php').read_bytes()),
-              'conditions':{'warmup_per_variant_and_article':5, 'samples_per_variant_per_count':samples,
+              'conditions':{'warmup_per_variant_and_article':5, 'samples_per_variant_per_count':samples, 'order':'all six variant permutations repeated equally',
                             'variants':['wordpress-dynamic','wordpress-cached-html','moonpress-static'],
-                            'server':'same PHP built-in server executable, opcache.enable_cli=0',
+                            'server':'same PHP built-in server executable; OPcache enabled for CLI server; Xdebug mode off',
                             'cache':'warm OS/DB caches, no page cache plugin or persistent object cache; cached control is a static response snapshot',
                             'transport':'serial HTTP/1.1 loopback, new connection per request, identity encoding, no CDN/TLS',
                             'header_clock':'urlopen response headers available; not exact first-body-byte time',
@@ -99,7 +100,9 @@ def compare(wordpress, archive, cli, samples):
     theme = wordpress/'wp-content/themes/moonpress-benchmark'
     theme.mkdir(exist_ok=False)
     shutil.copyfile(HERE/'theme.php', theme/'index.php')
-    (theme/'style.css').write_text('/*\nTheme Name: MoonPress benchmark\nVersion: 1\n*/\n')
+    (theme/'style.css').write_text('/*\nTheme Name: MoonPress benchmark\nVersion: 1\n*/\n', encoding="utf-8")
+    probe = wordpress/'moonpress-benchmark-runtime.php'
+    probe.write_text("<?php echo json_encode(['opcache_enabled'=>function_exists('opcache_get_status') && (opcache_get_status(false)['opcache_enabled'] ?? false), 'xdebug_mode'=>ini_get('xdebug.mode'), 'php_version'=>PHP_VERSION]);", encoding="utf-8")
     dynamic_port, static_port = free_port(), free_port()
     if dynamic_port == static_port:
         static_port = free_port()
@@ -112,7 +115,7 @@ def compare(wordpress, archive, cli, samples):
         for index,count in enumerate((10,100,1000)):
             fixture = temporary/str(count)
             result['fixtures'].append(generate(fixture,count))
-            articles = json.loads((fixture/'dataset.json').read_text())['articles']
+            articles = json.loads((fixture/'dataset.json').read_text(encoding="utf-8"))['articles']
             seed = subprocess.check_output(['php',str(HERE/'seed.php'),str(wordpress),str(fixture/'dataset.json'),dynamic_origin],text=True)
             metadata = json.loads(seed)
             if metadata['wordpress_version'] != '7.1.3' or metadata['plugins'] or metadata['count'] != count:
@@ -122,6 +125,11 @@ def compare(wordpress, archive, cli, samples):
             cache = serve/f'cache-{count}'; cache.mkdir()
             subprocess.run([str(cli),'build',str(fixture/'site'),str(native_out)],stdout=subprocess.DEVNULL,check=True)
             with server(wordpress,dynamic_port) as dynamic, server(serve,static_port) as static:
+                probe_body,_ = request(dynamic_origin+'/moonpress-benchmark-runtime.php')
+                runtime = json.loads(probe_body)
+                if runtime['opcache_enabled'] is not True or runtime['xdebug_mode'] != 'off':
+                    raise ValueError('Unexpected PHP benchmark runtime: '+str(runtime))
+                result['php_server_runtime'] = runtime
                 # Validate every imported dynamic article, cache the actual response and
                 # verify every native article before sampling. This deliberately warms DB.
                 snapshot_hashes=[]
@@ -143,13 +151,14 @@ def compare(wordpress, archive, cli, samples):
                     for _ in range(5):
                         for variant in variants:
                             body,_ = request(url(variant,article)); verify_html(body,article)
+                orders = list(itertools.permutations(variants))
                 for sample in range(samples):
-                    article = selected[sample%len(selected)]
-                    order = variants[sample%3:]+variants[:sample%3]
+                    article = selected[(sample//len(orders))%len(selected)]
+                    order = orders[sample%len(orders)]
                     for variant in order:
                         body,record = request(url(variant,article))
                         verify_html(body,article)
-                        record.update(count=count,variant=variant,sample=sample+1,article_id=article['id'])
+                        record.update(count=count,variant=variant,sample=sample+1,article_id=article['id'],order=list(order))
                         result['samples'].append(record)
                 result['rss_snapshots'].append({'count':count,'wordpress_php_kib':rss_kib(dynamic.pid),
                     'static_php_kib':rss_kib(static.pid),'mysql_service_kib':rss_kib(mysql_pid)})
@@ -167,9 +176,9 @@ if __name__=='__main__':
     parser.add_argument('archive',type=Path)
     parser.add_argument('output',type=Path)
     parser.add_argument('--cli',type=Path,default=ROOT/'_build/native/release/build/cmd/main/main.exe')
-    parser.add_argument('--samples',type=int,default=50)
+    parser.add_argument('--samples',type=int,default=60)
     args=parser.parse_args()
-    if not 10<=args.samples<=1000: parser.error('samples must be 10..1000')
+    if not 12<=args.samples<=996 or args.samples%6: parser.error('samples must be a multiple of six in 12..996')
     with args.output.open('x') as file:
         json.dump(compare(args.wordpress,args.archive,args.cli,args.samples),file,indent=2,sort_keys=True)
         file.write('\n')
