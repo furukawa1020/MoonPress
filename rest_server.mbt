@@ -5,6 +5,9 @@ fn rest_response(result : RestResponse, head : Bool) -> Bytes {
     200 => "200 OK"
     400 => "400 Bad Request"
     401 => "401 Unauthorized"
+    403 => "403 Forbidden"
+    412 => "412 Precondition Failed"
+    428 => "428 Precondition Required"
     404 => "404 Not Found"
     405 => "405 Method Not Allowed"
     _ => "500 Internal Server Error"
@@ -12,11 +15,16 @@ fn rest_response(result : RestResponse, head : Bool) -> Bytes {
   @utf8.encode(
     "HTTP/1.1 " +
     status +
-    "\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \{bytes.length()}\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'\r\nAllow: GET, HEAD\r\n" +
+    "\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \{bytes.length()}\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'\r\n" +
+    (if result.code == 405 { "Allow: GET, HEAD\r\n" } else { "" }) +
     (if result.code == 401 {
       "WWW-Authenticate: Basic realm=\"MoonPress generated credentials\"\r\n"
     } else {
       ""
+    }) +
+    (match result.etag {
+      Some(digest) => "ETag: \"" + digest + "\"\r\n"
+      None => ""
     }) +
     (match result.total {
       Some(total) => "X-WP-Total: \{total}\r\n"
@@ -40,11 +48,36 @@ fn rest_client(
 ) -> Bytes {
   let mut head = false
   let result = try {
-    let (request, _) = admin_read_request(client, host, allow_head=true, on_head=fn() {
-      head = true
-    })
+    let (request, body) = admin_read_request(
+      client,
+      host,
+      allow_head=true,
+      rest=true,
+      on_head=fn() { head = true },
+    )
     head = request.verb == "HEAD"
-    if request.verb != "GET" && !head {
+    let (path, query) = rest_target(request.target)
+    if request.verb == "POST" ||
+      (
+        query.get("context") == Some("edit") &&
+        path != "/wp-json/wp/v2/users/me"
+      ) {
+      rest_edit(
+        input,
+        path,
+        query,
+        base,
+        request.authorization,
+        if request.verb == "POST" {
+          Some(body)
+        } else {
+          None
+        },
+        request.if_match,
+      ) catch {
+        _ => rest_error(500, "moonpress_edit_unavailable")
+      }
+    } else if request.verb != "GET" && !head {
       rest_error(405, "rest_no_route")
     } else {
       let principal = match request.authorization {
@@ -64,7 +97,6 @@ fn rest_client(
         }
         None => None
       }
-      let (path, query) = rest_target(request.target)
       // Request grammar errors and unsupported parameters are returned as 400.
       // Storage failures must not reveal source names or record contents.
       rest_route(input, path, query, base, principal)
@@ -95,7 +127,7 @@ pub fn serve_wordpress_rest(input : String, port : Int) -> Unit raise {
   println(
     "MoonPress REST subset: http://" +
     host +
-    "/wp-json/ (read-only; Ctrl-C to stop)",
+    "/wp-json/ (authenticated existing-article edits; Ctrl-C to stop)",
   )
   admin_flush()
   while true {

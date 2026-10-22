@@ -66,7 +66,7 @@ with tempfile.TemporaryDirectory() as temporary:
         assert request(headers={'Host':'attacker.invalid'})[0]==400
         assert request(headers={'Cookie':'wordpress_logged_in='+secret})[0]==200
         assert request('/wp-json/wp/v2/users/me',headers={'Cookie':'wordpress_logged_in='+secret})[0]==401
-        assert request(method='POST',body='',headers={'Origin':f'http://127.0.0.1:{port}','Content-Type':'application/x-www-form-urlencoded'})[0]==405
+        refused=request(method='POST',body='',headers={'Origin':f'http://127.0.0.1:{port}','Content-Type':'application/json'});assert refused[0]==405 and refused[1]['Allow']=='GET, HEAD'
         revoked=run('access-change',site,state['revision'],'revoke','bobby','-');state=revoked['report']
         assert request('/wp-json/wp/v2/users/me',headers={'Authorization':basic('bobby',bob['secret'])})[0]==401
         rotated=run('access-change',site,state['revision'],'rotate','alice','-');state=rotated['report']

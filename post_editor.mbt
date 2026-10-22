@@ -81,6 +81,18 @@ pub fn save_post(
   let directory = open_authoring_subdirectory(input, "content")
   defer directory_close(directory.fd)
   directory.lock()
+  save_post_at(input, directory, name, expected, content)
+}
+
+///|
+fn save_post_at(
+  input : String,
+  directory : AuthoringDirectory,
+  name : String,
+  expected : String,
+  content : String,
+) -> SavePostReport raise {
+  require_post_name(name)
   let current = read_post_at(directory, name)
   require_post_version(current, expected)
   let _ = parse_document(
