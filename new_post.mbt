@@ -44,19 +44,7 @@ fn create_draft_content(
   if directory.kind(name) != 0 {
     raise InvalidInput("Article target must not exist: " + path)
   }
-  let file = directory.create(name)
-  directory.write(file, name, @utf8.encode(content), None) catch {
-    error => {
-      let cleanup = try {
-        directory.require_file(name)
-        directory.remove(name)
-        ""
-      } catch {
-        cause => "; cleanup incomplete; inspect " + path + ": \{cause}"
-      }
-      raise InvalidInput("Article creation failed: \{error}" + cleanup)
-    }
-  }
+  directory.write_new(name, @utf8.encode(content))
   { source, output: slug + ".html", title: document.title, draft: true, }
 }
 
