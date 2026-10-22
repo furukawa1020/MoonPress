@@ -19,6 +19,8 @@ bundle="$stage/moonpress-linux-x86_64"
 mkdir -p "$bundle/licenses"
 install -m 755 _build/native/release/build/cmd/main/main.exe "$bundle/moonpress"
 cp LICENSE "$bundle/LICENSE"
+cp docs/package-start-ja.txt "$bundle/START-HERE-ja.txt"
+cp docs/package-recovery.txt "$bundle/RECOVERY.txt"
 cp ui-assets/OFL-DotGothic16.txt "$bundle/licenses/OFL-DotGothic16.txt"
 cp "$root/lib/core/LICENSE" "$bundle/licenses/MoonBit-LICENSE"
 cp "$root/lib/core/NOTICE" "$bundle/licenses/MoonBit-NOTICE"
@@ -58,6 +60,7 @@ The ZIP excludes drafts and .moonpress.json; it does not deploy the site.
 Keep .moonpress.json locally; never publish .moonpress-preview (contains drafts).
 Check the actual public URL separately. Local build success is not deployment.
 
+Japanese guide: START-HERE-ja.txt. Interrupted edits/builds: RECOVERY.txt.
 Use ./moonpress --help for CLI commands. Back up your source files before use.
 Documentation: https://github.com/furukawa1020/MoonPress
 TEXT

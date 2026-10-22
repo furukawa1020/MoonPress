@@ -11,6 +11,9 @@ tar -xzf "$tmp/package/moonpress-linux-x86_64.tar.gz" -C "$tmp/unpacked"
 bundle="$tmp/unpacked/moonpress-linux-x86_64"
 (cd "$bundle" && sha256sum -c EXECUTABLE.sha256)
 test -s "$bundle/licenses/MoonBit-NOTICE"
+grep -Fq "/rooms" "$bundle/START-HERE-ja.txt"
+grep -Fq "authoring-rescue" "$bundle/RECOVERY.txt"
+grep -Fq "recovery-plan" "$bundle/RECOVERY.txt"
 grep -Fq "source_commit=$(git rev-parse HEAD)" "$bundle/BUILD.txt"
 env -i PATH=/usr/bin:/bin HOME="$tmp" "$bundle/moonpress" --help > "$tmp/help"
 env -i PATH=/usr/bin:/bin HOME="$tmp" "$bundle/moonpress" init "$tmp/site" >/dev/null

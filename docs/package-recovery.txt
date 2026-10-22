@@ -1,0 +1,30 @@
+MoonPress recovery / 復旧の案内
+
+Do not delete or rename unknown stages, output directories or recovery records.
+Keep a separate backup of source files. Recovery does not verify hosting.
+
+編集データ / Source edits
+Open /authoring-recovery in local administration. The screen is read-only and
+shows only stage paths, sizes and SHA-256 values, never staged body contents.
+Use authoring-stage SITE post|media|settings --json to inspect in the terminal.
+Use authoring-rescue with that kind and digest and a NEW .backup destination
+outside the source tree; run ./moonpress authoring-rescue --help for syntax.
+Rescue creates a synchronized private backup before removing the known stage.
+It never applies the staged edit. Read the backup and restore needed text manually.
+The limit is 8 MiB; oversized/unsafe stages are preserved. Browser text that
+was never submitted and anonymous temporary files cannot be rescued.
+バックアップ先は必ずサイトの外にします。公開用public/には置かないでください。
+
+ビルド出力 / Generated output
+Open /recovery to inspect the fixed production output without changing it.
+For example, from the bundle directory:
+  ./moonpress recovery-plan 'my-site/.moonpress-build' --json
+  ./moonpress recover 'my-site/.moonpress-build' --json
+Inspect the plan first. Recovery rechecks current files before acting.
+Before commit it restores previous output; after commit it finishes cleanup.
+Missing/incomplete journals, edited files and unknown remnants can be refused.
+Preserve the original and build to a fresh output directory if recovery refuses.
+
+確認画面を開いただけでは復旧は実行されません。バックアップや復旧記録を
+手で削除しないでください。公開先の変更はホスト側の手順で確認します。
+Process-kill and I/O fault tests are not physical power-cut validation.
