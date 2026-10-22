@@ -133,6 +133,7 @@ fn admin_edit(input : String, name : String, token : String) -> String raise {
     editor +
     settings +
     admin_kind_form(snapshot.content, name, hidden) +
+    admin_categories_form(snapshot.content, name, hidden) +
     admin_duplicate_form(token, name, snapshot.digest, "", copy_title) +
     "<details><summary><!--mp:ja-->詳細：MarkdownとJSONソースを編集<!--mp:en-->Advanced: edit Markdown and JSON source<!--mp:end--></summary><p>Use one editor at a time. Saving validates metadata; use the CLI to check links and preview the full site.</p><form method=\"post\" action=\"/save\">" +
     hidden +
@@ -416,6 +417,20 @@ fn admin_route(
         let slug = admin_field(fields, "slug")
         let _ = new_post(input, slug, admin_field(fields, "title"))
         slug + ".md"
+      }
+      "/categories" => {
+        if fields.length() != 4 {
+          raise InvalidInput("Invalid category fields")
+        }
+        let name = admin_field(fields, "name")
+        save_post_categories(
+          input,
+          name,
+          admin_field(fields, "version"),
+          admin_field(fields, "categories"),
+        )
+        |> ignore
+        name
       }
       "/kind" => {
         if fields.length() != 4 {

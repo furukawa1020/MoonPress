@@ -162,3 +162,5 @@ bash scripts/post-kind-test.sh
 bash scripts/admin-kind-test.sh
 
 bash scripts/categories-test.sh
+
+bash scripts/category-archives-test.sh

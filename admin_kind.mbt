@@ -13,3 +13,21 @@ fn admin_kind_form(source : String, name : String, hidden : String) -> String {
     _ => ""
   }
 }
+
+///|
+fn admin_categories_form(
+  source : String,
+  name : String,
+  hidden : String,
+) -> String {
+  try {
+    let document = parse_document(source, name)
+    "<form method=\"post\" action=\"/categories\">" +
+    hidden +
+    "<p>Save other edits before changing categories. One name per line; tags are separate. Fixed pages, unlisted articles and drafts do not enter public category archives.</p><label>Categories<textarea name=\"categories\" rows=\"4\">\n" +
+    escape_html(document.categories.join("\n")) +
+    "</textarea></label><button>Save categories</button></form>"
+  } catch {
+    _ => ""
+  }
+}

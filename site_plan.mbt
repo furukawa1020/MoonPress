@@ -183,6 +183,94 @@ fn plan_site(
       )
     }
   }
+  let categories : Array[String] = []
+  for page in listed {
+    for category in page.document.categories {
+      if !categories.contains(category) {
+        categories.push(category)
+      }
+    }
+  }
+  categories.sort()
+  let category_summaries : Array[TagSummary] = []
+  for category in categories {
+    let members = listed.filter(page => {
+      page.document.categories.contains(category)
+    })
+    category_summaries.push({ name: category, count: members.length(), })
+    let filename = category_filename(category)
+    for
+      archive in collection_archives(
+        members,
+        config.tag_page_size,
+        filename[:filename.length() - 5].to_owned(),
+        "Category: " + category,
+        "Category pages",
+      ) {
+      page_layouts[archive.output] = collection_template
+      route_info.push({
+        name: archive.output,
+        kind: "archive",
+        source: None,
+        target: None,
+      })
+      pending.push(
+        plan_artifact(
+          archive.output,
+          archive_dependencies(
+            archive,
+            layout_digest,
+            layout_source=collection_template.source,
+          ),
+          previous,
+          output,
+          () => {
+            @utf8.encode(
+              apply_layout(layout, archive.title, render_archive(archive)),
+            )
+          },
+          log,
+        ),
+      )
+    }
+  }
+  if !categories.is_empty() {
+    page_layouts["categories.html"] = collection_template
+    route_info.push({
+      name: "categories.html",
+      kind: "archive",
+      source: None,
+      target: None,
+    })
+    pending.push(
+      plan_artifact(
+        "categories.html",
+        [
+          {
+            name: "category-index-renderer",
+            digest: digest_text("category-index-v1"),
+          },
+          { name: collection_template.source, digest: layout_digest, },
+          {
+            name: "category-counts",
+            digest: digest_text(category_summaries.to_json().stringify()),
+          },
+        ],
+        previous,
+        output,
+        () => {
+          @utf8.encode(
+            apply_layout(
+              layout,
+              "Categories",
+              render_category_index(category_summaries),
+            ),
+          )
+        },
+        log,
+      ),
+    )
+  }
   if config.tag_index {
     page_layouts["tags.html"] = collection_template
     route_info.push({
@@ -197,13 +285,23 @@ fn plan_site(
         tag_index_dependencies(
           tag_summaries,
           layout_digest,
+          categories=category_summaries,
           layout_source=collection_template.source,
         ),
         previous,
         output,
         () => {
           @utf8.encode(
-            apply_layout(layout, "Tags", render_tag_index(tag_summaries)),
+            apply_layout(
+              layout,
+              "Tags",
+              render_tag_index(tag_summaries) +
+              (if category_summaries.is_empty() {
+                ""
+              } else {
+                render_category_index(category_summaries)
+              }),
+            ),
           )
         },
         log,

@@ -17,7 +17,7 @@ fn starter_files() -> Array[(String, String)] {
         #|<link rel="stylesheet" href="style.css">
         #|</head>
         #|<body>
-        #|<header><a href="index.html">My MoonPress site</a><nav aria-label="Main"><a href="guide.html">Guide</a> <a href="articles.html">Articles</a> <a href="tags.html">Tags</a></nav></header>
+        #|<header><a href="index.html">My MoonPress site</a><nav aria-label="Main"><a href="guide.html">Guide</a> <a href="articles.html">Articles</a> <a href="tags.html">Tags &amp; categories</a></nav></header>
         #|<main>{{content}}</main>
         #|<footer>Built with MoonPress.</footer>
         #|</body>
@@ -107,7 +107,7 @@ fn starter_files() -> Array[(String, String)] {
         #|<link rel="stylesheet" href="style.css">
         #|</head>
         #|<body>
-        #|<header><a href="index.html">My MoonPress site</a><nav aria-label="Main"><a href="guide.html">Guide</a> <a href="articles.html">Articles</a> <a href="tags.html">Tags</a></nav></header>
+        #|<header><a href="index.html">My MoonPress site</a><nav aria-label="Main"><a href="guide.html">Guide</a> <a href="articles.html">Articles</a> <a href="tags.html">Tags &amp; categories</a></nav></header>
         #|<main><aside>{{toc}}</aside><article>{{content}}</article></main>
         #|<footer>Built with MoonPress.</footer>
         #|</body>

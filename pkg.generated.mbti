@@ -14,6 +14,8 @@ pub fn audit_output(String) -> OutputAudit raise
 
 pub fn build_site(String, String) -> Int raise
 
+pub fn category_filename(String) -> String
+
 pub fn check_site(String, include_drafts? : Bool) -> CheckReport raise
 
 pub fn checkpoint_post(String, String, String) -> RevisionSummary raise
