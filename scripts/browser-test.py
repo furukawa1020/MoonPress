@@ -68,7 +68,22 @@ class Browser:
     def element(self, selector):
         return self.call('POST', '/element', {'using': 'css selector', 'value': selector})['element-6066-11e4-a52e-4f735466cecf']
     def click(self, selector):
+        # Form submission can begin after the click command has returned. Wait
+        # for the old document to be replaced before allowing another navigation.
+        # Download responses keep the current document, so they use file checks.
+        submitted = 'button' in selector and '/export-production' not in selector
+        previous = self.element('html') if submitted else None
         self.call('POST', '/element/' + self.element(selector) + '/click', {})
+        if previous:
+            def replaced():
+                try:
+                    self.call('GET', '/element/' + previous + '/name')
+                except RuntimeError as error:
+                    if 'stale element reference' in str(error) or 'no such element' in str(error):
+                        return True
+                    raise
+                return False
+            wait_until(replaced)
     def fill(self, selector, value, clear=True):
         element = self.element(selector)
         if clear:
@@ -139,6 +154,92 @@ def run():
                 element = browser.element('textarea[name="body"]')
                 assert browser.call('GET', f'/element/{element}/property/value') == body
                 steps.append('create/edit/save/reload')
+                # Full native authoring lifecycle through real forms with JavaScript disabled.
+                browser.go(origin + '/')
+                browser.fill('form[action="/new"] input[name="title"]', 'Journey article')
+                browser.fill('form[action="/new"] input[name="slug"]', 'journey-article')
+                browser.click('form[action="/new"] button')
+                browser.expect_text('Source saved')
+                journey = site / 'content/journey-article.md'
+                browser.go(origin + '/edit?name=journey-article.md')
+                browser.fill('textarea[name="body"]', '# Journey article\n\nHistory original text.\n')
+                browser.click('form[action="/fields"] button:not([formaction])')
+                browser.expect_text('Source saved')
+                original = journey.read_bytes()
+                browser.go(origin + '/history?name=journey-article.md')
+                browser.click('form[action="/history-enable"] button')
+                browser.expect_text('History is enabled')
+                browser.click('form[action="/checkpoint"] button')
+                browser.expect_text('History is enabled')
+                assert len(list((site / '.moonpress-history').glob('*.json'))) == 1
+                browser.go(origin + '/edit?name=journey-article.md')
+                browser.fill('textarea[name="body"]', '# Journey article\n\nHistory edited text.\n')
+                browser.click('form[action="/fields"] button:not([formaction])')
+                browser.expect_text('Source saved')
+                browser.go(origin + '/history?name=journey-article.md')
+                browser.click('a[href^="/revision?name="]')
+                revision_url = browser.call('GET', '/url')
+                browser.click('a[href^="/revision-diff?"]')
+                browser.expect_text('History original text.')
+                browser.expect_text('History edited text.')
+                browser.screenshot('revision-comparison')
+                browser.go(revision_url)
+                browser.click('form[action="/restore-revision"] button')
+                browser.expect_text('History is enabled')
+                assert journey.read_bytes() == original
+                steps.append('enable history, checkpoint, edit, compare and exact revision restore')
+                browser.go(origin + '/edit?name=journey-article.md')
+                browser.click('form[action="/kind"] option[value="page"]')
+                browser.click('form[action="/kind"] button')
+                browser.expect_text('Source saved')
+                assert json.loads(journey.read_text().split('---\n')[1])['kind'] == 'page'
+                browser.go(origin + '/?kind=page')
+                browser.expect_text('Journey article')
+                browser.go(origin + '/edit?name=journey-article.md')
+                browser.fill('form[action="/categories"] textarea', 'Science\n日記\nScience')
+                browser.click('form[action="/categories"] button')
+                browser.expect_text('Source saved')
+                assert set(json.loads(journey.read_text().split('---\n')[1])['categories']) == {'Science','日記'}
+                retained = journey.read_bytes()
+                browser.go(origin + '/trash-post?name=journey-article.md')
+                browser.click('form[action="/trash-post"] button')
+                wait_until(lambda: not journey.exists())
+                browser.go(origin + '/trash')
+                browser.click('a[href^="/trash-item?id="]')
+                browser.screenshot('trash-review')
+                browser.click('form[action="/trash-restore"] button')
+                wait_until(journey.exists)
+                assert journey.read_bytes() == retained
+                assert journey.stat().st_mode & 0o777 == 0o600
+                browser.go(origin + '/edit?name=journey-article.md')
+                browser.click('form[action="/kind"] option[value="post"]')
+                browser.click('form[action="/kind"] button')
+                browser.expect_text('Source saved')
+                browser.go(origin + '/edit?name=journey-article.md')
+                browser.click('button[name="state"][value="ready"]')
+                browser.expect_text('Source saved')
+                steps.append('page type/filter, distinct categories, reviewed trash and private exact restore')
+                browser.go(origin + '/')
+                browser.fill('form[action="/new"] input[name="title"]', 'Purge fixture')
+                browser.fill('form[action="/new"] input[name="slug"]', 'purge-fixture')
+                browser.click('form[action="/new"] button')
+                browser.expect_text('Source saved')
+                purge_source = site / 'content/purge-fixture.md'
+                wait_until(purge_source.exists)
+                browser.go(origin + '/trash-post?name=purge-fixture.md')
+                browser.click('form[action="/trash-post"] button')
+                # A new navigation can cancel an asynchronously submitted form.
+                # Observe the completed mutation before asking for its inventory.
+                wait_until(lambda: not purge_source.exists())
+                wait_until(lambda: len(list((site / '.moonpress-trash').glob('*.json'))) == 1)
+                browser.go(origin + '/trash')
+                browser.click('a[href^="/trash-item?id="]')
+                browser.click('form[action="/trash-purge"] input[type="checkbox"]')
+                browser.click('form[action="/trash-purge"] button')
+                wait_until(lambda: not list((site / '.moonpress-trash').glob('*.json')))
+                assert not (site / 'content/purge-fixture.md').exists()
+                steps.append('individually reviewed permanent purge with explicit acknowledgement')
+                browser.go(origin + '/edit?name=browser-moon.md')
                 browser.call('POST', '/window/rect', {'width': 390, 'height': 844})
                 browser.screenshot('editor-mobile')
                 rect = browser.call('GET', '/element/' + browser.element('textarea[name="body"]') + '/rect')
@@ -180,7 +281,8 @@ def run():
                 browser.click('form[action="/build-production"] button')
                 wait_until(lambda: (site / '.moonpress-build/browser-moon.html').exists())
                 browser.expect_text('Production files built')
-                steps.append('ready transition, review and production build')
+                assert 'Journey article' in (site / '.moonpress-build/category-536369656e6365.html').read_text()
+                steps.append('ready transition, review and production build with category archives')
                 browser.go(origin + '/publish')
                 browser.screenshot('publish-desktop')
                 browser.click('form[action="/export-production"] button')

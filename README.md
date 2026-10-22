@@ -62,7 +62,7 @@ redirect an in-flight save into another location. Read the precise
 The starter includes tag/category navigation, pagination settings and a writing guide.
 Article history, recoverable trash, fixed-page types and separate categories are
 available through native CLI/browser forms. See [types](docs/authoring-kinds.md)
-and [categories](docs/categories.md).
+[categories](docs/categories.md) and [history/trash](docs/history-and-trash.md).
 No public URL is needed for local authoring; add your real `base_url` when ready
 to generate a sitemap or enable RSS.
 The bundled example can still be built with `"$moonpress" build site dist`.

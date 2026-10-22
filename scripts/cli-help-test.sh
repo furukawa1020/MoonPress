@@ -53,3 +53,9 @@ for flag in --help -h; do
   done
 done
 echo 'CLI help tests passed: global/command help, version, strict grammar, channels and no filesystem mutation.'
+
+for command in history-enable history checkpoint revision compare-revision restore-revision trash-post trash-list trash-read trash-restore trash-purge post-kind post-categories; do
+  "$cli" "$command" --help | grep -Fq "Usage: moonpress $command"
+done
+"$cli" trash-post --help | grep -Fq 'removes the live source'
+"$cli" trash-purge --help | grep -Fq 'permanently deletes'
