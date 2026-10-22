@@ -99,7 +99,7 @@ def run():
         browser = None
         with (ARTIFACTS / 'admin.log').open('w') as admin_log, (ARTIFACTS / 'driver.log').open('w') as driver_log:
             admin = subprocess.Popen([str(CLI), 'admin', str(site), str(port)], stdout=admin_log, stderr=subprocess.STDOUT)
-            driver = subprocess.Popen([DRIVER, f'--port={driver_port}', '--allowed-ips=127.0.0.1', '--verbose'], stdout=driver_log, stderr=subprocess.STDOUT)
+            driver = subprocess.Popen([DRIVER, f'--port={driver_port}', '--allowed-ips=127.0.0.1'], stdout=driver_log, stderr=subprocess.STDOUT)
             origin = f'http://127.0.0.1:{port}'
             try:
                 wait_until(lambda: HTTP.open(origin + '/rooms', timeout=1).status == 200)

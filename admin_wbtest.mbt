@@ -155,3 +155,22 @@ test "workflow counts include unlisted ready pages without claiming validation" 
     ),
   )
 }
+
+///|
+test "admin form responses preserve same-origin POST origin" {
+  assert_true(
+    admin_response(200, "form").contains("Referrer-Policy: same-origin\r\n"),
+  )
+  assert_true(
+    try {
+      admin_headers(
+        "POST /new HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nOrigin: null\r\nContent-Length: 0\r\nContent-Type: application/x-www-form-urlencoded\r\n",
+        "127.0.0.1:8080",
+      )
+      |> ignore
+      false
+    } catch {
+      _ => true
+    },
+  )
+}
