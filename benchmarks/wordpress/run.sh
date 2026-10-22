@@ -25,4 +25,10 @@ tar -xzf "$work/wordpress.tar.gz" -C "$work"
 for source in benchmarks/wordpress/*.php; do php -l "$source"; done
 python3 benchmarks/wordpress/native.py "$work/native.json"
 python3 benchmarks/wordpress/compare.py "$work/wordpress" "$work/wordpress.tar.gz" "$work/http.json"
+# Version-pinned official importer, after all timed experiments. Never activates
+# importer hooks during the benchmark itself.
+curl --fail --location --retry 3 https://downloads.wordpress.org/plugin/wordpress-importer.0.9.6.zip -o "$work/importer.zip"
+sha256sum "$work/importer.zip"
+unzip -q "$work/importer.zip" -d "$work/plugin"
+python3 benchmarks/wordpress/wxr-oracle.py "$work/wordpress" "$work/plugin/wordpress-importer" "$work"
 python3 benchmarks/wordpress/emit.py "$work/native.json" "$work/http.json"
