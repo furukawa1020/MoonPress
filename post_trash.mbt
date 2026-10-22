@@ -68,7 +68,7 @@ pub fn restore_trashed_post(
       "Original article filename is occupied; existing source and trash retained",
     )
   }
-  content.write_new(name, @utf8.encode(record.content))
+  content.write_new(name, @utf8.encode(record.content), private_mode=true)
   if read_post_at(content, name).digest != record.revision.digest {
     raise InvalidInput("Restored source changed; trash retained")
   }
