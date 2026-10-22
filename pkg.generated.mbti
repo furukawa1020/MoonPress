@@ -12,9 +12,13 @@ pub fn apply_layout(String, String, String, description? : String, toc? : String
 
 pub fn audit_output(String) -> OutputAudit raise
 
+pub fn authenticate_access(String, String, String) -> AccessPrincipal? raise
+
 pub fn build_site(String, String) -> Int raise
 
 pub fn category_filename(String) -> String
+
+pub fn change_access(String, String, String, String, String) -> AccessChange raise
 
 pub fn check_site(String, include_drafts? : Bool) -> CheckReport raise
 
@@ -67,6 +71,8 @@ pub fn import_wordpress_file(String, String, String, String, String) -> NewPostR
 pub fn import_wordpress_item(String, String, String, String, String) -> NewPostReport raise
 
 pub fn init_site(String) -> InitReport raise
+
+pub fn inspect_access(String) -> AccessReport raise
 
 pub fn inspect_authoring_stage(String, String) -> AuthoringStage raise
 
@@ -176,6 +182,10 @@ pub fn restore_trashed_post(String, String, String) -> SavePostReport raise
 
 pub fn review_build_plan(String, String, include_drafts? : Bool) -> ReviewedBuildPlan raise
 
+pub fn role_can_edit(String, Int, Int, String, Bool) -> Bool raise
+
+pub fn role_capabilities(String) -> Array[String] raise
+
 pub fn safe_output_name(String) -> Bool
 
 pub fn save_post(String, String, String, String) -> SavePostReport raise
@@ -233,6 +243,26 @@ pub fn BuildError::to_string(Self) -> String
 pub impl Show for BuildError
 
 // Types and methods
+pub(all) struct AccessChange {
+  report : AccessReport
+  secret : String?
+} derive(ToJson)
+pub fn AccessChange::to_json(Self) -> Json
+
+pub(all) struct AccessPrincipal {
+  id : Int
+  login : String
+  role : String
+  active : Bool
+} derive(ToJson)
+pub fn AccessPrincipal::to_json(Self) -> Json
+
+pub(all) struct AccessReport {
+  revision : String
+  users : Array[AccessPrincipal]
+} derive(ToJson)
+pub fn AccessReport::to_json(Self) -> Json
+
 pub(all) struct Artifact {
   name : String
   digest : String

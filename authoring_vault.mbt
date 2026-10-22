@@ -7,7 +7,9 @@ fn prepare_authoring_vault(input : String, name : String) -> Bool raise {
   if input.is_empty() {
     raise InvalidInput("Site directory must not be empty")
   }
-  if name != ".moonpress-history" && name != ".moonpress-trash" {
+  if name != ".moonpress-history" &&
+    name != ".moonpress-trash" &&
+    name != ".moonpress-access" {
     raise InvalidInput("Unknown private authoring vault")
   }
   require_input_kind(input + "/content", 2)

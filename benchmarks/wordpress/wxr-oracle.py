@@ -30,3 +30,8 @@ subprocess.run([cli,'wxr-import',site,core_xml,plan['digest'],plain['id'],'from-
 source=(site/'content/from-wordpress.md').read_text(encoding='utf-8')
 if 'Native intake text' not in source or json.loads(source.split('\n---\n')[0][4:])['draft'] is not True: raise ValueError('Core export intake differs')
 print('WXR actual core export -> native inspection -> private draft import passed.')
+
+# Verify every advertised native capability against actual installed core roles.
+roles=[json.loads(subprocess.check_output([cli,'access-role',role,'--json'],text=True))['report'] for role in ['subscriber','contributor','author','editor','administrator']]
+roles_path=work/'roles.json';roles_path.write_text(json.dumps(roles),encoding='utf-8')
+subprocess.run(['php','benchmarks/wordpress/access-oracle.php',wordpress,roles_path],check=True)

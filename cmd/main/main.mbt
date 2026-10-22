@@ -145,6 +145,8 @@ fn help_text(command : String) -> String {
         "\n\nInspect bounded WXR 1.2 candidates, then import one reviewed item as a new private draft. Unsupported content is refused. No overwrite, network fetch, build or deployment."
       } else if command == "wxr-export" {
         "\n\nRead-only private WXR 1.2 migration export returned as JSON with xml/posts/warnings. Includes drafts and exact source. Keep output private; themes/plugins/users/media are not migrated."
+      } else if is_access_command(command) {
+        "\n\nLocal owner controls for native role principals and revocable generated application credentials. Capture the secret privately: it is returned only on grant/rotate. Not a login gate for the operator editor."
       } else if is_trash_command(command) {
         "\n\nPrivate article trash. trash-post removes the live source after durable backup. trash-list/read inspect it; trash-restore creates a private source at an unoccupied original name. trash-purge permanently deletes only the reviewed record with confirm-permanent. No build or deployment is performed."
       } else if command == "post-schedule" ||

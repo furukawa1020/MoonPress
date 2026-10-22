@@ -1,5 +1,8 @@
 ///|
 fn is_revision_command(command : String) -> Bool {
+  if is_access_command(command) {
+    return true
+  }
   if is_trash_command(command) {
     return true
   }
@@ -12,6 +15,9 @@ fn is_revision_command(command : String) -> Bool {
 
 ///|
 fn revision_required(command : String) -> Int {
+  if is_access_command(command) {
+    return access_required(command)
+  }
   if is_trash_command(command) {
     return trash_required(command)
   }
@@ -28,6 +34,9 @@ fn revision_required(command : String) -> Int {
 
 ///|
 fn revision_usage(command : String) -> String {
+  if is_access_command(command) {
+    return access_usage(command)
+  }
   if is_trash_command(command) {
     return trash_usage(command)
   }
@@ -56,6 +65,9 @@ fn revision_usage(command : String) -> String {
 
 ///|
 fn revision_run(args : Array[String]) -> Json raise {
+  if is_access_command(args[1]) {
+    return access_run(args)
+  }
   if is_trash_command(args[1]) {
     return trash_run(args)
   }
