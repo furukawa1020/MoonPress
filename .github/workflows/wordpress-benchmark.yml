@@ -1,10 +1,10 @@
 name: WordPress comparable benchmark
 on:
   pull_request:
-    paths: ['benchmarks/wordpress/**', '.github/workflows/wordpress-benchmark.yml', '*.mbt', '*.c', 'scripts/browser-test.py']
+    paths: ['benchmarks/wordpress/**', '.github/workflows/wordpress-benchmark.yml', '**/*.mbt', '**/*.c', 'scripts/browser-test.py']
   push:
     branches: [main]
-    paths: ['benchmarks/wordpress/**', '.github/workflows/wordpress-benchmark.yml', '*.mbt', '*.c', 'scripts/browser-test.py']
+    paths: ['benchmarks/wordpress/**', '.github/workflows/wordpress-benchmark.yml', '**/*.mbt', '**/*.c', 'scripts/browser-test.py']
   workflow_dispatch:
 permissions:
   contents: read
