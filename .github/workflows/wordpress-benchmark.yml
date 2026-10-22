@@ -31,5 +31,10 @@ jobs:
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
           export PATH="$HOME/.moon/bin:$PATH"
           moon build --target native --release
+      - name: Install production serving benchmark dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y nginx php8.3-fpm
+          sudo systemctl stop nginx php8.3-fpm
       - name: Compare actual WordPress and native output
         run: bash benchmarks/wordpress/run.sh

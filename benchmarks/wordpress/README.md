@@ -38,3 +38,19 @@ is synthetic public test data; no credentials are emitted. Decode the marker
 `MOONPRESS_WORDPRESS_RAW_GZIP_BASE64` and verify `MOONPRESS_WORDPRESS_RAW_SHA256`.
 
 Actual October 22, 2026 results and complete raw records: [measured comparison](../../docs/wordpress-benchmark-2026-10-22.md). The cached WordPress control is explicitly retained even when it has a lower median than MoonPress.
+
+Concurrent capacity is also measured with NGINX (two workers), a dedicated
+PHP-FPM pool (four children), and the same 1,000-article corpus. Static WordPress
+snapshots and MoonPress output share the exact NGINX process. Dynamic WordPress
+uses that process plus FPM/MySQL. No page/object cache plugin is installed.
+The harness uses 192 requests per group at concurrency 1, 8 and 32, three rounds
+rotating variant order. It records every status, response hash, byte count and
+full-response latency, plus valid/completed throughput, p95/p99 and error rate.
+Connections are new for each request, caches are warm, transport is loopback
+without compression/TLS. The Python client shares the host and can bottleneck.
+This is a bounded closed-loop experiment: it does not measure maximum sustainable
+production arrival rate, correct coordinated omission, or establish DDoS capacity.
+Version/configuration, FPM runtime OPcache/Xdebug checks, raw groups and requests
+are retained in the same compressed evidence as serial/build measurements.
+`python3 scripts/capacity-test.py` validates accounting against an actual HTTP
+fixture including wrong hashes and HTTP failures.

@@ -15,6 +15,7 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
+from capacity import compare_capacity
 from fixture import generate, sha256, verify_html
 from native import environment, native_benchmark, summarize
 
@@ -162,6 +163,7 @@ def compare(wordpress, archive, cli, samples):
                         result['samples'].append(record)
                 result['rss_snapshots'].append({'count':count,'wordpress_php_kib':rss_kib(dynamic.pid),
                     'static_php_kib':rss_kib(static.pid),'mysql_service_kib':rss_kib(mysql_pid)})
+        result['capacity'] = compare_capacity(temporary/'capacity', wordpress, serve, selected, metadata['mapping'])
     result['summary']=[{'count':count,'variant':variant,
                         'total_ms':summarize([s['total_ms'] for s in result['samples'] if s['count']==count and s['variant']==variant]),
                         'headers_ms':summarize([s['headers_ms'] for s in result['samples'] if s['count']==count and s['variant']==variant]),

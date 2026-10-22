@@ -52,3 +52,5 @@ full response from first-byte time. No CDN, compression, concurrent load, cold
 OS caches, production-server throughput or whole-product speed claim follows
 from this small local benchmark. PHP process RSS is a snapshot, not per-request
 allocation, and excludes the database's memory unless separately reported.
+
+Security and load acceptance: [security-and-capacity.md](security-and-capacity.md).
