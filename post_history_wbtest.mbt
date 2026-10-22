@@ -75,3 +75,30 @@ test "enabled history save and restore filesystem probe" {
   assert_eq(read_post(input, "a.md").content, before.content)
   assert_eq(list_post_revisions(input, "a.md").length(), 2)
 }
+
+///|
+test "vault must share retained content parent" {
+  guard @env.get_env_var("MOONPRESS_HISTORY_FOREIGN") is Some(input) else {
+    return
+  }
+  let content = open_authoring_subdirectory(input, "content")
+  defer directory_close(content.fd)
+  let foreign = open_authoring_subdirectory(input, "foreign")
+  defer directory_close(foreign.fd)
+  let vault = open_authoring_subdirectory(
+    input + "/foreign",
+    ".moonpress-history",
+  )
+  defer directory_close(vault.fd)
+  assert_true(
+    try {
+      require_same_authoring_site(content, vault)
+      false
+    } catch {
+      _ => true
+    },
+  )
+  let own = open_authoring_subdirectory(input, ".moonpress-history")
+  defer directory_close(own.fd)
+  require_same_authoring_site(content, own)
+}

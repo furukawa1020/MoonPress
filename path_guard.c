@@ -116,3 +116,17 @@ MOONBIT_FFI_EXPORT int moonpress_dir_prepare_private(int fd, moonbit_bytes_t nam
 MOONBIT_FFI_EXPORT int64_t moonpress_authoring_time(void) {
   return (int64_t)time(NULL);
 }
+
+/* Vault writes must share the retained content directory's site identity. */
+MOONBIT_FFI_EXPORT int moonpress_same_authoring_site(int content, int vault) {
+  int a = openat(content, "..", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+  int b = openat(vault, "..", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+  struct stat sa, sb, sv;
+  int ok = a >= 0 && b >= 0 && fstat(a, &sa) == 0 &&
+    fstat(b, &sb) == 0 && fstat(vault, &sv) == 0 &&
+    sa.st_dev == sb.st_dev && sa.st_ino == sb.st_ino &&
+    (sv.st_mode & 077) == 0;
+  if (a >= 0) close(a);
+  if (b >= 0) close(b);
+  return ok;
+}

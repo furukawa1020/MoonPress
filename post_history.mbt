@@ -128,6 +128,8 @@ fn vault_records(
   if input.is_empty() {
     raise InvalidInput("Site directory must not be empty")
   }
+  require_input_kind(input, 2)
+  require_input_kind(input + "/content", 2)
   let path = input + "/" + vault
   if path_kind(path) == 0 {
     return []
@@ -173,6 +175,7 @@ pub fn checkpoint_post(
   let vault = open_authoring_subdirectory(input, ".moonpress-history")
   defer directory_close(vault.fd)
   vault.lock()
+  require_same_authoring_site(content, vault)
   store_authoring_record(vault, name, snapshot.content).revision
 }
 

@@ -213,3 +213,18 @@ fn open_authoring_subdirectory(
   authoring_name(child) |> ignore
   open_authoring_directory(input + "/" + child)
 }
+
+///|
+extern "C" fn directory_same_site(content : Int, vault : Int) -> Int = "moonpress_same_authoring_site"
+
+///|
+fn require_same_authoring_site(
+  content : AuthoringDirectory,
+  vault : AuthoringDirectory,
+) -> Unit raise {
+  if directory_same_site(content.fd, vault.fd) != 1 {
+    raise InvalidInput(
+      "Private vault and retained article directory must belong to the same site",
+    )
+  }
+}
