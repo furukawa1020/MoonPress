@@ -55,6 +55,31 @@ def load(host, port, targets, concurrency, requests=192):
             'p99_ms': latency[math.ceil(.99 * requests)-1], 'samples': records}
 
 
+def resource_snapshot(roots):
+    """Per-process RSS/CPU snapshots, not peak or unique shared memory."""
+    pending = list(roots)
+    rows = {}
+    while pending:
+        pid = pending.pop()
+        if str(pid) in rows:
+            continue
+        base = pathlib.Path('/proc') / str(pid)
+        try:
+            status = (base / 'status').read_text(encoding='utf-8')
+            rss = int(next(line for line in status.splitlines() if line.startswith('VmRSS:')).split()[1])
+            # Process comm may contain spaces or parentheses; fields start after
+            # the last closing parenthesis, with state at field three.
+            fields = (base / 'stat').read_text(encoding='utf-8').rsplit(')', 1)[1].split()
+            rows[str(pid)] = {'rss_kib':rss, 'user_ticks':int(fields[11]), 'system_ticks':int(fields[12])}
+            try:
+                pending.extend(int(child) for child in (base / 'task' / str(pid) / 'children').read_text().split())
+            except OSError:
+                rows[str(pid)]['children_unavailable'] = True
+        except (OSError, StopIteration, ValueError):
+            rows[str(pid)] = {'unavailable':True}
+    return rows
+
+
 def free_port():
     with socket.socket() as sock:
         sock.bind(('127.0.0.1', 0))
@@ -134,7 +159,7 @@ http {{
                         time.sleep(.05)
                 else:
                     raise RuntimeError('Serving process did not become ready')
-            yield port
+            yield port, [process.pid for process in processes]
         finally:
             for process in reversed(processes):
                 process.terminate()
@@ -147,7 +172,7 @@ http {{
 def compare_capacity(work, wordpress, static, articles, mapping):
     work.mkdir()
     records = []
-    with production_server(work, wordpress, static) as port:
+    with production_server(work, wordpress, static) as (port, serving_pids):
         connection = http.client.HTTPConnection('127.0.0.1', port, timeout=10)
         connection.request('GET', '/runtime')
         response = connection.getresponse()
@@ -170,11 +195,16 @@ def compare_capacity(work, wordpress, static, articles, mapping):
             for repeat in range(3):
                 order = VARIANTS[repeat:] + VARIANTS[:repeat]
                 for variant in order:
+                    before = resource_snapshot(serving_pids)
                     row = load('127.0.0.1', port, targets[variant], concurrency)
+                    row['serving_resources_before'] = before
+                    row['serving_resources_after'] = resource_snapshot(serving_pids)
                     row.update(variant=variant, repeat=repeat+1, order=list(order))
                     records.append(row)
     return {'schema':1, 'articles':1000, 'workload':'bounded closed-loop, loopback HTTP/1.1, new connections, identity encoding',
             'limitations':'Client shares host and may bottleneck; no coordinated-omission correction, TLS, CDN, network, cold cache or production maximum claim.',
             'nginx_version':subprocess.check_output(['nginx','-v'],stderr=subprocess.STDOUT,text=True).strip(),
             'fpm_version':subprocess.check_output(['php-fpm8.3','-v'],text=True).splitlines()[0],
+            'resource_method':'/proc snapshots per serving process and descendants, including CPU ticks; RSS includes shared pages and is not peak; database excluded',
+            'clock_ticks_per_second':os.sysconf('SC_CLK_TCK'),
             'php_runtime':runtime, 'nginx_workers':2, 'fpm_children':4, 'groups':records}

@@ -3,10 +3,13 @@
 import hashlib
 import http.server
 import pathlib
+import os
 import sys
 import threading
 sys.path.insert(0, str(pathlib.Path('benchmarks/wordpress').resolve()))
-from capacity import load
+from capacity import load, resource_snapshot
+resources = resource_snapshot([os.getpid()])[str(os.getpid())]
+assert resources.get("unavailable") or resources["rss_kib"] > 0
 
 body = b'capacity fixture\x00\xff'
 class Handler(http.server.BaseHTTPRequestHandler):
