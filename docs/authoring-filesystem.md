@@ -8,9 +8,9 @@ MoonPress retains a no-follow directory descriptor for these operations:
 | Settings save | Site root | Lock, stage, version recheck, publish, cleanup |
 | Post snapshot | content | Read only |
 | Post save, draft status, article settings | content | Lock, stage verification, version recheck, rename, cleanup |
-| New draft and duplicate | content | Lock, exclusive creation, failure cleanup; duplicate source recheck uses this handle |
+| New draft and duplicate | content | Lock, anonymous creation, durable exclusive publication; duplicate source recheck uses this handle |
 | Media replacement | public | Lock, stage verification, version recheck, rename, cleanup |
-| Media import and browser upload | public | Lock, exclusive creation, failure cleanup |
+| Media import and browser upload | public | Lock, anonymous creation, durable exclusive publication |
 
 All path components are opened without following symlinks. A renamed directory
 stays the target of an in-flight operation: replacing its former pathname cannot
@@ -32,7 +32,7 @@ not make the directory entry durable. Replacement saves additionally fsync the
 retained directory after rename/link, and cleanup fsyncs it after unlink. A
 failed commit sync reports visible data with unconfirmed durability; it never
 removes the published replacement. Reload before retrying. Partial-write cleanup is best effort; these operations do not promise an adversarial same-directory
-transaction, undo history, crash recovery or power-loss durability. An occupied
+transaction, undo history or unconditional hardware power-loss durability. An occupied
 or unverifiable replacement stage blocks retries until inspected.
 
 Directory creation itself (`init`, preparing an absent public directory) remains
@@ -50,3 +50,30 @@ preserved versions/modes. Repeated-failure probes cover snapshots, stream setup,
 write/flush/close, stage read and publication, checking zero descriptor growth.
 Existing CLI/browser, contention, interruption and incremental/fresh-build tests
 continue to run in `scripts/check.sh`.
+
+## Interrupted authoring recovery
+
+`recover OUTPUT` handles compiled-output journals, not article edits. For an
+occupied replacement stage, stop the failed writer and inspect the retained bytes:
+
+```sh
+moonpress authoring-stage SITE post --json
+moonpress authoring-rescue SITE post EXPECTED_SHA256 /safe/location/edited-post.backup
+```
+
+Use `media` or `settings` instead of `post` for those stages. Rescue first creates
+a new complete, fsynced private (0600) `.backup` file, synchronizes its directory,
+rechecks the stage bytes under the original directory lock, then removes and
+synchronizes the stage. It never overwrites an existing backup or applies the
+staged edits. Inspect the backup and reload the current source before saving.
+Partial staged bytes are backed up verbatim, not interpreted as valid source.
+If rescue stops after backup publication, keep that backup and retry with a new
+backup filename. If removal is visible but directory sync failed, keep the backup
+and inspect again; no success is reported. Uncooperative concurrent filesystem
+changes remain outside the cooperative lock contract.
+
+New drafts, duplicates, imports/uploads and file ZIP exports now use anonymous
+O_TMPFILE creation: write, flush, file fsync and checked close precede exclusive
+link publication and directory fsync. An interrupted pre-publication write leaves
+no named partial file; unsupported filesystems fail closed. These barriers assume
+a filesystem/device honoring fsync and do not constitute a physical power-cut test.

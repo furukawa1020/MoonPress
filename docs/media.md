@@ -45,9 +45,12 @@ be flat supported assets, cannot begin with a dot, and reserve `style.css`,
 article references are checked by the compiler, not import. Classification does
 not prove the content matches an extension.
 
-Caught write/flush/close failures remove the owned partial file; failed cleanup
-reports its path. A process crash can leave a partial target, which later imports
-refuse to overwrite. Inspect it before manually removing it. Source files are
+Writes use an anonymous inode in the retained public directory. Write/flush/fsync
+and checked close must finish before exclusive naming and directory fsync.
+Pre-install errors or interruption leave no named partial asset. If the directory
+barrier fails after installation, complete data remains visible with unconfirmed
+durability; inspect it before retrying, as existing names are never overwritten.
+Filesystems without O_TMPFILE support fail closed. Source files are
 not changed, source permissions are not copied, and import does not build or
 deploy. Uncooperative external file replacement during an import is outside the
 cooperative locking guarantee; use a trusted local project.
