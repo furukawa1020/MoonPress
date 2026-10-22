@@ -161,8 +161,8 @@ fn admin_language_target(target : String) -> String {
   if [
       "/", "/rooms", "/rooms/write", "/rooms/preview", "/rooms/build", "/rooms/publish",
       "/workflow", "/edit", "/media", "/media-replace", "/media-remove", "/references",
-      "/reference-outputs", "/site-settings", "/recovery", "/authoring-recovery",
-      "/publish",
+      "/reference-outputs", "/history", "/revision", "/site-settings", "/recovery",
+      "/authoring-recovery", "/publish",
     ].contains(path) {
     target
   } else {
@@ -223,6 +223,8 @@ fn admin_language_response(request : AdminRequest) -> Bytes raise {
 ///|
 fn admin_title_ja(title : String) -> String {
   match title {
+    "Article history" => "記事の履歴"
+    "Inspect article revision" => "記事の過去の版を確認"
     "Posts" => "記事"
     "Media" => "画像とファイル"
     "Saved" => "保存しました"
