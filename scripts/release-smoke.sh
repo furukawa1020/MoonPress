@@ -19,3 +19,7 @@ printf '\nPackage update\n' >> "$work/site/content/index.md"
 env -i PATH=/usr/bin:/bin "$cli" build "$work/site" "$work/dist"
 env -i PATH=/usr/bin:/bin "$cli" recover "$work/dist"
 printf 'Archive install/build/recovery smoke passed: %s / %s\n' "$(uname -m)" "$(getconf GNU_LIBC_VERSION)"
+
+if [[ "${MOONPRESS_VERIFY_BROWSER:-0}" = 1 ]]; then
+  MOONPRESS_BROWSER_CLI="$cli" python3 "$(dirname "$0")/browser-test.py"
+fi

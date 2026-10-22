@@ -52,7 +52,10 @@ jobs:
           BUILD.txt records source, toolchain and builder runtime; licenses are bundled.
 
           This is a prerelease, not the stable version. Physical power-cut validation,
-          source-authoring durability and real-browser authoring verification remain open.
+          hardware/filesystem coverage and cross-browser verification remain open.
+          Authoring file/directory sync and interrupted-stage rescue are implemented.
+          The exact packaged binary must pass the real Chrome authoring-to-ZIP journey
+          on both supported Ubuntu versions before this candidate is published.
           Checksums detect corruption but are not release signatures.
           EOF
           gh release create "$tag" --repo "$REPOSITORY" --target "$REVISION" --draft --prerelease --title "MoonPress native candidate $tag" --notes-file "$RUNNER_TEMP/notes.md"
@@ -72,6 +75,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           REVISION: ${{ github.sha }}
           TAG: ${{ needs.package.outputs.tag }}
+          MOONPRESS_VERIFY_BROWSER: "1"
         run: |
           git init .
           git remote add origin "https://github.com/$REPOSITORY.git"
