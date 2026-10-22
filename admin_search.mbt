@@ -63,8 +63,7 @@ fn admin_post_navigation(
     url_component(query) +
     "&amp;state=" +
     url_component(state) +
-    "&amp;kind=" +
-    url_component(kind) +
+    (if kind == "all" { "" } else { "&amp;kind=" + url_component(kind) }) +
     "&amp;page="
   out.write_string("<nav aria-label=\"Post pages\">")
   if page > 1 {
