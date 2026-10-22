@@ -87,8 +87,8 @@ fn room_production_state(
 
 ///|
 fn room_preview_state(input : String) -> String {
+  let output = input.trim_end(chars="/").to_owned() + "/.moonpress-preview"
   try {
-    let output = input.trim_end(chars="/").to_owned() + "/.moonpress-preview"
     let review = review_build_plan(input, output, include_drafts=true)
     let summary = review.plan.summary
     if review.previous_manifest_digest is None {
@@ -104,7 +104,9 @@ fn room_preview_state(input : String) -> String {
     error =>
       "<p class=\"notice\">プレビューを確認できません：" +
       escape_html(error.to_string()) +
-      "</p><p>元の記事と生成物を確認してください。<a href=\"/authoring-recovery\">編集データの案内所</a>も利用できます。</p>"
+      "</p><p>元の記事と生成物を確認してください。プレビュー生成が中断した場合は、出力 <code>" +
+      escape_html(output) +
+      "</code> を保管して、ターミナルで次の順に検査・復旧してください。</p><pre>moonpress recovery-plan PREVIEW_DIRECTORY --json\nmoonpress recover PREVIEW_DIRECTORY --json</pre><p>PREVIEW_DIRECTORY を上の出力パスに置き換え、シェルに合わせて引用してください。検査で拒否されたら元のファイルを削除しないでください。記事の保存自体が中断した場合は <a href=\"/authoring-recovery\">編集データの案内所</a> へ。</p>"
   }
 }
 
