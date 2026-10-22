@@ -28,7 +28,7 @@ python3 benchmarks/wordpress/compare.py "$work/wordpress" "$work/wordpress.tar.g
 # Version-pinned official importer, after all timed experiments. Never activates
 # importer hooks during the benchmark itself.
 curl --fail --location --retry 3 https://downloads.wordpress.org/plugin/wordpress-importer.0.9.6.zip -o "$work/importer.zip"
-sha256sum "$work/importer.zip"
+printf '%s  %s\n' '85cfad65e24eb3b25ed536f52ce52c3971bd42a852d6f2c6a5bea8c5c429c323' "$work/importer.zip" | sha256sum --check --strict
 unzip -q "$work/importer.zip" -d "$work/plugin"
 python3 benchmarks/wordpress/wxr-oracle.py "$work/wordpress" "$work/plugin/wordpress-importer" "$work"
 python3 benchmarks/wordpress/emit.py "$work/native.json" "$work/http.json"

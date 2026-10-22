@@ -30,3 +30,39 @@ WordPress site before making it public. Gutenberg/shortcodes/PHP extensions stil
 need their own supported implementations and interoperability tests.
 
 Reference: https://developer.wordpress.org/reference/functions/export_wp/
+
+## Reviewed native intake
+
+```sh
+moonpress wxr-inspect private.xml --json
+moonpress wxr-import SITE private.xml INSPECTED_DIGEST POST_ID new-filename-stem --json
+```
+
+Inspection is read-only and returns each item's proposed source or an explicit
+error. Import selects exactly one inspected ID, verifies the WXR digest, refuses
+existing files/unsafe stems and writes a new mode-0600 draft under the retained
+content directory lock. It never overwrites, downloads attachments, builds or
+publishes. Imported articles need review before ready status; native slugs are
+removed so the selected new filename is authoritative. Existing private/native
+visibility metadata is retained. Source normalization and the forced draft edit
+are deliberate changes; the exported raw source is still available in the WXR.
+
+The native reader supports canonical WXR 1.2 wp/content prefixes, UTF-8 XML,
+CDATA and built-in/numeric entities. It rejects DTDs/external entities, nested
+namespace declarations, malformed nesting/duplicates, invalid characters and
+excessive depth/nodes. Input is bounded to 16 MiB before file allocation, 100,000
+nodes, depth 32, 64 attributes/element and 4,096 items; imported sources must fit
+the 4 MiB editor limit. It is a bounded WXR reader, not a general XML processor.
+
+Without native source metadata, plain text and attribute-free p/h1-h6 HTML with
+text-only children are supported. Inline/complex HTML, Gutenberg, shortcodes,
+private/password posts, comments, custom fields/taxonomies and nested page
+hierarchy produce explicit item errors. Authors, original URLs/GUIDs, discussion
+settings, ordering and site options are not applied and are reported as warnings.
+Native source metadata must agree with exported content/title/type/taxonomy/date/
+route fields; stale metadata is refused. No lossy fallback is applied silently.
+
+CI checks actual core WordPress export -> native inspection -> private draft
+intake in addition to native export -> official WordPress importer. The official
+Importer 0.9.6 archive is pinned to SHA256
+`85cfad65e24eb3b25ed536f52ce52c3971bd42a852d6f2c6a5bea8c5c429c323`.

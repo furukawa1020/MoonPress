@@ -62,6 +62,10 @@ pub fn headings(String) -> Array[HeadingInfo]
 
 pub fn import_media(String, String, String) -> MediaItem raise
 
+pub fn import_wordpress_file(String, String, String, String, String) -> NewPostReport raise
+
+pub fn import_wordpress_item(String, String, String, String, String) -> NewPostReport raise
+
 pub fn init_site(String) -> InitReport raise
 
 pub fn inspect_authoring_stage(String, String) -> AuthoringStage raise
@@ -89,6 +93,10 @@ pub fn inspect_references(String, include_drafts? : Bool) -> ReferenceGraph rais
 pub fn inspect_release_readiness(String) -> ReleaseReadiness raise
 
 pub fn inspect_routes(String, include_drafts? : Bool) -> RouteInventory raise
+
+pub fn inspect_wordpress(String) -> WxrImportPlan raise
+
+pub fn inspect_wordpress_file(String) -> WxrImportPlan raise
 
 pub fn list_media(String) -> MediaReport raise
 
@@ -696,12 +704,28 @@ pub(all) struct TrashPurgeReport {
 } derive(ToJson)
 pub fn TrashPurgeReport::to_json(Self) -> Json
 
+pub(all) struct WxrCandidate {
+  id : String
+  title : String
+  original_status : String
+  source : String?
+  error : String?
+  warnings : Array[String]
+} derive(ToJson)
+pub fn WxrCandidate::to_json(Self) -> Json
+
 pub(all) struct WxrExport {
   xml : String
   posts : Int
   warnings : Array[String]
 } derive(ToJson)
 pub fn WxrExport::to_json(Self) -> Json
+
+pub(all) struct WxrImportPlan {
+  digest : String
+  items : Array[WxrCandidate]
+} derive(ToJson)
+pub fn WxrImportPlan::to_json(Self) -> Json
 
 pub(all) struct ZipEntry {
   name : String

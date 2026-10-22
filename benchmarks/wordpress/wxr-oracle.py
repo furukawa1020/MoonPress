@@ -22,3 +22,11 @@ items={item.findtext('wp:post_name',namespaces=ns):item for item in ET.fromstrin
 for row in expected:row['html']=items[row['slug']].findtext('content:encoded',namespaces=ns)
 metadata=work/'oracle.json';metadata.write_text(json.dumps(expected,ensure_ascii=False),encoding='utf-8')
 subprocess.run(['php','benchmarks/wordpress/wxr-oracle.php',wordpress,plugin,xml,metadata],check=True)
+core_xml=work/'wordpress-export.xml'
+plan=json.loads(subprocess.check_output([cli,'wxr-inspect',core_xml,'--json'],text=True))['report']
+plain=next(item for item in plan['items'] if item['title']=='WordPress native intake oracle')
+if not plain.get('source') or plain.get('error'): raise ValueError('Core export candidate rejected: '+str(plain))
+subprocess.run([cli,'wxr-import',site,core_xml,plan['digest'],plain['id'],'from-wordpress','--json'],check=True,stdout=subprocess.DEVNULL)
+source=(site/'content/from-wordpress.md').read_text(encoding='utf-8')
+if 'Native intake text' not in source or json.loads(source.split('\n---\n')[0][4:])['draft'] is not True: raise ValueError('Core export intake differs')
+print('WXR actual core export -> native inspection -> private draft import passed.')
