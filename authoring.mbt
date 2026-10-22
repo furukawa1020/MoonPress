@@ -3,6 +3,7 @@ pub(all) struct PostSummary {
   source : String
   output : String
   title : String
+  kind : String
   draft : Bool
   listed : Bool
   date : String?
@@ -50,6 +51,7 @@ fn summarize_post(input : String, name : String) -> PostSummary? raise {
     source,
     output,
     title: document.title,
+    kind: document.kind,
     draft: document.draft,
     listed: document.listed,
     date: document.date,

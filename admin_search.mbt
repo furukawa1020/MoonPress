@@ -1,5 +1,9 @@
 ///|
-fn admin_post_search_form(query : String, state : String) -> String {
+fn admin_post_search_form(
+  query : String,
+  state : String,
+  kind? : String = "all",
+) -> String {
   let out = StringBuilder()
   out.write_string(
     "<form method=\"get\" action=\"/\"><label>Search titles, filenames and tags<input name=\"q\" value=\"" +
@@ -23,6 +27,23 @@ fn admin_post_search_form(query : String, state : String) -> String {
       "</option>",
     )
   }
+  out.write_string("</select></label><label>Type<select name=\"kind\">")
+  for
+    (value, label) in [
+      ("all", "Posts and pages"),
+      ("post", "Posts"),
+      ("page", "Pages"),
+    ] {
+    out.write_string(
+      "<option value=\"" +
+      value +
+      "\"" +
+      (if kind == value { " selected" } else { "" }) +
+      ">" +
+      label +
+      "</option>",
+    )
+  }
   out.write_string(
     "</select></label><button>Search posts</button> <a href=\"/\">Clear filters</a></form>",
   )
@@ -35,12 +56,15 @@ fn admin_post_navigation(
   state : String,
   page : Int,
   pages : Int,
+  kind? : String = "all",
 ) -> String {
   let out = StringBuilder()
   let prefix = "/?q=" +
     url_component(query) +
     "&amp;state=" +
     url_component(state) +
+    "&amp;kind=" +
+    url_component(kind) +
     "&amp;page="
   out.write_string("<nav aria-label=\"Post pages\">")
   if page > 1 {

@@ -19,3 +19,5 @@ cmp "$tmp/original" "$tmp/site/content/index.md"
 for cmd in trash-post trash-list trash-read trash-restore; do "$cli" "$cmd" --help | grep -Fq 'No --include-drafts'; done
 if "$cli" trash-post "$tmp/site" index.md "$version" --include-drafts >/dev/null 2>&1; then exit 1; fi
 echo 'Trash CLI passed: private exact round trip, review identifiers and strict grammar.'
+
+test "$(stat -c %a "$tmp/site/content/index.md")" = 600

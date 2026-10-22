@@ -135,6 +135,7 @@ test "media import destinations reject traversal script and compiler outputs" {
 ///|
 test "workflow counts include unlisted ready pages without claiming validation" {
   let post : PostSummary = {
+    kind: "post",
     source: "content/a.md",
     output: "a.html",
     title: "a",
