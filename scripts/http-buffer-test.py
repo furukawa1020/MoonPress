@@ -10,9 +10,19 @@ CLI = pathlib.Path('_build/native/release/build/cmd/main/main.exe').resolve()
 with tempfile.TemporaryDirectory(prefix='moonpress-http-buffer-') as temporary:
     site = pathlib.Path(temporary) / 'site'
     subprocess.run([CLI, 'init', site], check=True, stdout=subprocess.DEVNULL)
-    with socket.socket() as reservation:
-        reservation.bind(('127.0.0.1', 0))
-        port = reservation.getsockname()[1]
+    for _ in range(100):
+        with socket.socket() as admin_port, socket.socket() as preview_port:
+            admin_port.bind(('127.0.0.1', 0))
+            port = admin_port.getsockname()[1]
+            if port >= 65535:
+                continue
+            try:
+                preview_port.bind(('127.0.0.1', port + 1))
+            except OSError:
+                continue
+            break
+    else:
+        raise RuntimeError('No free admin/preview port pair')
     server = subprocess.Popen([CLI, 'admin', site, str(port)], stdout=subprocess.PIPE)
     try:
         assert b'MoonPress admin:' in server.stdout.readline()
