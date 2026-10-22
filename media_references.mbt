@@ -68,6 +68,7 @@ pub fn inspect_media_references(input : String) -> MediaReferences raise {
         raise InvalidInput("Invalid output filename: " + output)
       }
       let post : PostSummary = {
+        kind: document.kind,
         source,
         output,
         title: document.title,

@@ -145,7 +145,10 @@ fn help_text(command : String) -> String {
         "\n\nPrivate article trash. trash-post removes the live source after durable backup. trash-list/read inspect it; trash-restore creates a private source at an unoccupied original name. trash-purge permanently deletes only the reviewed record with confirm-permanent. No build or deployment is performed."
       } else if command == "post-kind" || command == "post-categories" {
         "\n\nChange saved article metadata with current-source version protection. Save your editor first."
-      } else { "\n\nPrivate article history." }) + " No --include-drafts option. Exit status: 0 success, 1 validation/I/O failure, 2 incorrect arguments."
+      } else {
+        "\n\nPrivate article history."
+      }) +
+      " No --include-drafts option. Exit status: 0 success, 1 validation/I/O failure, 2 incorrect arguments."
   }
   let description = match command {
     "authoring-stage" =>

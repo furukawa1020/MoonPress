@@ -50,6 +50,8 @@ pub fn export_site_to_file(String, String, String, String) -> SiteExportReport r
 
 pub fn filter_media_references(Array[MediaUsage], String, String) -> Array[MediaUsage] raise
 
+pub fn filter_post_kind(Array[PostSummary], String) -> Array[PostSummary] raise
+
 pub fn filter_posts(Array[PostSummary], String, String) -> Array[PostSummary] raise
 
 pub fn headings(String) -> Array[HeadingInfo]
@@ -167,6 +169,8 @@ pub fn save_post(String, String, String, String) -> SavePostReport raise
 pub fn save_post_fields(String, String, String, PostFields) -> SavePostReport raise
 
 pub fn save_post_from_file(String, String, String, String) -> SavePostReport raise
+
+pub fn save_post_kind(String, String, String, String) -> SavePostReport raise
 
 pub fn save_post_settings(String, String, String, PostSettings) -> SavePostReport raise
 
@@ -481,6 +485,7 @@ pub(all) struct PostSummary {
   source : String
   output : String
   title : String
+  kind : String
   draft : Bool
   listed : Bool
   date : String?

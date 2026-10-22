@@ -158,3 +158,5 @@ bash scripts/publication-commit-sync-test.sh
 bash scripts/admin-rooms-test.sh
 
 bash scripts/post-kind-test.sh
+
+bash scripts/admin-kind-test.sh
