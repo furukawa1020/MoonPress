@@ -11,4 +11,7 @@ record="$(find "$tmp/site/.moonpress-history" -name '*.json')"
 test "$(stat -c %a "$record")" = 600
 jq -e '.schema == 1 and .name == "a.md" and .created > 0' "$record" >/dev/null
 grep -Fq 'Private history text.' "$tmp/site/content/a.md"
+mkdir -p "$tmp/transitions/content"
+printf '# Original\n' > "$tmp/transitions/content/a.md"
+MOONPRESS_HISTORY_TRANSITIONS="$tmp/transitions" moon test --target native --filter 'enabled history save and restore filesystem probe'
 echo 'Immutable checkpoints passed: exact private bytes, deduplication, source-version refusal and bounded content.'

@@ -195,3 +195,17 @@ pub fn read_post_revision(
   vault.lock()
   read_authoring_record(vault, id)
 }
+
+///|
+pub fn restore_post_revision(
+  input : String,
+  name : String,
+  expected : String,
+  id : String,
+) -> SavePostReport raise {
+  let revision = read_post_revision(input, id)
+  if revision.revision.name != name {
+    raise InvalidInput("Revision belongs to another article")
+  }
+  save_post(input, name, expected, revision.content)
+}

@@ -99,6 +99,12 @@ pub fn save_post(
     directory.sync()
     return { source: current.source, digest, changed: false, }
   }
+  if path_kind(input + "/.moonpress-history") != 0 {
+    let vault = open_authoring_subdirectory(input, ".moonpress-history")
+    defer directory_close(vault.fd)
+    vault.lock()
+    store_authoring_record(vault, name, current.content) |> ignore
+  }
   let bytes = @utf8.encode(content)
   let file = directory.create(".moonpress-edit")
   let mut prepared = false

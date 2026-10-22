@@ -146,6 +146,8 @@ pub fn rescue_authoring_stage(String, String, String, String) -> AuthoringRescue
 
 pub fn resolve_redirects(Array[Redirect], Array[String]) -> Array[Redirect] raise
 
+pub fn restore_post_revision(String, String, String, String) -> SavePostReport raise
+
 pub fn review_build_plan(String, String, include_drafts? : Bool) -> ReviewedBuildPlan raise
 
 pub fn safe_output_name(String) -> Bool
