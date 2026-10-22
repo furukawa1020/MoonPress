@@ -27,20 +27,13 @@ def environment(cli):
             'executable_sha256': sha256(cli.read_bytes()), 'executable_bytes': cli.stat().st_size}
 
 
-def measure(cli, site, output, rss):
+def measure(helper, cli, site, output, rss):
     start = time.perf_counter_ns()
-    with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
-        process = subprocess.Popen([str(cli), 'build', str(site), str(output), '--json'], stdout=stdout, stderr=stderr)
-        _, status, usage = os.wait4(process.pid, 0)
-        process.returncode = os.waitstatus_to_exitcode(status)
-        if process.returncode:
-            stderr.seek(0)
-            raise RuntimeError(stderr.read().decode())
-        stdout.seek(0)
-        report_text = stdout.read().decode()
+    run = subprocess.run([str(helper), str(rss), str(cli), 'build', str(site), str(output), '--json'], capture_output=True, text=True, check=True)
+    report_text = run.stdout
     elapsed = (time.perf_counter_ns() - start) / 1_000_000
     report = json.loads(report_text)['report']
-    return {'elapsed_ms': elapsed, 'peak_rss_kib': usage.ru_maxrss,
+    return {'elapsed_ms': elapsed, 'peak_rss_kib': int(rss.read_text()),
             'pages': report['pages'], 'written': report['written'], 'skipped': report['skipped'], 'deleted': report['deleted']}
 
 
@@ -53,11 +46,15 @@ def summarize(values):
 def native_benchmark(cli, repeats=5, counts=(10, 100, 1000)):
     cli = Path(cli).resolve()
     result = {'schema': 1, 'workload': 'native-generation', 'environment': environment(cli),
-              'clock': 'perf_counter_ns; full subprocess including startup; wait4 completion',
+              'clock': 'perf_counter_ns; full subprocess including startup and small C wait4 wrapper',
               'memory': 'Linux wait4 peak RSS KiB per native subprocess', 'repeats': repeats,
               'cache': 'warm OS caches; no cache flush; serial; fsync publication enabled', 'fixtures': [], 'samples': []}
     with tempfile.TemporaryDirectory(prefix='moonpress-native-benchmark-') as directory:
         directory = Path(directory)
+        helper = directory / 'measure'
+        subprocess.run(['cc', '-O2', '-Wall', '-Wextra', str(Path(__file__).with_name('measure.c')), '-o', str(helper)], check=True)
+        result['environment']['measurement_helper_sha256'] = sha256(helper.read_bytes())
+        result['environment']['cc'] = command('cc', '--version').splitlines()[0]
         for count in counts:
             fixture = directory / str(count)
             result['fixtures'].append(generate(fixture, count))
@@ -69,7 +66,7 @@ def native_benchmark(cli, repeats=5, counts=(10, 100, 1000)):
                 for scenario in ('clean', 'noop', 'one-edit'):
                     if scenario == 'one-edit':
                         source.write_bytes(original + b'\nOne synthetic body edit.\n')
-                    sample = measure(cli, site, output, fixture / 'rss.txt')
+                    sample = measure(helper, cli, site, output, fixture / 'rss.txt')
                     sample.update(count=count, repeat=repetition, scenario=scenario)
                     if sample['pages'] != count or (scenario == 'noop' and sample['written'] != 0) or (scenario == 'one-edit' and sample['written'] != 1):
                         raise ValueError(f'Unexpected build work: {sample}')

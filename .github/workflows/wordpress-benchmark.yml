@@ -1,0 +1,35 @@
+name: WordPress comparable benchmark
+on:
+  pull_request:
+    paths: ['benchmarks/wordpress/**', '.github/workflows/wordpress-benchmark.yml', '*.mbt', '*.c', 'scripts/browser-test.py']
+  push:
+    branches: [main]
+    paths: ['benchmarks/wordpress/**', '.github/workflows/wordpress-benchmark.yml', '*.mbt', '*.c', 'scripts/browser-test.py']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: wordpress-benchmark-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Fetch exact source without Node actions
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+      - name: Build native executable
+        run: |
+          bash scripts/setup.sh
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.moon/bin:$PATH"
+          moon build --target native --release
+      - name: Compare actual WordPress and native output
+        run: bash benchmarks/wordpress/run.sh
