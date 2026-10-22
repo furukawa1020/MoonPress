@@ -24,6 +24,7 @@ fn is_help(value : String) -> Bool {
 
 ///|
 fn is_command(value : String) -> Bool {
+  is_revision_command(value) ||
   value == "authoring-stage" ||
   value == "authoring-rescue" ||
   value == "media-removal-plan" ||
@@ -65,6 +66,9 @@ fn is_command(value : String) -> Bool {
 
 ///|
 fn usage(command : String) -> String {
+  if is_revision_command(command) {
+    return revision_usage(command)
+  }
   match command {
     "authoring-stage" =>
       "Usage: moonpress authoring-stage <site-directory> <post|media|settings> [--json]"
@@ -135,6 +139,10 @@ fn usage(command : String) -> String {
 
 ///|
 fn help_text(command : String) -> String {
+  if is_revision_command(command) {
+    return revision_usage(command) +
+      "\n\nPrivate article history. No --include-drafts option. Exit status: 0 success, 1 validation/I/O failure, 2 incorrect arguments."
+  }
   let description = match command {
     "authoring-stage" =>
       "Inspect a known interrupted authoring stage under its directory lock. No files changed."
@@ -206,7 +214,7 @@ fn help_text(command : String) -> String {
     "explain" =>
       "Validate the site/output and report planned incremental changes.\nDry run: no files or directories are written."
     _ =>
-      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  authoring-stage  Inspect interrupted source editing.\n  authoring-rescue  Back up interrupted edits and clear their stage.\n  recovery-plan  Inspect recovery without changing files.\n  media-removal-plan  Inspect asset removal and known references.\n  media-remove  Permanently remove a reviewed unreferenced asset.\n  export   Save verified production files as a new ZIP.\n  settings-read  Inspect raw site settings and version.\n  settings-save  Save site settings with version protection.\n  media-read  Inspect one media asset and its version.\n  media-replace  Replace existing media with version protection.\n  reference-summary  Count authored references for every output.\n  references  Inspect authored local reference edges.\n  backlinks   Inspect references to/from an output filename.\n  review   Inspect a build plan and its review ID.\n  build-reviewed  Build only the reviewed plan.\n  routes   Inspect compiled output routes and their sources.\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  preview  View built files on an isolated read-only loopback server.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
+      "MoonPress: a native MoonBit static-site compiler.\n\nCommands:\n  history-enable / history / checkpoint / revision / restore-revision  Private article revisions.\n  authoring-stage  Inspect interrupted source editing.\n  authoring-rescue  Back up interrupted edits and clear their stage.\n  recovery-plan  Inspect recovery without changing files.\n  media-removal-plan  Inspect asset removal and known references.\n  media-remove  Permanently remove a reviewed unreferenced asset.\n  export   Save verified production files as a new ZIP.\n  settings-read  Inspect raw site settings and version.\n  settings-save  Save site settings with version protection.\n  media-read  Inspect one media asset and its version.\n  media-replace  Replace existing media with version protection.\n  reference-summary  Count authored references for every output.\n  references  Inspect authored local reference edges.\n  backlinks   Inspect references to/from an output filename.\n  review   Inspect a build plan and its review ID.\n  build-reviewed  Build only the reviewed plan.\n  routes   Inspect compiled output routes and their sources.\n  plan     Inspect detailed protected incremental changes.\n  diff     Compare saved ownership manifest snapshots.\n  impact   Query direct output impact of a dependency key.\n  deps     Inspect compiled output dependency edges.\n  audit    Inspect compiler-owned output integrity.\n  duplicate  Copy an article into a new draft.\n  media-refs  Inspect article references to public assets.\n  import   Import a local public asset without overwriting.\n  media    List public assets and article URLs.\n  preview  View built files on an isolated read-only loopback server.\n  admin    Start the local browser post editor.\n  status   Change draft/ready-for-build status with version checks.\n  read     Read post source and version.\n  save     Save post source with stale-version protection.\n  new      Create a draft article without overwriting existing files.\n  posts    List posts and draft status without building.\n  init     Create a starter site in a new directory.\n  build    Compile and update a new or MoonPress-managed output directory.\n  check    Validate sources in memory without writing generated files.\n  explain  Report planned changes without writing files or directories.\n  recover  Recover a journaled interrupted publication without source input."
   }
   if command == "reference-summary" ||
     command == "references" ||
@@ -296,7 +304,9 @@ fn main {
     return
   }
   let command = args[1]
-  let required = if command == "duplicate" {
+  let required = if is_revision_command(command) {
+    revision_required(command)
+  } else if command == "duplicate" {
     7
   } else if command == "authoring-rescue" ||
     command == "media-remove" ||
@@ -353,6 +363,7 @@ fn main {
   for index = required; index < args.length(); index = index + 1 {
     match args[index] {
       "--include-drafts" if !include_drafts &&
+        !is_revision_command(command) &&
         command != "authoring-stage" &&
         command != "authoring-rescue" &&
         command != "media-removal-plan" &&
@@ -415,7 +426,14 @@ fn main {
     return
   }
   try {
-    if command == "authoring-stage" {
+    if is_revision_command(command) {
+      let report = revision_run(args)
+      if json {
+        print_report(command, false, report)
+      } else {
+        println(report.stringify())
+      }
+    } else if command == "authoring-stage" {
       let report = @lib.inspect_authoring_stage(args[2], args[3])
       if json {
         print_report(command, false, report.to_json())
