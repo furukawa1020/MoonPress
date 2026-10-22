@@ -137,7 +137,7 @@ fn AuthoringDirectory::write(
     }
   }
   transferred = true
-  write_opened_file(file, self.path + "/" + name, bytes)
+  write_opened_file(file, self.path + "/" + name, bytes, durable=true)
 }
 
 ///|

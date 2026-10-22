@@ -20,7 +20,7 @@ cc -Wall -Wextra -Werror -shared -fPIC tests/native/fail_publication.c -ldl -o "
 cc -Wall -Wextra -Werror -shared -fPIC tests/native/change_media_stage.c -ldl -o "$tmp/stage.so"
 cc -Wall -Wextra -Werror -shared -fPIC tests/native/pause_lock.c -ldl -o "$tmp/pause.so"
 reject() { local code=0; "$@" > "$tmp/stdout" 2> "$tmp/stderr" || code=$?; test "$code" = 1; test ! -s "$tmp/stdout"; test -s "$tmp/stderr"; }
-for operation in OPEN WRITE FLUSH CLOSE RENAME; do
+for operation in OPEN WRITE FLUSH EXISTING_SYNC CLOSE RENAME; do
   path="$stage"; [[ "$operation" = RENAME ]] && path="$target"
   reject env LD_PRELOAD="$tmp/fail.so" "MOONPRESS_TEST_FAIL_$operation=$path" "$cli" settings-save "$tmp/site" "$version" "$tmp/new"
   cmp "$tmp/original" "$target"

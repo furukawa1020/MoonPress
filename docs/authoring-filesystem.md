@@ -26,8 +26,9 @@ public locks do not freeze an entire site or serialize authoring with builds.
 
 Version checks compare observed bytes. They are not inode identity checks or an
 atomic compare-and-swap against arbitrary uncooperative processes. Those can
-still change directory entries or bytes after final checks. Partial-write cleanup
-is best effort; these operations do not promise an adversarial same-directory
+still change directory entries or bytes after final checks. Authoring streams flush and fsync file contents and permissions before close.
+A failed file sync prevents publication of replacement stages. This alone does
+not make the directory entry durable. Partial-write cleanup is best effort; these operations do not promise an adversarial same-directory
 transaction, undo history, crash recovery or power-loss durability. An occupied
 or unverifiable replacement stage blocks retries until inspected.
 

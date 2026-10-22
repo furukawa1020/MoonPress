@@ -52,6 +52,7 @@ fn write_opened_file(
   path : String,
   bytes : Bytes,
   mode_source? : String? = None,
+  durable? : Bool = false,
 ) -> Unit raise {
   let mut closed = false
   defer (if !closed { io_close(file) |> ignore })
@@ -65,6 +66,9 @@ fn write_opened_file(
   }
   if io_flush(file) != 0 {
     raise io_failure("flush", path)
+  }
+  if durable && atomic_sync(file) != 0 {
+    raise io_failure("sync file", path)
   }
   // fclose consumes the handle even when it reports an error. Never retry it.
   let result = io_close(file)
