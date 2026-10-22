@@ -44,6 +44,27 @@ for kind in post media settings; do
   test -L "$stage"
   rm "$stage"
 done
+# Bounded rescue inspection must preserve oversized remnants and accept the limit.
+for kind in post media settings; do
+  case "$kind" in
+    post) stage="$tmp/site/content/.moonpress-edit" ;;
+    media) stage="$tmp/site/public/.moonpress-media-edit" ;;
+    settings) stage="$tmp/site/.moonpress-settings-edit" ;;
+  esac
+  truncate -s 8388609 "$stage"
+  expected="$(sha256sum "$stage" | cut -d ' ' -f1)"
+  reject "$cli" authoring-stage "$tmp/site" "$kind" --json
+  grep -Fq 'supported byte-buffer length' "$tmp/stderr"
+  reject "$cli" authoring-rescue "$tmp/site" "$kind" "$expected" "$tmp/backups/oversize.backup"
+  test ! -e "$tmp/backups/oversize.backup"
+  test "$(stat -c %s "$stage")" = 8388609
+  truncate -s 8388608 "$stage"
+  "$cli" authoring-stage "$tmp/site" "$kind" --json | jq -e '.report.bytes == 8388608' >/dev/null
+  expected="$(sha256sum "$stage" | cut -d ' ' -f1)"
+  "$cli" authoring-rescue "$tmp/site" "$kind" "$expected" "$tmp/backups/$kind-limit.backup" >/dev/null
+  test ! -e "$stage"
+  test "$(stat -c %s "$tmp/backups/$kind-limit.backup")" = 8388608
+done
 # A real interrupted save can be rescued without changing the original article.
 printf '# Original\n' > "$tmp/site/content/a.md"
 printf '# Replacement\n' > "$tmp/replacement"
