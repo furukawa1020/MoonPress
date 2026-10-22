@@ -48,3 +48,57 @@ test "immutable checkpoint filesystem probe" {
     },
   )
 }
+
+///|
+test "enabled history save and restore filesystem probe" {
+  guard @env.get_env_var("MOONPRESS_HISTORY_TRANSITIONS") is Some(input) else {
+    return
+  }
+  enable_post_history(input) |> ignore
+  let before = read_post(input, "a.md")
+  let saved = save_post(input, "a.md", before.digest, "# Changed\n")
+  let revisions = list_post_revisions(input, "a.md")
+  assert_eq(revisions.length(), 1)
+  assert_eq(revisions[0].digest, before.digest)
+  save_post(input, "a.md", saved.digest, "# Changed\n") |> ignore
+  assert_eq(list_post_revisions(input, "a.md").length(), 1)
+  assert_true(
+    try {
+      restore_post_revision(input, "a.md", before.digest, revisions[0].id)
+      |> ignore
+      false
+    } catch {
+      _ => true
+    },
+  )
+  restore_post_revision(input, "a.md", saved.digest, revisions[0].id) |> ignore
+  assert_eq(read_post(input, "a.md").content, before.content)
+  assert_eq(list_post_revisions(input, "a.md").length(), 2)
+}
+
+///|
+test "vault must share retained content parent" {
+  guard @env.get_env_var("MOONPRESS_HISTORY_FOREIGN") is Some(input) else {
+    return
+  }
+  let content = open_authoring_subdirectory(input, "content")
+  defer directory_close(content.fd)
+  let foreign = open_authoring_subdirectory(input, "foreign")
+  defer directory_close(foreign.fd)
+  let vault = open_authoring_subdirectory(
+    input + "/foreign",
+    ".moonpress-history",
+  )
+  defer directory_close(vault.fd)
+  assert_true(
+    try {
+      require_same_authoring_site(content, vault)
+      false
+    } catch {
+      _ => true
+    },
+  )
+  let own = open_authoring_subdirectory(input, ".moonpress-history")
+  defer directory_close(own.fd)
+  require_same_authoring_site(content, own)
+}
