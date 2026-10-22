@@ -61,6 +61,7 @@ bash scripts/settings-fault-test.sh
 bash scripts/settings-transitions-test.sh
 bash scripts/admin-authoring-recovery-test.sh
 bash scripts/authoring-vault-test.sh
+bash scripts/post-history-test.sh
 bash scripts/authoring-recovery-test.sh
 bash scripts/authoring-atomic-test.sh
 bash scripts/authoring-sync-test.sh

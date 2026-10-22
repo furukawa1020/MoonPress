@@ -4,6 +4,9 @@ extern "C" fn directory_prepare_private(fd : Int, name : Bytes) -> Int = "moonpr
 
 ///|
 fn prepare_authoring_vault(input : String, name : String) -> Bool raise {
+  if input.is_empty() {
+    raise InvalidInput("Site directory must not be empty")
+  }
   if name != ".moonpress-history" && name != ".moonpress-trash" {
     raise InvalidInput("Unknown private authoring vault")
   }

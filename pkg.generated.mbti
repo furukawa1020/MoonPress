@@ -16,6 +16,8 @@ pub fn build_site(String, String) -> Int raise
 
 pub fn check_site(String, include_drafts? : Bool) -> CheckReport raise
 
+pub fn checkpoint_post(String, String, String) -> RevisionSummary raise
+
 pub fn compare_manifest_files(String, String) -> ManifestDiff raise
 
 pub fn compare_manifests(String, String) -> ManifestDiff raise
@@ -82,6 +84,8 @@ pub fn inspect_routes(String, include_drafts? : Bool) -> RouteInventory raise
 
 pub fn list_media(String) -> MediaReport raise
 
+pub fn list_post_revisions(String, String) -> Array[RevisionSummary] raise
+
 pub fn list_posts(String) -> PostsReport raise
 
 pub fn markdown_images(String) -> Array[String]
@@ -111,6 +115,8 @@ pub fn read_media(String, String) -> MediaItem raise
 pub fn read_media_preview(String, String, expected? : String?) -> MediaPreview raise
 
 pub fn read_post(String, String) -> PostSnapshot raise
+
+pub fn read_post_revision(String, String) -> RevisionSnapshot raise
 
 pub fn read_site_settings(String) -> SiteSettingsSnapshot raise
 
@@ -553,6 +559,22 @@ pub(all) struct ReviewedBuildPlan {
   plan : DetailedBuildPlan
 } derive(ToJson)
 pub fn ReviewedBuildPlan::to_json(Self) -> Json
+
+pub(all) struct RevisionSnapshot {
+  revision : RevisionSummary
+  content : String
+} derive(ToJson)
+pub fn RevisionSnapshot::to_json(Self) -> Json
+
+pub(all) struct RevisionSummary {
+  id : String
+  name : String
+  digest : String
+  record_digest : String
+  bytes : Int
+  created : Int64
+} derive(ToJson)
+pub fn RevisionSummary::to_json(Self) -> Json
 
 pub(all) struct RouteInfo {
   name : String
