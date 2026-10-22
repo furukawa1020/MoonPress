@@ -62,6 +62,12 @@ The ZIP excludes drafts and .moonpress.json; it does not deploy the site.
 Keep .moonpress.json locally; never publish .moonpress-preview (contains drafts).
 Check the actual public URL separately. Local build success is not deployment.
 
+Article history is explicit opt-in. Review revisions before restoring. Trash
+can restore an unoccupied original name; permanent purge is irreversible. Save
+other edits before using the separate type/category forms. Fixed pages stay public
+but leave article/tag/category/RSS lists. These actions never rebuild or deploy.
+WordPress roles, comments and plugin compatibility are not implemented.
+
 Japanese guide: START-HERE-ja.txt. Interrupted edits/builds: RECOVERY.txt.
 Use ./moonpress --help for CLI commands. Back up your source files before use.
 Documentation: https://github.com/furukawa1020/MoonPress
