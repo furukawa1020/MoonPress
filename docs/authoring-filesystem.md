@@ -28,7 +28,10 @@ Version checks compare observed bytes. They are not inode identity checks or an
 atomic compare-and-swap against arbitrary uncooperative processes. Those can
 still change directory entries or bytes after final checks. Authoring streams flush and fsync file contents and permissions before close.
 A failed file sync prevents publication of replacement stages. This alone does
-not make the directory entry durable. Partial-write cleanup is best effort; these operations do not promise an adversarial same-directory
+not make the directory entry durable. Replacement saves additionally fsync the
+retained directory after rename/link, and cleanup fsyncs it after unlink. A
+failed commit sync reports visible data with unconfirmed durability; it never
+removes the published replacement. Reload before retrying. Partial-write cleanup is best effort; these operations do not promise an adversarial same-directory
 transaction, undo history, crash recovery or power-loss durability. An occupied
 or unverifiable replacement stage blocks retries until inspected.
 

@@ -96,12 +96,14 @@ pub fn save_post(
   }
   let digest = digest_text(content)
   if content == current.content {
+    directory.sync()
     return { source: current.source, digest, changed: false, }
   }
   let bytes = @utf8.encode(content)
   let file = directory.create(".moonpress-edit")
   let mut prepared = false
   let mut verified = false
+  let mut committed = false
   try {
     directory.write(file, ".moonpress-edit", bytes, Some(name))
     prepared = true
@@ -109,8 +111,15 @@ pub fn save_post(
     verified = true
     require_post_version(read_post_at(directory, name), expected)
     directory.publish(".moonpress-edit", name, false)
+    committed = true
+    directory.sync()
   } catch {
     error => {
+      if committed {
+        raise InvalidInput(
+          "Post replacement is visible, but durability is unconfirmed; reload before retrying: \{error}",
+        )
+      }
       let cleanup = if prepared && !verified {
         "; unverified staging retained: " + stage
       } else {

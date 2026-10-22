@@ -163,6 +163,13 @@ fn AuthoringDirectory::publish(
 }
 
 ///|
+fn AuthoringDirectory::sync(self : AuthoringDirectory) -> Unit raise {
+  if atomic_parent_sync(self.fd) != 0 {
+    raise io_failure("sync authoring directory", self.path)
+  }
+}
+
+///|
 fn AuthoringDirectory::remove(
   self : AuthoringDirectory,
   name : String,
@@ -170,6 +177,7 @@ fn AuthoringDirectory::remove(
   if directory_remove(self.fd, authoring_name(name)) != 0 {
     raise io_failure("directory-relative cleanup", self.path + "/" + name)
   }
+  self.sync()
 }
 
 ///|
