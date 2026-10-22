@@ -208,8 +208,14 @@ def run():
                 browser.fill('form[action="/new"] input[name="slug"]', 'purge-fixture')
                 browser.click('form[action="/new"] button')
                 browser.expect_text('Source saved')
+                purge_source = site / 'content/purge-fixture.md'
+                wait_until(purge_source.exists)
                 browser.go(origin + '/trash-post?name=purge-fixture.md')
                 browser.click('form[action="/trash-post"] button')
+                # A new navigation can cancel an asynchronously submitted form.
+                # Observe the completed mutation before asking for its inventory.
+                wait_until(lambda: not purge_source.exists())
+                wait_until(lambda: len(list((site / '.moonpress-trash').glob('*.json'))) == 1)
                 browser.go(origin + '/trash')
                 browser.click('a[href^="/trash-item?id="]')
                 browser.click('form[action="/trash-purge"] input[type="checkbox"]')
