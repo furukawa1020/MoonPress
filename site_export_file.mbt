@@ -67,18 +67,6 @@ pub fn export_site_to_file(
     directory_within(directory.fd, current_project) != 0 {
     raise InvalidInput("Source directory changed; review export again")
   }
-  let file = directory.create(name)
-  directory.write(file, name, snapshot.content, None) catch {
-    error => {
-      let cleanup = try {
-        directory.require_file(name)
-        directory.remove(name)
-        ""
-      } catch {
-        cause => "; cleanup incomplete; inspect " + archive + ": \{cause}"
-      }
-      raise InvalidInput("Export write failed: \{error}" + cleanup)
-    }
-  }
+  directory.write_new(name, snapshot.content)
   snapshot.report
 }
