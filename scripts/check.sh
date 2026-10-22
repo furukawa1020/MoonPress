@@ -64,6 +64,7 @@ bash scripts/authoring-vault-test.sh
 bash scripts/post-history-test.sh
 bash scripts/post-trash-test.sh
 bash scripts/trash-cli-test.sh
+bash scripts/admin-trash-test.sh
 bash scripts/history-cli-test.sh
 bash scripts/admin-history-test.sh
 bash scripts/authoring-recovery-test.sh
