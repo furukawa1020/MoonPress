@@ -44,3 +44,11 @@ Set `MOONPRESS_VERIFY_BROWSER=1` when running release-smoke.sh to repeat the
 real-browser journey against that extracted binary. Chrome and matching
 ChromeDriver must be installed. The release workflow enables this on both
 platforms; no MoonBit toolchain is installed in those installation jobs.
+
+The archive includes `START-HERE-ja.txt` and `RECOVERY.txt` for offline room and
+recovery guidance. Candidates are rebuilt for source, script and documentation
+changes on main (site-only and benchmark-only changes are excluded).
+The installation gate sets `MOONPRESS_EXPECT_REVISION` to the full workflow SHA:
+before executing the candidate, BUILD.txt must contain exactly that revision and
+one `source_tree=clean` entry. This checks consistency with the selected build;
+it does not authenticate a maliciously replaced archive or provide signing.

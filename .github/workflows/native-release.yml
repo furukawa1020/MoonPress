@@ -2,7 +2,7 @@ name: Native release candidate
 on:
   push:
     branches: [main]
-    paths: [.github/workflows/native-release.yml, .github/workflows/ci.yml]
+    paths-ignore: ["site/**", "benchmarks/**"]
   workflow_dispatch:
 permissions:
   contents: write
