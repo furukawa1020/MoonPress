@@ -159,7 +159,9 @@ test "workflow counts include unlisted ready pages without claiming validation" 
 ///|
 test "admin form responses preserve same-origin POST origin" {
   assert_true(
-    admin_response(200, "form").contains("Referrer-Policy: same-origin\r\n"),
+    decode_text(admin_response(200, "form"), "response").contains(
+      "Referrer-Policy: same-origin\r\n",
+    ),
   )
   assert_true(
     try {
