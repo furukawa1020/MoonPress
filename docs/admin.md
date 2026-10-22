@@ -14,7 +14,7 @@ The server does not open a browser automatically and has no `--json` mode.
 
 ## Start here
 
-Open **http://127.0.0.1:8080/workflow** for an ordered guide with current saved
+Open **http://127.0.0.1:8080/rooms** for an ordered guide with current saved
 ready/draft/problem counts. The guide does not compile or mutate files on GET.
 Use its preview/review/build forms when ready; all use the existing protected
 native compiler operations. Counts are metadata observations, not validation
