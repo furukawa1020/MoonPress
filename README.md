@@ -5,7 +5,8 @@
 A static-site compiler that can refuse to build a plan you have not reviewed,
 written in **MoonBit**. Native executable in,
 HTML + CSS out. No TypeScript, JavaScript, Node.js or npm in the application
-or CI workflow. Experimental; see the [release-readiness roadmap](docs/roadmap.md).
+or CI workflow. Experimental; see the [release-readiness roadmap](docs/roadmap.md) and
+[WordPress capability coverage](docs/wordpress-parity.md).
 
 ## Quick start
 
@@ -58,7 +59,10 @@ Authoring edits retain directory handles so replacing a directory pathname canno
 redirect an in-flight save into another location. Read the precise
 [filesystem and concurrency boundary](docs/authoring-filesystem.md).
 
-The starter includes tag navigation, pagination settings and a writing guide.
+The starter includes tag/category navigation, pagination settings and a writing guide.
+Article history, recoverable trash, fixed-page types and separate categories are
+available through native CLI/browser forms. See [types](docs/authoring-kinds.md)
+and [categories](docs/categories.md).
 No public URL is needed for local authoring; add your real `base_url` when ready
 to generate a sitemap or enable RSS.
 The bundled example can still be built with `"$moonpress" build site dist`.
