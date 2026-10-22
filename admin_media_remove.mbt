@@ -84,7 +84,7 @@ fn admin_remove_media(
       (
         400,
         admin_page(
-          "Could not remove media",
+          "Media removal requires inspection",
           "<p class=\"notice\">" +
           escape_html(error.to_string()) +
           "</p><p><a href=\"/media-remove?name=" +
