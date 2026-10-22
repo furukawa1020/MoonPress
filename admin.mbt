@@ -97,7 +97,9 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
               "Request rejected",
               "<p>" +
               escape_html(error.to_string()) +
-              "</p><p><a href=\"/publish\">Check publication readiness</a> · <a href=\"/workflow#review\">Review production</a> · <a href=\"/\">Return to posts</a></p>",
+              "</p>" +
+              admin_recovery_links() +
+              "<p><a href=\"/publish\">Check publication readiness</a> · <a href=\"/workflow#review\">Review production</a> · <a href=\"/\">Return to posts</a></p>",
             ),
           )
       }
