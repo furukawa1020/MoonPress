@@ -87,7 +87,7 @@ fn native_media_read(
       etag=Some(digest_bytes(bytes)),
     )
   }
-  let names = @fs.read_dir(directory.path).to_owned()
+  let names = directory.names()
   if names.length() > 4096 {
     raise InvalidInput("Media entry limit")
   }
