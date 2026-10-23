@@ -8,6 +8,7 @@ fn rest_response(
   let status = match result.code {
     200 => "200 OK"
     201 => "201 Created"
+    304 => "304 Not Modified"
     409 => "409 Conflict"
     400 => "400 Bad Request"
     401 => "401 Unauthorized"
@@ -21,7 +22,13 @@ fn rest_response(
   @utf8.encode(
     "HTTP/1.1 " +
     status +
-    "\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: \{bytes.length()}\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'\r\n" +
+    "\r\nContent-Type: application/json; charset=utf-8\r\n" +
+    (if result.code == 304 {
+      ""
+    } else {
+      "Content-Length: \{bytes.length()}\r\n"
+    }) +
+    "Connection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'\r\n" +
     (match allowed {
       Some(value) => "Allow: " + value + "\r\n"
       None => ""
@@ -49,7 +56,7 @@ fn rest_response(
     }) +
     "\r\n",
   ) +
-  (if head { b"" } else { bytes })
+  (if head || result.code == 304 { b"" } else { bytes })
 }
 
 ///|
@@ -60,6 +67,8 @@ fn rest_client(
   _startup_base : String,
 ) -> Bytes {
   let mut head = false
+  let mut read = false
+  let mut conditional : String? = None
   let mut selection : Array[String] = []
   let mut allowed : String? = None
   let result = try {
@@ -71,6 +80,8 @@ fn rest_client(
       on_head=fn() { head = true },
     )
     head = request.verb == "HEAD"
+    read = head || request.verb == "GET"
+    conditional = request.if_none_match
     let base = read_site_config(input).base_url.unwrap_or(
       "http://" + host + "/",
     ) catch {
@@ -171,7 +182,7 @@ fn rest_client(
   if @utf8.encode(result.value.stringify()).length() > 16777216 {
     return rest_response(rest_error(500, "moonpress_response_limit"), head)
   }
-  rest_response(result, head, allowed~)
+  rest_response(rest_conditional(result, read, conditional), head, allowed~)
 }
 
 ///|
@@ -191,7 +202,7 @@ pub fn serve_wordpress_rest(input : String, port : Int) -> Unit raise {
   println(
     "MoonPress REST subset: http://" +
     host +
-    "/wp-json/ (authenticated existing-article edits; Ctrl-C to stop)",
+    "/wp-json/ (native authoring workflows; Ctrl-C to stop)",
   )
   admin_flush()
   while true {

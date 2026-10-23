@@ -319,3 +319,9 @@ status no-ops remain available. Physical I/O or integrity failures still fail
 closed with a generic error.
 
 Site settings can also be updated by an administrator with `POST /wp-json/moonpress/v1/settings`, a single `settings` object and the current quoted `If-Match` revision (`"absent"` when missing). The same strict native site configuration validator and durable CLI save machinery apply. Missing/stale guards return 428/412; a semantic no-op retains the exact existing bytes and version. Existing staging files are retained for inspection. New base URLs take effect on the next request without restarting the listener. This updates source configuration; publication remains a separate operation.
+
+### Conditional native reads
+
+Successful GET/HEAD responses without a source-version ETag receive a SHA-256 ETag of the exact projected JSON bytes, including their trailing newline. `If-None-Match` accepts `*`, a quoted lowercase SHA-256 tag, weak tags, or a comma-separated list (at most 32 tags / 4096 characters). Matching representations return 304 with no body and no Content-Length. Malformed conditions on these successful reads return 400. Authentication, visibility and `_fields` projection run before comparison; errors never become 304.
+
+Existing edit, settings, media detail and historical detail source ETags keep their write-guard meaning and ignore If-None-Match. Mutations also ignore this read condition and still require their documented If-Match guards. Responses retain `Cache-Control: no-store`; explicit conditional requests save response bytes, but do not skip authorization, storage validation or snapshot computation. This is not a claim of increased authoring API capacity.
