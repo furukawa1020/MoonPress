@@ -13,7 +13,7 @@ foreach (['administrator', 'subscriber', 'contributor', 'author', 'editor'] as $
             foreach ([true, false] as $own) {
                 $post = wp_insert_post(['post_type'=>$kind, 'post_status'=>$published ? 'publish' : 'draft', 'post_title'=>'Native REST permission oracle', 'post_content'=>'Fixture', 'post_author'=>$own ? $user : $other], true);
                 if (is_wp_error($post)) { throw new RuntimeException($post->get_error_message()); }
-                $rows[] = ['role'=>$role, 'kind'=>$kind, 'published'=>$published, 'own'=>$own, 'allowed'=>user_can($user, 'edit_post', $post)];
+                $rows[] = ['role'=>$role, 'kind'=>$kind, 'published'=>$published, 'own'=>$own, 'allowed'=>user_can($user, 'edit_post', $post), 'delete_allowed'=>user_can($user, 'delete_post', $post)];
             }
         }
     }

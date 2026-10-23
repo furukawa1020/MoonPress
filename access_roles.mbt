@@ -22,7 +22,7 @@ pub fn role_capabilities(role : String) -> Array[String] raise {
   capabilities.append([
     "edit_others_posts", "delete_others_posts", "edit_pages", "edit_others_pages",
     "publish_pages", "delete_pages", "edit_published_pages", "delete_published_pages",
-    "read_private_posts", "read_private_pages", "manage_categories",
+    "delete_others_pages", "read_private_posts", "read_private_pages", "manage_categories",
   ])
   if role == "administrator" {
     capabilities.append([
@@ -48,4 +48,22 @@ pub fn role_can_edit(
   capabilities.contains("edit_" + suffix) &&
   (user == owner || capabilities.contains("edit_others_" + suffix)) &&
   (!published || capabilities.contains("edit_published_" + suffix))
+}
+
+///|
+pub fn role_can_delete(
+  role : String,
+  user : Int,
+  owner : Int,
+  kind : String,
+  published : Bool,
+) -> Bool raise {
+  if user <= 0 || owner < 0 || (kind != "post" && kind != "page") {
+    return false
+  }
+  let capabilities = role_capabilities(role)
+  let suffix = if kind == "page" { "pages" } else { "posts" }
+  capabilities.contains("delete_" + suffix) &&
+  (user == owner || capabilities.contains("delete_others_" + suffix)) &&
+  (!published || capabilities.contains("delete_published_" + suffix))
 }

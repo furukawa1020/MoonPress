@@ -67,12 +67,22 @@ fn rest_client(
     selection = rest_fields(query.get("_fields"))
     query.remove("_fields")
     if request.verb == "POST" ||
+      request.verb == "DELETE" ||
       (
         query.get("context") == Some("edit") &&
         path != "/wp-json/wp/v2/users/me"
       ) {
       try {
-        if request.verb == "POST" && rest_is_collection(path) {
+        if request.verb == "DELETE" {
+          rest_delete(
+            input,
+            path,
+            query,
+            base,
+            request.authorization,
+            request.if_match,
+          )
+        } else if request.verb == "POST" && rest_is_collection(path) {
           rest_create(input, path, query, base, request.authorization, body)
         } else if request.verb != "POST" && rest_is_collection(path) {
           rest_edit_collection(input, path, query, base, request.authorization)

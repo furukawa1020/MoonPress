@@ -12,7 +12,7 @@ Reference schemas: [posts](https://developer.wordpress.org/rest-api/reference/po
 | `/wp-json/` | Discovery declares the implemented subset and omissions |
 | `/wp-json/wp/v2/posts` | Public post list; authenticated JSON POST creates a new post |
 | `/wp-json/wp/v2/pages` | Public fixed-page list; authenticated JSON POST creates a new page |
-| `/wp-json/wp/v2/posts/ID`, `/wp-json/wp/v2/pages/ID` | Public detail; authenticated `context=edit` and JSON POST updates of existing articles |
+| `/wp-json/wp/v2/posts/ID`, `/wp-json/wp/v2/pages/ID` | Public detail; authenticated `context=edit`, JSON POST updates and guarded DELETE to trash |
 | `/wp-json/wp/v2/users/me` | Generated Basic credentials required; current identity only |
 
 GET and HEAD are supported for reads. Collection parameters are `context=view`, `page`
@@ -20,7 +20,7 @@ GET and HEAD are supported for reads. Collection parameters are `context=view`, 
 `orderby=date|id|title|slug|include`. Responses include `X-WP-Total` and `X-WP-TotalPages`.
 Unknown/duplicate parameters are rejected. Detail accepts `context=view` or authorized `context=edit`.
 Trailing collection slashes are accepted. `_embed`, taxonomies,
-authentication cookies, OPTIONS/CORS, XML-RPC and deletion are not implemented. No unknown parameters are silently treated as effective.
+authentication cookies, OPTIONS/CORS, XML-RPC, permanent deletion and remote trash restoration are not implemented. No unknown parameters are silently treated as effective.
 
 Post objects contain `id`, `date`, `date_gmt`, `slug`, `status`, `type`, `link`,
 rendered `title`, rendered `content`/`excerpt` with `protected=false`, and
@@ -158,3 +158,5 @@ Authenticated JSON POST to posts/pages collections accepts string title/content/
 Responses are 201 with an edit-context object, ETag and relative Location header. Slugs are safe flat native stems; omitted slugs derive from the title or post/page ID. Existing filenames and canonical slugs are preserved by trying -2 through -128 suffixes. Native Unicode slugs are not WordPress percent-encoded database slugs.
 
 The private `.moonpress-identities` log reserves a strictly increasing positive ID before exclusive mode-0600 source creation, under access/content/identity locks. Existing live IDs and legacy trash IDs form the lower bound. Failed publications can consume an ID; missing source files and process restarts never make reserved IDs reusable. Records are owner-only, bounded, sequential and hash chained (4096 reservations, 1024 bytes each); corrupt/foreign/symlink/hardlinked records fail closed. This is corruption protection, not protection against a trusted owner rolling back the entire log. Keep its backups with the site and never restore an obsolete prefix independently. Old public sources still require explicit IDs before public collection reads.
+
+DELETE numeric posts/pages moves the saved source to native private trash after delete-specific role/owner/published-capability checks and a mandatory current If-Match. The access/content locks remain held through durable backup and removal; response status is trash and includes a private `moonpress_trash_id`. `force=false|0` is accepted; permanent deletion is refused. Native CLI trash-read/restore/purge remain owner tools with their existing version/acknowledgement guards. REST trash listings/restoration and force purge are not implemented. This removes source only; previously deployed static HTML remains until a separate rebuild/deployment.

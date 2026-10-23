@@ -27,7 +27,7 @@ with tempfile.TemporaryDirectory() as temporary:
     if oracle is not None:
         assert len(oracle)==len(cases)
         for case,expected in zip(cases,oracle):
-            assert {key:case[key] for key in ['role','kind','published','own','allowed']}==expected
+            assert {key:case[key] for key in ['role','kind','published','own','allowed']}=={key:expected[key] for key in ['role','kind','published','own','allowed']}
     ready=root/'ready';release=root/'release';pause=root/'pause.so'
     subprocess.run(['cc','-Wall','-Wextra','-Werror','-shared','-fPIC','tests/native/pause_rest_publish.c','-ldl','-o',pause],check=True)
     listener=socket.socket();listener.bind(('127.0.0.1',0));port=listener.getsockname()[1];listener.close()
