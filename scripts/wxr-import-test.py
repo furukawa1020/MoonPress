@@ -37,13 +37,13 @@ with tempfile.TemporaryDirectory() as temporary:
     header='<rss version="2.0" xmlns:wp="http://wordpress.org/export/1.2/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/"><channel><wp:wxr_version>1.2</wp:wxr_version>'
     def fixture(body,status='publish',extra=''):
         return header+'<item><title>WP &amp; 月</title><wp:post_id>123</wp:post_id><wp:post_type>post</wp:post_type><wp:status>'+status+'</wp:status><content:encoded><![CDATA['+body+']]></content:encoded><wp:post_date_gmt>2020-01-01 00:00:00</wp:post_date_gmt>'+extra+'</item></channel></rss>'
-    for body in ('Plain *literal* [text] without shortcode syntax','<h2>Heading</h2><p>Text &amp; data</p>'):
+    for body in ('Plain *literal* [text] without shortcode syntax','<h2>Heading</h2><p>Text &amp; data</p>','<p>Before <strong>bold</strong> after <em>soft</em>.</p>'):
         # Bracket-bearing external content is conservatively refused because it
         # may be a shortcode. Supported literal body uses ordinary text instead.
         if '[' in body: body='Plain *literal* text'
         xml.write_text(fixture(body),encoding='utf-8');plan=run('wxr-inspect',xml)
         assert plan['items'][0]['source'] and not plan['items'][0].get('error'),plan
-    for body,status,extra in [('<script>alert(1)</script>','publish',''),('<p><strong>inline</strong></p>','publish',''),('secret','private',''),('text','publish','<wp:post_password>password</wp:post_password>'),('text','publish','<wp:comment/>'),('text','publish','<wp:postmeta><wp:meta_key>unknown</wp:meta_key></wp:postmeta>')]:
+    for body,status,extra in [('<script>alert(1)</script>','publish',''),('<p><span>inline</span></p>','publish',''),('secret','private',''),('text','publish','<wp:post_password>password</wp:post_password>'),('text','publish','<wp:comment/>'),('text','publish','<wp:postmeta><wp:meta_key>unknown</wp:meta_key></wp:postmeta>')]:
         xml.write_text(fixture(body,status,extra),encoding='utf-8');plan=run('wxr-inspect',xml)
         assert plan['items'][0].get('source') is None and plan['items'][0]['error'],plan
         run('wxr-import',target,xml,plan['digest'],'123','unsupported',ok=False)

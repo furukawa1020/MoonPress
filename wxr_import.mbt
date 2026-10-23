@@ -62,26 +62,6 @@ fn wxr_html_entities(text : String) -> String raise {
 }
 
 ///|
-fn wxr_html_whitespace(text : String) -> String {
-  let out = StringBuilder()
-  let mut pending = false
-  let mut written = false
-  for c in text {
-    if c == ' ' || c == '\t' || c == '\r' || c == '\n' {
-      pending = written
-    } else {
-      if pending {
-        out.write_string(" ")
-      }
-      out.write_char(c)
-      written = true
-      pending = false
-    }
-  }
-  out.to_string()
-}
-
-///|
 fn wxr_has_markup(text : String) -> Bool {
   let mut remaining = text[:]
   while remaining.split_once("<") is Some((_, after)) {
@@ -105,34 +85,7 @@ fn wxr_body(content : String) -> String raise {
       .to_array()
       .join("\n")
   }
-  // Deliberately refuse arbitrary HTML, Gutenberg/shortcodes and scripts rather
-  // than pretending an escaped or lossy conversion is compatible.
-  let root = parse_wxr_xml("<body>" + content + "</body>")
-  if !root.text.trim().is_empty() {
-    raise InvalidInput("Mixed HTML text is not supported")
-  }
-  let body = StringBuilder()
-  for child in root.children {
-    if !child.attributes.is_empty() || !child.children.is_empty() {
-      raise InvalidInput(
-        "HTML attributes/inline markup require migration support",
-      )
-    }
-    let prefix = match child.name {
-      "p" => ""
-      "h1" => "# "
-      "h2" => "## "
-      "h3" => "### "
-      "h4" => "#### "
-      "h5" => "##### "
-      "h6" => "###### "
-      _ => raise InvalidInput("Unsupported HTML element: " + child.name)
-    }
-    body.write_string(
-      prefix + wxr_plain_markdown(wxr_html_whitespace(child.text)) + "\n\n",
-    )
-  }
-  body.to_string()
+  html_blocks(intake_html(content))
 }
 
 ///|
