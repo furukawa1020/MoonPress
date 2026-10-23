@@ -106,7 +106,17 @@ fn admin_headers(
   } else {
     None
   }
-  let limit = if boundary is Some(_) { 8388608 } else { 262144 }
+  let native_upload = rest &&
+    start[0] == "POST" &&
+    (
+      start[1] == "/wp-json/moonpress/v1/media" ||
+      start[1].has_prefix("/wp-json/moonpress/v1/media/")
+    )
+  let limit = if boundary is Some(_) || native_upload {
+    8388608
+  } else {
+    262144
+  }
   if length > limit {
     raise InvalidInput("Request body exceeds route limit (\{limit} bytes)")
   }

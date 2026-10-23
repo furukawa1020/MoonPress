@@ -249,3 +249,13 @@ never file bytes or private source paths. Detail ETag is the asset digest. GET/H
 and page/per_page are supported; reads are bounded to 4096 entries, 8 MiB/file and
 64 MiB aggregate. These are filename resources, not a numeric WordPress attachment
 catalog, and header signatures are not full image decoding/transcoding.
+
+POST native `media` with `{name,data}` uploads a new PNG/JPEG/GIF/WebP, where data
+is canonical standard base64 and filename/signature must agree. Only this native
+media POST namespace permits up to 8 MiB JSON (decoded bytes at most 6 MiB);
+ordinary REST JSON remains 256 KiB. No SVG/script/document uploads are accepted.
+Generated credentials with upload_files are required. The source asset folder is
+prepared under the retained site root when absent; new publication is exclusive
+and durable. Existing names return 409, never overwrite. The response is 201 with
+asset digest, URL and Location. No attachment ownership catalog or image
+transcoding is fabricated, and no build/deployment occurs.
