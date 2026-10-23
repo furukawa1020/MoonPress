@@ -238,6 +238,7 @@ fn html_inline(nodes : Array[IntakeHtml]) -> (String, String) raise {
           let (marker, tag) = match name {
             "strong" | "b" => ("**", "strong")
             "em" | "i" => ("*", "em")
+            "del" | "s" => ("~~", "del")
             _ => raise InvalidInput("Unsupported inline HTML: " + name)
           }
           let (child_markdown, child_html) = html_inline(children)
