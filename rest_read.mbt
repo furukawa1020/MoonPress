@@ -1,5 +1,6 @@
 ///|
 priv struct RestResponse {
+  location : String?
   etag : String?
   code : Int
   value : Json
@@ -10,6 +11,7 @@ priv struct RestResponse {
 ///|
 fn rest_error(code : Int, label : String) -> RestResponse {
   {
+    location: None,
     etag: None,
     code,
     value: {
@@ -23,8 +25,12 @@ fn rest_error(code : Int, label : String) -> RestResponse {
 }
 
 ///|
-fn rest_ok(value : Json, etag? : String? = None) -> RestResponse {
-  { etag, code: 200, value, total: None, pages: None, }
+fn rest_ok(
+  value : Json,
+  etag? : String? = None,
+  location? : String? = None,
+) -> RestResponse {
+  { location, etag, code: 200, value, total: None, pages: None, }
 }
 
 ///|
@@ -93,6 +99,7 @@ priv struct RestPost {
 fn rest_all_posts_at(
   input : String,
   directory : AuthoringDirectory,
+  unassigned? : Bool = false,
 ) -> Array[RestPost] raise {
   let names = post_names(input)
   if names.length() > 4096 {
@@ -119,7 +126,7 @@ fn rest_all_posts_at(
       }
       ids[id] = true
     }
-    if document.wp_id is None {
+    if document.wp_id is None && !unassigned {
       if !document.draft &&
         document.listed &&
         publication_due(document.publish_at, authoring_time()) {
@@ -165,6 +172,10 @@ fn rest_route(
       "namespace": "wp/v2".to_json(),
       "methods": ["GET", "HEAD"].to_json(),
     }
+    let create_route : Json = {
+      "namespace": "wp/v2".to_json(),
+      "methods": ["GET", "HEAD", "POST"].to_json(),
+    }
     let edit_route : Json = {
       "namespace": "wp/v2".to_json(),
       "methods": ["GET", "HEAD", "POST"].to_json(),
@@ -179,8 +190,8 @@ fn rest_route(
         },
       },
       "routes": {
-        "/wp/v2/posts": route,
-        "/wp/v2/pages": route,
+        "/wp/v2/posts": create_route,
+        "/wp/v2/pages": create_route,
         "/wp/v2/posts/(?P<id>[0-9]+)": edit_route,
         "/wp/v2/pages/(?P<id>[0-9]+)": edit_route,
         "/wp/v2/users/me": route,
@@ -189,7 +200,7 @@ fn rest_route(
         "read_only": false.to_json(),
         "contexts": ["view", "edit"].to_json(),
         "unsupported": [
-          "create", "delete", "taxonomy-ids", "embeds", "xml-rpc", "php-plugins",
+          "delete", "taxonomy-ids", "embeds", "xml-rpc", "php-plugins",
         ].to_json(),
       },
     })

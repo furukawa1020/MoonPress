@@ -50,3 +50,5 @@ access=work/'rest-access.json'
 subprocess.run(['php','benchmarks/wordpress/rest-access-oracle.php',wordpress,access],check=True)
 subprocess.run([sys.executable,'scripts/rest-edit-test.py',access],check=True)
 print('Native REST edit permission matrix matches actual WordPress map_meta_cap: 40 role/ownership/type/status cases.')
+
+subprocess.run([sys.executable,'scripts/rest-create-test.py'],check=True)

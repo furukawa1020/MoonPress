@@ -10,8 +10,8 @@ Reference schemas: [posts](https://developer.wordpress.org/rest-api/reference/po
 | Route | Current behavior |
 | --- | --- |
 | `/wp-json/` | Discovery declares the implemented subset and omissions |
-| `/wp-json/wp/v2/posts` | Public post list, default 10 items, date descending |
-| `/wp-json/wp/v2/pages` | Public fixed-page list with the same filters |
+| `/wp-json/wp/v2/posts` | Public post list; authenticated JSON POST creates a new post |
+| `/wp-json/wp/v2/pages` | Public fixed-page list; authenticated JSON POST creates a new page |
 | `/wp-json/wp/v2/posts/ID`, `/wp-json/wp/v2/pages/ID` | Public detail; authenticated `context=edit` and JSON POST updates of existing articles |
 | `/wp-json/wp/v2/users/me` | Generated Basic credentials required; current identity only |
 
@@ -20,8 +20,7 @@ GET and HEAD are supported for reads. Collection parameters are `context=view`, 
 `orderby=date|id|title|slug|include`. Responses include `X-WP-Total` and `X-WP-TotalPages`.
 Unknown/duplicate parameters are rejected. Detail accepts `context=view` or authorized `context=edit`.
 Trailing collection slashes are accepted. `_embed`, taxonomies,
-authentication cookies, OPTIONS/CORS, XML-RPC, creation and
-deletion are not implemented. No unknown parameters are silently treated as effective.
+authentication cookies, OPTIONS/CORS, XML-RPC and deletion are not implemented. No unknown parameters are silently treated as effective.
 
 Post objects contain `id`, `date`, `date_gmt`, `slug`, `status`, `type`, `link`,
 rendered `title`, rendered `content`/`excerpt` with `protected=false`, and
@@ -61,8 +60,7 @@ moonpress post-identity SITE article.md DIGEST 123 1 --json
 This local owner command checks the current source version and refuses to
 renumber an already assigned ID. IDs survive additions, content edits and source
 renames. Raw source owners remain trusted and can alter metadata; they must keep
-IDs globally unique and never reuse deleted IDs for a different article. There
-is no historical ID allocation registry yet. Author values are local references,
+IDs globally unique and never reuse deleted IDs for a different article. API creation reserves IDs in an append-only private allocation log before publishing source. Local manual assignments remain trusted and must never reuse historical IDs. Author values are local references,
 not an imported identity proof. Duplicate and WXR intake clear identity/author
 metadata so copies do not inherit another article's identity or another site's
 authority. REST validates the entire bounded source snapshot under a content
@@ -152,3 +150,11 @@ Collection filters also accept `search` (up to 16 whitespace-separated AND terms
 As in WP_Query, an explicit `offset` takes precedence over the page offset; page/total validation is retained.
 
 Authenticated collection `context=edit` accepts `status=publish|draft|future|any` or up to three comma-separated statuses, with filtering/pagination after ownership authorization. Default status is publish. The native policy lists only articles the caller can edit, including authorized unlisted ones; it is deliberately stricter than WordPress collection-level edit permission. Subscribers are denied. Nonpublic rows/counts never leak through anonymous search or totals. Public context supports only status=publish.
+
+## Native REST creation
+
+Authenticated JSON POST to posts/pages collections accepts string title/content/excerpt/slug/status/date_gmt. Title is required and nonempty. Contributors can create draft posts, authors can publish their own posts, and editors/administrators can create pages. Author is always the authenticated principal; caller-supplied author/ID/type/visibility and unknown fields are refused. Status defaults to draft; dates default to the captured current UTC instant. Supported native content conversion and 256 KiB request limits apply. No build or hosting deployment occurs.
+
+Responses are 201 with an edit-context object, ETag and relative Location header. Slugs are safe flat native stems; omitted slugs derive from the title or post/page ID. Existing filenames and canonical slugs are preserved by trying -2 through -128 suffixes. Native Unicode slugs are not WordPress percent-encoded database slugs.
+
+The private `.moonpress-identities` log reserves a strictly increasing positive ID before exclusive mode-0600 source creation, under access/content/identity locks. Existing live IDs and legacy trash IDs form the lower bound. Failed publications can consume an ID; missing source files and process restarts never make reserved IDs reusable. Records are owner-only, bounded, sequential and hash chained (4096 reservations, 1024 bytes each); corrupt/foreign/symlink/hardlinked records fail closed. This is corruption protection, not protection against a trusted owner rolling back the entire log. Keep its backups with the site and never restore an obsolete prefix independently. Old public sources still require explicit IDs before public collection reads.
