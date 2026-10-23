@@ -292,3 +292,9 @@ the caller's comments unless the caller can manage others' posts. Edit reads add
 raw text/owner and per-comment ETag; public reads expose only the chosen public
 label and escaped rendered content. Explicit bad credentials never fall back to
 anonymous access. This API does not yet render comments into static article HTML.
+
+Editors/administrators with `moderate_comments` can POST `status=approved|hold|spam`
+to `comments/ID`, with its current edit-read If-Match. Missing/invalid/stale tags
+return 428/400/412. Status changes append a private immutable event; same status
+is a no-op with the same ETag. Body, parent and author identity cannot be changed
+by moderation. Approval still never bypasses current parent-article visibility.

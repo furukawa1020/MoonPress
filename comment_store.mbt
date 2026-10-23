@@ -127,6 +127,26 @@ fn comment_append(
   comment : NativeComment,
   action : String,
 ) -> CommentRow raise {
+  if action == "create" {
+    if comment.id != state.rows.length() + 1 ||
+      state.rows.length() >= 1024 ||
+      comment.status != "hold" {
+      raise InvalidInput("Invalid comment creation")
+    }
+  } else if action == "status" {
+    if comment.id < 1 || comment.id > state.rows.length() {
+      raise InvalidInput("Unknown comment")
+    }
+    let old = state.rows[comment.id - 1].comment
+    if { ..comment, status: old.status, } != old ||
+      comment.status == old.status ||
+      !["hold", "approved", "spam", "trash"].contains(comment.status) ||
+      (old.status == "trash" && comment.status != "hold") {
+      raise InvalidInput("Invalid comment transition")
+    }
+  } else {
+    raise InvalidInput("Unknown comment action")
+  }
   if state.sequence >= 4096 {
     raise InvalidInput("Comment event limit")
   }

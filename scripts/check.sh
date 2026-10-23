@@ -210,3 +210,5 @@ python3 scripts/rest-media-replace-test.py
 python3 scripts/rest-comment-create-test.py
 
 python3 scripts/rest-comment-read-test.py
+
+python3 scripts/rest-comment-moderate-test.py
