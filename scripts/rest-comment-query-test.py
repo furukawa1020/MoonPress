@@ -14,4 +14,8 @@ with NativeSite() as s:
     assert s.request(route+'?context=edit&search=secret',role='contributor')[2]==[]
     assert s.request(route+'?search='+('x'*257))[0]==400
     assert s.request(route+'/'+str(ids[0])+'?search=Alpha')[0]==400
+    assert [r['id'] for r in s.request(route+'?orderby=id&order=desc')[2]]==list(reversed(ids[:2]))
+    assert s.request(route+'?orderby=id&order=desc&per_page=1')[2][0]['id']==ids[1]
+    assert s.request(route+'?orderby=date&order=asc')[2][0]['id']==ids[0]
+    assert s.request(route+'?order=bad')[0]==400 and s.request(route+'?orderby=private')[0]==400
 print('Native comment query filters preserve approved/parent visibility, ownership scope, counts and strict bounds.')
