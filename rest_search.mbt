@@ -1,4 +1,9 @@
 ///|
+fn rest_is_search(path : String) -> Bool {
+  path == "/wp-json/wp/v2/search" || path == "/wp-json/wp/v2/search/"
+}
+
+///|
 fn rest_search(
   input : String,
   query : Map[String, String],

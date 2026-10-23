@@ -206,7 +206,7 @@ fn rest_route(
       },
     })
   }
-  if path == "/wp-json/wp/v2/search" {
+  if rest_is_search(path) {
     return rest_search(input, query, base)
   }
   if path == "/wp-json/wp/v2/users/me" {

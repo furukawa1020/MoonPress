@@ -83,7 +83,7 @@ fn rest_client(
         request.verb != "OPTIONS" &&
         query.get("context") == Some("edit") &&
         path != "/wp-json/wp/v2/users/me" &&
-        path != "/wp-json/wp/v2/search"
+        !rest_is_search(path)
       ) {
       try {
         if request.verb == "DELETE" {

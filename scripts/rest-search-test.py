@@ -26,6 +26,12 @@ with NativeSite() as site:
     status,headers,value=site.request(route,'POST',data={})
     assert status==405 and headers['Allow']=='GET, HEAD, OPTIONS'
     assert site.request(route,'OPTIONS')[2]['methods']==['GET','HEAD','OPTIONS']
+    assert site.request(route+'/?include=101')[2]==site.request(route+'?include=101')[2]
+    status,headers,value=site.request(route+'/?include=101','HEAD')
+    assert status==200 and value is None and headers['X-WP-Total']=='1'
+    assert site.request(route+'/','OPTIONS')[2]==site.request(route,'OPTIONS')[2]
+    assert site.request(route+'/?context=edit')[0]==400
+    assert site.request(route+'/','POST',data={})[0]==405
     assert '/wp/v2/search' in site.request('/wp-json/')[2]['routes']
     # Body expansion would exceed the JSON response limit if search rendered
     # complete article objects before projecting its five fields.

@@ -5,6 +5,7 @@ fn rest_methods(path : String) -> Array[String]? {
   }
   if [
       "/wp-json", "/wp-json/", "/wp-json/wp/v2/users/me", "/wp-json/wp/v2/search",
+      "/wp-json/wp/v2/search/",
     ].contains(path) {
     return Some(["GET", "HEAD", "OPTIONS"])
   }
@@ -82,7 +83,7 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
       }
     }
   }
-  if path == "/wp-json/wp/v2/search" {
+  if rest_is_search(path) {
     for name in ["id", "title", "url", "type", "subtype"] {
       properties[name] = {
         "readonly": true.to_json(),
@@ -93,13 +94,15 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
   let endpoints : Array[Json] = []
   for verb in verbs {
     let args : Map[String, Json] = Map([])
-    if verb == "GET" || verb == "HEAD" {
+    if (verb == "GET" || verb == "HEAD") &&
+      path != "/wp-json" &&
+      path != "/wp-json/" {
       args["context"] = {
         "type": "string".to_json(),
         "enum": ["view", "edit"].to_json(),
         "default": "view".to_json(),
       }
-      if path == "/wp-json/wp/v2/search" {
+      if rest_is_search(path) {
         args["context"] = {
           "type": "string".to_json(),
           "enum": ["view", "embed"].to_json(),
