@@ -267,3 +267,19 @@ current asset If-Match is mandatory (428/400/412 for missing/invalid/stale).
 Existing durable staging, mode preservation and byte-identical no-op behavior
 are reused; the site must be rebuilt/deployed separately. Names, signatures and
 body bounds are identical to upload, with no arbitrary metadata overrides.
+
+## Native comments
+
+Authenticated POST to native `comments` takes a public article `post` id, plain
+`content` (1–8192 UTF-8 bytes), and explicit public `author_name` (1–80 bytes).
+The author id is bound to the fresh principal; caller ids, status, email/IP and
+unknown fields are rejected. Only currently public/listed/due posts/pages accept
+comments. Every new comment is held for approval, including moderator submissions.
+Public labels are self-selected and do not prove account identity. HTML is escaped;
+no shortcode, Markdown or plugin code is evaluated.
+
+Comments are private owner-only, sequential hash-chained events; new ids survive
+restart and are never reused. Limits: 1024 comments, 4096 events, 32 KiB/event,
+16 MiB total. Corrupt/foreign/symlink/hardlinked/nonprivate records fail closed.
+This detects corruption, not trusted-owner rollback; back up the whole log with
+the site. No email addresses or IP addresses are collected.
