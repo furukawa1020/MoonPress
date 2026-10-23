@@ -333,3 +333,5 @@ Native `tags` provides the same exact-name inventory and public post-count behav
 Taxonomy inventories accept case-insensitive `search` (at most 256 UTF-8 bytes, no controls) and exact `name` (native term bounds). Filters apply before totals and pagination.
 
 Taxonomy `orderby=name|count` and `order=asc|desc` apply before pagination. Native string ordering provides deterministic count ties. Invalid ordering is refused.
+
+Post/page collections accept single exact native `moonpress_category` and `moonpress_tag` names, combined with AND. The native 96-byte term bounds apply. Both public and authorized edit collection filters run after their visibility/ownership gates and before totals.

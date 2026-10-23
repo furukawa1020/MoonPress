@@ -6,7 +6,8 @@ fn rest_validate_collection(
   for key, value in query {
     if ![
         "context", "per_page", "page", "slug", "order", "orderby", "search", "include",
-        "exclude", "author", "author_exclude", "offset", "status",
+        "exclude", "author", "author_exclude", "offset", "status", "moonpress_category",
+        "moonpress_tag",
       ].contains(key) ||
       (key == "context" && value != (if edit { "edit" } else { "view" })) ||
       (key == "order" && value != "asc" && value != "desc") ||
