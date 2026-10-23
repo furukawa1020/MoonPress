@@ -5,6 +5,7 @@ with NativeSite() as site:
         status,headers,value=site.request(path,'OPTIONS')
         assert status==200 and value['methods']==verbs and headers['Allow']==', '.join(verbs)
         assert [e['methods'][0] for e in value['endpoints']]==verbs
+    assert site.request('/wp-json/wp/v2/users/me','OPTIONS')[2]['schema']['properties']['username']['context']==['edit']
     status,headers,value=site.request('/wp-json/wp/v2/posts','OPTIONS')
     assert value['schema']['properties']['id']=={'type':'integer','readonly':True}
     assert value['schema']['properties']['content']['properties']['raw']['context']==['edit']

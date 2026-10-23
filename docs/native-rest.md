@@ -14,6 +14,7 @@ Reference schemas: [posts](https://developer.wordpress.org/rest-api/reference/po
 | `/wp-json/wp/v2/pages` | Public fixed-page list; authenticated JSON POST creates a new page |
 | `/wp-json/wp/v2/posts/ID`, `/wp-json/wp/v2/pages/ID` | Public detail; authenticated `context=edit`, JSON POST updates and guarded DELETE to trash |
 | `/wp-json/wp/v2/users/me` | Generated Basic credentials required; current identity only |
+| `/wp-json/wp/v2/search` | Public post/page universal search subset |
 
 GET and HEAD are supported for reads. Collection parameters are `context=view`, `page`
 (1–4096), `per_page` (1–100), comma-separated `slug`, `order=asc|desc`, and
@@ -184,3 +185,15 @@ The same intake accepts the validated static Gutenberg paragraph/heading/list/
 list-item subset described in [migration](wordpress-migration.md). It returns
 native generated HTML; it does not preserve Gutenberg editing metadata or run
 block/plugin code.
+
+## Universal public search
+
+`GET`/`HEAD /wp-json/wp/v2/search` returns only `id`, escaped `title`, `url`,
+`type=post` and `subtype=post|page`. It supports `context=view|embed`, `page`,
+`per_page`, `search`, CSV `include`/`exclude`, `type=post`, and
+`subtype=any|post|page|post,page`. Public visibility is applied before text filters,
+counts and pagination, including for authenticated administrators. `_fields`
+and OPTIONS work on search. Attachments, terms and custom types are refused.
+Search uses the existing bounded literal AND-term matching over native title,
+description and body, with deterministic date/ID ordering. It does not implement
+WordPress SQL collation, relevance scoring or a site-wide static search interface.

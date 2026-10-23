@@ -32,6 +32,13 @@ foreach ([['search'=>'oracle-post', 'slug'=>'oracle-post', 'orderby'=>'id'], ['i
     $response = rest_do_request($request);
     $result['filtered'][] = ['params'=>$params, 'ids'=>array_column($response->get_data(), 'id')];
 }
+$request = new WP_REST_Request('GET', '/wp/v2/search');
+$request->set_param('include', (string)$result['ids']['oracle-post']['id']);
+$request->set_param('type', 'post');
+$request->set_param('subtype', 'post');
+$result['search'] = rest_do_request($request)->get_data();
+$request = new WP_REST_Request('OPTIONS', '/wp/v2/posts');
+$result['options'] = rest_do_request($request)->get_data();
 if (file_put_contents($argv[2], json_encode($result, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)) === false) {
     throw new RuntimeException('Cannot retain REST oracle responses');
 }

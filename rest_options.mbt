@@ -3,7 +3,9 @@ fn rest_methods(path : String) -> Array[String]? {
   if rest_is_collection(path) {
     return Some(["GET", "HEAD", "POST", "OPTIONS"])
   }
-  if ["/wp-json", "/wp-json/", "/wp-json/wp/v2/users/me"].contains(path) {
+  if [
+      "/wp-json", "/wp-json/", "/wp-json/wp/v2/users/me", "/wp-json/wp/v2/search",
+    ].contains(path) {
     return Some(["GET", "HEAD", "OPTIONS"])
   }
   for prefix in ["/wp-json/wp/v2/posts/", "/wp-json/wp/v2/pages/"] {
@@ -62,6 +64,32 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
       }
     }
   }
+  if path == "/wp-json/wp/v2/users/me" {
+    for name in ["id", "name", "slug", "username", "roles", "capabilities"] {
+      properties[name] = {
+        "readonly": true.to_json(),
+        "type": (match name {
+          "id" => "integer"
+          "roles" => "array"
+          "capabilities" => "object"
+          _ => "string"
+        }).to_json(),
+        "context": (if ["username", "roles", "capabilities"].contains(name) {
+          ["edit"]
+        } else {
+          ["view", "edit"]
+        }).to_json(),
+      }
+    }
+  }
+  if path == "/wp-json/wp/v2/search" {
+    for name in ["id", "title", "url", "type", "subtype"] {
+      properties[name] = {
+        "readonly": true.to_json(),
+        "type": (if name == "id" { "integer" } else { "string" }).to_json(),
+      }
+    }
+  }
   let endpoints : Array[Json] = []
   for verb in verbs {
     let args : Map[String, Json] = Map([])
@@ -70,6 +98,19 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
         "type": "string".to_json(),
         "enum": ["view", "edit"].to_json(),
         "default": "view".to_json(),
+      }
+      if path == "/wp-json/wp/v2/search" {
+        args["context"] = {
+          "type": "string".to_json(),
+          "enum": ["view", "embed"].to_json(),
+          "default": "view".to_json(),
+        }
+        for name in ["page", "per_page"] {
+          args[name] = { "type": "integer".to_json() }
+        }
+        for name in ["search", "include", "exclude", "type", "subtype"] {
+          args[name] = { "type": "string".to_json() }
+        }
       }
       if rest_is_collection(path) {
         for name in ["page", "per_page", "offset"] {
