@@ -48,6 +48,9 @@ fn native_history_target(path : String) -> (String, Int, String?)? {
 
 ///|
 fn native_rest_methods(path : String) -> Array[String]? {
+  if native_taxonomy(path) is Some(_) {
+    return Some(["GET", "HEAD", "OPTIONS"])
+  }
   if native_settings_path(path) {
     return Some(["GET", "HEAD", "POST", "OPTIONS"])
   }
@@ -109,6 +112,14 @@ fn rest_native(
   if request.verb == "OPTIONS" && request.authorization is None {
     return native_rest_options(path, query)
   }
+  if native_taxonomy(path) is Some(kind) &&
+    request.authorization is None &&
+    (request.verb == "GET" || request.verb == "HEAD") {
+    let content = open_authoring_subdirectory(input, "content")
+    defer directory_close(content.fd)
+    content.lock()
+    return native_taxonomy_read(input, content, kind, query)
+  }
   if native_comment_id(path) is Some(id) &&
     request.authorization is None &&
     (request.verb == "GET" || request.verb == "HEAD") {
@@ -120,6 +131,9 @@ fn rest_native(
   rest_with_access(input, request.authorization, fn(principal, content) raise {
     if request.verb == "OPTIONS" {
       return native_rest_options(path, query)
+    }
+    if native_taxonomy(path) is Some(kind) {
+      return native_taxonomy_read(input, content, kind, query)
     }
     if native_settings_path(path) {
       if request.verb == "POST" {
@@ -220,6 +234,10 @@ fn rest_precondition(value : String?, current : String) -> RestResponse? {
 ///|
 fn native_discovery_routes(value : Json) -> Json {
   if value is Object(routes) {
+    routes["/moonpress/v1/categories"] = {
+      "namespace": "moonpress/v1".to_json(),
+      "methods": ["GET", "HEAD", "OPTIONS"].to_json(),
+    }
     routes["/moonpress/v1/settings"] = {
       "namespace": "moonpress/v1".to_json(),
       "methods": ["GET", "HEAD", "POST", "OPTIONS"].to_json(),
