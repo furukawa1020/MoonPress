@@ -37,7 +37,12 @@ fn rest_filter_posts(
   if search.length() > 256 {
     raise InvalidInput("Search exceeds 256 characters")
   }
-  let terms = search
+  let normalized = StringBuilder()
+  for c in search {
+    normalized.write_char(if c.is_whitespace() { ' ' } else { c })
+  }
+  let terms = normalized
+    .to_string()
     .split(" ")
     .map(term => term.to_owned())
     .to_array()
@@ -128,6 +133,17 @@ test "REST filters bound IDs and keep include order" {
   assert_eq(rest_id_list(Some("")), [])
   let refused = try {
     rest_id_list(Some("1,0")) |> ignore
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(refused)
+}
+
+///|
+test "REST search counts every Unicode whitespace-separated term" {
+  let refused = try {
+    rest_filter_posts([], Map([("search", "x\t".repeat(17))])) |> ignore
     false
   } catch {
     _ => true
