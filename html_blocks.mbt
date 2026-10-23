@@ -13,7 +13,13 @@ fn WxrReader::html_block(
     None => (token[3:].to_owned(), "{}")
   }
   let allowed = match name {
-    "paragraph" | "list-item" => []
+    "paragraph"
+    | "list-item"
+    | "quote"
+    | "code"
+    | "preformatted"
+    | "separator" => []
+    "image" => ["id", "sizeSlug", "linkDestination"]
     "heading" => ["level"]
     "list" => ["ordered", "start"]
     _ => raise InvalidInput("Unsupported WordPress block: " + name)
@@ -22,7 +28,8 @@ fn WxrReader::html_block(
     if parent != "ul" && parent != "ol" {
       raise InvalidInput("List-item block requires a list")
     }
-  } else if !parent.is_empty() {
+  } else if !parent.is_empty() &&
+    !(name == "paragraph" && parent == "blockquote") {
     raise InvalidInput("Block requires top-level context")
   }
   let fields = strict_json_object(@json.parse(json), allowed, "WordPress block")
@@ -60,6 +67,10 @@ fn WxrReader::html_block(
     "paragraph" => "p"
     "heading" => "h" + level.to_string()
     "list-item" => "li"
+    "quote" => "blockquote"
+    "code" | "preformatted" => "pre"
+    "separator" => "hr"
+    "image" => "figure"
     _ => if ordered { "ol" } else { "ul" }
   }
   match element {
@@ -67,10 +78,22 @@ fn WxrReader::html_block(
       if tag != expected {
         raise InvalidInput("WordPress block HTML/attributes disagree")
       }
+      if name == "image" {
+        return html_image_block(attrs, children, fields)
+      }
       if attrs.get("class") is Some(class_name) {
         let known = match name {
           "heading" => "wp-block-heading"
           "list" => "wp-block-list"
+          "quote" => "wp-block-quote"
+          "code" => "wp-block-code"
+          "preformatted" => "wp-block-preformatted"
+          "separator" =>
+            if class_name == "wp-block-separator has-alpha-channel-opacity" {
+              class_name
+            } else {
+              "wp-block-separator"
+            }
           _ => ""
         }
         if known.is_empty() || class_name != known {
@@ -90,5 +113,47 @@ fn WxrReader::html_block(
       Element(tag, attrs, children)
     }
     _ => raise InvalidInput("Missing WordPress block HTML")
+  }
+}
+
+///|
+fn html_image_block(
+  attrs : Map[String, String],
+  children : Array[IntakeHtml],
+  fields : Map[String, Json],
+) -> IntakeHtml raise {
+  if attrs.keys().any(key => key != "class") {
+    raise InvalidInput("Unsupported image figure attributes")
+  }
+  let id = match fields.get("id") {
+    Some(value) => Some(rest_positive(value.stringify(), 2147483647))
+    None => None
+  }
+  let size = match fields.get("sizeSlug") {
+    Some(String(size)) if ["thumbnail", "medium", "large", "full"].contains(
+        size,
+      ) => " size-" + size
+    None => ""
+    _ => raise InvalidInput("Unsupported image size")
+  }
+  if fields.get("linkDestination").unwrap_or("none".to_json()) !=
+    "none".to_json() {
+    raise InvalidInput("Linked image block unsupported")
+  }
+  if (!size.is_empty() && attrs.get("class") != Some("wp-block-image" + size)) ||
+    (attrs.get("class") is Some(value) && value != "wp-block-image" + size) {
+    raise InvalidInput("Image figure class disagrees")
+  }
+  match html_single_root(children) {
+    Element("img", image, inline) => {
+      if image.get("class") is Some(value) {
+        if id is None || value != "wp-image-" + id.unwrap().to_string() {
+          raise InvalidInput("Image identity/class disagrees")
+        }
+        image.remove("class")
+      }
+      Element("p", Map([]), [Element("img", image, inline)])
+    }
+    _ => raise InvalidInput("Image block requires one uncaptioned image")
   }
 }

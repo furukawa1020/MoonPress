@@ -104,3 +104,10 @@ image paragraph. Remote images are referenced, never fetched. Data/script URLs,
 protocol-relative URLs, event/style/sizing attributes and unrepresentable native
 Markdown destinations are refused. Local image references still require ordinary
 build-time asset validation; importing does not copy attachments automatically.
+
+Additional static core blocks: single-paragraph `quote` (including a nested
+paragraph wrapper), literal `code`/`preformatted`, `separator`, and unlinked,
+uncaptioned `image`. HTML roots, known core classes and image id/class/size must
+agree. Known presentation classes and block metadata become canonical native
+content; figure classes are not preserved. Captions, citations, custom styles,
+linked images and dynamic/plugin callbacks are refused rather than dropped.

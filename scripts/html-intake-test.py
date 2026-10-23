@@ -9,6 +9,7 @@ cases += [('<blockquote><p>A <strong>quoted</strong> line<br>Next</p></blockquot
 cases += [('<pre><code class="language-moonbit">  x &lt; y\n```\n</code></pre>','<pre><code class="language-moonbit">  x &lt; y\n```\n</code></pre>\n')]
 cases += [('<p>Before</p><hr /><p>After</p>','<p>Before</p>\n<hr>\n<p>After</p>\n')]
 cases += [('<p>Look <img src="https://example.test/image.png" alt="月 &amp; stars" /> here.</p>','<p>Look <img src="https://example.test/image.png" alt="月 &amp; stars"> here.</p>\n')]
+cases += [('<!-- wp:quote --><blockquote class="wp-block-quote"><!-- wp:paragraph --><p>Quoted <strong>bold</strong> end.</p><!-- /wp:paragraph --></blockquote><!-- /wp:quote -->','<blockquote>\n<p>Quoted <strong>bold</strong> end.</p>\n</blockquote>\n'),('<!-- wp:image {"id":123,"sizeSlug":"large","linkDestination":"none"} --><figure class="wp-block-image size-large"><img src="https://example.test/image.png" alt="Moon" class="wp-image-123" /></figure><!-- /wp:image -->','<p><img src="https://example.test/image.png" alt="Moon"></p>\n')]
 if len(sys.argv)>1:cases+=json.loads(pathlib.Path(sys.argv[1]).read_text())
 with NativeSite() as site:
     for index,(body,expected) in enumerate(cases):

@@ -221,3 +221,37 @@ test "HTML images preserve safe URLs labels and surrounding text" {
     assert_true(refused)
   }
 }
+
+///|
+test "extended static blocks validate content and discard only known presentation classes" {
+  assert_eq(
+    render_markdown(
+      wxr_body(
+        "<!-- wp:code --><pre class='wp-block-code'><code>  x &lt; y</code></pre><!-- /wp:code --><!-- wp:separator --><hr class='wp-block-separator has-alpha-channel-opacity' /><!-- /wp:separator -->",
+      ),
+    ),
+    "<pre><code>  x &lt; y\n</code></pre>\n<hr>\n",
+  )
+  assert_eq(
+    render_markdown(
+      wxr_body(
+        "<!-- wp:preformatted --><pre class='wp-block-preformatted'> A\n B</pre><!-- /wp:preformatted -->",
+      ),
+    ),
+    "<pre><code> A\n B\n</code></pre>\n",
+  )
+  for
+    text in [
+      "<!-- wp:image {\"id\":1} --><figure class='wp-block-image'><img src='x.png' class='wp-image-2'></figure><!-- /wp:image -->",
+      "<!-- wp:quote --><blockquote class='other'><p>A</p></blockquote><!-- /wp:quote -->",
+      "<!-- wp:code --><p>A</p><!-- /wp:code -->", "<!-- wp:image --><figure><img src='x.png'><figcaption>Caption</figcaption></figure><!-- /wp:image -->",
+    ] {
+    let refused = try {
+      wxr_body(text) |> ignore
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(refused)
+  }
+}
