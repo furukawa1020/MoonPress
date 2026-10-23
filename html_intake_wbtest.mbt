@@ -118,3 +118,26 @@ test "HTML hard breaks retain paragraph line order" {
     assert_true(rejected)
   }
 }
+
+///|
+test "HTML quotes preserve inline markup and refuse unsupported nesting" {
+  assert_eq(
+    render_markdown(
+      wxr_body("<blockquote><p>A <em>quote</em> end.</p></blockquote>"),
+    ),
+    "<blockquote>\n<p>A <em>quote</em> end.</p>\n</blockquote>\n",
+  )
+  for
+    text in [
+      "<blockquote>lost</blockquote>", "<blockquote><p>A</p><p>B</p></blockquote>",
+      "<blockquote><blockquote><p>A</p></blockquote></blockquote>", "<blockquote class='x'><p>A</p></blockquote>",
+    ] {
+    let refused = try {
+      wxr_body(text) |> ignore
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(refused)
+  }
+}

@@ -84,3 +84,7 @@ HTML paragraphs accept `br`/`br />` when the result round-trips through native
 hard breaks. Leading/trailing/repeated blank breaks and breaks inside headings,
 list items or cross-line emphasis are refused if native Markdown cannot preserve
 that structure. Void tags cannot carry event/style attributes.
+
+Flat `blockquote` containing exactly one supported paragraph converts to a native
+quote, including supported inline markup and representable hard breaks. Nested
+quotes, multiple paragraphs and arbitrary quote attributes remain explicit errors.

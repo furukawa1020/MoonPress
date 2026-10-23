@@ -260,6 +260,10 @@ fn html_blocks(nodes : Array[IntakeHtml]) -> String raise {
           raise InvalidInput("Mixed top-level HTML text")
         }
       Element(name, attrs, children) => {
+        if name == "blockquote" {
+          body.write_string(html_quote(attrs, children) + "\n")
+          continue
+        }
         if name == "ul" || name == "ol" {
           body.write_string(html_list(name, attrs, children) + "\n")
           continue
