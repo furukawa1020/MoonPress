@@ -119,9 +119,10 @@ before retrying because a replacement may already be visible.
 Supported string fields are `title`, `content`, `excerpt`, `status`, and
 `date_gmt`. IDs, author, kind, slug, taxonomies, visibility and layout cannot be
 changed here. Titles are nonempty native plain text and excerpts are plain text.
-Content accepts the same bounded conservative HTML/plain-text conversion as WXR
-intake: attribute-free paragraphs/headings with text only. Gutenberg, shortcodes,
-inline/rich HTML, scripts and embedded media are refused. Returning an unchanged
+Content accepts the same bounded HTML/plain-text conversion as WXR intake:
+paragraphs/headings, representable inline formatting/links/code, flat lists and
+validated basic static blocks as described below. Unsupported blocks/HTML,
+scripts and embedded media are refused. Returning an unchanged
 `content.raw` preserves the existing Markdown exactly, including richer native
 formatting. Empty updates and unchanged title/excerpt/content preserve exact source bytes,
 mtime and history. This strict subset is not a drop-in Gutenberg save endpoint.
@@ -197,3 +198,6 @@ and OPTIONS work on search. Attachments, terms and custom types are refused.
 Search uses the existing bounded literal AND-term matching over native title,
 description and body, with deterministic date/ID ordering. It does not implement
 WordPress SQL collation, relevance scoring or a site-wide static search interface.
+
+Search serializes its five result fields directly without rendering article bodies.
+Source parsing and literal matching still scan the bounded live snapshot.

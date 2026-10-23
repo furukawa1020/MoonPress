@@ -111,17 +111,13 @@ fn rest_collection_result(
   edit : Bool,
   instant? : Int64 = authoring_time(),
 ) -> RestResponse raise {
-  let size = rest_positive(query.get("per_page").unwrap_or("10"), 100)
-  let page = rest_positive(query.get("page").unwrap_or("1"), 4096)
-  rest_order_posts(posts, query)
-  let offset = rest_nonnegative(query.get("offset").unwrap_or("0"), 409600)
   let total = posts.length()
-  let pages = (total + size - 1) / size
-  if page > pages && page != 1 {
-    return rest_error(400, "rest_post_invalid_page_number")
+  let (start, size, pages) = match rest_page_bounds(total, query) {
+    Some(bounds) => bounds
+    None => return rest_error(400, "rest_post_invalid_page_number")
   }
+  rest_order_posts(posts, query)
   let values : Array[Json] = []
-  let start = if query.contains("offset") { offset } else { (page - 1) * size }
   for i = start; i < total && i < start + size; i = i + 1 {
     values.push(
       if edit {
@@ -145,4 +141,29 @@ fn rest_collection_result(
     total: Some(total),
     pages: Some(pages),
   }
+}
+
+///|
+fn rest_page_bounds(
+  total : Int,
+  query : Map[String, String],
+) -> (Int, Int, Int)? raise {
+  let size = rest_positive(query.get("per_page").unwrap_or("10"), 100)
+  let page = rest_positive(query.get("page").unwrap_or("1"), 4096)
+  let offset = rest_nonnegative(query.get("offset").unwrap_or("0"), 409600)
+  let pages = (total + size - 1) / size
+  if page > pages && page != 1 {
+    return None
+  }
+  Some(
+    (
+      if query.contains("offset") {
+        offset
+      } else {
+        (page - 1) * size
+      },
+      size,
+      pages,
+    ),
+  )
 }

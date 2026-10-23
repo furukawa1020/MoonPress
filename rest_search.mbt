@@ -37,32 +37,26 @@ fn rest_search(
     }),
     query,
   )
-  let result = rest_collection_result(posts, query, base, false)
-  if result.code != 200 {
-    return result
+  let (start, size, pages) = match rest_page_bounds(posts.length(), query) {
+    Some(bounds) => bounds
+    None => return rest_error(400, "rest_post_invalid_page_number")
   }
+  rest_order_posts(posts, query)
   let values : Array[Json] = []
-  match result.value {
-    Array(items) =>
-      for item in items {
-        match item {
-          Object(fields) => {
-            let title = match fields.get("title") {
-              Some(Object(title)) => title.get("rendered").unwrap()
-              _ => raise InvalidInput("Invalid article title")
-            }
-            values.push({
-              "id": fields.get("id").unwrap(),
-              "title": title,
-              "url": fields.get("link").unwrap(),
-              "type": "post".to_json(),
-              "subtype": fields.get("type").unwrap(),
-            })
-          }
-          _ => raise InvalidInput("Invalid article result")
-        }
-      }
-    _ => raise InvalidInput("Invalid search result")
+  for i = start; i < posts.length() && i < start + size; i = i + 1 {
+    let post = posts[i]
+    values.push({
+      "id": post.document.wp_id.unwrap().to_json(),
+      "title": escape_html(post.document.title).to_json(),
+      "url": (base +
+      url_component(post.document.slug.unwrap_or(post.stem) + ".html")).to_json(),
+      "type": "post".to_json(),
+      "subtype": post.document.kind.to_json(),
+    })
   }
-  { ..result, value: values.to_json(), }
+  {
+    ..rest_ok(values.to_json()),
+    total: Some(posts.length()),
+    pages: Some(pages),
+  }
 }

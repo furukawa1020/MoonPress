@@ -27,4 +27,9 @@ with NativeSite() as site:
     assert status==405 and headers['Allow']=='GET, HEAD, OPTIONS'
     assert site.request(route,'OPTIONS')[2]['methods']==['GET','HEAD','OPTIONS']
     assert '/wp/v2/search' in site.request('/wp-json/')[2]['routes']
+    # Body expansion would exceed the JSON response limit if search rendered
+    # complete article objects before projecting its five fields.
+    (site.site/'content/heavy.md').write_text('---\n'+json.dumps({'wp_id':107,'title':'Heavy article'})+'\n---\n'+'&'*(3500*1024))
+    status,_,rows=site.request(route+'?include=107')
+    assert status==200 and len(rows)==1 and rows[0]['id']==107 and len(json.dumps(rows))<1000
 print('REST universal search passed: public visibility before filtering/counts, post/page types, projection, pagination, HEAD and strict parameters.')
