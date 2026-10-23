@@ -232,3 +232,11 @@ never returned. Only records with the same stable article id, owner and type are
 a deleted filename cannot grant access to its earlier article history. Legacy
 records without matching identity remain available only through owner CLI tools. OPTIONS is
 metadata only and does not reveal whether an article/version exists.
+
+POST an empty JSON object to `history/RECORD/restore` with the current article's
+quoted If-Match to restore a version. Record id, owner and type must match the
+current article; a reused filename never inherits its old history. Publication
+capability and current edit permission are required, and restored slugs must not
+conflict with another live source. Existing durable save/preimage/no-op guards
+are reused; the current version remains in history for undo. No build/deployment
+is triggered.

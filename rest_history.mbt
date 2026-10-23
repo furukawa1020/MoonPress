@@ -148,3 +148,88 @@ fn native_history_read(
     pages: Some(pages),
   }
 }
+
+///|
+fn native_history_restore(
+  input : String,
+  content : AuthoringDirectory,
+  principal : AccessPrincipal,
+  kind : String,
+  id : Int,
+  record : String,
+  query : Map[String, String],
+  base : String,
+  expected : String?,
+  body : Bytes,
+) -> RestResponse raise {
+  if !query.is_empty() {
+    return rest_error(400, "rest_invalid_param")
+  }
+  try
+    strict_json_object(
+      @json.parse(decode_text(body, "Restore body")),
+      [],
+      "Restore body",
+    )
+    |> ignore
+  catch {
+    _ => return rest_error(400, "rest_invalid_param")
+  }
+  let (name, snapshot, document) = match
+    rest_find_post(input, content, kind, id) {
+    Some(found) => found
+    None => return rest_error(404, "rest_post_invalid_id")
+  }
+  if !role_can_edit(
+      principal.role,
+      principal.id,
+      document.author,
+      kind,
+      !document.draft,
+    ) {
+    return rest_error(403, "rest_cannot_edit")
+  }
+  if rest_precondition(expected, snapshot.digest) is Some(error) {
+    return error
+  }
+  if !record.has_prefix(digest_text(name) + "-") ||
+    path_kind(input + "/.moonpress-history") == 0 {
+    return rest_error(404, "moonpress_revision_missing")
+  }
+  let saved = match native_history_record(input, content, record) {
+    Some(saved) => saved
+    None => return rest_error(404, "moonpress_revision_missing")
+  }
+  let stem = name[:name.length() - 3].to_owned()
+  let historical = parse_document(saved.content, stem)
+  if saved.revision.name != name ||
+    historical.wp_id != Some(id) ||
+    historical.author != document.author ||
+    historical.kind != kind {
+    return rest_error(404, "moonpress_revision_missing")
+  }
+  if !historical.draft &&
+    !role_capabilities(principal.role).contains(
+      "publish_" + (if kind == "page" { "pages" } else { "posts" }),
+    ) {
+    return rest_error(403, "rest_cannot_publish")
+  }
+  let slug = historical.slug.unwrap_or(stem)
+  for post in rest_all_posts_at(input, content, unassigned=true) {
+    if post.stem != stem &&
+      (post.stem == slug || post.document.slug.unwrap_or(post.stem) == slug) {
+      return rest_error(409, "rest_slug_conflict")
+    }
+  }
+  let report = save_post_at(
+    input,
+    content,
+    name,
+    snapshot.digest,
+    saved.content,
+  )
+  rest_ok(
+    rest_edit_value(historical, stem, base, report.digest),
+    etag=Some(report.digest),
+  )
+}
