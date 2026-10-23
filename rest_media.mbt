@@ -1,4 +1,11 @@
 ///|
+priv struct NativeMediaRow {
+  name : String
+  bytes : Int
+  value : Json
+}
+
+///|
 extern "C" fn native_media_same_site(content : Int, assets : Int) -> Int = "moonpress_same_media_site"
 
 ///|
@@ -45,10 +52,17 @@ fn native_media_read(
     return rest_error(403, "rest_cannot_upload")
   }
   for key, _ in query {
-    if !["page", "per_page", "search", "mime_type", "media_type"].contains(key) ||
+    if ![
+        "page", "per_page", "search", "mime_type", "media_type", "order", "orderby",
+      ].contains(key) ||
       !name.is_empty() {
       return rest_error(400, "rest_invalid_param")
     }
+  }
+  let orderby = query.get("orderby").unwrap_or("name")
+  let order = query.get("order").unwrap_or("asc")
+  if !["name", "bytes"].contains(orderby) || !["asc", "desc"].contains(order) {
+    return rest_error(400, "rest_invalid_param")
   }
   let mime = query.get("mime_type")
   let media_type = query.get("media_type")
@@ -104,7 +118,7 @@ fn native_media_read(
     raise InvalidInput("Media entry limit")
   }
   names.sort()
-  let rows : Array[Json] = []
+  let rows : Array[NativeMediaRow] = []
   let mut total = 0
   for name in names {
     require_media_destination(name)
@@ -118,16 +132,33 @@ fn native_media_read(
     if name.to_lower().contains(search) &&
       (mime is None || mime == Some(actual)) &&
       (media_type is None || media_type == Some(actual_type)) {
-      rows.push(native_media_value(name, bytes, base))
+      rows.push({
+        name,
+        bytes: bytes.length(),
+        value: native_media_value(name, bytes, base),
+      })
     }
   }
+  rows.sort_by(fn(a, b) {
+    let compared = if orderby == "bytes" {
+      a.bytes.compare(b.bytes)
+    } else {
+      a.name.compare(b.name)
+    }
+    let compared = if compared == 0 { a.name.compare(b.name) } else { compared }
+    if order == "asc" {
+      compared
+    } else {
+      0 - compared
+    }
+  })
   let (start, size, pages) = match rest_page_bounds(rows.length(), query) {
     Some(bounds) => bounds
     None => return rest_error(400, "rest_post_invalid_page_number")
   }
   let selected : Array[Json] = []
   for i = start; i < rows.length() && i < start + size; i = i + 1 {
-    selected.push(rows[i])
+    selected.push(rows[i].value)
   }
   {
     ..rest_ok(selected.to_json()),

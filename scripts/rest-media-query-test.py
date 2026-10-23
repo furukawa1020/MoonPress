@@ -17,4 +17,9 @@ with NativeSite() as s:
     assert s.request(route+'?media_type=image&mime_type=application%2Foctet-stream',role='author')[2]==[]
     assert s.request(route+'?mime_type=text%2Fhtml',role='author')[0]==400
     assert s.request(route+'?media_type=video',role='author')[0]==400
+    assert [r['name'] for r in s.request(route+'?orderby=bytes&order=desc',role='author')[2]]==['beta.gif','alpha.png','fake.png']
+    assert s.request(route+'?orderby=bytes&order=desc&per_page=1',role='author')[2][0]['name']=='beta.gif'
+    assert s.request(route+'?orderby=bytes&order=asc',role='author')[2][0]['name']=='fake.png'
+    assert s.request(route+'?order=bad',role='author')[0]==400
+    assert s.request(route+'?orderby=date',role='author')[0]==400
 print('Native media queries preserve authorization, validate filters, and count selected results before pagination.')

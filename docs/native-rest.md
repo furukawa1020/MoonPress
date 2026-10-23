@@ -339,3 +339,5 @@ Post/page collections accept single exact native `moonpress_category` and `moonp
 Media inventory accepts bounded, case-insensitive filename `search` before totals and pagination. Searching does not bypass whole-snapshot file/byte limits or upload_files authorization. Detail routes reject inventory filters.
 
 Media inventory accepts `media_type=image|file` and exact supported `mime_type`. Both depend on the file signature matching its supported raster extension; an invalid PNG is classified as application/octet-stream. Combined filters use AND.
+
+Media `orderby=name|bytes` and `order=asc|desc` sort selected files before pagination, with deterministic filename ties. Size is the actual opened file length.
