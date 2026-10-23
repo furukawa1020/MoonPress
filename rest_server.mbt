@@ -75,12 +75,15 @@ fn rest_client(
     allowed = rest_methods(path).map(methods => methods.join(", "))
     selection = rest_fields(query.get("_fields"))
     query.remove("_fields")
-    if request.verb == "POST" ||
+    if rest_methods(path) is Some(verbs) && !verbs.contains(request.verb) {
+      rest_error(405, "rest_no_route")
+    } else if request.verb == "POST" ||
       request.verb == "DELETE" ||
       (
         request.verb != "OPTIONS" &&
         query.get("context") == Some("edit") &&
-        path != "/wp-json/wp/v2/users/me"
+        path != "/wp-json/wp/v2/users/me" &&
+        !rest_is_search(path)
       ) {
       try {
         if request.verb == "DELETE" {

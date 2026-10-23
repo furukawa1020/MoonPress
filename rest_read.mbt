@@ -195,6 +195,7 @@ fn rest_route(
         "/wp/v2/posts/(?P<id>[0-9]+)": edit_route,
         "/wp/v2/pages/(?P<id>[0-9]+)": edit_route,
         "/wp/v2/users/me": route,
+        "/wp/v2/search": route,
       },
       "moonpress": {
         "read_only": false.to_json(),
@@ -204,6 +205,9 @@ fn rest_route(
         ].to_json(),
       },
     })
+  }
+  if rest_is_search(path) {
+    return rest_search(input, query, base)
   }
   if path == "/wp-json/wp/v2/users/me" {
     for key, value in query {

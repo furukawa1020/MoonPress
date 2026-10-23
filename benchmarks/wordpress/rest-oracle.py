@@ -13,8 +13,8 @@ for row in expected:
     (site/'content'/f"{row['slug']}.md").write_text('---\n'+json.dumps(fields,ensure_ascii=False)+'\n---\n'+body)
 listener=socket.socket();listener.bind(('127.0.0.1',0));port=listener.getsockname()[1];listener.close()
 process=subprocess.Popen([cli,'rest',site,str(port)],stdout=subprocess.DEVNULL)
-def request(path):
-    connection=http.client.HTTPConnection('127.0.0.1',port,timeout=6);connection.request('GET',path)
+def request(path,verb="GET"):
+    connection=http.client.HTTPConnection('127.0.0.1',port,timeout=6);connection.request(verb,path)
     response=connection.getresponse();data=response.read();connection.close()
     if response.status!=200:raise ValueError(f'Native REST failed {response.status}: {data!r}')
     return json.loads(data)
@@ -31,6 +31,14 @@ try:
         assert ours['id']==theirs['id'] and text(ours['title']['rendered'])==text(theirs['title']['rendered'])
     for probe in core['filtered']:
         assert [p['id'] for p in request('/wp-json/wp/v2/posts?'+urllib.parse.urlencode(probe['params']))]==probe['ids']
+    native_options=request('/wp-json/wp/v2/posts','OPTIONS')
+    assert native_options['schema']['properties']['id']['type']==core['options']['schema']['properties']['id']['type']=='integer'
+    assert {'GET','POST'}.issubset(set(native_options['methods'])) and {'GET','POST'}.issubset(set(core['options']['methods']))
+    native_search=request('/wp-json/wp/v2/search?type=post&subtype=post&include='+str(core['ids']['oracle-post']['id']))
+    assert len(native_search)==len(core['search'])==1
+    for ours,theirs in zip(native_search,core['search']):
+        assert all(ours[k]==theirs[k] for k in ['id','type','subtype'])
+        assert text(ours['title'])==text(theirs['title']) and ours['url'].endswith('oracle-post.html') and theirs['url'].startswith('http')
     for row in expected:
         collection='pages' if row['kind']=='page' else 'posts'
         native=request('/wp-json/wp/v2/'+collection+'?slug='+row['slug'])
@@ -54,3 +62,7 @@ print('Native REST edit permission matrix matches actual WordPress map_meta_cap:
 subprocess.run([sys.executable,'scripts/rest-create-test.py'],check=True)
 
 subprocess.run([sys.executable,'scripts/rest-trash-test.py',access],check=True)
+
+subprocess.run([sys.executable,'scripts/rest-search-test.py'],check=True)
+subprocess.run([sys.executable,'scripts/rest-options-test.py'],check=True)
+subprocess.run([sys.executable,'scripts/html-intake-test.py'],check=True)

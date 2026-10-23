@@ -15,24 +15,24 @@ Plugin extensions are an open-ended ecosystem, not a finite core checklist.
 | Revisions / rollback | Explicit opt-in, immutable distinct-version preimages, manual checkpoints, browser/CLI diff and current-version-bound restore; not every save event |
 | Trash / restore / purge | Private durable records, reviewed source removal, restore to vacant original name as mode 0600, individual acknowledged purge; no timed automatic purge |
 | Categories / tags | Separate flat metadata, escaped indexes/archives, pagination; category hierarchy missing |
-| Rich editing | Structured fields and documented Markdown subset, escaped preview; no Gutenberg/block editor or general HTML authoring |
+| Rich editing | Structured fields and documented Markdown subset, escaped preview; validated static paragraph/heading/list intake; no Gutenberg editor or general HTML authoring |
 | Autosave | Missing; interrupted native staging can be inspected/rescued, but unsaved browser typing is not autosaved |
 | Media | Import/list/replace/preview, reference inspection and guarded removal; crop/rotate, responsive variants and attachment metadata missing |
 | Themes / menus | Trusted static HTML/CSS layouts, named layouts, starter navigation; no WordPress PHP theme or block-theme compatibility |
 | Permalinks / redirects | Flat slugs, reviewed local redirects, reference validation; no arbitrary nested permalink routing |
-| Feeds / discovery | RSS, sitemap, tag/category archives, table of contents; no public full-text search yet |
+| Feeds / discovery | RSS, sitemap, tag/category archives, table of contents; public post/page REST search; no static search UI or relevance index |
 | Languages | Automatic Japanese/English administration language with manual override; article translation is not automatic |
-| User accounts / roles | Native private principals, five fixed roles and implemented-capability decisions, generated revocable credentials; [access foundation](native-access.md). REST existing-article edits enforce ownership/role; local operator editor is still not a multiuser interface |
+| User accounts / roles | Native private principals, five fixed roles and implemented-capability decisions, generated revocable credentials; [access foundation](native-access.md). REST creation/edits/trash enforce ownership/role; local operator editor is still not a multiuser interface |
 | Private / password posts | Missing; never treat listed=false as private |
 | Comments / moderation | Missing |
-| REST / XML-RPC / application passwords | [Native REST subset](native-rest.md): public posts/pages, users/me, ownership-authorized edit context and guarded updates of existing articles. Create/delete, broad query compatibility, WordPress password import and XML-RPC remain missing |
+| REST / XML-RPC / application passwords | [Native REST subset](native-rest.md): public posts/pages, selected filters/fields, users/me, authorized edit collections, guarded create/update/trash, OPTIONS and universal search. Broad REST/query/schema compatibility, WordPress password import and XML-RPC remain missing |
 | Multisite / network administration | Missing |
 | Plugins / hooks / custom post types | Missing; WordPress plugins cannot run in the native runtime |
 | Import / export | Verified static-site ZIP plus WXR export and reviewed private-draft intake; documented subset with explicit refusals |
 | Deployment / updates | Native release candidates and configured static hosting; a local build is not a deployment |
 
-Next implementation priorities are authenticated REST routes and ownership metadata,
-then broader WXR content conversion, public search, attachment metadata and comments. These are
+Next implementation priorities include attachment metadata/media REST, comments,
+private/password visibility and broader route/schema/block coverage. These are
 remaining work, not hidden behind placeholder UI.
 
 ## Measurement contract

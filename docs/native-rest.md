@@ -14,6 +14,7 @@ Reference schemas: [posts](https://developer.wordpress.org/rest-api/reference/po
 | `/wp-json/wp/v2/pages` | Public fixed-page list; authenticated JSON POST creates a new page |
 | `/wp-json/wp/v2/posts/ID`, `/wp-json/wp/v2/pages/ID` | Public detail; authenticated `context=edit`, JSON POST updates and guarded DELETE to trash |
 | `/wp-json/wp/v2/users/me` | Generated Basic credentials required; current identity only |
+| `/wp-json/wp/v2/search` | Public post/page universal search subset |
 
 GET and HEAD are supported for reads. Collection parameters are `context=view`, `page`
 (1–4096), `per_page` (1–100), comma-separated `slug`, `order=asc|desc`, and
@@ -118,9 +119,10 @@ before retrying because a replacement may already be visible.
 Supported string fields are `title`, `content`, `excerpt`, `status`, and
 `date_gmt`. IDs, author, kind, slug, taxonomies, visibility and layout cannot be
 changed here. Titles are nonempty native plain text and excerpts are plain text.
-Content accepts the same bounded conservative HTML/plain-text conversion as WXR
-intake: attribute-free paragraphs/headings with text only. Gutenberg, shortcodes,
-inline/rich HTML, scripts and embedded media are refused. Returning an unchanged
+Content accepts the same bounded HTML/plain-text conversion as WXR intake:
+paragraphs/headings, representable inline formatting/links/code, flat lists and
+validated basic static blocks as described below. Unsupported blocks/HTML,
+scripts and embedded media are refused. Returning an unchanged
 `content.raw` preserves the existing Markdown exactly, including richer native
 formatting. Empty updates and unchanged title/excerpt/content preserve exact source bytes,
 mtime and history. This strict subset is not a drop-in Gutenberg save endpoint.
@@ -184,3 +186,18 @@ The same intake accepts the validated static Gutenberg paragraph/heading/list/
 list-item subset described in [migration](wordpress-migration.md). It returns
 native generated HTML; it does not preserve Gutenberg editing metadata or run
 block/plugin code.
+
+## Universal public search
+
+`GET`/`HEAD /wp-json/wp/v2/search` returns only `id`, escaped `title`, `url`,
+`type=post` and `subtype=post|page`. It supports `context=view|embed`, `page`,
+`per_page`, `search`, CSV `include`/`exclude`, `type=post`, and
+`subtype=any|post|page|post,page`. Public visibility is applied before text filters,
+counts and pagination, including for authenticated administrators. `_fields`
+and OPTIONS work on search. Attachments, terms and custom types are refused.
+Search uses the existing bounded literal AND-term matching over native title,
+description and body, with deterministic date/ID ordering. It does not implement
+WordPress SQL collation, relevance scoring or a site-wide static search interface.
+
+Search serializes its five result fields directly without rendering article bodies.
+Source parsing and literal matching still scan the bounded live snapshot.
