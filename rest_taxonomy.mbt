@@ -3,6 +3,8 @@ fn native_taxonomy(path : String) -> String? {
   let parts = native_parts(path)
   if parts == ["categories"] {
     Some("categories")
+  } else if parts == ["tags"] {
+    Some("tags")
   } else {
     None
   }

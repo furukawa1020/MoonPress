@@ -234,6 +234,10 @@ fn rest_precondition(value : String?, current : String) -> RestResponse? {
 ///|
 fn native_discovery_routes(value : Json) -> Json {
   if value is Object(routes) {
+    routes["/moonpress/v1/tags"] = {
+      "namespace": "moonpress/v1".to_json(),
+      "methods": ["GET", "HEAD", "OPTIONS"].to_json(),
+    }
     routes["/moonpress/v1/categories"] = {
       "namespace": "moonpress/v1".to_json(),
       "methods": ["GET", "HEAD", "OPTIONS"].to_json(),
