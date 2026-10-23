@@ -21,10 +21,7 @@ fn native_media_name(path : String) -> String? {
 
 ///|
 fn native_media_value(name : String, bytes : Bytes, base : String) -> Json {
-  let mime = match raster_preview_mime(name) {
-    Some(mime) if media_preview_signature(mime, bytes) => mime
-    _ => "application/octet-stream"
-  }
+  let mime = native_media_mime(name, bytes)
   {
     "name": name.to_json(),
     "source_url": (base + url_component(name)).to_json(),
@@ -48,9 +45,21 @@ fn native_media_read(
     return rest_error(403, "rest_cannot_upload")
   }
   for key, _ in query {
-    if !["page", "per_page", "search"].contains(key) || !name.is_empty() {
+    if !["page", "per_page", "search", "mime_type", "media_type"].contains(key) ||
+      !name.is_empty() {
       return rest_error(400, "rest_invalid_param")
     }
+  }
+  let mime = query.get("mime_type")
+  let media_type = query.get("media_type")
+  if (
+      mime is Some(value) &&
+      ![
+        "image/png", "image/jpeg", "image/gif", "image/webp", "application/octet-stream",
+      ].contains(value)
+    ) ||
+    (media_type is Some(value) && !["image", "file"].contains(value)) {
+    return rest_error(400, "rest_invalid_param")
   }
   let search = native_query_text(query.get("search").unwrap_or("")) catch {
     _ => return rest_error(400, "rest_invalid_param")
@@ -104,7 +113,11 @@ fn native_media_read(
     if total > 67108864 {
       raise InvalidInput("Media snapshot byte limit")
     }
-    if name.to_lower().contains(search) {
+    let actual = native_media_mime(name, bytes)
+    let actual_type = if actual.has_prefix("image/") { "image" } else { "file" }
+    if name.to_lower().contains(search) &&
+      (mime is None || mime == Some(actual)) &&
+      (media_type is None || media_type == Some(actual_type)) {
       rows.push(native_media_value(name, bytes, base))
     }
   }
@@ -120,5 +133,13 @@ fn native_media_read(
     ..rest_ok(selected.to_json()),
     total: Some(rows.length()),
     pages: Some(pages),
+  }
+}
+
+///|
+fn native_media_mime(name : String, bytes : Bytes) -> String {
+  match raster_preview_mime(name) {
+    Some(mime) if media_preview_signature(mime, bytes) => mime
+    _ => "application/octet-stream"
   }
 }
