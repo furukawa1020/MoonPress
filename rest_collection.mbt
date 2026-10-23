@@ -93,7 +93,13 @@ fn rest_edit_collection(
         allowed.push(post)
       }
     }
-    rest_collection_result(rest_filter_posts(allowed, query), query, base, true, instant~)
+    rest_collection_result(
+      rest_filter_posts(allowed, query),
+      query,
+      base,
+      true,
+      instant~,
+    )
   })
 }
 
@@ -119,13 +125,20 @@ fn rest_collection_result(
   for i = start; i < total && i < start + size; i = i + 1 {
     values.push(
       if edit {
-        rest_edit_value(posts[i].document, posts[i].stem, base, posts[i].digest, instant~)
+        rest_edit_value(
+          posts[i].document,
+          posts[i].stem,
+          base,
+          posts[i].digest,
+          instant~,
+        )
       } else {
         rest_post_value(posts[i].document, posts[i].stem, base)
       },
     )
   }
   {
+    location: None,
     etag: None,
     code: 200,
     value: values.to_json(),

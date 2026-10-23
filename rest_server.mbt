@@ -3,6 +3,8 @@ fn rest_response(result : RestResponse, head : Bool) -> Bytes {
   let bytes = @utf8.encode(result.value.stringify() + "\n")
   let status = match result.code {
     200 => "200 OK"
+    201 => "201 Created"
+    409 => "409 Conflict"
     400 => "400 Bad Request"
     401 => "401 Unauthorized"
     403 => "403 Forbidden"
@@ -21,6 +23,10 @@ fn rest_response(result : RestResponse, head : Bool) -> Bytes {
       "WWW-Authenticate: Basic realm=\"MoonPress generated credentials\"\r\n"
     } else {
       ""
+    }) +
+    (match result.location {
+      Some(path) => "Location: " + path + "\r\n"
+      None => ""
     }) +
     (match result.etag {
       Some(digest) => "ETag: \"" + digest + "\"\r\n"
@@ -66,7 +72,9 @@ fn rest_client(
         path != "/wp-json/wp/v2/users/me"
       ) {
       try {
-        if request.verb != "POST" && rest_is_collection(path) {
+        if request.verb == "POST" && rest_is_collection(path) {
+          rest_create(input, path, query, base, request.authorization, body)
+        } else if request.verb != "POST" && rest_is_collection(path) {
           rest_edit_collection(input, path, query, base, request.authorization)
         } else {
           rest_edit(
