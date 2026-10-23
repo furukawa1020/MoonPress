@@ -335,3 +335,5 @@ Taxonomy inventories accept case-insensitive `search` (at most 256 UTF-8 bytes, 
 Taxonomy `orderby=name|count` and `order=asc|desc` apply before pagination. Native string ordering provides deterministic count ties. Invalid ordering is refused.
 
 Post/page collections accept single exact native `moonpress_category` and `moonpress_tag` names, combined with AND. The native 96-byte term bounds apply. Both public and authorized edit collection filters run after their visibility/ownership gates and before totals.
+
+Media inventory accepts bounded, case-insensitive filename `search` before totals and pagination. Searching does not bypass whole-snapshot file/byte limits or upload_files authorization. Detail routes reject inventory filters.
