@@ -331,3 +331,5 @@ Native `GET/HEAD categories` lists exact native names and public, listed, due po
 Native `tags` provides the same exact-name inventory and public post-count behavior for native tags.
 
 Taxonomy inventories accept case-insensitive `search` (at most 256 UTF-8 bytes, no controls) and exact `name` (native term bounds). Filters apply before totals and pagination.
+
+Taxonomy `orderby=name|count` and `order=asc|desc` apply before pagination. Native string ordering provides deterministic count ties. Invalid ordering is refused.

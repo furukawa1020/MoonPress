@@ -23,4 +23,8 @@ with NativeSite() as s:
     assert s.request(route+'?search=secret')[2]==[]
     assert s.request(route+'?search='+('a'*257))[0]==400
     assert s.request(route+'?name=')[0]==400
+    assert [r['name'] for r in s.request(route+'?orderby=count&order=desc')[2]]==['shared','one']
+    assert s.request(route+'?orderby=count&order=desc&per_page=1')[2][0]['count']==2
+    assert s.request(route+'?order=sideways')[0]==400
+    assert s.request(route+'?orderby=private')[0]==400
 print('Native taxonomy counts exclude drafts and pages; bounded reads and invalid credential refusal passed.')
