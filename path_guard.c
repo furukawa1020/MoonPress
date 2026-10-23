@@ -142,3 +142,12 @@ MOONBIT_FFI_EXPORT int moonpress_same_media_site(int content, int assets) {
   if (b >= 0) close(b);
   return ok;
 }
+
+MOONBIT_FFI_EXPORT int moonpress_root_matches_child(int root, int child) {
+  int parent = openat(child, "..", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+  struct stat a, b;
+  int ok = parent >= 0 && fstat(root, &a) == 0 && fstat(parent, &b) == 0 &&
+    a.st_dev == b.st_dev && a.st_ino == b.st_ino;
+  if (parent >= 0) close(parent);
+  return ok;
+}

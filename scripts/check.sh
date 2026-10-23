@@ -202,3 +202,5 @@ python3 scripts/rest-history-test.py
 python3 scripts/rest-history-restore-test.py
 
 python3 scripts/rest-media-test.py
+
+python3 scripts/rest-media-upload-test.py

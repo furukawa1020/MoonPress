@@ -83,3 +83,18 @@ test "native preconditions reject missing malformed and stale versions" {
   )
   assert_true(rest_precondition(Some("\"" + digest + "\""), digest) is None)
 }
+
+///|
+test "upload base64 decoder requires canonical padding" {
+  assert_eq(native_base64("AAH/"), b"\x00\x01\xff")
+  assert_eq(native_base64("AA=="), b"\x00")
+  for value in ["", "AB==", "AA=A", "A===", "AAAA=", "!!!!", "AA==AAAA"] {
+    let refused = try {
+      native_base64(value) |> ignore
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(refused)
+  }
+}

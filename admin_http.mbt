@@ -106,7 +106,20 @@ fn admin_headers(
   } else {
     None
   }
-  let limit = if boundary is Some(_) { 8388608 } else { 262144 }
+  let native_upload = if rest && start[0] == "POST" {
+    let (path, _) = rest_target(start[1])
+    native_media_name(path) is Some(_) &&
+    native_rest_methods(path)
+    .map(verbs => verbs.contains("POST"))
+    .unwrap_or(false)
+  } else {
+    false
+  }
+  let limit = if boundary is Some(_) || native_upload {
+    8388608
+  } else {
+    262144
+  }
   if length > limit {
     raise InvalidInput("Request body exceeds route limit (\{limit} bytes)")
   }
