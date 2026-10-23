@@ -107,7 +107,7 @@ fn native_history_read(
     defer directory_close(vault.fd)
     require_same_authoring_site(content, vault)
     vault.lock()
-    let names = @fs.read_dir(vault.path).to_owned()
+    let names = vault.names()
     if names.length() > 4096 {
       raise InvalidInput("History entry limit")
     }

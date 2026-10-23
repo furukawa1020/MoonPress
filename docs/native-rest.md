@@ -259,3 +259,11 @@ prepared under the retained site root when absent; new publication is exclusive
 and durable. Existing names return 409, never overwrite. The response is 201 with
 asset digest, URL and Location. No attachment ownership catalog or image
 transcoding is fabricated, and no build/deployment occurs.
+
+POST `{data}` to native `media/NAME` replaces raster bytes at the same URL.
+Replacement requires editor/administrator `edit_others_posts`, even for an asset
+uploaded by the caller: no per-asset ownership catalog is implied. A quoted
+current asset If-Match is mandatory (428/400/412 for missing/invalid/stale).
+Existing durable staging, mode preservation and byte-identical no-op behavior
+are reused; the site must be rebuilt/deployed separately. Names, signatures and
+body bounds are identical to upload, with no arbitrary metadata overrides.

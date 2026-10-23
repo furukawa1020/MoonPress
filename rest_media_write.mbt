@@ -5,6 +5,7 @@ extern "C" fn native_root_matches(root : Int, child : Int) -> Int = "moonpress_r
 fn native_public_open(
   input : String,
   content : AuthoringDirectory,
+  create? : Bool = true,
 ) -> AuthoringDirectory raise {
   let root = open_authoring_directory(input)
   defer directory_close(root.fd)
@@ -12,9 +13,13 @@ fn native_public_open(
   if native_root_matches(root.fd, content.fd) != 1 {
     raise InvalidInput("Site root identity changed")
   }
-  if root.kind("public") == 0 &&
-    directory_prepare_private(root.fd, authoring_name("public")) < 0 {
-    raise InvalidInput("Cannot prepare asset directory")
+  if root.kind("public") == 0 {
+    if !create {
+      raise InvalidInput("Missing asset directory")
+    }
+    if directory_prepare_private(root.fd, authoring_name("public")) < 0 {
+      raise InvalidInput("Cannot prepare asset directory")
+    }
   }
   let public = open_authoring_subdirectory(input, "public")
   errdefer directory_close(public.fd)
@@ -149,4 +154,65 @@ fn native_media_upload(
     ),
     code: 201,
   }
+}
+
+///|
+fn native_media_replace(
+  input : String,
+  content : AuthoringDirectory,
+  principal : AccessPrincipal,
+  name : String,
+  query : Map[String, String],
+  base : String,
+  expected : String?,
+  body : Bytes,
+) -> RestResponse raise {
+  if !role_capabilities(principal.role).contains("edit_others_posts") {
+    return rest_error(403, "rest_cannot_replace_media")
+  }
+  if !query.is_empty() {
+    return rest_error(400, "rest_invalid_param")
+  }
+  if path_kind(input + "/public") == 0 {
+    return rest_error(404, "moonpress_media_missing")
+  }
+  let directory = native_public_open(input, content, create=false)
+  defer directory_close(directory.fd)
+  directory.lock()
+  if directory.kind(name) == 0 {
+    return rest_error(404, "moonpress_media_missing")
+  }
+  let current = directory.read(name, max_bytes=8388608)
+  let digest = digest_bytes(current)
+  if rest_precondition(expected, digest) is Some(error) {
+    return error
+  }
+  let bytes = try {
+    let fields = strict_json_object(
+      @json.parse(decode_text(body, "Replacement")),
+      ["data"],
+      "Replacement",
+    )
+    let text = match fields.get("data") {
+      Some(String(text)) => text
+      _ => raise InvalidInput("Expected base64 data")
+    }
+    let bytes = native_base64(text)
+    let mime = match raster_preview_mime(name) {
+      Some(mime) => mime
+      None => raise InvalidInput("Only raster replacement")
+    }
+    if !media_preview_signature(mime, bytes) {
+      raise InvalidInput("Image signature mismatch")
+    }
+    bytes
+  } catch {
+    _ => return rest_error(400, "rest_invalid_param")
+  }
+  let report = replace_media_at(input, directory, name, digest, bytes)
+  let value = native_media_value(name, bytes, base)
+  if value is Object(fields) {
+    fields["changed"] = report.changed.to_json()
+  }
+  rest_ok(value, etag=Some(report.item.digest))
 }

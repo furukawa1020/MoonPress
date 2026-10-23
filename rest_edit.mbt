@@ -51,12 +51,12 @@ fn rest_edit_value(
 
 ///|
 fn rest_find_post(
-  input : String,
+  _input : String,
   directory : AuthoringDirectory,
   kind : String,
   id : Int,
 ) -> (String, PostSnapshot, Document)? raise {
-  let names = post_names(input)
+  let names = directory.names()
   if names.length() > 4096 {
     raise InvalidInput("REST source count exceeds limit")
   }
