@@ -1,3 +1,4 @@
+import hashlib
 from rest_fixture import NativeSite
 with NativeSite() as s:
     assets=s.site/'public';assets.mkdir()
@@ -22,4 +23,12 @@ with NativeSite() as s:
     assert s.request(route+'?orderby=bytes&order=asc',role='author')[2][0]['name']=='fake.png'
     assert s.request(route+'?order=bad',role='author')[0]==400
     assert s.request(route+'?orderby=date',role='author')[0]==400
+    (assets/'copy.png').write_bytes((assets/'alpha.png').read_bytes())
+    digest=hashlib.sha256((assets/'alpha.png').read_bytes()).hexdigest()
+    status,h,rows=s.request(route+'?digest='+digest,role='author')
+    assert status==200 and {r['name'] for r in rows}=={'alpha.png','copy.png'} and h['X-WP-Total']=='2'
+    assert s.request(route+'?digest='+('0'*64),role='author')[2]==[]
+    assert s.request(route+'?digest='+digest+'&search=ALPHA',role='author')[1]['X-WP-Total']=='1'
+    assert s.request(route+'?digest=bad',role='author')[0]==400
+    assert s.request(route+'?digest='+digest)[0]==401
 print('Native media queries preserve authorization, validate filters, and count selected results before pagination.')

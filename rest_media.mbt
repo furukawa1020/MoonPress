@@ -54,10 +54,15 @@ fn native_media_read(
   for key, _ in query {
     if ![
         "page", "per_page", "search", "mime_type", "media_type", "order", "orderby",
+        "digest",
       ].contains(key) ||
       !name.is_empty() {
       return rest_error(400, "rest_invalid_param")
     }
+  }
+  let expected_digest = query.get("digest")
+  if expected_digest is Some(value) && !valid_digest(value) {
+    return rest_error(400, "rest_invalid_param")
   }
   let orderby = query.get("orderby").unwrap_or("name")
   let order = query.get("order").unwrap_or("asc")
@@ -129,7 +134,8 @@ fn native_media_read(
     }
     let actual = native_media_mime(name, bytes)
     let actual_type = if actual.has_prefix("image/") { "image" } else { "file" }
-    if name.to_lower().contains(search) &&
+    if (expected_digest is None || expected_digest == Some(digest_bytes(bytes))) &&
+      name.to_lower().contains(search) &&
       (mime is None || mime == Some(actual)) &&
       (media_type is None || media_type == Some(actual_type)) {
       rows.push({
