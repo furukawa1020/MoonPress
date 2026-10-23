@@ -132,6 +132,7 @@ fn native_comments_read(
   for key, value in query {
     if ![
         "context", "status", "post", "page", "per_page", "search", "orderby", "order",
+        "include", "exclude",
       ].contains(key) ||
       (id > 0 && key != "context") ||
       (key == "context" && value != "view" && value != "edit") {
@@ -146,6 +147,12 @@ fn native_comments_read(
   let order = query.get("order").unwrap_or("asc")
   if !["id", "date"].contains(orderby) || !["asc", "desc"].contains(order) {
     return rest_error(400, "rest_invalid_param")
+  }
+  let (included, excluded) = (
+    rest_id_list(query.get("include")),
+    rest_id_list(query.get("exclude")),
+  ) catch {
+    _ => return rest_error(400, "rest_invalid_param")
   }
   let search = native_query_text(query.get("search").unwrap_or("")) catch {
     _ => return rest_error(400, "rest_invalid_param")
@@ -184,6 +191,8 @@ fn native_comments_read(
   let allowed = rows.filter(row => {
     let item = row.comment
     (item.content + "\n" + item.author_name).to_lower().contains(search) &&
+    (included.is_empty() || included.contains(item.id)) &&
+    !excluded.contains(item.id) &&
     (post is None || post == Some(item.post)) &&
     (status == "any" || item.status == status) &&
     (if edit {
