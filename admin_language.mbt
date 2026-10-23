@@ -162,7 +162,8 @@ fn admin_language_target(target : String) -> String {
       "/", "/rooms", "/rooms/write", "/rooms/preview", "/rooms/build", "/rooms/publish",
       "/workflow", "/edit", "/media", "/media-replace", "/media-remove", "/references",
       "/reference-outputs", "/history", "/trash", "/trash-item", "/trash-post", "/revision-diff",
-      "/revision", "/site-settings", "/recovery", "/authoring-recovery", "/publish",
+      "/revision", "/comments", "/comment", "/site-settings", "/recovery", "/authoring-recovery",
+      "/publish",
     ].contains(path) {
     target
   } else {
