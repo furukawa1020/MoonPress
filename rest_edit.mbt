@@ -221,91 +221,65 @@ fn rest_edit(
       return rest_error(400, "rest_invalid_param")
     }
   }
-  let (login, secret) = match authorization {
-    Some(value) =>
-      rest_basic(value) catch {
-        _ => return rest_error(401, "rest_not_logged_in")
-      }
-    None => return rest_error(401, "rest_not_logged_in")
-  }
-  let vault = access_open(input) catch {
-    _ => return rest_error(401, "rest_not_logged_in")
-  }
-  defer directory_close(vault.fd)
-  vault.lock()
-  let state = access_replay(vault) catch {
-    _ => return rest_error(401, "rest_not_logged_in")
-  }
-  let users = state.users.filter(user => {
-    user.login == login &&
-    user.active &&
-    access_equal(user.token_digest, access_token_digest(login, secret))
-  })
-  if users.length() != 1 {
-    return rest_error(401, "rest_not_logged_in")
-  }
-  let principal = access_principal(users[0])
-  let directory = open_authoring_subdirectory(input, "content")
-  defer directory_close(directory.fd)
-  require_same_authoring_site(directory, vault)
-  directory.lock()
-  let (name, snapshot, document) = match
-    rest_find_post(input, directory, kind, id) {
-    Some(found) => found
-    None => return rest_error(404, "rest_post_invalid_id")
-  }
-  if !role_can_edit(
-      principal.role,
-      principal.id,
-      document.author,
-      document.kind,
-      !document.draft,
-    ) {
-    return rest_error(403, "rest_cannot_edit")
-  }
-  let stem = name[:name.length() - 3].to_owned()
-  if body is None {
-    return rest_ok(
-      rest_edit_value(document, stem, base, snapshot.digest),
-      etag=Some(snapshot.digest),
-    )
-  }
-  let expected = match if_match {
-    Some(value) => value
-    None => return rest_error(428, "moonpress_precondition_required")
-  }
-  if expected.length() != 66 ||
-    !expected.has_prefix("\"") ||
-    !expected.has_suffix("\"") ||
-    !valid_digest(expected[1:65].to_owned()) {
-    return rest_error(400, "moonpress_invalid_precondition")
-  }
-  if expected[1:65].to_owned() != snapshot.digest {
-    return rest_error(412, "moonpress_source_changed")
-  }
-  let request_json = @json.parse(decode_text(body.unwrap(), "REST body")) catch {
-    _ => return rest_error(400, "rest_invalid_param")
-  }
-  if request_json is Object(fields) {
-    if fields.get("status") is Some(String(status)) &&
-      ["publish", "future"].contains(status) &&
-      !role_capabilities(principal.role).contains(
-        "publish_" + (if kind == "page" { "pages" } else { "posts" }),
-      ) {
-      return rest_error(403, "rest_cannot_publish")
+  rest_with_access(input, authorization, fn(principal, directory) raise {
+    let (name, snapshot, document) = match
+      rest_find_post(input, directory, kind, id) {
+      Some(found) => found
+      None => return rest_error(404, "rest_post_invalid_id")
     }
-  }
-  let next = rest_update_source(
-    snapshot.content,
-    document,
-    body.unwrap(),
-    principal,
-  ) catch {
-    _ => return rest_error(400, "rest_invalid_param")
-  }
-  let report = save_post_at(input, directory, name, snapshot.digest, next)
-  rest_ok(
-    rest_edit_value(parse_document(next, stem), stem, base, report.digest),
-    etag=Some(report.digest),
-  )
+    if !role_can_edit(
+        principal.role,
+        principal.id,
+        document.author,
+        document.kind,
+        !document.draft,
+      ) {
+      return rest_error(403, "rest_cannot_edit")
+    }
+    let stem = name[:name.length() - 3].to_owned()
+    if body is None {
+      return rest_ok(
+        rest_edit_value(document, stem, base, snapshot.digest),
+        etag=Some(snapshot.digest),
+      )
+    }
+    let expected = match if_match {
+      Some(value) => value
+      None => return rest_error(428, "moonpress_precondition_required")
+    }
+    if expected.length() != 66 ||
+      !expected.has_prefix("\"") ||
+      !expected.has_suffix("\"") ||
+      !valid_digest(expected[1:65].to_owned()) {
+      return rest_error(400, "moonpress_invalid_precondition")
+    }
+    if expected[1:65].to_owned() != snapshot.digest {
+      return rest_error(412, "moonpress_source_changed")
+    }
+    let request_json = @json.parse(decode_text(body.unwrap(), "REST body")) catch {
+      _ => return rest_error(400, "rest_invalid_param")
+    }
+    if request_json is Object(fields) {
+      if fields.get("status") is Some(String(status)) &&
+        ["publish", "future"].contains(status) &&
+        !role_capabilities(principal.role).contains(
+          "publish_" + (if kind == "page" { "pages" } else { "posts" }),
+        ) {
+        return rest_error(403, "rest_cannot_publish")
+      }
+    }
+    let next = rest_update_source(
+      snapshot.content,
+      document,
+      body.unwrap(),
+      principal,
+    ) catch {
+      _ => return rest_error(400, "rest_invalid_param")
+    }
+    let report = save_post_at(input, directory, name, snapshot.digest, next)
+    rest_ok(
+      rest_edit_value(parse_document(next, stem), stem, base, report.digest),
+      etag=Some(report.digest),
+    )
+  })
 }

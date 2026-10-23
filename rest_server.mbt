@@ -65,19 +65,25 @@ fn rest_client(
         query.get("context") == Some("edit") &&
         path != "/wp-json/wp/v2/users/me"
       ) {
-      rest_edit(
-        input,
-        path,
-        query,
-        base,
-        request.authorization,
-        if request.verb == "POST" {
-          Some(body)
+      try {
+        if request.verb != "POST" && rest_is_collection(path) {
+          rest_edit_collection(input, path, query, base, request.authorization)
         } else {
-          None
-        },
-        request.if_match,
-      ) catch {
+          rest_edit(
+            input,
+            path,
+            query,
+            base,
+            request.authorization,
+            if request.verb == "POST" {
+              Some(body)
+            } else {
+              None
+            },
+            request.if_match,
+          )
+        }
+      } catch {
         _ => rest_error(500, "moonpress_edit_unavailable")
       }
     } else if request.verb != "GET" && !head {

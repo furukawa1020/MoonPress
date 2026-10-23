@@ -49,6 +49,15 @@ with tempfile.TemporaryDirectory() as temporary:
                 if request()[0]==200:break
             except OSError:time.sleep(.03)
         else:raise AssertionError('REST edit listener unavailable')
+        for role in roles:
+            connection=http.client.HTTPConnection('127.0.0.1',port,timeout=8)
+            connection.request('GET','/wp-json/wp/v2/posts?context=edit&status=draft&per_page=100',headers={'Authorization':tokens[role]})
+            response=connection.getresponse();listed=json.loads(response.read());connection.close()
+            if role=='subscriber':assert response.status==403
+            else:
+                assert response.status==200
+                permitted={c['id'] for c in cases if c['kind']=='post' and not c['published'] and (role in ['administrator','editor'] or (c['role']==role and c['own']))}
+                assert {p['id'] for p in listed}==permitted
         for case in cases:
             before=case['path'].read_bytes();read=request(case)
             assert read[0]==(200 if case['allowed'] else 403),case

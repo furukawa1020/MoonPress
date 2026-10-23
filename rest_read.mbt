@@ -85,21 +85,21 @@ fn rest_post_value(document : Document, stem : String, base : String) -> Json {
 ///|
 priv struct RestPost {
   document : Document
+  digest : String
   stem : String
 }
 
 ///|
-fn rest_public_posts(input : String) -> Array[RestPost] raise {
-  let directory = open_authoring_subdirectory(input, "content")
-  defer directory_close(directory.fd)
-  directory.lock()
+fn rest_all_posts_at(
+  input : String,
+  directory : AuthoringDirectory,
+) -> Array[RestPost] raise {
   let names = post_names(input)
   if names.length() > 4096 {
     raise InvalidInput("REST source count exceeds limit")
   }
   let posts : Array[RestPost] = []
   let ids : Map[Int, Bool] = Map([])
-  let instant = authoring_time()
   let mut total = 0
   for name in names {
     if !name.has_suffix(".md") {
@@ -119,17 +119,32 @@ fn rest_public_posts(input : String) -> Array[RestPost] raise {
       }
       ids[id] = true
     }
-    if document.draft ||
-      !document.listed ||
-      !publication_due(document.publish_at, instant) {
+    if document.wp_id is None {
+      if !document.draft &&
+        document.listed &&
+        publication_due(document.publish_at, authoring_time()) {
+        raise InvalidInput("Public source requires wp_id")
+      }
       continue
     }
-    if document.wp_id is None {
-      raise InvalidInput(
-        "Public source requires an explicit wp_id before REST reads",
-      )
+    posts.push({ document, digest: digest_bytes(bytes), stem, })
+  }
+  posts
+}
+
+///|
+fn rest_public_posts(input : String) -> Array[RestPost] raise {
+  let directory = open_authoring_subdirectory(input, "content")
+  defer directory_close(directory.fd)
+  directory.lock()
+  let instant = authoring_time()
+  let posts : Array[RestPost] = []
+  for post in rest_all_posts_at(input, directory) {
+    if !post.document.draft &&
+      post.document.listed &&
+      publication_due(post.document.publish_at, instant) {
+      posts.push(post)
     }
-    posts.push({ document, stem, })
   }
   posts
 }
@@ -216,28 +231,15 @@ fn rest_route(
   } else {
     return rest_error(404, "rest_no_route")
   }
-  for key, value in query {
-    if ![
-        "context", "per_page", "page", "slug", "order", "orderby", "search", "include",
-        "exclude", "author", "author_exclude", "offset",
-      ].contains(key) ||
-      (key == "context" && value != "view") ||
-      (key == "order" && value != "asc" && value != "desc") ||
-      (
-        key == "orderby" &&
-        !["date", "id", "title", "slug", "include"].contains(value)
-      ) ||
-      (!tail.is_empty() && key != "context") {
-      return rest_error(400, "rest_invalid_param")
-    }
+  rest_validate_collection(query, false)
+  if !tail.is_empty() && query.keys().any(key => key != "context") {
+    return rest_error(400, "rest_invalid_param")
   }
   let id = if tail.is_empty() {
     None
   } else {
     Some(rest_positive(tail, 2147483647))
   }
-  let size = rest_positive(query.get("per_page").unwrap_or("10"), 100)
-  let page = rest_positive(query.get("page").unwrap_or("1"), 4096)
   let available = rest_public_posts(input) catch {
     _ => return rest_error(500, "moonpress_content_unavailable")
   }
@@ -253,23 +255,5 @@ fn rest_route(
     }
     return rest_error(404, "rest_post_invalid_id")
   }
-  rest_order_posts(posts, query)
-  let offset = rest_nonnegative(query.get("offset").unwrap_or("0"), 409600)
-  let total = posts.length()
-  let pages = (total + size - 1) / size
-  if page > pages && page != 1 {
-    return rest_error(400, "rest_post_invalid_page_number")
-  }
-  let values : Array[Json] = []
-  let start = if query.contains("offset") { offset } else { (page - 1) * size }
-  for i = start; i < total && i < start + size; i = i + 1 {
-    values.push(rest_post_value(posts[i].document, posts[i].stem, base))
-  }
-  {
-    etag: None,
-    code: 200,
-    value: values.to_json(),
-    total: Some(total),
-    pages: Some(pages),
-  }
+  rest_collection_result(posts, query, base, false)
 }

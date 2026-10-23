@@ -60,11 +60,15 @@ with tempfile.TemporaryDirectory() as temporary:
         assert request(method='HEAD')[2] is None
         assert request(method='HEAD')[1]['Content-Length']==headers['Content-Length']
         for identifier in [200,300,400,500,999]:assert request(f'/wp-json/wp/v2/posts/{identifier}')[0]==404
-        for query in ['context=edit','status=draft','per_page=101','page=2','page=01','page=1&page=1','_embed=true','per_page=2147483648']:
+        for query in ['status=draft','per_page=101','page=2','page=01','page=1&page=1','_embed=true','per_page=2147483648']:
             assert request('/wp-json/wp/v2/posts?'+query)[0]==400,query
         assert request('/wp-json/wp/v2/posts/100/revisions')[0]==400
         assert request('/wp-json/wp/v2/comments')[0]==404
         assert request('/wp-json/wp/v2/users/me')[0]==401
+        assert request('/wp-json/wp/v2/posts?context=edit')[0]==401
+        assert request('/wp-json/wp/v2/posts?context=edit&status=draft',headers={'Authorization':token})[2][0]['id']==300
+        assert request('/wp-json/wp/v2/posts?context=edit&status=any&per_page=100',headers={'Authorization':token})[1]['X-WP-Total']=='5'
+        assert request('/wp-json/wp/v2/posts?context=edit&status=draft&include=0',headers={'Authorization':token})[0]==400
         me=request('/wp-json/wp/v2/users/me?context=edit',headers={'Authorization':token})
         assert me[0]==200 and me[2]['roles']==['administrator'] and me[2]['capabilities']['manage_options'] is True
         subscriber=request('/wp-json/wp/v2/users/me?context=edit',headers={'Authorization':basic('bobby',bob['secret'])})
