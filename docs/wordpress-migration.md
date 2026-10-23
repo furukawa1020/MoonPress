@@ -26,7 +26,7 @@ No users, comments, attachment files, hierarchy or site options are exported.
 WordPress core pages do not register categories/tags; those fields remain in native
 source metadata. Relative links/assets and permalink differences need migration
 review; media is not silently downloaded or rewritten. Review the resulting
-WordPress site before making it public. Gutenberg/shortcodes/PHP extensions still
+WordPress site before making it public. Dynamic blocks, shortcodes and PHP extensions still
 need their own supported implementations and interoperability tests.
 
 Reference: https://developer.wordpress.org/reference/functions/export_wp/
@@ -57,7 +57,7 @@ the 4 MiB editor limit. It is a bounded WXR reader, not a general XML processor.
 Without native source metadata, plain text, p/h1-h6 with representable ordered
 inline strong/em/code/safe links, and flat ul/ol/li lists are supported. Ordered
 list starts are 1–999999999. Native render-back checks refuse lossy structure.
-Nested lists, block children inside list items, arbitrary attributes/complex HTML, Gutenberg, shortcodes,
+Nested lists, block children inside list items, arbitrary attributes/complex HTML, unsupported blocks and shortcodes,
 private/password posts, comments, custom fields/taxonomies and nested page
 hierarchy produce explicit item errors. Authors, original URLs/GUIDs, discussion
 settings, ordering and site options are not applied and are reported as warnings.
@@ -70,3 +70,12 @@ Importer 0.9.6 archive is pinned to SHA256
 `85cfad65e24eb3b25ed536f52ce52c3971bd42a852d6f2c6a5bea8c5c429c323`.
 
 Transient WordPress `_edit_lock`, `_edit_last`, `_encloseme` and `_pingme` records are ignored with an explicit warning; user-defined custom fields still produce unsupported-item errors.
+
+Static Gutenberg `paragraph`, `heading` (level 1–6), `list` (ordered/start) and
+`list-item` wrappers are validated against their single HTML root and paired
+closing comment before conversion. Only the known `wp-block-heading` and
+`wp-block-list` classes are discarded; arbitrary styling/attributes are refused.
+Lists remain flat. Unsupported/mismatched/unclosed/dynamic/plugin blocks and
+ordinary comments produce errors; no PHP/JavaScript or block callbacks execute.
+Block comments are intentionally not retained: imported/editable content becomes
+native Markdown and generated HTML, not a Gutenberg editor save round trip.

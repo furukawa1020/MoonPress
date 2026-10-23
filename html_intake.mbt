@@ -9,12 +9,32 @@ fn WxrReader::html_children(
   self : WxrReader,
   parent : String,
   depth : Int,
+  block? : String? = None,
 ) -> Array[IntakeHtml] raise {
   if depth > 32 {
     raise InvalidInput("HTML depth limit")
   }
   let nodes : Array[IntakeHtml] = []
   while self.offset < self.source.length() {
+    if self.starts("<!--") {
+      if self.nodes >= 100000 {
+        raise InvalidInput("HTML block node limit")
+      }
+      self.nodes += 1
+      self.offset += 4
+      let token = self.through("-->").trim().to_owned()
+      if token.has_prefix("/wp:") {
+        if block != Some(token[4:].to_owned()) {
+          raise InvalidInput("Mismatched WordPress block close")
+        }
+        return nodes
+      }
+      if block is Some(_) {
+        raise InvalidInput("Nested block wrappers require HTML containment")
+      }
+      nodes.push(self.html_block(token, parent, depth))
+      continue
+    }
     if self.starts("</") {
       self.offset += 2
       if parent.is_empty() || self.name() != parent {
@@ -77,8 +97,8 @@ fn WxrReader::html_children(
       nodes.push(Text(wxr_html_entities(text)))
     }
   }
-  if !parent.is_empty() {
-    raise InvalidInput("Unclosed HTML element")
+  if !parent.is_empty() || block is Some(_) {
+    raise InvalidInput("Unclosed HTML element/block")
   }
   nodes
 }
