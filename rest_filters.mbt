@@ -29,6 +29,12 @@ fn rest_filter_posts(
   posts : Array[RestPost],
   query : Map[String, String],
 ) -> Array[RestPost] raise {
+  let category = query
+    .get("moonpress_category")
+    .map(value => rest_named_terms([value.to_json()])[0])
+  let tag = query
+    .get("moonpress_tag")
+    .map(value => rest_named_terms([value.to_json()])[0])
   let selected_ids = rest_id_list(query.get("include"))
   let exclude = rest_id_list(query.get("exclude"))
   let authors = rest_id_list(query.get("author"))
@@ -71,6 +77,8 @@ fn rest_filter_posts(
     } else {
       (doc.title + "\n" + doc.description + "\n" + doc.body).to_lower()
     }
+    (category is None || doc.categories.contains(category.unwrap())) &&
+    (tag is None || doc.tags.contains(tag.unwrap())) &&
     (selected_ids.is_empty() || selected_ids.contains(id)) &&
     !exclude.contains(id) &&
     (authors.is_empty() || authors.contains(doc.author)) &&
