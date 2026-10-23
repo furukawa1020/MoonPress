@@ -329,3 +329,5 @@ Existing edit, settings, media detail and historical detail source ETags keep th
 Native `GET/HEAD categories` lists exact native names and public, listed, due post counts. Categories belonging only to drafts, unlisted articles, pages or future publications are excluded. It supports bounded page/per_page and field projection. Names are not invented WordPress numeric term IDs. Explicit bad credentials never fall back to anonymous reads.
 
 Native `tags` provides the same exact-name inventory and public post-count behavior for native tags.
+
+Taxonomy inventories accept case-insensitive `search` (at most 256 UTF-8 bytes, no controls) and exact `name` (native term bounds). Filters apply before totals and pagination.
