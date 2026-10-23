@@ -54,8 +54,10 @@ excessive depth/nodes. Input is bounded to 16 MiB before file allocation, 100,00
 nodes, depth 32, 64 attributes/element and 4,096 items; imported sources must fit
 the 4 MiB editor limit. It is a bounded WXR reader, not a general XML processor.
 
-Without native source metadata, plain text and attribute-free p/h1-h6 HTML with
-text-only children are supported. Inline/complex HTML, Gutenberg, shortcodes,
+Without native source metadata, plain text, p/h1-h6 with representable ordered
+inline strong/em/code/safe links, and flat ul/ol/li lists are supported. Ordered
+list starts are 1–999999999. Native render-back checks refuse lossy structure.
+Nested lists, block children inside list items, arbitrary attributes/complex HTML, Gutenberg, shortcodes,
 private/password posts, comments, custom fields/taxonomies and nested page
 hierarchy produce explicit item errors. Authors, original URLs/GUIDs, discussion
 settings, ordering and site options are not applied and are reported as warnings.

@@ -175,3 +175,7 @@ converted inline fragment must render to the expected escaped HTML exactly;
 intraword emphasis, whitespace-edge emphasis, nested formatted link/code labels,
 unsupported attributes/elements, unsafe destinations and ordinary comments are
 refused instead of flattened. This is a strict representable subset of HTML.
+
+Flat `ul`/`ol` lists with inline `li` children are accepted through the same
+render-back validation. `ol start` accepts 1–999999999. Empty/nested lists,
+block-bearing list items and arbitrary list/item attributes are refused.

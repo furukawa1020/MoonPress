@@ -37,7 +37,7 @@ with tempfile.TemporaryDirectory() as temporary:
     header='<rss version="2.0" xmlns:wp="http://wordpress.org/export/1.2/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/"><channel><wp:wxr_version>1.2</wp:wxr_version>'
     def fixture(body,status='publish',extra=''):
         return header+'<item><title>WP &amp; 月</title><wp:post_id>123</wp:post_id><wp:post_type>post</wp:post_type><wp:status>'+status+'</wp:status><content:encoded><![CDATA['+body+']]></content:encoded><wp:post_date_gmt>2020-01-01 00:00:00</wp:post_date_gmt>'+extra+'</item></channel></rss>'
-    for body in ('Plain *literal* [text] without shortcode syntax','<h2>Heading</h2><p>Text &amp; data</p>','<p>Before <strong>bold</strong> after <em>soft</em>.</p>'):
+    for body in ('Plain *literal* [text] without shortcode syntax','<h2>Heading</h2><p>Text &amp; data</p>','<p>Before <strong>bold</strong> after <em>soft</em>.</p>','<ul><li>First <strong>bold</strong> end</li><li>Second</li></ul>'):
         # Bracket-bearing external content is conservatively refused because it
         # may be a shortcode. Supported literal body uses ordinary text instead.
         if '[' in body: body='Plain *literal* text'
