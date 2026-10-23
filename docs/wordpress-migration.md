@@ -94,3 +94,7 @@ fence. Only a supported `language-NAME` code class is accepted. Indentation,
 blank lines and decoded literal characters are retained; CRLF/CR normalize to LF,
 and nonempty code receives a final newline when missing, matching native fenced
 code. Nested markup, arbitrary attributes and fence runs above 4096 are refused.
+
+Attribute-free top-level `hr`/`hr />` converts to a native thematic break with
+paragraph boundaries preserved. Attributed rules and rules inside inline content
+are refused.

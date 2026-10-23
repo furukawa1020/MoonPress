@@ -174,3 +174,20 @@ test "HTML preformatted code preserves literal whitespace and fence contents" {
     assert_true(refused)
   }
 }
+
+///|
+test "HTML rules preserve block boundaries" {
+  assert_eq(
+    render_markdown(wxr_body("<p>Before</p><hr><p>After</p><hr />")),
+    "<p>Before</p>\n<hr>\n<p>After</p>\n<hr>\n",
+  )
+  for text in ["<hr class='x'>", "<p>A<hr>B</p>", "<hr></hr>"] {
+    let refused = try {
+      wxr_body(text) |> ignore
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(refused)
+  }
+}
