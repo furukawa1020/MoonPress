@@ -88,3 +88,9 @@ that structure. Void tags cannot carry event/style attributes.
 Flat `blockquote` containing exactly one supported paragraph converts to a native
 quote, including supported inline markup and representable hard breaks. Nested
 quotes, multiple paragraphs and arbitrary quote attributes remain explicit errors.
+
+`pre` literal text or `pre > code` converts to a bounded collision-safe native
+fence. Only a supported `language-NAME` code class is accepted. Indentation,
+blank lines and decoded literal characters are retained; CRLF/CR normalize to LF,
+and nonempty code receives a final newline when missing, matching native fenced
+code. Nested markup, arbitrary attributes and fence runs above 4096 are refused.

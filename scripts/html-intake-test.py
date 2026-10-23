@@ -6,6 +6,7 @@ cases += [('<ul><li>First <strong>bold</strong> end</li><li>Second &amp; 月</li
 cases += [('<!-- wp:paragraph --><p>Before <strong>bold</strong> end.</p><!-- /wp:paragraph -->','<p>Before <strong>bold</strong> end.</p>\n'),('<!-- wp:list {"ordered":true,"start":3} --><ol class="wp-block-list" start="3"><!-- wp:list-item --><li>Third</li><!-- /wp:list-item --></ol><!-- /wp:list -->','<ol start="3">\n<li>Third</li>\n</ol>\n')]
 cases += [('<p>Line one<br>Line two<br />月</p>','<p>Line one<br>\nLine two<br>\n月</p>\n')]
 cases += [('<blockquote><p>A <strong>quoted</strong> line<br>Next</p></blockquote>','<blockquote>\n<p>A <strong>quoted</strong> line<br>\nNext</p>\n</blockquote>\n')]
+cases += [('<pre><code class="language-moonbit">  x &lt; y\n```\n</code></pre>','<pre><code class="language-moonbit">  x &lt; y\n```\n</code></pre>\n')]
 if len(sys.argv)>1:cases+=json.loads(pathlib.Path(sys.argv[1]).read_text())
 with NativeSite() as site:
     for index,(body,expected) in enumerate(cases):
