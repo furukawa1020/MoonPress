@@ -178,7 +178,7 @@ fn rest_route(
     }
     let edit_route : Json = {
       "namespace": "wp/v2".to_json(),
-      "methods": ["GET", "HEAD", "POST"].to_json(),
+      "methods": ["GET", "HEAD", "POST", "DELETE"].to_json(),
     }
     return rest_ok({
       "name": "MoonPress".to_json(),
@@ -200,7 +200,7 @@ fn rest_route(
         "read_only": false.to_json(),
         "contexts": ["view", "edit"].to_json(),
         "unsupported": [
-          "delete", "taxonomy-ids", "embeds", "xml-rpc", "php-plugins",
+          "force-delete", "taxonomy-ids", "embeds", "xml-rpc", "php-plugins",
         ].to_json(),
       },
     })

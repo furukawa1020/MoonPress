@@ -9,6 +9,16 @@ pub fn trash_post(
   let content = open_authoring_subdirectory(input, "content")
   defer directory_close(content.fd)
   content.lock()
+  trash_post_at(input, content, name, expected)
+}
+
+///|
+fn trash_post_at(
+  input : String,
+  content : AuthoringDirectory,
+  name : String,
+  expected : String,
+) -> RevisionSummary raise {
   if content.kind(".moonpress-edit") != 0 {
     raise InvalidInput(
       "Interrupted article editing must be inspected before moving to trash",

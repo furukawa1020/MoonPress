@@ -182,6 +182,8 @@ pub fn restore_trashed_post(String, String, String) -> SavePostReport raise
 
 pub fn review_build_plan(String, String, include_drafts? : Bool) -> ReviewedBuildPlan raise
 
+pub fn role_can_delete(String, Int, Int, String, Bool) -> Bool raise
+
 pub fn role_can_edit(String, Int, Int, String, Bool) -> Bool raise
 
 pub fn role_capabilities(String) -> Array[String] raise
