@@ -48,8 +48,14 @@ fn native_history_target(path : String) -> (String, Int, String?)? {
 
 ///|
 fn native_rest_methods(path : String) -> Array[String]? {
-  if native_comment_id(path) == Some(0) {
-    return Some(["POST", "OPTIONS"])
+  if native_comment_id(path) is Some(id) {
+    return Some(
+      if id == 0 {
+        ["GET", "HEAD", "POST", "OPTIONS"]
+      } else {
+        ["GET", "HEAD", "OPTIONS"]
+      },
+    )
   }
   if native_media_name(path) is Some(_) {
     return Some(["GET", "HEAD", "POST", "OPTIONS"])
@@ -100,12 +106,23 @@ fn rest_native(
   if request.verb == "OPTIONS" && request.authorization is None {
     return native_rest_options(path, query)
   }
+  if native_comment_id(path) is Some(id) &&
+    request.authorization is None &&
+    (request.verb == "GET" || request.verb == "HEAD") {
+    let content = open_authoring_subdirectory(input, "content")
+    defer directory_close(content.fd)
+    content.lock()
+    return native_comments_read(input, content, None, id, query)
+  }
   rest_with_access(input, request.authorization, fn(principal, content) raise {
     if request.verb == "OPTIONS" {
       return native_rest_options(path, query)
     }
-    if native_comment_id(path) == Some(0) {
-      return native_comment_create(input, content, principal, query, body)
+    if native_comment_id(path) is Some(id) {
+      if request.verb == "POST" {
+        return native_comment_create(input, content, principal, query, body)
+      }
+      return native_comments_read(input, content, Some(principal), id, query)
     }
     if native_media_name(path) is Some(name) {
       if request.verb == "POST" && !name.is_empty() {
@@ -177,7 +194,11 @@ fn native_discovery_routes(value : Json) -> Json {
   if value is Object(routes) {
     routes["/moonpress/v1/comments"] = {
       "namespace": "moonpress/v1".to_json(),
-      "methods": ["POST", "OPTIONS"].to_json(),
+      "methods": ["GET", "HEAD", "POST", "OPTIONS"].to_json(),
+    }
+    routes["/moonpress/v1/comments/(?P<id>[0-9]+)"] = {
+      "namespace": "moonpress/v1".to_json(),
+      "methods": ["GET", "HEAD", "OPTIONS"].to_json(),
     }
     for path in ["/moonpress/v1/media", "/moonpress/v1/media/(?P<name>[^/]+)"] {
       routes[path] = {

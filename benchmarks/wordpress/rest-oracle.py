@@ -82,3 +82,5 @@ subprocess.run([sys.executable,'scripts/rest-media-upload-test.py'],check=True)
 subprocess.run([sys.executable,'scripts/rest-media-replace-test.py'],check=True)
 
 subprocess.run([sys.executable,'scripts/rest-comment-create-test.py'],check=True)
+
+subprocess.run([sys.executable,'scripts/rest-comment-read-test.py'],check=True)

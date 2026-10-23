@@ -116,3 +116,96 @@ fn native_comment_create(
     code: 201,
   }
 }
+
+///|
+fn native_comments_read(
+  input : String,
+  content : AuthoringDirectory,
+  principal : AccessPrincipal?,
+  id : Int,
+  query : Map[String, String],
+) -> RestResponse raise {
+  let edit = query.get("context") == Some("edit")
+  if edit && principal is None {
+    return rest_error(401, "rest_not_logged_in")
+  }
+  let status = query
+    .get("status")
+    .unwrap_or(if edit { "any" } else { "approved" })
+  for key, value in query {
+    if !["context", "status", "post", "page", "per_page"].contains(key) ||
+      (id > 0 && key != "context") ||
+      (key == "context" && value != "view" && value != "edit") {
+      return rest_error(400, "rest_invalid_param")
+    }
+  }
+  if !["any", "approved", "hold", "spam", "trash"].contains(status) ||
+    (!edit && status != "approved") {
+    return rest_error(400, "rest_invalid_param")
+  }
+  let post = try {
+    rest_page_bounds(0, query) |> ignore
+    match query.get("post") {
+      Some(value) => Some(rest_positive(value, 2147483647))
+      None => None
+    }
+  } catch {
+    _ => return rest_error(400, "rest_invalid_param")
+  }
+  let public : Map[Int, Bool] = Map([])
+  if !edit {
+    let now = authoring_time()
+    for article in rest_all_posts_at(input, content) {
+      let doc = article.document
+      if !doc.draft && doc.listed && publication_due(doc.publish_at, now) {
+        public[doc.wp_id.unwrap()] = true
+      }
+    }
+  }
+  let rows = match comment_open(input, content) {
+    Some(log) => {
+      defer directory_close(log.fd)
+      log.lock()
+      comment_replay(log).rows
+    }
+    None => []
+  }
+  let moderator = match principal {
+    Some(user) => role_capabilities(user.role).contains("edit_others_posts")
+    None => false
+  }
+  let allowed = rows.filter(row => {
+    let item = row.comment
+    (post is None || post == Some(item.post)) &&
+    (status == "any" || item.status == status) &&
+    (if edit {
+      moderator || principal.unwrap().id == item.author
+    } else {
+      item.status == "approved" && public.contains(item.post)
+    })
+  })
+  if id > 0 {
+    for row in allowed {
+      if row.comment.id == id {
+        return rest_ok(
+          native_comment_value(row, edit),
+          etag=if edit { Some(row.revision) } else { None },
+        )
+      }
+    }
+    return rest_error(404, "moonpress_comment_missing")
+  }
+  let (start, size, pages) = match rest_page_bounds(allowed.length(), query) {
+    Some(bounds) => bounds
+    None => return rest_error(400, "rest_post_invalid_page_number")
+  }
+  let selected : Array[Json] = []
+  for i = start; i < allowed.length() && i < start + size; i = i + 1 {
+    selected.push(native_comment_value(allowed[i], edit))
+  }
+  {
+    ..rest_ok(selected.to_json()),
+    total: Some(allowed.length()),
+    pages: Some(pages),
+  }
+}
