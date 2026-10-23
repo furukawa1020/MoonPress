@@ -18,7 +18,7 @@ fn native_taxonomy_read(
   query : Map[String, String],
 ) -> RestResponse raise {
   for key, _ in query {
-    if !["page", "per_page", "search", "name"].contains(key) {
+    if !["page", "per_page", "search", "name", "order", "orderby"].contains(key) {
       return rest_error(400, "rest_invalid_param")
     }
   }
@@ -33,6 +33,11 @@ fn native_taxonomy_read(
     (native_query_text(query.get("search").unwrap_or("")), exact)
   } catch {
     _ => return rest_error(400, "rest_invalid_param")
+  }
+  let orderby = query.get("orderby").unwrap_or("name")
+  let order = query.get("order").unwrap_or("asc")
+  if !["name", "count"].contains(orderby) || !["asc", "desc"].contains(order) {
+    return rest_error(400, "rest_invalid_param")
   }
   let counts : Map[String, Int] = Map([])
   let now = authoring_time()
@@ -58,7 +63,19 @@ fn native_taxonomy_read(
     .filter(name => {
       (exact is None || exact == Some(name)) && name.to_lower().contains(search)
     })
-  names.sort()
+  names.sort_by(fn(a, b) {
+    let compared = if orderby == "count" {
+      counts[a].compare(counts[b])
+    } else {
+      a.compare(b)
+    }
+    let compared = if compared == 0 { a.compare(b) } else { compared }
+    if order == "asc" {
+      compared
+    } else {
+      0 - compared
+    }
+  })
   let (start, size, pages) = match rest_page_bounds(names.length(), query) {
     Some(value) => value
     None => return rest_error(400, "rest_post_invalid_page_number")
