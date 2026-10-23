@@ -130,7 +130,9 @@ fn native_comments_read(
     .get("status")
     .unwrap_or(if edit { "any" } else { "approved" })
   for key, value in query {
-    if !["context", "status", "post", "page", "per_page"].contains(key) ||
+    if !["context", "status", "post", "page", "per_page", "search"].contains(
+        key,
+      ) ||
       (id > 0 && key != "context") ||
       (key == "context" && value != "view" && value != "edit") {
       return rest_error(400, "rest_invalid_param")
@@ -139,6 +141,9 @@ fn native_comments_read(
   if !["any", "approved", "hold", "spam", "trash"].contains(status) ||
     (!edit && status != "approved") {
     return rest_error(400, "rest_invalid_param")
+  }
+  let search = native_query_text(query.get("search").unwrap_or("")) catch {
+    _ => return rest_error(400, "rest_invalid_param")
   }
   let post = try {
     rest_page_bounds(0, query) |> ignore
@@ -173,6 +178,7 @@ fn native_comments_read(
   }
   let allowed = rows.filter(row => {
     let item = row.comment
+    (item.content + "\n" + item.author_name).to_lower().contains(search) &&
     (post is None || post == Some(item.post)) &&
     (status == "any" || item.status == status) &&
     (if edit {

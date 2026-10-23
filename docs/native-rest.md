@@ -343,3 +343,5 @@ Media inventory accepts `media_type=image|file` and exact supported `mime_type`.
 Media `orderby=name|bytes` and `order=asc|desc` sort selected files before pagination, with deterministic filename ties. Size is the actual opened file length.
 
 Media `digest` accepts a lowercase SHA-256 content digest to find existing identical assets before another upload. It combines with other filters, retains authorization, and does not create or delete files.
+
+Comment inventory `search` matches bounded case-insensitive content or public author label after visibility/ownership filtering and before totals. Hidden matches never affect public counts.
