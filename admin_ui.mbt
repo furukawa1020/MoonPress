@@ -154,6 +154,12 @@ fn admin_route(
   token : String,
 ) -> (Int, String) raise {
   if request.verb == "GET" {
+    if request.target.has_prefix("/comment?") {
+      return admin_comment_item(
+        input,
+        admin_form(request.target[9:].to_owned()),
+      )
+    }
     if request.target == "/comments" {
       return (200, admin_comments(input, Map([])))
     }

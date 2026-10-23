@@ -337,3 +337,5 @@ See [administration languages](languages.md) for automatic Japanese/English
 selection and persistent browser overrides. Save before switching language.
 
 The local operator navigation now includes Comments. The no-JavaScript inventory defaults to pending comments and offers status counts, bounded search and pagination. It escapes stored labels/text and never changes comment state on GET. This is the existing trusted loopback operator interface, separate from generated-credential multiuser REST.
+
+Each comment links to an escaped inspection page showing its current source version. Unknown comments return 404; malformed IDs and extra parameters are refused. Inspection is read-only.
