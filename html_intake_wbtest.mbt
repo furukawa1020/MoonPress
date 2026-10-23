@@ -60,3 +60,41 @@ test "flat HTML lists preserve order starts inline and following blocks" {
     assert_true(refused)
   }
 }
+
+///|
+test "static WordPress blocks validate wrappers and HTML agreement" {
+  assert_eq(
+    render_markdown(
+      wxr_body(
+        "<!-- wp:paragraph --><p>Before <strong>bold</strong> end.</p><!-- /wp:paragraph --><!-- wp:heading {\"level\":3} --><h3 class=\"wp-block-heading\">Heading</h3><!-- /wp:heading -->",
+      ),
+    ),
+    "<p>Before <strong>bold</strong> end.</p>\n<h3 id=\"mp-heading\">Heading</h3>\n",
+  )
+  assert_eq(
+    render_markdown(
+      wxr_body(
+        "<!-- wp:list {\"ordered\":true,\"start\":3} --><ol start=\"3\" class=\"wp-block-list\"><!-- wp:list-item --><li>Third</li><!-- /wp:list-item --><!-- wp:list-item --><li>Fourth</li><!-- /wp:list-item --></ol><!-- /wp:list -->",
+      ),
+    ),
+    "<ol start=\"3\">\n<li>Third</li>\n<li>Fourth</li>\n</ol>\n",
+  )
+  for
+    source in [
+      "<!-- wp:paragraph --><p>A</p>", "<!-- wp:paragraph --><p>A</p><!-- /wp:heading -->",
+      "<!-- wp:paragraph --><h2>A</h2><!-- /wp:paragraph -->", "<!-- wp:heading {\"level\":3} --><h2>A</h2><!-- /wp:heading -->",
+      "<!-- wp:heading {\"level\":7} --><h2>A</h2><!-- /wp:heading -->", "<!-- wp:heading {\"align\":\"center\"} --><h2>A</h2><!-- /wp:heading -->",
+      "<!-- wp:list {\"ordered\":true,\"start\":3} --><ol><li>A</li></ol><!-- /wp:list -->",
+      "<!-- wp:list {\"ordered\":\"true\"} --><ol><li>A</li></ol><!-- /wp:list -->",
+      "<!-- wp:paragraph --><p class=\"arbitrary\">A</p><!-- /wp:paragraph -->",
+      "<!-- wp:paragraph --><p>A</p><p>B</p><!-- /wp:paragraph -->", "<!-- wp:list-item --><li>A</li><!-- /wp:list-item -->",
+      "<!-- wp:latest-posts /-->", "<!-- wp:plugin/block --><p>A</p><!-- /wp:plugin/block -->",
+      "<!-- /wp:paragraph -->", "<!-- wp:paragraph {} /-->",
+    ] {
+    let mut refused = false
+    try wxr_body(source) |> ignore catch {
+      _ => refused = true
+    }
+    assert_true(refused)
+  }
+}

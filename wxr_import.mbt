@@ -206,10 +206,8 @@ fn wxr_candidate(item : WxrXml, id : String, title : String) -> WxrCandidate {
       )
       body
     } else {
-      if content.contains("<!-- wp:") || content.contains("[") {
-        raise InvalidInput(
-          "Gutenberg/shortcode content requires migration support",
-        )
+      if content.contains("[") {
+        raise InvalidInput("Shortcode content requires migration support")
       }
       let excerpt = item.field("excerpt:encoded")
       if excerpt.contains("<") {

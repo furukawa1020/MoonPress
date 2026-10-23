@@ -37,6 +37,7 @@ $plain_id = wp_insert_post(['post_type'=>'post', 'post_status'=>'publish', 'post
 if (is_wp_error($plain_id)) { throw new RuntimeException($plain_id->get_error_message()); }
 foreach ([
     'WordPress inline intake oracle'=>'<p>Before <strong>bold</strong> after <em>soft</em> and <a href="https://example.test/">link</a> with <code>x &lt; y</code>.</p>',
+    'WordPress block intake oracle'=>'<!-- wp:heading {"level":3} --><h3 class="wp-block-heading">Block heading</h3><!-- /wp:heading --><!-- wp:paragraph --><p>Block <strong>bold</strong> end.</p><!-- /wp:paragraph --><!-- wp:list --><ul class="wp-block-list"><!-- wp:list-item --><li>Block item</li><!-- /wp:list-item --></ul><!-- /wp:list -->',
     'WordPress list intake oracle'=>'<ul><li>First <strong>bold</strong> end</li><li>Second</li></ul><ol start="3"><li>Third</li><li>Fourth</li></ol>',
 ] as $title=>$body) {
     $id = wp_insert_post(['post_type'=>'post', 'post_status'=>'publish', 'post_title'=>$title, 'post_content'=>$body], true);

@@ -179,3 +179,8 @@ refused instead of flattened. This is a strict representable subset of HTML.
 Flat `ul`/`ol` lists with inline `li` children are accepted through the same
 render-back validation. `ol start` accepts 1–999999999. Empty/nested lists,
 block-bearing list items and arbitrary list/item attributes are refused.
+
+The same intake accepts the validated static Gutenberg paragraph/heading/list/
+list-item subset described in [migration](wordpress-migration.md). It returns
+native generated HTML; it does not preserve Gutenberg editing metadata or run
+block/plugin code.
