@@ -68,3 +68,5 @@ subprocess.run([sys.executable,'scripts/rest-options-test.py'],check=True)
 subprocess.run([sys.executable,'scripts/html-intake-test.py'],check=True)
 
 subprocess.run([sys.executable,'scripts/rest-terms-test.py'],check=True)
+
+subprocess.run([sys.executable,'scripts/rest-slug-test.py'],check=True)

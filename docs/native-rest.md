@@ -211,3 +211,10 @@ entries, each trimmed name 1–96 UTF-8 bytes without controls. Names sort and
 deduplicate; an unchanged set preserves source bytes and ETag. Article ownership,
 publication and If-Match guards still apply. These are not WordPress numeric
 `categories`/`tags` fields, which remain unsupported rather than misinterpreted.
+
+Existing post/page `slug` can be changed with the current If-Match. The native
+flat-slug grammar and 230-byte limit apply; another live canonical slug or source
+stem is a 409 conflict across posts/pages. The source filename, id and owner stay
+unchanged. Repeating the current slug is byte-preserving. Links/redirects and
+previously deployed HTML are not rewritten automatically; review and rebuild the
+site after changing URLs.

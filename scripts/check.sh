@@ -194,3 +194,5 @@ python3 scripts/rest-search-test.py
 python3 scripts/html-intake-test.py
 
 python3 scripts/rest-terms-test.py
+
+python3 scripts/rest-slug-test.py

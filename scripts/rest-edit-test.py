@@ -77,7 +77,7 @@ with tempfile.TemporaryDirectory() as temporary:
         assert request(author,'POST',{'title':'Missing condition'})[0]==428
         assert request(author,'POST',{'title':'Stale'},'"'+'0'*64+'"')[0]==412
         assert request(author,'POST',{'title':'Malformed condition'},read[2]['moonpress_revision'])[0]==400
-        for change in [{'author':100},{'wp_id':999},{'slug':'new'},{'kind':'page'},{'content':'<script>alert(1)</script>'},{'content':'<p><span>Unsupported</span></p>'},{'status':'private'},{'title':False},{'date_gmt':'2099-01-01T00:00:00Z'}]:
+        for change in [{'author':100},{'wp_id':999},{'slug':'../escape'},{'kind':'page'},{'content':'<script>alert(1)</script>'},{'content':'<p><span>Unsupported</span></p>'},{'status':'private'},{'title':False},{'date_gmt':'2099-01-01T00:00:00Z'}]:
             assert request(author,'POST',change,etag)[0]==400,change
         assert request(author,'POST',{'title':'Bad projection'},etag,query='?context=edit&_fields=id..raw')[0]==400
         assert author['path'].read_bytes()==before

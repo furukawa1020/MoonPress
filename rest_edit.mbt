@@ -108,11 +108,12 @@ fn rest_update_source(
   document : Document,
   body : Bytes,
   principal : AccessPrincipal,
+  stem : String,
 ) -> String raise {
   let changes = strict_json_object(
     @json.parse(decode_text(body, "REST body")),
     [
-      "title", "content", "excerpt", "status", "date_gmt", "moonpress_categories",
+      "title", "content", "excerpt", "status", "date_gmt", "slug", "moonpress_categories",
       "moonpress_tags",
     ],
     "REST update",
@@ -157,6 +158,10 @@ fn rest_update_source(
         fields[field] = terms.to_json()
       }
     }
+  }
+  if changes.get("slug") is Some(String(slug)) &&
+    slug != document.slug.unwrap_or(stem) {
+    fields["slug"] = slug.to_json()
   }
   let mut timestamp = document.publish_at
   if changes.get("date_gmt") is Some(String(value)) {
@@ -280,11 +285,24 @@ fn rest_edit(
         return rest_error(403, "rest_cannot_publish")
       }
     }
+    if request_json is Object(fields) &&
+      fields.get("slug") is Some(String(slug)) {
+      if !valid_slug(slug) || @utf8.encode(slug).length() > 230 {
+        return rest_error(400, "rest_invalid_param")
+      }
+      for post in rest_all_posts_at(input, directory, unassigned=true) {
+        if post.stem != stem &&
+          (post.stem == slug || post.document.slug.unwrap_or(post.stem) == slug) {
+          return rest_error(409, "rest_slug_conflict")
+        }
+      }
+    }
     let next = rest_update_source(
       snapshot.content,
       document,
       body.unwrap(),
       principal,
+      stem,
     ) catch {
       _ => return rest_error(400, "rest_invalid_param")
     }
