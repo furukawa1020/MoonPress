@@ -1,0 +1,17 @@
+"""HTML semantics through the actual REST create/update/WXR source path."""
+import pathlib,sys,json
+from rest_fixture import NativeSite,run
+cases=[('<p>Before <strong>bold</strong> after <em>soft</em>.</p>','<p>Before <strong>bold</strong> after <em>soft</em>.</p>\n'),('<p>Read <a href="https://example.test/">月</a> with <code>x &lt; y</code>.</p>','<p>Read <a href="https://example.test/">月</a> with <code>x &lt; y</code>.</p>\n')]
+if len(sys.argv)>1:cases+=json.loads(pathlib.Path(sys.argv[1]).read_text())
+with NativeSite() as site:
+    for index,(body,expected) in enumerate(cases):
+        status,headers,value=site.request('/wp-json/wp/v2/posts','POST',{'title':'HTML '+str(index),'content':body},'author')
+        assert status==201 and value['content']['rendered']==expected,(status,value,expected)
+        path='/wp-json/wp/v2/posts/'+str(value['id'])
+        status,_,value=site.request(path,'POST',{'content':'<p>Changed <strong>bold</strong> end.</p>'},'author',headers['ETag'])
+        assert status==200 and value['content']['rendered']=='<p>Changed <strong>bold</strong> end.</p>\n'
+    before={p.name:p.read_bytes() for p in (site.site/'content').glob('*.md')}
+    for body in ['<p>A<strong>B</strong>C</p>','<p><a href="javascript:alert(1)">x</a></p>','<p><span>x</span></p>','<p>x<!-- hidden -->y</p>','<p><strong>x</p>']:
+        assert site.request('/wp-json/wp/v2/posts','POST',{'title':'Rejected','content':body},'author')[0]==400
+    assert before=={p.name:p.read_bytes() for p in (site.site/'content').glob('*.md')}
+print('HTML intake passed: ordered inline text/styles/links/code, create and update, unsafe/lossy input refused without mutation.')

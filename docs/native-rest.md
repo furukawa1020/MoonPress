@@ -20,7 +20,7 @@ GET and HEAD are supported for reads. Collection parameters are `context=view`, 
 `orderby=date|id|title|slug|include`. Responses include `X-WP-Total` and `X-WP-TotalPages`.
 Unknown/duplicate parameters are rejected. Detail accepts `context=view` or authorized `context=edit`.
 Trailing collection slashes are accepted. `_embed`, taxonomies,
-authentication cookies, OPTIONS/CORS, XML-RPC, permanent deletion and remote trash restoration are not implemented. No unknown parameters are silently treated as effective.
+authentication cookies, cross-origin CORS, XML-RPC, permanent deletion and remote trash restoration are not implemented. No unknown parameters are silently treated as effective.
 
 Post objects contain `id`, `date`, `date_gmt`, `slug`, `status`, `type`, `link`,
 rendered `title`, rendered `content`/`excerpt` with `protected=false`, and
@@ -167,3 +167,11 @@ independent of whether a private article exists. This is descriptive discovery,
 not the complete WordPress JSON Schema; writes take string values and retain the
 native limits and If-Match requirement. Unknown routes/parameters are refused.
 OPTIONS does not enable cross-origin access or weaken the local operator editor.
+
+HTML content intake (REST create/update and external WXR) supports ordered inline
+`strong`/`b`, `em`/`i`, plain-text `code` and plain-label safe `a href` within
+paragraphs/headings. A bounded native parser preserves mixed text order. Each
+converted inline fragment must render to the expected escaped HTML exactly;
+intraword emphasis, whitespace-edge emphasis, nested formatted link/code labels,
+unsupported attributes/elements, unsafe destinations and ordinary comments are
+refused instead of flattened. This is a strict representable subset of HTML.
