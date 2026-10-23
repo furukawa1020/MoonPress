@@ -298,3 +298,10 @@ to `comments/ID`, with its current edit-read If-Match. Missing/invalid/stale tag
 return 428/400/412. Status changes append a private immutable event; same status
 is a no-op with the same ETag. Body, parent and author identity cannot be changed
 by moderation. Approval still never bypasses current parent-article visibility.
+
+Moderator DELETE `comments/ID` with current If-Match moves a comment to trash;
+no request body or force purge is accepted. Repeating trash is a version-bound
+no-op. POST status=hold restores it for review, never directly to approved/spam;
+a separate approval is required before public display. Immutable event history
+and ids are retained, including across restart. Physical comment purge and
+anonymous submissions are not implemented.

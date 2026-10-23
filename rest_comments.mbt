@@ -219,6 +219,7 @@ fn native_comment_moderate(
   query : Map[String, String],
   expected : String?,
   body : Bytes,
+  verb : String,
 ) -> RestResponse raise {
   if !role_capabilities(principal.role).contains("moderate_comments") {
     return rest_error(403, "moonpress_cannot_moderate")
@@ -228,19 +229,23 @@ fn native_comment_moderate(
       return rest_error(400, "rest_invalid_param")
     }
   }
-  let status = try {
-    let fields = strict_json_object(
-      @json.parse(decode_text(body, "Moderation")),
-      ["status"],
-      "Moderation",
-    )
-    match fields.get("status") {
-      Some(String(status)) if ["approved", "hold", "spam"].contains(status) =>
-        status
-      _ => raise InvalidInput("Unsupported comment status")
+  let status = if verb == "DELETE" {
+    "trash"
+  } else {
+    try {
+      let fields = strict_json_object(
+        @json.parse(decode_text(body, "Moderation")),
+        ["status"],
+        "Moderation",
+      )
+      match fields.get("status") {
+        Some(String(status)) if ["approved", "hold", "spam"].contains(status) =>
+          status
+        _ => raise InvalidInput("Unsupported comment status")
+      }
+    } catch {
+      _ => return rest_error(400, "rest_invalid_param")
     }
-  } catch {
-    _ => return rest_error(400, "rest_invalid_param")
   }
   let log = match comment_open(input, content) {
     Some(log) => log
@@ -256,7 +261,7 @@ fn native_comment_moderate(
   if rest_precondition(expected, current.revision) is Some(error) {
     return error
   }
-  if current.comment.status == "trash" {
+  if current.comment.status == "trash" && status != "hold" && status != "trash" {
     return rest_error(409, "moonpress_comment_trashed")
   }
   if current.comment.status == status {

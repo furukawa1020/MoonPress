@@ -86,3 +86,5 @@ subprocess.run([sys.executable,'scripts/rest-comment-create-test.py'],check=True
 subprocess.run([sys.executable,'scripts/rest-comment-read-test.py'],check=True)
 
 subprocess.run([sys.executable,'scripts/rest-comment-moderate-test.py'],check=True)
+
+subprocess.run([sys.executable,'scripts/rest-comment-trash-test.py'],check=True)
