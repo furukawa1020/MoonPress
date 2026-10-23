@@ -214,3 +214,5 @@ python3 scripts/rest-comment-read-test.py
 python3 scripts/rest-comment-moderate-test.py
 
 python3 scripts/rest-comment-trash-test.py
+
+python3 scripts/rest-settings-test.py

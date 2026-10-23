@@ -109,10 +109,7 @@ fn native_comment_create(
     None => return rest_error(409, "moonpress_comment_storage_full")
   }
   {
-    ..rest_ok(
-      native_comment_value(row, true),
-      etag=Some(row.revision),
-    ),
+    ..rest_ok(native_comment_value(row, true), etag=Some(row.revision)),
     code: 201,
   }
 }
