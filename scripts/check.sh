@@ -189,3 +189,4 @@ python3 scripts/rest-edit-test.py
 python3 scripts/rest-create-test.py
 
 python3 scripts/rest-trash-test.py
+python3 scripts/rest-options-test.py
