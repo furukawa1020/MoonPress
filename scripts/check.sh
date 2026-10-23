@@ -231,3 +231,5 @@ python3 scripts/rest-comment-query-test.py
 python3 scripts/rest-comment-summary-test.py
 
 python3 scripts/admin-comment-test.py
+
+python3 scripts/static-comment-test.py

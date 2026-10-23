@@ -99,3 +99,11 @@ The same retained-directory mutation boundary is also used by existing-media
 replacement, post editing, new drafts, duplication and media import/upload.
 Directory preparation remains a separate setup operation. Do not infer an atomic
 site-wide transaction from these guarantees.
+
+## Approved comments in article pages
+
+`comments` is an optional boolean, default `false`. In the local Site settings screen, **Show approved comments** changes it with a CSRF token and current settings version; the advanced JSON editor and native settings API also accept it. Rebuild and publish after changing settings or moderation state. Existing hosted files stay unchanged until that publication.
+
+An enabled build reads one validated private comment snapshot and appends escaped approved comments only to currently public, listed, due articles with a stable wp_id. Draft, unlisted and future articles never receive comment output, including in draft previews. Duplicate IDs are refused when display is enabled. Labels and plain text are escaped; no private author principal IDs or unapproved content are published.
+
+Each article records a digest of its own rendered comment section. Approval, spam or trash changes rebuild only articles whose rendered section changed; unchanged and pending-only discussions do not rewrite article pages. Removing the option removes those sections on the next build. Corrupt comment storage aborts enabled builds before output mutation; disabling comment display does not read that private log.

@@ -25,6 +25,8 @@ fn plan_site(
   require_input_kind(input + "/style.css", 1)
   let instant = publication_time.unwrap_or_else(authoring_time)
   let config = read_site_config(input)
+  let comments = if config.comments { comment_snapshot(input).rows } else { [] }
+  let comment_ids : Map[Int, Bool] = Map([])
   let base_url = config.base_url
   let layouts = load_layouts(input)
   let collection_template = select_layout(
@@ -53,6 +55,12 @@ fn plan_site(
       let source = read_text(path)
       let stem = name[:name.length() - 3].to_owned()
       let document = parse_document(source, stem, filename=path)
+      if config.comments && document.wp_id is Some(id) {
+        if comment_ids.contains(id) {
+          raise InvalidInput("Duplicate article identity for comments")
+        }
+        comment_ids[id] = true
+      }
       if document.draft && !include_drafts {
         record_event(log, "skip", "content/" + name, "draft")
         continue
@@ -86,6 +94,20 @@ fn plan_site(
         { name: template.source, digest: template.digest, },
         { name: "content/" + name, digest: digest_text(source), },
       ]
+      let comment_html = if config.comments &&
+        !document.draft &&
+        document.listed &&
+        publication_due(document.publish_at, instant) {
+        match document.wp_id {
+          Some(id) => render_public_comments(comments, id)
+          None => ""
+        }
+      } else {
+        ""
+      }
+      if config.comments {
+        deps.push({ name: "comments", digest: digest_text(comment_html), })
+      }
       pending.push(
         plan_artifact(
           route,
@@ -97,7 +119,7 @@ fn plan_site(
               apply_layout(
                 template.content,
                 document.title,
-                render_blocks_with_headings(blocks, outline),
+                render_blocks_with_headings(blocks, outline) + comment_html,
                 description=document.description,
                 date=document.date.unwrap_or(""),
                 toc=if template.content.contains("{{toc}}") {

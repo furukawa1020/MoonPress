@@ -343,3 +343,5 @@ Each comment links to an escaped inspection page showing its current source vers
 Comment inspection offers no-JavaScript approval, hold and spam forms. Every mutation requires the per-process CSRF token and the current comment revision. The operator uses the same durable state transition helper as REST; stale forms return HTTP 412 and require a fresh inspection.
 
 The same versioned forms can trash a comment and restore it to hold. Trash never offers direct approval; restoring requires a separate later approval before public display. No permanent purge is offered. CI exercises listing, approval, trash and hold-only restore in real Chrome with JavaScript disabled.
+
+The Site settings page has a single **Show approved comments / Hide comments** button with settings-version protection. It changes source configuration; build and publish the reviewed result to update the public site. Comment inventory and inspection URLs are preserved when switching administration language. The browser CI covers the complete no-JavaScript moderation and display-setting journey.

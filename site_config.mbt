@@ -11,6 +11,7 @@ priv struct SiteConfig {
   feed : FeedConfig?
   page_size : Int?
   tag_page_size : Int?
+  comments : Bool
   tag_index : Bool
   collection_layout : String?
   redirects : Array[Redirect]
@@ -23,7 +24,8 @@ fn parse_site_config(source : String) -> SiteConfig raise {
     _ => raise InvalidInput("site.json must be an object")
   }
   for key, _ in fields {
-    if key != "base_url" &&
+    if key != "comments" &&
+      key != "base_url" &&
       key != "feed" &&
       key != "page_size" &&
       key != "tag_page_size" &&
@@ -64,6 +66,11 @@ fn parse_site_config(source : String) -> SiteConfig raise {
     fields.get("tag_page_size"),
     "tag_page_size",
   )
+  let comments = match fields.get("comments") {
+    None | Some(False) => false
+    Some(True) => true
+    _ => raise InvalidInput("site.json: comments must be a boolean")
+  }
   let tag_index = match fields.get("tag_index") {
     None | Some(False) => false
     Some(True) => true
@@ -83,6 +90,7 @@ fn parse_site_config(source : String) -> SiteConfig raise {
     feed,
     page_size,
     tag_page_size,
+    comments,
     tag_index,
     collection_layout,
     redirects,
@@ -125,6 +133,7 @@ fn read_site_config(input : String) -> SiteConfig raise {
       feed: None,
       page_size: None,
       tag_page_size: None,
+      comments: false,
       tag_index: false,
       collection_layout: None,
       redirects: [],
