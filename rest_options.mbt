@@ -44,6 +44,12 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
       "type": "integer".to_json(),
       "readonly": true.to_json(),
     }
+    for name in ["moonpress_categories", "moonpress_tags"] {
+      properties[name] = {
+        "type": "array".to_json(),
+        "items": { "type": "string".to_json() },
+      }
+    }
     for
       field in [
         "date", "date_gmt", "slug", "status", "type", "link", "moonpress_revision",
@@ -129,6 +135,12 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
       }
     }
     if verb == "POST" && article {
+      for name in ["moonpress_categories", "moonpress_tags"] {
+        args[name] = {
+          "type": "array".to_json(),
+          "items": { "type": "string".to_json() },
+        }
+      }
       for name in ["title", "content", "excerpt", "status", "date_gmt"] {
         args[name] = {
           "type": "string".to_json(),
@@ -161,7 +173,7 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
       "json_body_limit": (262144).to_json(),
       "update_delete_requires_if_match": true.to_json(),
       "permanent_delete": false.to_json(),
-      "write_fields_are_strings": true.to_json(),
+      "named_term_arrays": true.to_json(),
     },
   })
 }

@@ -66,3 +66,5 @@ subprocess.run([sys.executable,'scripts/rest-trash-test.py',access],check=True)
 subprocess.run([sys.executable,'scripts/rest-search-test.py'],check=True)
 subprocess.run([sys.executable,'scripts/rest-options-test.py'],check=True)
 subprocess.run([sys.executable,'scripts/html-intake-test.py'],check=True)
+
+subprocess.run([sys.executable,'scripts/rest-terms-test.py'],check=True)

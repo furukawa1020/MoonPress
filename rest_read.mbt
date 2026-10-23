@@ -85,6 +85,8 @@ fn rest_post_value(document : Document, stem : String, base : String) -> Json {
       "protected": false.to_json(),
     },
     "author": document.author.to_json(),
+    "moonpress_categories": document.categories.to_json(),
+    "moonpress_tags": document.tags.to_json(),
   }
 }
 

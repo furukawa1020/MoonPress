@@ -201,3 +201,13 @@ WordPress SQL collation, relevance scoring or a site-wide static search interfac
 
 Search serializes its five result fields directly without rendering article bodies.
 Source parsing and literal matching still scan the bounded live snapshot.
+
+## Named article classification
+
+`moonpress_categories` and `moonpress_tags` are explicit native string-array
+extensions on public/edit objects and create/update requests. Pass names directly:
+no numeric term catalog or extra lookup is needed. Each array has at most 64
+entries, each trimmed name 1–96 UTF-8 bytes without controls. Names sort and
+deduplicate; an unchanged set preserves source bytes and ETag. Article ownership,
+publication and If-Match guards still apply. These are not WordPress numeric
+`categories`/`tags` fields, which remain unsupported rather than misinterpreted.
