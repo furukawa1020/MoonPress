@@ -337,3 +337,5 @@ Taxonomy `orderby=name|count` and `order=asc|desc` apply before pagination. Nati
 Post/page collections accept single exact native `moonpress_category` and `moonpress_tag` names, combined with AND. The native 96-byte term bounds apply. Both public and authorized edit collection filters run after their visibility/ownership gates and before totals.
 
 Media inventory accepts bounded, case-insensitive filename `search` before totals and pagination. Searching does not bypass whole-snapshot file/byte limits or upload_files authorization. Detail routes reject inventory filters.
+
+Media inventory accepts `media_type=image|file` and exact supported `mime_type`. Both depend on the file signature matching its supported raster extension; an invalid PNG is classified as application/octet-stream. Combined filters use AND.
