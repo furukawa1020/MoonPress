@@ -79,3 +79,8 @@ Lists remain flat. Unsupported/mismatched/unclosed/dynamic/plugin blocks and
 ordinary comments produce errors; no PHP/JavaScript or block callbacks execute.
 Block comments are intentionally not retained: imported/editable content becomes
 native Markdown and generated HTML, not a Gutenberg editor save round trip.
+
+HTML paragraphs accept `br`/`br />` when the result round-trips through native
+hard breaks. Leading/trailing/repeated blank breaks and breaks inside headings,
+list items or cross-line emphasis are refused if native Markdown cannot preserve
+that structure. Void tags cannot carry event/style attributes.

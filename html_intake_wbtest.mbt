@@ -98,3 +98,23 @@ test "static WordPress blocks validate wrappers and HTML agreement" {
     assert_true(refused)
   }
 }
+
+///|
+test "HTML hard breaks retain paragraph line order" {
+  assert_eq(
+    render_markdown(wxr_body("<p>First<br>Second<br />月</p>")),
+    "<p>First<br>\nSecond<br>\n月</p>\n",
+  )
+  for
+    text in [
+      "<h2>A<br>B</h2>", "<p>A<br><br>B</p>", "<p>A<br></p>", "<p><br>A</p>", "<p>A<br onclick='x'>B</p>",
+    ] {
+    let rejected = try {
+      wxr_body(text) |> ignore
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(rejected)
+  }
+}

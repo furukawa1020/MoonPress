@@ -61,6 +61,10 @@ fn WxrReader::html_children(
       while true {
         let before = self.offset
         self.space()
+        if self.starts("/>") && name == "br" {
+          self.offset += 2
+          break
+        }
         if self.starts(">") {
           self.offset += 1
           break
@@ -86,7 +90,17 @@ fn WxrReader::html_children(
         }
         attrs[key] = wxr_html_entities(value)
       }
-      nodes.push(Element(name, attrs, self.html_children(name, depth + 1)))
+      nodes.push(
+        Element(
+          name,
+          attrs,
+          if name == "br" {
+            []
+          } else {
+            self.html_children(name, depth + 1)
+          },
+        ),
+      )
     } else {
       let tail = self.source[self.offset:]
       let text = match tail.split_once("<") {
@@ -143,7 +157,13 @@ fn html_inline(nodes : Array[IntakeHtml]) -> (String, String) raise {
         html.write_string(escape_html(text))
       }
       Element(name, attrs, children) =>
-        if name == "a" || name == "code" {
+        if name == "br" {
+          if !attrs.is_empty() || !children.is_empty() {
+            raise InvalidInput("Unsupported line break attributes")
+          }
+          markdown.write_string("  \n")
+          html.write_string("<br>\n")
+        } else if name == "a" || name == "code" {
           let plain = StringBuilder()
           for child in children {
             match child {
@@ -210,11 +230,19 @@ fn html_inline(nodes : Array[IntakeHtml]) -> (String, String) raise {
 }
 
 ///|
-fn html_inline_checked(nodes : Array[IntakeHtml]) -> String raise {
+fn html_inline_checked(
+  nodes : Array[IntakeHtml],
+  paragraph? : Bool = false,
+) -> String raise {
   let (markdown, expected) = html_inline(nodes)
   let markdown = markdown.trim(chars=" ").to_owned()
-  if markdown.is_empty() ||
-    render_inline(markdown) != expected.trim(chars=" ").to_owned() {
+  let expected = expected.trim(chars=" ").to_owned()
+  let matches = if paragraph {
+    render_markdown(markdown) == "<p>" + expected + "</p>\n"
+  } else {
+    !markdown.contains("\n") && render_inline(markdown) == expected
+  }
+  if markdown.is_empty() || !matches {
     raise InvalidInput(
       "HTML inline structure cannot round-trip through native Markdown",
     )
@@ -249,7 +277,9 @@ fn html_blocks(nodes : Array[IntakeHtml]) -> String raise {
           "h6" => "###### "
           _ => raise InvalidInput("Unsupported HTML block: " + name)
         }
-        body.write_string(prefix + html_inline_checked(children) + "\n\n")
+        body.write_string(
+          prefix + html_inline_checked(children, paragraph=name == "p") + "\n\n",
+        )
       }
     }
   }
