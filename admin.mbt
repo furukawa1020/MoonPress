@@ -12,6 +12,14 @@ fn admin_response(code : Int, html : String, language? : String = "") -> Bytes {
   let bytes = @utf8.encode(html)
   let status = if code == 200 {
     "200 OK"
+  } else if code == 409 {
+    "409 Conflict"
+  } else if code == 412 {
+    "412 Precondition Failed"
+  } else if code == 428 {
+    "428 Precondition Required"
+  } else if code == 500 {
+    "500 Internal Server Error"
   } else if code == 404 {
     "404 Not Found"
   } else {
