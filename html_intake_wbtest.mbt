@@ -141,3 +141,36 @@ test "HTML quotes preserve inline markup and refuse unsupported nesting" {
     assert_true(refused)
   }
 }
+
+///|
+test "HTML preformatted code preserves literal whitespace and fence contents" {
+  assert_eq(
+    render_markdown(
+      wxr_body(
+        "<pre><code class='language-moonbit'>  x &lt; y\n```\n</code></pre>",
+      ),
+    ),
+    "<pre><code class=\"language-moonbit\">  x &lt; y\n```\n</code></pre>\n",
+  )
+  assert_eq(
+    render_markdown(wxr_body("<pre>  plain\n\n next</pre>")),
+    "<pre><code>  plain\n\n next\n</code></pre>\n",
+  )
+  assert_eq(
+    render_markdown(wxr_body("<pre><code></code></pre>")),
+    "<pre><code></code></pre>\n",
+  )
+  for
+    text in [
+      "<pre><script>x</script></pre>", "<pre><code><em>x</em></code></pre>", "<pre><code class='language-x onclick=x'>x</code></pre>",
+      "<pre style='x'>x</pre>",
+    ] {
+    let refused = try {
+      wxr_body(text) |> ignore
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(refused)
+  }
+}
