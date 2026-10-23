@@ -29,7 +29,13 @@ if not plain.get('source') or plain.get('error'): raise ValueError('Core export 
 subprocess.run([cli,'wxr-import',site,core_xml,plan['digest'],plain['id'],'from-wordpress','--json'],check=True,stdout=subprocess.DEVNULL)
 source=(site/'content/from-wordpress.md').read_text(encoding='utf-8')
 if 'Native intake text' not in source or json.loads(source.split('\n---\n')[0][4:])['draft'] is not True: raise ValueError('Core export intake differs')
-print('WXR actual core export -> native inspection -> private draft import passed.')
+for title,name,fragments in [('WordPress inline intake oracle','inline-core',['Before **bold** after *soft*','https://example.test/','`x < y`']),('WordPress list intake oracle','list-core',['- First **bold** end','- Second','3. Third','3. Fourth'])]:
+    candidate=next(item for item in plan['items'] if item['title']==title)
+    assert candidate.get('source') and not candidate.get('error'),candidate
+    subprocess.run([cli,'wxr-import',site,core_xml,plan['digest'],candidate['id'],name,'--json'],check=True,stdout=subprocess.DEVNULL)
+    source=(site/'content'/f'{name}.md').read_text()
+    assert all(fragment in source for fragment in fragments),source
+print('WXR actual core export -> native inspection -> private draft import passed, including ordered inline and flat list content.')
 
 # Verify every advertised native capability against actual installed core roles.
 roles=[json.loads(subprocess.check_output([cli,'access-role',role,'--json'],text=True))['report'] for role in ['subscriber','contributor','author','editor','administrator']]

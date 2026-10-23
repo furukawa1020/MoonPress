@@ -30,3 +30,33 @@ test "ordered HTML inline intake round trips without text reordering" {
     assert_true(refused)
   }
 }
+
+///|
+test "flat HTML lists preserve order starts inline and following blocks" {
+  assert_eq(
+    render_markdown(
+      wxr_body(
+        "<ul><li>First <strong>bold</strong> end</li><li>Second &amp; 月</li></ul><p>After</p>",
+      ),
+    ),
+    "<ul>\n<li>First <strong>bold</strong> end</li>\n<li>Second &amp; 月</li>\n</ul>\n<p>After</p>\n",
+  )
+  assert_eq(
+    render_markdown(
+      wxr_body("<ol start='3'><li>Third</li><li>Fourth</li></ol>"),
+    ),
+    "<ol start=\"3\">\n<li>Third</li>\n<li>Fourth</li>\n</ol>\n",
+  )
+  for
+    source in [
+      "<ul></ul>", "<ul><li></li></ul>", "<ul><li>A<ul><li>B</li></ul></li></ul>",
+      "<ul><li><p>A</p></li></ul>", "<ol start='0'><li>A</li></ol>", "<ol start='1000000000'><li>A</li></ol>",
+      "<ol><li value='4'>A</li></ol>", "<ul>lost<li>A</li></ul>",
+    ] {
+    let mut refused = false
+    try wxr_body(source) |> ignore catch {
+      _ => refused = true
+    }
+    assert_true(refused)
+  }
+}

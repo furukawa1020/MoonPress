@@ -35,6 +35,13 @@ $success = 'WXR actual WordPress import passed: ' . count($expected) . " posts/p
 // Also exercise actual core export in the opposite direction.
 $plain_id = wp_insert_post(['post_type'=>'post', 'post_status'=>'publish', 'post_title'=>'WordPress native intake oracle', 'post_name'=>'wp-native-intake-oracle', 'post_content'=>'<h2>Heading</h2><p>Native intake text &amp; data.</p>', 'post_date'=>'2020-01-01 00:00:00', 'post_date_gmt'=>'2020-01-01 00:00:00'], true);
 if (is_wp_error($plain_id)) { throw new RuntimeException($plain_id->get_error_message()); }
+foreach ([
+    'WordPress inline intake oracle'=>'<p>Before <strong>bold</strong> after <em>soft</em> and <a href="https://example.test/">link</a> with <code>x &lt; y</code>.</p>',
+    'WordPress list intake oracle'=>'<ul><li>First <strong>bold</strong> end</li><li>Second</li></ul><ol start="3"><li>Third</li><li>Fourth</li></ol>',
+] as $title=>$body) {
+    $id = wp_insert_post(['post_type'=>'post', 'post_status'=>'publish', 'post_title'=>$title, 'post_content'=>$body], true);
+    if (is_wp_error($id)) { throw new RuntimeException($id->get_error_message()); }
+}
 require_once ABSPATH . 'wp-admin/includes/export.php';
 ob_start();
 export_wp(['content'=>'post']);

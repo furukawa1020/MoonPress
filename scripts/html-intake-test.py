@@ -2,6 +2,7 @@
 import pathlib,sys,json
 from rest_fixture import NativeSite,run
 cases=[('<p>Before <strong>bold</strong> after <em>soft</em>.</p>','<p>Before <strong>bold</strong> after <em>soft</em>.</p>\n'),('<p>Read <a href="https://example.test/">月</a> with <code>x &lt; y</code>.</p>','<p>Read <a href="https://example.test/">月</a> with <code>x &lt; y</code>.</p>\n')]
+cases += [('<ul><li>First <strong>bold</strong> end</li><li>Second &amp; 月</li></ul>', '<ul>\n<li>First <strong>bold</strong> end</li>\n<li>Second &amp; 月</li>\n</ul>\n'),('<ol start="3"><li>Third</li><li>Fourth</li></ol>','<ol start="3">\n<li>Third</li>\n<li>Fourth</li>\n</ol>\n')]
 if len(sys.argv)>1:cases+=json.loads(pathlib.Path(sys.argv[1]).read_text())
 with NativeSite() as site:
     for index,(body,expected) in enumerate(cases):

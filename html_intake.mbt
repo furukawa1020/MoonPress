@@ -212,6 +212,10 @@ fn html_blocks(nodes : Array[IntakeHtml]) -> String raise {
           raise InvalidInput("Mixed top-level HTML text")
         }
       Element(name, attrs, children) => {
+        if name == "ul" || name == "ol" {
+          body.write_string(html_list(name, attrs, children) + "\n")
+          continue
+        }
         if !attrs.is_empty() {
           raise InvalidInput("Unsupported HTML block attributes")
         }
@@ -230,4 +234,53 @@ fn html_blocks(nodes : Array[IntakeHtml]) -> String raise {
     }
   }
   body.to_string()
+}
+
+///|
+fn html_list(
+  name : String,
+  attrs : Map[String, String],
+  children : Array[IntakeHtml],
+) -> String raise {
+  if attrs.keys().any(key => key != "start" || name != "ol") {
+    raise InvalidInput("Unsupported list attributes")
+  }
+  let start = rest_positive(attrs.get("start").unwrap_or("1"), 999999999).to_string()
+  let marker = if name == "ul" { "- " } else { start + ". " }
+  let markdown = StringBuilder()
+  let expected = StringBuilder()
+  let attribute = if name == "ol" && start != "1" {
+    " start=\"" + start + "\""
+  } else {
+    ""
+  }
+  expected.write_string("<" + name + attribute + ">\n")
+  let mut count = 0
+  for child in children {
+    match child {
+      Text(text) =>
+        if !text.trim().is_empty() {
+          raise InvalidInput("List text outside item")
+        }
+      Element("li", attrs, inline) => {
+        if !attrs.is_empty() {
+          raise InvalidInput("Unsupported list item attributes")
+        }
+        let text = html_inline_checked(inline)
+        markdown.write_string(marker + text + "\n")
+        expected.write_string("<li>" + render_inline(text) + "</li>\n")
+        count += 1
+      }
+      _ => raise InvalidInput("Flat lists require inline li children")
+    }
+  }
+  if count == 0 {
+    raise InvalidInput("Empty list cannot be represented")
+  }
+  expected.write_string("</" + name + ">\n")
+  let markdown = markdown.to_string()
+  if render_markdown(markdown) != expected.to_string() {
+    raise InvalidInput("List cannot round-trip")
+  }
+  markdown
 }
