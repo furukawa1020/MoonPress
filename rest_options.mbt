@@ -134,7 +134,7 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
         for
           name in [
             "search", "slug", "include", "exclude", "author", "author_exclude", "status",
-            "order", "orderby",
+            "order", "orderby", "moonpress_category", "moonpress_tag",
           ] {
           args[name] = { "type": "string".to_json() }
         }
