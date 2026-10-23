@@ -317,3 +317,5 @@ Comment event/byte capacity is an explicit 409 `moonpress_comment_storage_full`,
 not a storage failure. No extra event is written when full; reads and exact
 status no-ops remain available. Physical I/O or integrity failures still fail
 closed with a generic error.
+
+Site settings can also be updated by an administrator with `POST /wp-json/moonpress/v1/settings`, a single `settings` object and the current quoted `If-Match` revision (`"absent"` when missing). The same strict native site configuration validator and durable CLI save machinery apply. Missing/stale guards return 428/412; a semantic no-op retains the exact existing bytes and version. Existing staging files are retained for inspection. New base URLs take effect on the next request without restarting the listener. This updates source configuration; publication remains a separate operation.

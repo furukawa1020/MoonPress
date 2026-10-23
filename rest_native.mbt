@@ -49,7 +49,7 @@ fn native_history_target(path : String) -> (String, Int, String?)? {
 ///|
 fn native_rest_methods(path : String) -> Array[String]? {
   if native_settings_path(path) {
-    return Some(["GET", "HEAD", "OPTIONS"])
+    return Some(["GET", "HEAD", "POST", "OPTIONS"])
   }
   if native_comment_id(path) is Some(id) {
     return Some(
@@ -122,6 +122,16 @@ fn rest_native(
       return native_rest_options(path, query)
     }
     if native_settings_path(path) {
+      if request.verb == "POST" {
+        return native_settings_save(
+          input,
+          content,
+          principal,
+          query,
+          request.if_match,
+          body,
+        )
+      }
       return native_settings_read(input, content, principal, query)
     }
     if native_comment_id(path) is Some(id) {
@@ -212,7 +222,7 @@ fn native_discovery_routes(value : Json) -> Json {
   if value is Object(routes) {
     routes["/moonpress/v1/settings"] = {
       "namespace": "moonpress/v1".to_json(),
-      "methods": ["GET", "HEAD", "OPTIONS"].to_json(),
+      "methods": ["GET", "HEAD", "POST", "OPTIONS"].to_json(),
     }
     routes["/moonpress/v1/comments"] = {
       "namespace": "moonpress/v1".to_json(),
