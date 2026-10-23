@@ -148,7 +148,7 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
         }
       }
     }
-    if verb == "POST" && rest_is_collection(path) {
+    if verb == "POST" && article {
       args["slug"] = { "type": "string".to_json() }
     }
     if verb == "DELETE" {
