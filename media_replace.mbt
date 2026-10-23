@@ -33,6 +33,17 @@ pub fn replace_media(
   let directory = open_authoring_subdirectory(input, "public")
   defer directory_close(directory.fd)
   directory.lock()
+  replace_media_at(input, directory, name, expected, bytes)
+}
+
+///|
+fn replace_media_at(
+  input : String,
+  directory : AuthoringDirectory,
+  name : String,
+  expected : String,
+  bytes : Bytes,
+) -> ReplaceMediaReport raise {
   let current_bytes = directory.read(name)
   let current = media_item(name, current_bytes)
   require_media_version(current, expected)

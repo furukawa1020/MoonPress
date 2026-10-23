@@ -99,11 +99,11 @@ priv struct RestPost {
 
 ///|
 fn rest_all_posts_at(
-  input : String,
+  _input : String,
   directory : AuthoringDirectory,
   unassigned? : Bool = false,
 ) -> Array[RestPost] raise {
-  let names = post_names(input)
+  let names = directory.names()
   if names.length() > 4096 {
     raise InvalidInput("REST source count exceeds limit")
   }

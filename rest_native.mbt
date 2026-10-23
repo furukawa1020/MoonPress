@@ -48,11 +48,8 @@ fn native_history_target(path : String) -> (String, Int, String?)? {
 
 ///|
 fn native_rest_methods(path : String) -> Array[String]? {
-  if native_media_name(path) is Some(name) {
-    if name.is_empty() {
-      return Some(["GET", "HEAD", "POST", "OPTIONS"])
-    }
-    return Some(["GET", "HEAD", "OPTIONS"])
+  if native_media_name(path) is Some(_) {
+    return Some(["GET", "HEAD", "POST", "OPTIONS"])
   }
   if native_history_target(path) is Some(_) {
     if native_parts(path).length() == 5 {
@@ -105,6 +102,18 @@ fn rest_native(
       return native_rest_options(path, query)
     }
     if native_media_name(path) is Some(name) {
+      if request.verb == "POST" && !name.is_empty() {
+        return native_media_replace(
+          input,
+          content,
+          principal,
+          name,
+          query,
+          base,
+          request.if_match,
+          body,
+        )
+      }
       if request.verb == "POST" {
         return native_media_upload(input, content, principal, query, base, body)
       }
@@ -163,11 +172,7 @@ fn native_discovery_routes(value : Json) -> Json {
     for path in ["/moonpress/v1/media", "/moonpress/v1/media/(?P<name>[^/]+)"] {
       routes[path] = {
         "namespace": "moonpress/v1".to_json(),
-        "methods": (if path == "/moonpress/v1/media" {
-          ["GET", "HEAD", "POST", "OPTIONS"]
-        } else {
-          ["GET", "HEAD", "OPTIONS"]
-        }).to_json(),
+        "methods": ["GET", "HEAD", "POST", "OPTIONS"].to_json(),
       }
     }
     for kind in ["posts", "pages"] {
