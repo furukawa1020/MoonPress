@@ -98,3 +98,5 @@ subprocess.run([sys.executable,'scripts/rest-conditional-test.py'],check=True)
 subprocess.run([sys.executable,'scripts/rest-taxonomy-test.py'],check=True)
 
 subprocess.run([sys.executable,'scripts/rest-term-filter-test.py'],check=True)
+
+subprocess.run([sys.executable,'scripts/rest-media-query-test.py'],check=True)

@@ -48,9 +48,12 @@ fn native_media_read(
     return rest_error(403, "rest_cannot_upload")
   }
   for key, _ in query {
-    if !["page", "per_page"].contains(key) || !name.is_empty() {
+    if !["page", "per_page", "search"].contains(key) || !name.is_empty() {
       return rest_error(400, "rest_invalid_param")
     }
+  }
+  let search = native_query_text(query.get("search").unwrap_or("")) catch {
+    _ => return rest_error(400, "rest_invalid_param")
   }
   try {
     rest_positive(query.get("page").unwrap_or("1"), 4096) |> ignore
@@ -101,7 +104,9 @@ fn native_media_read(
     if total > 67108864 {
       raise InvalidInput("Media snapshot byte limit")
     }
-    rows.push(native_media_value(name, bytes, base))
+    if name.to_lower().contains(search) {
+      rows.push(native_media_value(name, bytes, base))
+    }
   }
   let (start, size, pages) = match rest_page_bounds(rows.length(), query) {
     Some(bounds) => bounds
