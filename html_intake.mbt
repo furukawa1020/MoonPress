@@ -61,7 +61,7 @@ fn WxrReader::html_children(
       while true {
         let before = self.offset
         self.space()
-        if self.starts("/>") && name == "br" {
+        if self.starts("/>") && ["br", "hr"].contains(name) {
           self.offset += 2
           break
         }
@@ -94,7 +94,7 @@ fn WxrReader::html_children(
         Element(
           name,
           attrs,
-          if name == "br" {
+          if ["br", "hr"].contains(name) {
             []
           } else {
             self.html_children(name, depth + 1)
@@ -260,6 +260,13 @@ fn html_blocks(nodes : Array[IntakeHtml]) -> String raise {
           raise InvalidInput("Mixed top-level HTML text")
         }
       Element(name, attrs, children) => {
+        if name == "hr" {
+          if !attrs.is_empty() || !children.is_empty() {
+            raise InvalidInput("Unsupported rule attributes")
+          }
+          body.write_string("---\n\n")
+          continue
+        }
         if name == "pre" {
           body.write_string(html_pre(attrs, children) + "\n")
           continue

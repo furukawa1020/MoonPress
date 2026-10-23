@@ -7,6 +7,7 @@ cases += [('<!-- wp:paragraph --><p>Before <strong>bold</strong> end.</p><!-- /w
 cases += [('<p>Line one<br>Line two<br />月</p>','<p>Line one<br>\nLine two<br>\n月</p>\n')]
 cases += [('<blockquote><p>A <strong>quoted</strong> line<br>Next</p></blockquote>','<blockquote>\n<p>A <strong>quoted</strong> line<br>\nNext</p>\n</blockquote>\n')]
 cases += [('<pre><code class="language-moonbit">  x &lt; y\n```\n</code></pre>','<pre><code class="language-moonbit">  x &lt; y\n```\n</code></pre>\n')]
+cases += [('<p>Before</p><hr /><p>After</p>','<p>Before</p>\n<hr>\n<p>After</p>\n')]
 if len(sys.argv)>1:cases+=json.loads(pathlib.Path(sys.argv[1]).read_text())
 with NativeSite() as site:
     for index,(body,expected) in enumerate(cases):
