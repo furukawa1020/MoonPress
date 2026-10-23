@@ -218,3 +218,17 @@ stem is a 409 conflict across posts/pages. The source filename, id and owner sta
 unchanged. Repeating the current slug is byte-preserving. Links/redirects and
 previously deployed HTML are not rewritten automatically; review and rebuild the
 site after changing URLs.
+
+## Native workflow routes
+
+`/wp-json/moonpress/v1/posts/ID/history` (or `pages`) lists saved versions;
+append the returned record `id` to read generated historical content. Generated
+credentials and permission to edit the current article are required. Native
+history must first be enabled with `history-enable`; it records distinct saved
+preimages, not every browser keystroke. Lists support page/per_page and are
+bounded to 4096 vault entries and 16 MiB selected source history. Record order is
+deterministic by id. Raw Markdown/frontmatter and filesystem source names are
+never returned. Only records with the same stable article id, owner and type are exposed. Reusing
+a deleted filename cannot grant access to its earlier article history. Legacy
+records without matching identity remain available only through owner CLI tools. OPTIONS is
+metadata only and does not reveal whether an article/version exists.

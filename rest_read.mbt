@@ -185,20 +185,20 @@ fn rest_route(
     return rest_ok({
       "name": "MoonPress".to_json(),
       "url": base.to_json(),
-      "namespaces": ["wp/v2"].to_json(),
+      "namespaces": ["wp/v2", "moonpress/v1"].to_json(),
       "authentication": {
         "moonpress-generated-basic": {
           "moonpress_generated_only": true.to_json(),
         },
       },
-      "routes": {
+      "routes": native_discovery_routes({
         "/wp/v2/posts": create_route,
         "/wp/v2/pages": create_route,
         "/wp/v2/posts/(?P<id>[0-9]+)": edit_route,
         "/wp/v2/pages/(?P<id>[0-9]+)": edit_route,
         "/wp/v2/users/me": route,
         "/wp/v2/search": route,
-      },
+      }),
       "moonpress": {
         "read_only": false.to_json(),
         "contexts": ["view", "edit"].to_json(),
