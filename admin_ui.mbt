@@ -297,6 +297,9 @@ fn admin_route(
   if admin_field(fields, "token") != token {
     raise InvalidInput("Form token rejected; reload the page")
   }
+  if request.target == "/comment-display" {
+    return admin_comment_display_save(input, token, fields)
+  }
   if request.target == "/comment-status" {
     return admin_comment_action(input, token, fields)
   }

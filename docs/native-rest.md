@@ -355,3 +355,5 @@ Comment inventory `include`/`exclude` accept at most 100 distinct positive IDs. 
 HTML intake accepts attribute-free del/s as native strikethrough only when exact native inline rendering preserves its text and nesting. Unsupported attributes and lossy delimiter boundaries are refused.
 
 HTML intake accepts plain rectangular tables: one th header row, optional thead/tbody sections, and matching td body rows. At most 32 columns and 1,000 body rows; supported inline cells round-trip through native Markdown. Header scope=col is allowed. Spans, styling, captions, ragged rows and nested tables are explicitly refused. Actual WordPress core-export fixtures cover both tables and strikethrough.
+
+Native settings accept boolean `comments` for opt-in approved static article discussion. The operator interface exposes versioned moderation and display settings; [comment publication and incremental guarantees](site-settings.md#approved-comments-in-article-pages). Publishing still requires a build and deployment.
