@@ -225,3 +225,5 @@ python3 scripts/rest-taxonomy-test.py
 python3 scripts/rest-term-filter-test.py
 
 python3 scripts/rest-media-query-test.py
+
+python3 scripts/rest-comment-query-test.py
