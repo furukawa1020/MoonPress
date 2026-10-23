@@ -53,7 +53,7 @@ fn native_rest_methods(path : String) -> Array[String]? {
       if id == 0 {
         ["GET", "HEAD", "POST", "OPTIONS"]
       } else {
-        ["GET", "HEAD", "POST", "OPTIONS"]
+        ["GET", "HEAD", "POST", "DELETE", "OPTIONS"]
       },
     )
   }
@@ -119,7 +119,7 @@ fn rest_native(
       return native_rest_options(path, query)
     }
     if native_comment_id(path) is Some(id) {
-      if request.verb == "POST" && id > 0 {
+      if (request.verb == "POST" || request.verb == "DELETE") && id > 0 {
         return native_comment_moderate(
           input,
           content,
@@ -128,6 +128,7 @@ fn rest_native(
           query,
           request.if_match,
           body,
+          request.verb,
         )
       }
       if request.verb == "POST" {
@@ -209,7 +210,7 @@ fn native_discovery_routes(value : Json) -> Json {
     }
     routes["/moonpress/v1/comments/(?P<id>[0-9]+)"] = {
       "namespace": "moonpress/v1".to_json(),
-      "methods": ["GET", "HEAD", "POST", "OPTIONS"].to_json(),
+      "methods": ["GET", "HEAD", "POST", "DELETE", "OPTIONS"].to_json(),
     }
     for path in ["/moonpress/v1/media", "/moonpress/v1/media/(?P<name>[^/]+)"] {
       routes[path] = {
