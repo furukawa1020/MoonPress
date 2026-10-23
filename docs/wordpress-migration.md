@@ -98,3 +98,9 @@ code. Nested markup, arbitrary attributes and fence runs above 4096 are refused.
 Attribute-free top-level `hr`/`hr />` converts to a native thematic break with
 paragraph boundaries preserved. Attributed rules and rules inside inline content
 are refused.
+
+`img` supports only safe `src` and plain `alt`, inline or as a standalone native
+image paragraph. Remote images are referenced, never fetched. Data/script URLs,
+protocol-relative URLs, event/style/sizing attributes and unrepresentable native
+Markdown destinations are refused. Local image references still require ordinary
+build-time asset validation; importing does not copy attachments automatically.

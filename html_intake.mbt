@@ -61,7 +61,7 @@ fn WxrReader::html_children(
       while true {
         let before = self.offset
         self.space()
-        if self.starts("/>") && ["br", "hr"].contains(name) {
+        if self.starts("/>") && ["br", "hr", "img"].contains(name) {
           self.offset += 2
           break
         }
@@ -94,7 +94,7 @@ fn WxrReader::html_children(
         Element(
           name,
           attrs,
-          if ["br", "hr"].contains(name) {
+          if ["br", "hr", "img"].contains(name) {
             []
           } else {
             self.html_children(name, depth + 1)
@@ -157,7 +157,27 @@ fn html_inline(nodes : Array[IntakeHtml]) -> (String, String) raise {
         html.write_string(escape_html(text))
       }
       Element(name, attrs, children) =>
-        if name == "br" {
+        if name == "img" {
+          if !children.is_empty() ||
+            attrs.keys().any(key => key != "src" && key != "alt") {
+            raise InvalidInput("Unsupported image attributes")
+          }
+          let src = attrs.get("src").unwrap_or("")
+          let alt = attrs.get("alt").unwrap_or("")
+          if !allowed_src(src) || src.contains("(") || src.contains(")") {
+            raise InvalidInput("Unsafe/unrepresentable image URL")
+          }
+          markdown.write_string(
+            "![" + wxr_plain_markdown(alt) + "](" + src + ")",
+          )
+          html.write_string(
+            "<img src=\"" +
+            escape_html(src) +
+            "\" alt=\"" +
+            escape_html(alt) +
+            "\">",
+          )
+        } else if name == "br" {
           if !attrs.is_empty() || !children.is_empty() {
             raise InvalidInput("Unsupported line break attributes")
           }
@@ -260,6 +280,16 @@ fn html_blocks(nodes : Array[IntakeHtml]) -> String raise {
           raise InvalidInput("Mixed top-level HTML text")
         }
       Element(name, attrs, children) => {
+        if name == "img" {
+          body.write_string(
+            html_inline_checked(
+              [Element(name, attrs, children)],
+              paragraph=true,
+            ) +
+            "\n\n",
+          )
+          continue
+        }
         if name == "hr" {
           if !attrs.is_empty() || !children.is_empty() {
             raise InvalidInput("Unsupported rule attributes")

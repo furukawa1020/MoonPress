@@ -191,3 +191,33 @@ test "HTML rules preserve block boundaries" {
     assert_true(refused)
   }
 }
+
+///|
+test "HTML images preserve safe URLs labels and surrounding text" {
+  assert_eq(
+    render_markdown(
+      wxr_body(
+        "<p>Look <img src='https://example.test/a.png' alt='月 &amp; stars' /> here.</p>",
+      ),
+    ),
+    "<p>Look <img src=\"https://example.test/a.png\" alt=\"月 &amp; stars\"> here.</p>\n",
+  )
+  assert_eq(
+    render_markdown(wxr_body("<img src='a.png'>")),
+    "<p><img src=\"a.png\" alt=\"\"></p>\n",
+  )
+  for
+    text in [
+      "<img src='javascript:x'>", "<img src='data:image/png,abc'>", "<img src='//evil.test/x'>",
+      "<img src='a.png' onerror='x'>", "<img src='a.png' width='20'>", "<img src='x(y).png'>",
+      "<img src='a.png'></img>",
+    ] {
+    let refused = try {
+      wxr_body(text) |> ignore
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(refused)
+  }
+}
