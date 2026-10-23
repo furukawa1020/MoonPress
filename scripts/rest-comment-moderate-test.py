@@ -13,3 +13,14 @@ with NativeSite() as site:
     status,spam,_=site.request(detail,'POST',{'status':'spam'},'editor',new['ETag']);assert status==200 and site.request(route)[2]==[]
     site.restart();assert site.request(detail+'?context=edit',role='editor')[2]['status']=='spam'
 print('Native moderation: fresh capability, missing/stale guards, immutable fields, approval/spam visibility, exact no-op and restart passed.')
+
+from comment_capacity_fixture import fill_events
+with NativeSite() as site:
+    _,_,post=site.request('/wp-json/wp/v2/posts','POST',{'title':'Capacity','status':'publish'},'author')
+    route='/wp-json/moonpress/v1/comments';_,_,row=site.request(route,'POST',{'post':post['id'],'content':'Bounded','author_name':'Reader'},'subscriber')
+    fill_events(site);detail=route+'/'+str(row['id'])
+    _,headers,current=site.request(detail+'?context=edit',role='editor')
+    assert site.request(detail,'POST',{'status':'hold'},'editor',headers['ETag'])[0]==409
+    assert site.request(detail,'POST',{'status':current['status']},'editor',headers['ETag'])[0]==200
+    assert len(list((site.site/'.moonpress-comments').iterdir()))==4096
+print('Native moderation capacity: full-log transitions are 409, while exact no-op remains usable.')
