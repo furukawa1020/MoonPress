@@ -104,12 +104,14 @@ fn native_comment_create(
     status: "hold",
     created: now,
   }
-  let row = comment_append(log, state, comment, "create")
+  let row = match comment_append(log, state, comment, "create") {
+    Some(row) => row
+    None => return rest_error(409, "moonpress_comment_storage_full")
+  }
   {
     ..rest_ok(
       native_comment_value(row, true),
       etag=Some(row.revision),
-      location=Some("/wp-json/moonpress/v1/comments/" + comment.id.to_string()),
     ),
     code: 201,
   }
@@ -264,6 +266,9 @@ fn native_comment_moderate(
     )
   }
   let next = { ..current.comment, status, }
-  let row = comment_append(log, state, next, "status")
+  let row = match comment_append(log, state, next, "status") {
+    Some(row) => row
+    None => return rest_error(409, "moonpress_comment_storage_full")
+  }
   rest_ok(native_comment_value(row, true), etag=Some(row.revision))
 }
