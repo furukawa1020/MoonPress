@@ -18,4 +18,10 @@ with NativeSite() as s:
     assert s.request(route+'?orderby=id&order=desc&per_page=1')[2][0]['id']==ids[1]
     assert s.request(route+'?orderby=date&order=asc')[2][0]['id']==ids[0]
     assert s.request(route+'?order=bad')[0]==400 and s.request(route+'?orderby=private')[0]==400
+    assert s.request(route+'?include='+str(ids[2]))[2]==[]
+    assert s.request(route+'?include='+str(ids[0])+','+str(ids[2]))[1]['X-WP-Total']=='1'
+    assert s.request(route+'?exclude='+str(ids[0]))[2][0]['id']==ids[1]
+    assert s.request(route+'?include='+str(ids[0])+'&exclude='+str(ids[0]))[2]==[]
+    assert s.request(route+'?include=bad')[0]==400
+    assert s.request(route+'?include='+','.join(map(str,range(1,102))))[0]==400
 print('Native comment query filters preserve approved/parent visibility, ownership scope, counts and strict bounds.')

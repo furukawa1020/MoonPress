@@ -347,3 +347,5 @@ Media `digest` accepts a lowercase SHA-256 content digest to find existing ident
 Comment inventory `search` matches bounded case-insensitive content or public author label after visibility/ownership filtering and before totals. Hidden matches never affect public counts.
 
 Comment inventory `orderby=id|date` and `order=asc|desc` apply before pagination. Date ties use the immutable comment ID.
+
+Comment inventory `include`/`exclude` accept at most 100 distinct positive IDs. Exclusion wins; selection never bypasses visibility or ownership. Empty lists retain the existing all-IDs filter convention.
