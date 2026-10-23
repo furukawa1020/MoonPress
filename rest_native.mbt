@@ -48,6 +48,9 @@ fn native_history_target(path : String) -> (String, Int, String?)? {
 
 ///|
 fn native_rest_methods(path : String) -> Array[String]? {
+  if native_comment_summary_path(path) {
+    return Some(["GET", "HEAD", "OPTIONS"])
+  }
   if native_taxonomy(path) is Some(_) {
     return Some(["GET", "HEAD", "OPTIONS"])
   }
@@ -131,6 +134,9 @@ fn rest_native(
   rest_with_access(input, request.authorization, fn(principal, content) raise {
     if request.verb == "OPTIONS" {
       return native_rest_options(path, query)
+    }
+    if native_comment_summary_path(path) {
+      return native_comment_summary(input, content, principal, query)
     }
     if native_taxonomy(path) is Some(kind) {
       return native_taxonomy_read(input, content, kind, query)
@@ -234,6 +240,10 @@ fn rest_precondition(value : String?, current : String) -> RestResponse? {
 ///|
 fn native_discovery_routes(value : Json) -> Json {
   if value is Object(routes) {
+    routes["/moonpress/v1/comments/summary"] = {
+      "namespace": "moonpress/v1".to_json(),
+      "methods": ["GET", "HEAD", "OPTIONS"].to_json(),
+    }
     routes["/moonpress/v1/tags"] = {
       "namespace": "moonpress/v1".to_json(),
       "methods": ["GET", "HEAD", "OPTIONS"].to_json(),

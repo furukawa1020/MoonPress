@@ -102,3 +102,5 @@ subprocess.run([sys.executable,'scripts/rest-term-filter-test.py'],check=True)
 subprocess.run([sys.executable,'scripts/rest-media-query-test.py'],check=True)
 
 subprocess.run([sys.executable,'scripts/rest-comment-query-test.py'],check=True)
+
+subprocess.run([sys.executable,'scripts/rest-comment-summary-test.py'],check=True)
