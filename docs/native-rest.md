@@ -327,3 +327,5 @@ Successful GET/HEAD responses without a source-version ETag receive a SHA-256 ET
 Existing edit, settings, media detail and historical detail source ETags keep their write-guard meaning and ignore If-None-Match. Mutations also ignore this read condition and still require their documented If-Match guards. Responses retain `Cache-Control: no-store`; explicit conditional requests save response bytes, but do not skip authorization, storage validation or snapshot computation. This is not a claim of increased authoring API capacity.
 
 Native `GET/HEAD categories` lists exact native names and public, listed, due post counts. Categories belonging only to drafts, unlisted articles, pages or future publications are excluded. It supports bounded page/per_page and field projection. Names are not invented WordPress numeric term IDs. Explicit bad credentials never fall back to anonymous reads.
+
+Native `tags` provides the same exact-name inventory and public post-count behavior for native tags.

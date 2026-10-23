@@ -11,4 +11,10 @@ with NativeSite() as s:
     assert s.request(route,headers={'Authorization':'Basic invalid'})[0]==401
     assert s.request(route+'?page=0')[0]==400
     assert s.request(route+'?context=edit')[0]==400
+    tags='/wp-json/moonpress/v1/tags'
+    assert s.request(tags)[2]==[]
+    assert s.request(posts,'POST',{'title':'Tag one','status':'publish','moonpress_tags':['native','fast']},'author')[0]==201
+    assert s.request(posts,'POST',{'title':'Tag draft','moonpress_tags':['hidden']},'author')[0]==201
+    assert {r['name']:r['count'] for r in s.request(tags)[2]}=={'native':1,'fast':1}
+    assert s.request(tags+'?_fields=name')[2]==[{'name':'fast'},{'name':'native'}]
 print('Native taxonomy counts exclude drafts and pages; bounded reads and invalid credential refusal passed.')
