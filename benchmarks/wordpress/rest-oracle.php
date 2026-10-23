@@ -18,6 +18,13 @@ foreach (['oracle-post', 'oracle-page', 'oracle-draft', 'oracle-unlisted', 'orac
     if ($response->get_status() !== 200) { throw new RuntimeException('Core REST read failed'); }
     $result['responses'][$slug] = $response->get_data();
 }
+
+$request = new WP_REST_Request('GET', '/wp/v2/posts');
+$request->set_param('slug', 'oracle-post');
+$request->set_param('_fields', 'id,title.rendered');
+$response = rest_do_request($request);
+$response = rest_filter_response_fields($response, rest_get_server(), $request);
+$result['projection'] = $response->get_data();
 if (file_put_contents($argv[2], json_encode($result, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)) === false) {
     throw new RuntimeException('Cannot retain REST oracle responses');
 }

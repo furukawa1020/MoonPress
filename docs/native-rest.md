@@ -144,3 +144,5 @@ are refused as busy until publication finishes. The disposable actual WordPress
 oracle also compares 40 native HTTP edit permission decisions against core
 `map_meta_cap` across all five roles, both ownership cases, post/page and
 draft/published state. No user/admin mutation endpoints are present.
+
+`_fields=id,title.rendered` selects bounded comma-separated properties after authorization, including nested properties. It applies to successful collection/detail/user/edit responses; unknown fields are omitted, never synthesized. Limits: 32 selectors, eight segments, 2048 characters. Error bodies and pagination/ETag headers remain intact.

@@ -47,6 +47,7 @@ fn rest_client(
   base : String,
 ) -> Bytes {
   let mut head = false
+  let mut selection : Array[String] = []
   let result = try {
     let (request, body) = admin_read_request(
       client,
@@ -57,6 +58,8 @@ fn rest_client(
     )
     head = request.verb == "HEAD"
     let (path, query) = rest_target(request.target)
+    selection = rest_fields(query.get("_fields"))
+    query.remove("_fields")
     if request.verb == "POST" ||
       (
         query.get("context") == Some("edit") &&
@@ -103,6 +106,13 @@ fn rest_client(
     }
   } catch {
     _ => rest_error(400, "moonpress_request_rejected")
+  }
+  let result = if result.code >= 200 &&
+    result.code < 300 &&
+    !selection.is_empty() {
+    { ..result, value: rest_project(result.value, selection), }
+  } else {
+    result
   }
   if @utf8.encode(result.value.stringify()).length() > 16777216 {
     return rest_response(rest_error(500, "moonpress_response_limit"), head)
