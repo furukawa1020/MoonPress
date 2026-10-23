@@ -341,3 +341,5 @@ Media inventory accepts bounded, case-insensitive filename `search` before total
 Media inventory accepts `media_type=image|file` and exact supported `mime_type`. Both depend on the file signature matching its supported raster extension; an invalid PNG is classified as application/octet-stream. Combined filters use AND.
 
 Media `orderby=name|bytes` and `order=asc|desc` sort selected files before pagination, with deterministic filename ties. Size is the actual opened file length.
+
+Media `digest` accepts a lowercase SHA-256 content digest to find existing identical assets before another upload. It combines with other filters, retains authorization, and does not create or delete files.
