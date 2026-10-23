@@ -57,7 +57,7 @@ fn rest_client(
   client : Int,
   host : String,
   input : String,
-  base : String,
+  _startup_base : String,
 ) -> Bytes {
   let mut head = false
   let mut selection : Array[String] = []
@@ -71,6 +71,15 @@ fn rest_client(
       on_head=fn() { head = true },
     )
     head = request.verb == "HEAD"
+    let base = read_site_config(input).base_url.unwrap_or(
+      "http://" + host + "/",
+    ) catch {
+      _ =>
+        return rest_response(
+          rest_error(500, "moonpress_settings_unavailable"),
+          head,
+        )
+    }
     let (path, query) = rest_target(request.target)
     allowed = rest_methods(path).map(methods => methods.join(", "))
     selection = rest_fields(query.get("_fields"))

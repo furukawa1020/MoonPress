@@ -305,3 +305,15 @@ no-op. POST status=hold restores it for review, never directly to approved/spam;
 a separate approval is required before public display. Immutable event history
 and ids are retained, including across restart. Physical comment purge and
 anonymous submissions are not implemented.
+
+Native GET/HEAD `settings` is limited to fresh `manage_options` administrators.
+It returns validated native site settings, existence and source revision, with a
+quoted settings ETag (`"absent"` for no file). Reads create no file and never
+return raw file paths. Unknown query parameters are refused. Public API URLs now
+read current validated site configuration per request, so an operator settings
+change takes effect without restarting this development listener.
+
+Comment event/byte capacity is an explicit 409 `moonpress_comment_storage_full`,
+not a storage failure. No extra event is written when full; reads and exact
+status no-ops remain available. Physical I/O or integrity failures still fail
+closed with a generic error.
