@@ -46,7 +46,7 @@ fn admin_headers(
       start[0] != "GET" &&
       start[0] != "POST" &&
       !(allow_head && start[0] == "HEAD") &&
-      !(rest && start[0] == "DELETE")
+      !(rest && (start[0] == "DELETE" || start[0] == "OPTIONS"))
     ) {
     raise InvalidInput("Unsupported request line")
   }

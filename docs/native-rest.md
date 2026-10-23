@@ -160,3 +160,10 @@ Responses are 201 with an edit-context object, ETag and relative Location header
 The private `.moonpress-identities` log reserves a strictly increasing positive ID before exclusive mode-0600 source creation, under access/content/identity locks. Existing live IDs and legacy trash IDs form the lower bound. Failed publications can consume an ID; missing source files and process restarts never make reserved IDs reusable. Records are owner-only, bounded, sequential and hash chained (4096 reservations, 1024 bytes each); corrupt/foreign/symlink/hardlinked records fail closed. This is corruption protection, not protection against a trusted owner rolling back the entire log. Keep its backups with the site and never restore an obsolete prefix independently. Old public sources still require explicit IDs before public collection reads.
 
 DELETE numeric posts/pages moves the saved source to native private trash after delete-specific role/owner/published-capability checks and a mandatory current If-Match. The access/content locks remain held through durable backup and removal; response status is trash and includes a private `moonpress_trash_id`. `force=false|0` is accepted; permanent deletion is refused. Native CLI trash-read/restore/purge remain owner tools with their existing version/acknowledgement guards. REST trash listings/restoration and force purge are not implemented. This removes source only; previously deployed static HTML remains until a separate rebuild/deployment.
+
+`OPTIONS` on known routes returns implemented methods, endpoint arguments and a
+subset article schema, with a matching `Allow` header. Numeric detail metadata is
+independent of whether a private article exists. This is descriptive discovery,
+not the complete WordPress JSON Schema; writes take string values and retain the
+native limits and If-Match requirement. Unknown routes/parameters are refused.
+OPTIONS does not enable cross-origin access or weaken the local operator editor.
