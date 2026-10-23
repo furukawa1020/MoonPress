@@ -48,6 +48,15 @@ with tempfile.TemporaryDirectory() as temporary:
         assert request('/wp-json/wp/v2/posts?per_page=1&page=2')[2][0]['id']==101
         assert request('/wp-json/wp/v2/posts?orderby=id&order=desc')[2][0]['id']==101
         assert request('/wp-json/wp/v2/posts?slug=older')[2][0]['id']==101
+        assert request('/wp-json/wp/v2/posts?include=101,100&orderby=include')[2][0]['id']==101
+        assert [p['id'] for p in request('/wp-json/wp/v2/posts?exclude=100&author=1')[2]]==[101]
+        assert request('/wp-json/wp/v2/posts?author_exclude=1')[2]==[]
+        assert request('/wp-json/wp/v2/posts?search=older')[2][0]['id']==101
+        assert request('/wp-json/wp/v2/posts?search=draft')[2]==[]
+        assert request('/wp-json/wp/v2/posts?offset=1')[2][0]['id']==101
+        assert request('/wp-json/wp/v2/posts?offset=0&per_page=1&page=2')[2][0]['id']==100
+        assert request('/wp-json/wp/v2/posts?include=0')[0]==400
+        assert request('/wp-json/wp/v2/posts?orderby=include')[0]==400
         assert request(method='HEAD')[2] is None
         assert request(method='HEAD')[1]['Content-Length']==headers['Content-Length']
         for identifier in [200,300,400,500,999]:assert request(f'/wp-json/wp/v2/posts/{identifier}')[0]==404

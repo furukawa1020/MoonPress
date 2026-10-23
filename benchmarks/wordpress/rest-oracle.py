@@ -1,5 +1,5 @@
 """Compare native wire JSON with actual core REST handler fixture responses."""
-import html, http.client, json, pathlib, re, socket, subprocess, sys, time
+import html, http.client, json, pathlib, re, socket, subprocess, sys, time, urllib.parse
 wordpress, work=map(pathlib.Path,sys.argv[1:])
 cli=pathlib.Path('_build/native/release/build/cmd/main/main.exe').resolve()
 oracle=work/'rest-core.json'
@@ -29,6 +29,8 @@ try:
     for ours,theirs in zip(selected,core['projection']):
         assert set(ours)==set(theirs)=={'id','title'} and set(ours['title'])==set(theirs['title'])=={'rendered'}
         assert ours['id']==theirs['id'] and text(ours['title']['rendered'])==text(theirs['title']['rendered'])
+    for probe in core['filtered']:
+        assert [p['id'] for p in request('/wp-json/wp/v2/posts?'+urllib.parse.urlencode(probe['params']))]==probe['ids']
     for row in expected:
         collection='pages' if row['kind']=='page' else 'posts'
         native=request('/wp-json/wp/v2/'+collection+'?slug='+row['slug'])

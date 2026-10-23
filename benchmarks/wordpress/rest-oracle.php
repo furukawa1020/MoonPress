@@ -25,6 +25,13 @@ $request->set_param('_fields', 'id,title.rendered');
 $response = rest_do_request($request);
 $response = rest_filter_response_fields($response, rest_get_server(), $request);
 $result['projection'] = $response->get_data();
+$result['filtered'] = [];
+foreach ([['search'=>'oracle-post', 'slug'=>'oracle-post', 'orderby'=>'id'], ['include'=>(string)$result['ids']['oracle-post']['id'], 'author'=>(string)$result['ids']['oracle-post']['author'], 'orderby'=>'include']] as $params) {
+    $request = new WP_REST_Request('GET', '/wp/v2/posts');
+    foreach ($params as $key=>$value) { $request->set_param($key, $value); }
+    $response = rest_do_request($request);
+    $result['filtered'][] = ['params'=>$params, 'ids'=>array_column($response->get_data(), 'id')];
+}
 if (file_put_contents($argv[2], json_encode($result, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)) === false) {
     throw new RuntimeException('Cannot retain REST oracle responses');
 }
