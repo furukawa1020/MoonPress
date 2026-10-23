@@ -16,11 +16,11 @@ Reference schemas: [posts](https://developer.wordpress.org/rest-api/reference/po
 | `/wp-json/wp/v2/users/me` | Generated Basic credentials required; current identity only |
 
 GET and HEAD are supported for reads. Collection parameters are `context=view`, `page`
-(1–4096), `per_page` (1–100), one exact `slug`, `order=asc|desc`, and
-`orderby=date|id`. Responses include `X-WP-Total` and `X-WP-TotalPages`.
+(1–4096), `per_page` (1–100), comma-separated `slug`, `order=asc|desc`, and
+`orderby=date|id|title|slug|include`. Responses include `X-WP-Total` and `X-WP-TotalPages`.
 Unknown/duplicate parameters are rejected. Detail accepts `context=view` or authorized `context=edit`.
-Trailing collection slashes are accepted. `_fields`, `_embed`, search, taxonomies,
-includes/excludes, authentication cookies, OPTIONS/CORS, XML-RPC, creation and
+Trailing collection slashes are accepted. `_embed`, taxonomies,
+authentication cookies, OPTIONS/CORS, XML-RPC, creation and
 deletion are not implemented. No unknown parameters are silently treated as effective.
 
 Post objects contain `id`, `date`, `date_gmt`, `slug`, `status`, `type`, `link`,
@@ -146,3 +146,7 @@ oracle also compares 40 native HTTP edit permission decisions against core
 draft/published state. No user/admin mutation endpoints are present.
 
 `_fields=id,title.rendered` selects bounded comma-separated properties after authorization, including nested properties. It applies to successful collection/detail/user/edit responses; unknown fields are omitted, never synthesized. Limits: 32 selectors, eight segments, 2048 characters. Error bodies and pagination/ETag headers remain intact.
+
+Collection filters also accept `search` (up to 16 whitespace-separated AND terms, 256 characters), comma-separated `include`, `exclude`, `author`, `author_exclude` (100 unique positive IDs each), multiple `slug` values, `offset` (0–409600), and `orderby=title|slug|include`. Include ordering follows the supplied ID order. Search is case-insensitive literal native title/excerpt/body matching; SQL collation, quoted phrases, negative terms and relevance ranking are not emulated. Visibility is checked before all filters.
+
+As in WP_Query, an explicit `offset` takes precedence over the page offset; page/total validation is retained.

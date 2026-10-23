@@ -217,12 +217,16 @@ fn rest_route(
     return rest_error(404, "rest_no_route")
   }
   for key, value in query {
-    if !["context", "per_page", "page", "slug", "order", "orderby"].contains(
-        key,
-      ) ||
+    if ![
+        "context", "per_page", "page", "slug", "order", "orderby", "search", "include",
+        "exclude", "author", "author_exclude", "offset",
+      ].contains(key) ||
       (key == "context" && value != "view") ||
       (key == "order" && value != "asc" && value != "desc") ||
-      (key == "orderby" && value != "date" && value != "id") ||
+      (
+        key == "orderby" &&
+        !["date", "id", "title", "slug", "include"].contains(value)
+      ) ||
       (!tail.is_empty() && key != "context") {
       return rest_error(400, "rest_invalid_param")
     }
@@ -237,13 +241,10 @@ fn rest_route(
   let available = rest_public_posts(input) catch {
     _ => return rest_error(500, "moonpress_content_unavailable")
   }
-  let posts = available.filter(post => {
-    post.document.kind == kind &&
-    (
-      query.get("slug") is None ||
-      query.get("slug") == Some(post.document.slug.unwrap_or(post.stem))
-    )
-  })
+  let posts = rest_filter_posts(
+    available.filter(post => post.document.kind == kind),
+    query,
+  )
   if id is Some(id) {
     for post in posts {
       if post.document.wp_id == Some(id) {
@@ -252,38 +253,16 @@ fn rest_route(
     }
     return rest_error(404, "rest_post_invalid_id")
   }
-  let by_id = query.get("orderby") == Some("id")
-  let ascending = query.get("order") == Some("asc")
-  posts.sort_by(fn(a, b) {
-    let compared = if by_id {
-      a.document.wp_id.unwrap().compare(b.document.wp_id.unwrap())
-    } else {
-      let a_date = a.document.publish_at.unwrap_or(
-        a.document.date.unwrap_or("1970-01-01") + "T00:00:00Z",
-      )
-      let b_date = b.document.publish_at.unwrap_or(
-        b.document.date.unwrap_or("1970-01-01") + "T00:00:00Z",
-      )
-      let compared = a_date.compare(b_date)
-      if compared == 0 {
-        a.document.wp_id.unwrap().compare(b.document.wp_id.unwrap())
-      } else {
-        compared
-      }
-    }
-    if ascending {
-      compared
-    } else {
-      0 - compared
-    }
-  })
+  rest_order_posts(posts, query)
+  let offset = rest_nonnegative(query.get("offset").unwrap_or("0"), 409600)
   let total = posts.length()
   let pages = (total + size - 1) / size
   if page > pages && page != 1 {
     return rest_error(400, "rest_post_invalid_page_number")
   }
   let values : Array[Json] = []
-  for i = (page - 1) * size; i < total && i < page * size; i = i + 1 {
+  let start = if query.contains("offset") { offset } else { (page - 1) * size }
+  for i = start; i < total && i < start + size; i = i + 1 {
     values.push(rest_post_value(posts[i].document, posts[i].stem, base))
   }
   {
