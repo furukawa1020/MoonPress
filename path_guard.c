@@ -130,3 +130,15 @@ MOONBIT_FFI_EXPORT int moonpress_same_authoring_site(int content, int vault) {
   if (b >= 0) close(b);
   return ok;
 }
+
+/* Public asset directories share a retained site but need not be private vaults. */
+MOONBIT_FFI_EXPORT int moonpress_same_media_site(int content, int assets) {
+  int a = openat(content, "..", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+  int b = openat(assets, "..", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+  struct stat sa, sb;
+  int ok = a >= 0 && b >= 0 && fstat(a, &sa) == 0 && fstat(b, &sb) == 0 &&
+    sa.st_dev == sb.st_dev && sa.st_ino == sb.st_ino;
+  if (a >= 0) close(a);
+  if (b >= 0) close(b);
+  return ok;
+}

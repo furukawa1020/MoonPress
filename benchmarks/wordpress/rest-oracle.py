@@ -74,3 +74,5 @@ subprocess.run([sys.executable,'scripts/rest-slug-test.py'],check=True)
 subprocess.run([sys.executable,'scripts/rest-history-test.py'],check=True)
 
 subprocess.run([sys.executable,'scripts/rest-history-restore-test.py'],check=True)
+
+subprocess.run([sys.executable,'scripts/rest-media-test.py'],check=True)

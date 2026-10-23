@@ -48,6 +48,9 @@ fn native_history_target(path : String) -> (String, Int, String?)? {
 
 ///|
 fn native_rest_methods(path : String) -> Array[String]? {
+  if native_media_name(path) is Some(_) {
+    return Some(["GET", "HEAD", "OPTIONS"])
+  }
   if native_history_target(path) is Some(_) {
     if native_parts(path).length() == 5 {
       return Some(["POST", "OPTIONS"])
@@ -97,6 +100,9 @@ fn rest_native(
   rest_with_access(input, request.authorization, fn(principal, content) raise {
     if request.verb == "OPTIONS" {
       return native_rest_options(path, query)
+    }
+    if native_media_name(path) is Some(name) {
+      return native_media_read(input, content, principal, name, query, base)
     }
     match native_history_target(path) {
       Some((kind, id, record)) =>
@@ -148,6 +154,12 @@ fn rest_precondition(value : String?, current : String) -> RestResponse? {
 ///|
 fn native_discovery_routes(value : Json) -> Json {
   if value is Object(routes) {
+    for path in ["/moonpress/v1/media", "/moonpress/v1/media/(?P<name>[^/]+)"] {
+      routes[path] = {
+        "namespace": "moonpress/v1".to_json(),
+        "methods": ["GET", "HEAD", "OPTIONS"].to_json(),
+      }
+    }
     for kind in ["posts", "pages"] {
       let path = "/moonpress/v1/" + kind + "/(?P<id>[0-9]+)/history"
       let descriptor : Json = {

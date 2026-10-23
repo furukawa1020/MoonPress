@@ -240,3 +240,12 @@ capability and current edit permission are required, and restored slugs must not
 conflict with another live source. Existing durable save/preimage/no-op guards
 are reused; the current version remains in history for undo. No build/deployment
 is triggered.
+
+Native `media` lists public-folder asset metadata; append a percent-encoded flat
+filename for detail. Fresh generated credentials with `upload_files` are required,
+even for inventory reads; asset URLs remain public independently. Results contain
+name/URL/size/digest and signature-matched raster MIME (otherwise octet-stream),
+never file bytes or private source paths. Detail ETag is the asset digest. GET/HEAD
+and page/per_page are supported; reads are bounded to 4096 entries, 8 MiB/file and
+64 MiB aggregate. These are filename resources, not a numeric WordPress attachment
+catalog, and header signatures are not full image decoding/transcoding.
