@@ -8,6 +8,7 @@ cases += [('<p>Line one<br>Line two<br />月</p>','<p>Line one<br>\nLine two<br>
 cases += [('<blockquote><p>A <strong>quoted</strong> line<br>Next</p></blockquote>','<blockquote>\n<p>A <strong>quoted</strong> line<br>\nNext</p>\n</blockquote>\n')]
 cases += [('<pre><code class="language-moonbit">  x &lt; y\n```\n</code></pre>','<pre><code class="language-moonbit">  x &lt; y\n```\n</code></pre>\n')]
 cases += [('<p>Before</p><hr /><p>After</p>','<p>Before</p>\n<hr>\n<p>After</p>\n')]
+cases += [('<p>Look <img src="https://example.test/image.png" alt="月 &amp; stars" /> here.</p>','<p>Look <img src="https://example.test/image.png" alt="月 &amp; stars"> here.</p>\n')]
 if len(sys.argv)>1:cases+=json.loads(pathlib.Path(sys.argv[1]).read_text())
 with NativeSite() as site:
     for index,(body,expected) in enumerate(cases):
