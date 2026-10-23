@@ -118,14 +118,17 @@ fn admin_comment_item(
 
 ///|
 fn admin_comment_actions(row : CommentRow, token : String) -> String {
-  if row.comment.status == "trash" {
-    return ""
+  let buttons = if row.comment.status == "trash" {
+    "<button name=\"status\" value=\"hold\"><!--mp:ja-->保留に戻す<!--mp:en-->Restore to hold<!--mp:end--></button>"
+  } else {
+    "<button name=\"status\" value=\"approved\"><!--mp:ja-->承認<!--mp:en-->Approve<!--mp:end--></button> <button name=\"status\" value=\"hold\"><!--mp:ja-->保留<!--mp:en-->Hold<!--mp:end--></button> <button name=\"status\" value=\"spam\"><!--mp:ja-->スパム<!--mp:en-->Spam<!--mp:end--></button> <button name=\"status\" value=\"trash\"><!--mp:ja-->ゴミ箱へ<!--mp:en-->Trash<!--mp:end--></button>"
   }
   "<form method=\"post\" action=\"/comment-status\">" +
   admin_hidden("token", token) +
   admin_hidden("id", row.comment.id.to_string()) +
   admin_hidden("revision", row.revision) +
-  "<button name=\"status\" value=\"approved\"><!--mp:ja-->承認<!--mp:en-->Approve<!--mp:end--></button> <button name=\"status\" value=\"hold\"><!--mp:ja-->保留<!--mp:en-->Hold<!--mp:end--></button> <button name=\"status\" value=\"spam\"><!--mp:ja-->スパム<!--mp:en-->Spam<!--mp:end--></button></form>"
+  buttons +
+  "</form>"
 }
 
 ///|
@@ -158,7 +161,7 @@ fn admin_comment_action(
   }
   let id = rest_positive(admin_field(fields, "id"), 2147483647)
   let status = admin_field(fields, "status")
-  if !["approved", "hold", "spam"].contains(status) {
+  if !["approved", "hold", "spam", "trash"].contains(status) {
     raise InvalidInput("Invalid comment action")
   }
   let result = operator_comment_change(

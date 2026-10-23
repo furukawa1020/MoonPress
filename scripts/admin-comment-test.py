@@ -33,4 +33,11 @@ with NativeSite() as s:
         assert operator.request('/comment-status','POST',{**fields,'revision':current,'status':'spam'})[0]==200
         assert s.request(route)[2]==[]
 
+        current=s.request(route+'/'+str(row['id'])+'?context=edit',role='editor')[1]['ETag'].strip('"')
+        status,trashed=operator.request('/comment-status','POST',{**fields,'revision':current,'status':'trash'})
+        assert status==200 and 'Status: trash' in trashed and 'value="hold"' in trashed and 'value="approved"' not in trashed
+        current=s.request(route+'/'+str(row['id'])+'?context=edit',role='editor')[1]['ETag'].strip('"')
+        assert operator.request('/comment-status','POST',{**fields,'revision':current,'status':'approved'})[0]==409
+        status,restored=operator.request('/comment-status','POST',{**fields,'revision':current,'status':'hold'})
+        assert status==200 and 'Status: hold' in restored and s.request(route)[2]==[]
 print('Operator comment inventory: escaped text, pending default, status navigation, strict queries and read-only GET passed.')
