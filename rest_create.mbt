@@ -55,14 +55,13 @@ fn rest_create(
     let fields = try {
       let fields = strict_json_object(
         @json.parse(decode_text(body, "REST creation")),
-        ["title", "content", "excerpt", "slug", "status", "date_gmt"],
+        [
+          "title", "content", "excerpt", "slug", "status", "date_gmt", "moonpress_categories",
+          "moonpress_tags",
+        ],
         "REST creation",
       )
-      for _, value in fields {
-        if !(value is String(_)) {
-          raise InvalidInput("Creation fields must be strings")
-        }
-      }
+      rest_write_types(fields)
       fields
     } catch {
       _ => return rest_error(400, "rest_invalid_param")
@@ -97,6 +96,15 @@ fn rest_create(
     let attributes = match metadata {
       Object(fields) => fields
       _ => raise InvalidInput("Expected metadata")
+    }
+    for
+      (key, field) in [
+        ("moonpress_categories", "categories"),
+        ("moonpress_tags", "tags"),
+      ] {
+      if fields.get(key) is Some(value) {
+        attributes[field] = rest_named_terms(value).to_json()
+      }
     }
     if wxr_has_markup(text("excerpt", "")) {
       return rest_error(400, "rest_invalid_param")

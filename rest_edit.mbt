@@ -111,14 +111,13 @@ fn rest_update_source(
 ) -> String raise {
   let changes = strict_json_object(
     @json.parse(decode_text(body, "REST body")),
-    ["title", "content", "excerpt", "status", "date_gmt"],
+    [
+      "title", "content", "excerpt", "status", "date_gmt", "moonpress_categories",
+      "moonpress_tags",
+    ],
     "REST update",
   )
-  for _, value in changes {
-    if !(value is String(_)) {
-      raise InvalidInput("REST update values must be strings")
-    }
-  }
+  rest_write_types(changes)
   let (metadata, current_body) = document_parts(source, "REST post")
   let fields = match metadata {
     Object(fields) => fields
@@ -144,6 +143,18 @@ fn rest_update_source(
         }
       } else if value != render_markdown(document.body) {
         next_body = wxr_body(value)
+      }
+    }
+  }
+  for
+    (key, field, old) in [
+      ("moonpress_categories", "categories", document.categories),
+      ("moonpress_tags", "tags", document.tags),
+    ] {
+    if changes.get(key) is Some(value) {
+      let terms = rest_named_terms(value)
+      if terms != old {
+        fields[field] = terms.to_json()
       }
     }
   }

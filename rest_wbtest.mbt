@@ -63,3 +63,11 @@ test "REST target rejects duplicate query and preserves encoded slug" {
   }
   assert_true(duplicate)
 }
+
+///|
+test "named native terms normalize deterministically" {
+  assert_eq(rest_named_terms([" 月 ", "News", "月"].to_json()), [
+    "月", "News",
+  ])
+  assert_eq(rest_named_terms(([] : Array[String]).to_json()), [])
+}

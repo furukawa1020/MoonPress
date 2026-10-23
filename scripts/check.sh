@@ -192,3 +192,5 @@ python3 scripts/rest-trash-test.py
 python3 scripts/rest-options-test.py
 python3 scripts/rest-search-test.py
 python3 scripts/html-intake-test.py
+
+python3 scripts/rest-terms-test.py
