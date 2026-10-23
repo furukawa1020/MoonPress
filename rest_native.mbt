@@ -14,13 +14,17 @@ fn native_parts(path : String) -> Array[String] {
 ///|
 fn native_history_target(path : String) -> (String, Int, String?)? {
   let parts = native_parts(path)
-  if (parts.length() != 3 && parts.length() != 4) ||
+  if (
+      parts.length() != 3 &&
+      parts.length() != 4 &&
+      !(parts.length() == 5 && parts[4] == "restore")
+    ) ||
     !["posts", "pages"].contains(parts[0]) ||
     parts[2] != "history" {
     return None
   }
   let id = rest_positive(parts[1], 2147483647) catch { _ => return None }
-  if parts.length() == 4 {
+  if parts.length() >= 4 {
     require_record_id(parts[3]) catch {
       _ => return None
     }
@@ -33,7 +37,7 @@ fn native_history_target(path : String) -> (String, Int, String?)? {
         "page"
       },
       id,
-      if parts.length() == 4 {
+      if parts.length() >= 4 {
         Some(parts[3])
       } else {
         None
@@ -45,6 +49,9 @@ fn native_history_target(path : String) -> (String, Int, String?)? {
 ///|
 fn native_rest_methods(path : String) -> Array[String]? {
   if native_history_target(path) is Some(_) {
+    if native_parts(path).length() == 5 {
+      return Some(["POST", "OPTIONS"])
+    }
     return Some(["GET", "HEAD", "OPTIONS"])
   }
   None
@@ -81,7 +88,6 @@ fn rest_native(
   request : AdminRequest,
   body : Bytes,
 ) -> RestResponse raise {
-  let _ = body
   if native_rest_methods(path) is None {
     return rest_error(404, "rest_no_route")
   }
@@ -94,9 +100,24 @@ fn rest_native(
     }
     match native_history_target(path) {
       Some((kind, id, record)) =>
-        native_history_read(
-          input, content, principal, kind, id, record, query, base,
-        )
+        if native_parts(path).length() == 5 {
+          native_history_restore(
+            input,
+            content,
+            principal,
+            kind,
+            id,
+            record.unwrap(),
+            query,
+            base,
+            request.if_match,
+            body,
+          )
+        } else {
+          native_history_read(
+            input, content, principal, kind, id, record, query, base,
+          )
+        }
       None => rest_error(404, "rest_no_route")
     }
   })
@@ -132,6 +153,10 @@ fn native_discovery_routes(value : Json) -> Json {
       let descriptor : Json = {
         "namespace": "moonpress/v1".to_json(),
         "methods": ["GET", "HEAD", "OPTIONS"].to_json(),
+      }
+      routes[path + "/(?P<revision>[a-f0-9-]+\\.json)/restore"] = {
+        "namespace": "moonpress/v1".to_json(),
+        "methods": ["POST", "OPTIONS"].to_json(),
       }
       routes[path] = descriptor
       routes[path + "/(?P<revision>[a-f0-9-]+\\.json)"] = descriptor

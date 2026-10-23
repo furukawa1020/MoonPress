@@ -198,3 +198,5 @@ python3 scripts/rest-terms-test.py
 python3 scripts/rest-slug-test.py
 
 python3 scripts/rest-history-test.py
+
+python3 scripts/rest-history-restore-test.py
