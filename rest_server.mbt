@@ -77,6 +77,10 @@ fn rest_client(
     query.remove("_fields")
     if rest_methods(path) is Some(verbs) && !verbs.contains(request.verb) {
       rest_error(405, "rest_no_route")
+    } else if path.has_prefix("/wp-json/moonpress/") {
+      rest_native(input, path, query, base, request, body) catch {
+        _ => rest_error(500, "moonpress_workflow_unavailable")
+      }
     } else if request.verb == "POST" ||
       request.verb == "DELETE" ||
       (

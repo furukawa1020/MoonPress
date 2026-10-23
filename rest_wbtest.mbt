@@ -71,3 +71,15 @@ test "named native terms normalize deterministically" {
   ])
   assert_eq(rest_named_terms(([] : Array[String]).to_json()), [])
 }
+
+///|
+test "native preconditions reject missing malformed and stale versions" {
+  let digest = "a".repeat(64)
+  assert_eq(rest_precondition(None, digest).unwrap().code, 428)
+  assert_eq(rest_precondition(Some("*"), digest).unwrap().code, 400)
+  assert_eq(
+    rest_precondition(Some("\"" + "b".repeat(64) + "\""), digest).unwrap().code,
+    412,
+  )
+  assert_true(rest_precondition(Some("\"" + digest + "\""), digest) is None)
+}

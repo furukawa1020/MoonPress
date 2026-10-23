@@ -1,5 +1,8 @@
 ///|
 fn rest_methods(path : String) -> Array[String]? {
+  if path.has_prefix("/wp-json/moonpress/") {
+    return native_rest_methods(path)
+  }
   if rest_is_collection(path) {
     return Some(["GET", "HEAD", "POST", "OPTIONS"])
   }
@@ -25,6 +28,9 @@ fn rest_methods(path : String) -> Array[String]? {
 
 ///|
 fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
+  if path.has_prefix("/wp-json/moonpress/") {
+    return native_rest_options(path, query)
+  }
   if !query.is_empty() {
     return rest_error(400, "rest_invalid_param")
   }
