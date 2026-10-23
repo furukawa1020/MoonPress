@@ -44,6 +44,16 @@ pub fn save_site_settings(
   let directory = open_authoring_directory(input)
   defer directory_close(directory.fd)
   directory.lock()
+  save_site_settings_at(input, directory, expected, content)
+}
+
+///|
+fn save_site_settings_at(
+  input : String,
+  directory : AuthoringDirectory,
+  expected : String,
+  content : String,
+) -> SaveSiteSettingsReport raise {
   let current = read_settings_at(directory)
   require_settings_version(current, expected)
   parse_site_config(content) |> ignore

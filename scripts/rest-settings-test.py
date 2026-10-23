@@ -13,5 +13,5 @@ with NativeSite() as site:
     assert site.request('/wp-json/')[2]['url']=='https://new.example/'
     assert site.request(route,'HEAD',role='administrator')[2] is None
     assert site.request(route+'?raw=true',role='administrator')[0]==400
-    assert site.request(route,'OPTIONS')[2]['methods']==['GET','HEAD','OPTIONS']
+    assert site.request(route,'OPTIONS')[2]['methods']==['GET','HEAD','POST','OPTIONS']
 print('Native settings reads: administrator gate, absent/read-only semantics, validated values, version headers and fresh base URLs passed.')
