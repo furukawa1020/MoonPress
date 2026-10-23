@@ -130,9 +130,9 @@ fn native_comments_read(
     .get("status")
     .unwrap_or(if edit { "any" } else { "approved" })
   for key, value in query {
-    if !["context", "status", "post", "page", "per_page", "search"].contains(
-        key,
-      ) ||
+    if ![
+        "context", "status", "post", "page", "per_page", "search", "orderby", "order",
+      ].contains(key) ||
       (id > 0 && key != "context") ||
       (key == "context" && value != "view" && value != "edit") {
       return rest_error(400, "rest_invalid_param")
@@ -140,6 +140,11 @@ fn native_comments_read(
   }
   if !["any", "approved", "hold", "spam", "trash"].contains(status) ||
     (!edit && status != "approved") {
+    return rest_error(400, "rest_invalid_param")
+  }
+  let orderby = query.get("orderby").unwrap_or("id")
+  let order = query.get("order").unwrap_or("asc")
+  if !["id", "date"].contains(orderby) || !["asc", "desc"].contains(order) {
     return rest_error(400, "rest_invalid_param")
   }
   let search = native_query_text(query.get("search").unwrap_or("")) catch {
@@ -186,6 +191,23 @@ fn native_comments_read(
     } else {
       item.status == "approved" && public.contains(item.post)
     })
+  })
+  allowed.sort_by(fn(a, b) {
+    let compared = if orderby == "date" {
+      a.comment.created.compare(b.comment.created)
+    } else {
+      a.comment.id.compare(b.comment.id)
+    }
+    let compared = if compared == 0 {
+      a.comment.id.compare(b.comment.id)
+    } else {
+      compared
+    }
+    if order == "asc" {
+      compared
+    } else {
+      0 - compared
+    }
   })
   if id > 0 {
     for row in allowed {
