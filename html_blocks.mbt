@@ -140,7 +140,8 @@ fn html_image_block(
     "none".to_json() {
     raise InvalidInput("Linked image block unsupported")
   }
-  if attrs.get("class") is Some(value) && value != "wp-block-image" + size {
+  if (!size.is_empty() && attrs.get("class") != Some("wp-block-image" + size)) ||
+    (attrs.get("class") is Some(value) && value != "wp-block-image" + size) {
     raise InvalidInput("Image figure class disagrees")
   }
   match html_single_root(children) {
