@@ -13,5 +13,7 @@ with NativeSite() as site:
     # Native upload JSON alone has the larger bounded body allowance.
     larger=PNG+b'\x00'*(300*1024)
     status,_,_=site.request(route,'POST',{'name':'larger.png','data':base64.b64encode(larger).decode()},'author');assert status==201
+    assert site.request(route+'?_fields=name','POST',{'name':'projected.png','data':base64.b64encode(larger).decode()},'author')[2]=={'name':'projected.png'}
+    assert site.request(route+'/nested/file.png','POST',{'data':base64.b64encode(larger).decode()},'author')[0]==400
     assert site.request('/wp-json/wp/v2/posts','POST',{'title':'X','content':'a'*(300*1024)},'author')[0]==400
 print('Native media upload: roles, strict names/encoding/signatures, first-use folder, exclusive publication and separate body bounds passed.')

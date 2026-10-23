@@ -106,12 +106,15 @@ fn admin_headers(
   } else {
     None
   }
-  let native_upload = rest &&
-    start[0] == "POST" &&
-    (
-      start[1] == "/wp-json/moonpress/v1/media" ||
-      start[1].has_prefix("/wp-json/moonpress/v1/media/")
-    )
+  let native_upload = if rest && start[0] == "POST" {
+    let (path, _) = rest_target(start[1])
+    native_media_name(path) is Some(_) &&
+    native_rest_methods(path)
+    .map(verbs => verbs.contains("POST"))
+    .unwrap_or(false)
+  } else {
+    false
+  }
   let limit = if boundary is Some(_) || native_upload {
     8388608
   } else {
