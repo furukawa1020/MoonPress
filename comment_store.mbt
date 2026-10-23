@@ -137,7 +137,7 @@ fn comment_append(
     action,
     comment,
   }
-  let bytes = @utf8.encode(event.to_json().stringify() + "\n")
+  let bytes = @utf8.encode(ToJson::to_json(event).stringify() + "\n")
   if bytes.length() > 32768 || state.bytes + bytes.length() > 16777216 {
     raise InvalidInput("Comment storage limit")
   }

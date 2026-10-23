@@ -283,3 +283,12 @@ restart and are never reused. Limits: 1024 comments, 4096 events, 32 KiB/event,
 16 MiB total. Corrupt/foreign/symlink/hardlinked/nonprivate records fail closed.
 This detects corruption, not trusted-owner rollback; back up the whole log with
 the site. No email addresses or IP addresses are collected.
+
+GET/HEAD native `comments` lists only approved comments whose parent article is
+currently public/listed/due; detail uses the numeric id. Counts and pagination are
+after this visibility filter. Plain `post` id, page/per_page, and context=view are
+supported. Anonymous context=edit is denied; authenticated edit reads return only
+the caller's comments unless the caller can manage others' posts. Edit reads add
+raw text/owner and per-comment ETag; public reads expose only the chosen public
+label and escaped rendered content. Explicit bad credentials never fall back to
+anonymous access. This API does not yet render comments into static article HTML.
