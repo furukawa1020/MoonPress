@@ -18,5 +18,20 @@ with NativeSite() as s:
         assert operator.request('/comment?id=999')[0]==404
         assert operator.request('/comment?id=0')[0]==400
         assert operator.request('/comment?id=1&raw=true')[0]==400
+    # Inspection itself leaves the log unchanged.
     assert before=={p.name:p.read_bytes() for p in (s.site/'.moonpress-comments').iterdir()}
+    with Operator(s.site) as operator:
+        _,detail=operator.request('/comment?id='+str(row['id']))
+        token=operator.token(detail);revision=h['ETag'].strip('"')
+        fields={'token':token,'id':str(row['id']),'revision':revision,'status':'approved'}
+        assert operator.request('/comment-status','POST',{**fields,'token':'bad'})[0]==400
+        assert operator.request('/comment-status','POST',fields,{'Origin':'https://evil.example'})[0]==400
+        assert before=={p.name:p.read_bytes() for p in (s.site/'.moonpress-comments').iterdir()}
+        status,changed=operator.request('/comment-status','POST',fields)
+        assert status==200 and 'Status: approved' in changed and len(s.request(route)[2])==1
+        assert operator.request('/comment-status','POST',{**fields,'status':'spam'})[0]==412
+        current=s.request(route+'/'+str(row['id'])+'?context=edit',role='editor')[1]['ETag'].strip('"')
+        assert operator.request('/comment-status','POST',{**fields,'revision':current,'status':'spam'})[0]==200
+        assert s.request(route)[2]==[]
+
 print('Operator comment inventory: escaped text, pending default, status navigation, strict queries and read-only GET passed.')
