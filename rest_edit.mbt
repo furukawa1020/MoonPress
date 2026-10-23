@@ -16,6 +16,7 @@ fn rest_edit_value(
   stem : String,
   base : String,
   digest : String,
+  instant? : Int64 = authoring_time(),
 ) -> Json raise {
   let value = rest_post_value(document, stem, base)
   let fields = match value {
@@ -24,7 +25,7 @@ fn rest_edit_value(
   }
   fields["status"] = (if document.draft {
     "draft"
-  } else if !publication_due(document.publish_at, authoring_time()) {
+  } else if !publication_due(document.publish_at, instant) {
     "future"
   } else {
     "publish"

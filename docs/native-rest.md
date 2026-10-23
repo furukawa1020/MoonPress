@@ -16,11 +16,11 @@ Reference schemas: [posts](https://developer.wordpress.org/rest-api/reference/po
 | `/wp-json/wp/v2/users/me` | Generated Basic credentials required; current identity only |
 
 GET and HEAD are supported for reads. Collection parameters are `context=view`, `page`
-(1–4096), `per_page` (1–100), one exact `slug`, `order=asc|desc`, and
-`orderby=date|id`. Responses include `X-WP-Total` and `X-WP-TotalPages`.
+(1–4096), `per_page` (1–100), comma-separated `slug`, `order=asc|desc`, and
+`orderby=date|id|title|slug|include`. Responses include `X-WP-Total` and `X-WP-TotalPages`.
 Unknown/duplicate parameters are rejected. Detail accepts `context=view` or authorized `context=edit`.
-Trailing collection slashes are accepted. `_fields`, `_embed`, search, taxonomies,
-includes/excludes, authentication cookies, OPTIONS/CORS, XML-RPC, creation and
+Trailing collection slashes are accepted. `_embed`, taxonomies,
+authentication cookies, OPTIONS/CORS, XML-RPC, creation and
 deletion are not implemented. No unknown parameters are silently treated as effective.
 
 Post objects contain `id`, `date`, `date_gmt`, `slug`, `status`, `type`, `link`,

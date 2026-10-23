@@ -93,7 +93,7 @@ fn rest_edit_collection(
         allowed.push(post)
       }
     }
-    rest_collection_result(rest_filter_posts(allowed, query), query, base, true)
+    rest_collection_result(rest_filter_posts(allowed, query), query, base, true, instant~)
   })
 }
 
@@ -103,6 +103,7 @@ fn rest_collection_result(
   query : Map[String, String],
   base : String,
   edit : Bool,
+  instant? : Int64 = authoring_time(),
 ) -> RestResponse raise {
   let size = rest_positive(query.get("per_page").unwrap_or("10"), 100)
   let page = rest_positive(query.get("page").unwrap_or("1"), 4096)
@@ -118,7 +119,7 @@ fn rest_collection_result(
   for i = start; i < total && i < start + size; i = i + 1 {
     values.push(
       if edit {
-        rest_edit_value(posts[i].document, posts[i].stem, base, posts[i].digest)
+        rest_edit_value(posts[i].document, posts[i].stem, base, posts[i].digest, instant~)
       } else {
         rest_post_value(posts[i].document, posts[i].stem, base)
       },
