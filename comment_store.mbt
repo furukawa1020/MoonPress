@@ -126,9 +126,29 @@ fn comment_append(
   state : CommentState,
   comment : NativeComment,
   action : String,
-) -> CommentRow raise {
+) -> CommentRow? raise {
+  if action == "create" {
+    if comment.id != state.rows.length() + 1 ||
+      state.rows.length() >= 1024 ||
+      comment.status != "hold" {
+      raise InvalidInput("Invalid comment creation")
+    }
+  } else if action == "status" {
+    if comment.id < 1 || comment.id > state.rows.length() {
+      raise InvalidInput("Unknown comment")
+    }
+    let old = state.rows[comment.id - 1].comment
+    if { ..comment, status: old.status, } != old ||
+      comment.status == old.status ||
+      !["hold", "approved", "spam", "trash"].contains(comment.status) ||
+      (old.status == "trash" && comment.status != "hold") {
+      raise InvalidInput("Invalid comment transition")
+    }
+  } else {
+    raise InvalidInput("Unknown comment action")
+  }
   if state.sequence >= 4096 {
-    raise InvalidInput("Comment event limit")
+    return None
   }
   let event : CommentEvent = {
     schema: 1,
@@ -137,12 +157,12 @@ fn comment_append(
     action,
     comment,
   }
-  let bytes = @utf8.encode(event.to_json().stringify() + "\n")
+  let bytes = @utf8.encode(ToJson::to_json(event).stringify() + "\n")
   if bytes.length() > 32768 || state.bytes + bytes.length() > 16777216 {
-    raise InvalidInput("Comment storage limit")
+    return None
   }
   log.write_new(access_name(event.sequence), bytes, private_mode=true)
-  { comment, revision: digest_bytes(bytes), }
+  Some({ comment, revision: digest_bytes(bytes), })
 }
 
 ///|
