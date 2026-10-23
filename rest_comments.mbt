@@ -171,7 +171,7 @@ fn native_comments_read(
     None => []
   }
   let moderator = match principal {
-    Some(user) => role_capabilities(user.role).contains("edit_others_posts")
+    Some(user) => role_capabilities(user.role).contains("moderate_comments")
     None => false
   }
   let allowed = rows.filter(row => {
@@ -208,4 +208,67 @@ fn native_comments_read(
     total: Some(allowed.length()),
     pages: Some(pages),
   }
+}
+
+///|
+fn native_comment_moderate(
+  input : String,
+  content : AuthoringDirectory,
+  principal : AccessPrincipal,
+  id : Int,
+  query : Map[String, String],
+  expected : String?,
+  body : Bytes,
+) -> RestResponse raise {
+  if !role_capabilities(principal.role).contains("moderate_comments") {
+    return rest_error(403, "moonpress_cannot_moderate")
+  }
+  for key, value in query {
+    if key != "context" || value != "edit" {
+      return rest_error(400, "rest_invalid_param")
+    }
+  }
+  let status = try {
+    let fields = strict_json_object(
+      @json.parse(decode_text(body, "Moderation")),
+      ["status"],
+      "Moderation",
+    )
+    match fields.get("status") {
+      Some(String(status)) if ["approved", "hold", "spam"].contains(status) =>
+        status
+      _ => raise InvalidInput("Unsupported comment status")
+    }
+  } catch {
+    _ => return rest_error(400, "rest_invalid_param")
+  }
+  let log = match comment_open(input, content) {
+    Some(log) => log
+    None => return rest_error(404, "moonpress_comment_missing")
+  }
+  defer directory_close(log.fd)
+  log.lock()
+  let state = comment_replay(log)
+  if id < 1 || id > state.rows.length() {
+    return rest_error(404, "moonpress_comment_missing")
+  }
+  let current = state.rows[id - 1]
+  if rest_precondition(expected, current.revision) is Some(error) {
+    return error
+  }
+  if current.comment.status == "trash" {
+    return rest_error(409, "moonpress_comment_trashed")
+  }
+  if current.comment.status == status {
+    return rest_ok(
+      native_comment_value(current, true),
+      etag=Some(current.revision),
+    )
+  }
+  let next = { ..current.comment, status, }
+  let row = match comment_append(log, state, next, "status") {
+    Some(row) => row
+    None => return rest_error(409, "moonpress_comment_storage_full")
+  }
+  rest_ok(native_comment_value(row, true), etag=Some(row.revision))
 }

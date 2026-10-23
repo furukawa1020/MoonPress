@@ -23,6 +23,7 @@ pub fn role_capabilities(role : String) -> Array[String] raise {
     "edit_others_posts", "delete_others_posts", "edit_pages", "edit_others_pages",
     "publish_pages", "delete_pages", "edit_published_pages", "delete_published_pages",
     "delete_others_pages", "read_private_posts", "read_private_pages", "manage_categories",
+    "moderate_comments",
   ])
   if role == "administrator" {
     capabilities.append([
