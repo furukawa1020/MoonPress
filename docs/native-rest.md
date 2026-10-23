@@ -349,3 +349,5 @@ Comment inventory `search` matches bounded case-insensitive content or public au
 Comment inventory `orderby=id|date` and `order=asc|desc` apply before pagination. Date ties use the immutable comment ID.
 
 Comment inventory `include`/`exclude` accept at most 100 distinct positive IDs. Exclusion wins; selection never bypasses visibility or ownership. Empty lists retain the existing all-IDs filter convention.
+
+`GET/HEAD comments/summary` requires fresh moderate_comments authority and returns hold/approved/spam/trash counts plus comment/event/byte usage and limits. It returns no text, identities or physical paths and creates no storage on empty reads.
