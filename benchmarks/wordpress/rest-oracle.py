@@ -92,3 +92,5 @@ subprocess.run([sys.executable,'scripts/rest-comment-trash-test.py'],check=True)
 subprocess.run([sys.executable,'scripts/rest-settings-test.py'],check=True)
 
 subprocess.run([sys.executable,'scripts/rest-settings-save-test.py'],check=True)
+
+subprocess.run([sys.executable,'scripts/rest-conditional-test.py'],check=True)

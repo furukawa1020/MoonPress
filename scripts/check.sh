@@ -217,3 +217,5 @@ python3 scripts/rest-comment-trash-test.py
 
 python3 scripts/rest-settings-test.py
 python3 scripts/rest-settings-save-test.py
+
+python3 scripts/rest-conditional-test.py

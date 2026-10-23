@@ -15,7 +15,7 @@ Plugin extensions are an open-ended ecosystem, not a finite core checklist.
 | Revisions / rollback | Explicit opt-in, immutable distinct-version preimages, manual checkpoints, browser/CLI diff and current-version-bound restore; not every save event |
 | Trash / restore / purge | Private durable records, reviewed source removal, restore to vacant original name as mode 0600, individual acknowledged purge; no timed automatic purge |
 | Categories / tags | Separate flat metadata, escaped indexes/archives, pagination; category hierarchy missing |
-| Rich editing | Structured fields and documented Markdown subset, escaped preview; validated static paragraph/heading/list intake; no Gutenberg editor or general HTML authoring |
+| Rich editing | Structured fields and documented Markdown subset, escaped preview; validated static paragraph/heading/list/quote/code/separator/image intake; no Gutenberg editor or general HTML authoring |
 | Autosave | Missing; interrupted native staging can be inspected/rescued, but unsaved browser typing is not autosaved |
 | Media | Import/list/replace/preview, reference inspection and guarded removal; crop/rotate, responsive variants and attachment metadata missing |
 | Themes / menus | Trusted static HTML/CSS layouts, named layouts, starter navigation; no WordPress PHP theme or block-theme compatibility |
@@ -24,14 +24,14 @@ Plugin extensions are an open-ended ecosystem, not a finite core checklist.
 | Languages | Automatic Japanese/English administration language with manual override; article translation is not automatic |
 | User accounts / roles | Native private principals, five fixed roles and implemented-capability decisions, generated revocable credentials; [access foundation](native-access.md). REST creation/edits/trash enforce ownership/role; local operator editor is still not a multiuser interface |
 | Private / password posts | Missing; never treat listed=false as private |
-| Comments / moderation | Missing |
-| REST / XML-RPC / application passwords | [Native REST subset](native-rest.md): public posts/pages, selected filters/fields, users/me, authorized edit collections, guarded create/update/trash, OPTIONS and universal search. Broad REST/query/schema compatibility, WordPress password import and XML-RPC remain missing |
+| Comments / moderation | Native authenticated pending creation, public approved reads, scoped edit views, guarded approval/hold/spam/trash and hold-only restore; published templates do not yet display comments |
+| REST / XML-RPC / application passwords | [Native REST subset](native-rest.md): public posts/pages, selected filters/fields, users/me, authorized edit collections, guarded create/update/trash, OPTIONS and universal search; native history/media/comment/settings workflows and conditional representation reads. Broad REST/query/schema compatibility, WordPress password import and XML-RPC remain missing |
 | Multisite / network administration | Missing |
 | Plugins / hooks / custom post types | Missing; WordPress plugins cannot run in the native runtime |
 | Import / export | Verified static-site ZIP plus WXR export and reviewed private-draft intake; documented subset with explicit refusals |
 | Deployment / updates | Native release candidates and configured static hosting; a local build is not a deployment |
 
-Next implementation priorities include attachment metadata/media REST, comments,
+Next implementation priorities include full attachment metadata, public comment display,
 private/password visibility and broader route/schema/block coverage. These are
 remaining work, not hidden behind placeholder UI.
 
@@ -57,3 +57,9 @@ Security and load acceptance: [security-and-capacity.md](security-and-capacity.m
 Scheduled publication is implemented with strict UTC `publish_at`, guarded editing and production exclusion; see [scheduled-publication.md](scheduled-publication.md). Automatic rebuild/deployment at the due instant still requires hosting automation.
 
 WXR content interchange now includes bounded native export, reviewed private-draft intake and actual WordPress importer/core-export oracle tests; [migration scope and unsupported cases](wordpress-migration.md). This is not arbitrary WordPress theme/plugin/runtime compatibility.
+
+## Native workflow expansion (20 changes, October 2026)
+
+MoonBit native workflows now cover conservative HTML hard breaks, quotes, code/preformatted content, separators, images and static matching block wrappers; named categories/tags; guarded slug changes; authorized history reads/restores; bounded raster media inventory/upload/replacement; authenticated pending comments with scoped reads, moderation, trash and hold-only restoration; administrator settings reads/updates; and representation-aware conditional reads. Each has native HTTP regressions, with actual WordPress fixtures used for applicable interchange and capability behavior.
+
+Comments are an API workflow foundation; published article templates do not yet display them. Raster uploads check supported signatures rather than decoding whole images. No complete WordPress feature parity, plugin compatibility, production API scaling or universal security superiority is asserted by this batch. The production serving benchmark compares generated output independently from this loopback authoring API.
