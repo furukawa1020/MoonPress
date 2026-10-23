@@ -14,7 +14,12 @@ fn rest_fields(value : String?) -> Array[String] raise {
           part.length() > 64 ||
           !part
           .to_owned()
-          .all(c => c.is_ascii_alphabetic() || c.is_ascii_digit() || c == '_')
+          .all(c => {
+            c.is_ascii_alphabetic() ||
+            c.is_ascii_digit() ||
+            c == '_' ||
+            c == '-'
+          })
         }) {
         raise InvalidInput("Invalid field selector")
       }
@@ -30,9 +35,40 @@ fn rest_fields(value : String?) -> Array[String] raise {
 }
 
 ///|
-fn rest_project(value : Json, fields : Array[String]) -> Json {
+fn rest_project(
+  value : Json,
+  fields : Array[String],
+  collection? : Bool = true,
+) -> Json {
   match value {
-    Array(items) => items.map(item => rest_project(item, fields)).to_json()
+    Array(items) => {
+      if collection {
+        return items
+          .map(item => rest_project(item, fields, collection=false))
+          .to_json()
+      }
+      let properties : Map[String, Json] = Map([])
+      for i = 0; i < items.length(); i = i + 1 {
+        properties[i.to_string()] = items[i]
+      }
+      let projected = rest_project(
+        Json::object(properties),
+        fields,
+        collection=false,
+      )
+      let selected = match projected {
+        Object(properties) => properties
+        _ => Map([])
+      }
+      let contiguous : Array[Json] = []
+      for i = 0; i < selected.length(); i = i + 1 {
+        match selected.get(i.to_string()) {
+          Some(item) => contiguous.push(item)
+          None => return Json::object(selected)
+        }
+      }
+      contiguous.to_json()
+    }
     Object(properties) => {
       let projected : Map[String, Json] = Map([])
       for key, value in properties {
@@ -48,7 +84,7 @@ fn rest_project(value : Json, fields : Array[String]) -> Json {
           }
         })
         if !nested.is_empty() {
-          projected[key] = rest_project(value, nested)
+          projected[key] = rest_project(value, nested, collection=false)
         }
       }
       Json::object(projected)
@@ -78,4 +114,25 @@ test "REST field projection cannot invent fields outside authorization context" 
     }
     assert_true(rejected)
   }
+}
+
+///|
+test "REST nested arrays select indices without retaining other elements" {
+  let value : Json = {
+    "roles": ["author"],
+    "contexts": ["view", "edit"],
+    "meta": { "one-of-many-keys": "value" },
+  }
+  assert_eq(rest_project(value, rest_fields(Some("roles.nope"))), {
+    "roles": [],
+  })
+  assert_eq(rest_project(value, rest_fields(Some("contexts.0"))), {
+    "contexts": ["view"],
+  })
+  assert_eq(rest_project(value, rest_fields(Some("contexts.1"))), {
+    "contexts": { "1": "edit" },
+  })
+  assert_eq(rest_project(value, rest_fields(Some("meta.one-of-many-keys"))), {
+    "meta": { "one-of-many-keys": "value" },
+  })
 }
