@@ -48,6 +48,9 @@ fn native_history_target(path : String) -> (String, Int, String?)? {
 
 ///|
 fn native_rest_methods(path : String) -> Array[String]? {
+  if native_comment_id(path) == Some(0) {
+    return Some(["POST", "OPTIONS"])
+  }
   if native_media_name(path) is Some(_) {
     return Some(["GET", "HEAD", "POST", "OPTIONS"])
   }
@@ -100,6 +103,9 @@ fn rest_native(
   rest_with_access(input, request.authorization, fn(principal, content) raise {
     if request.verb == "OPTIONS" {
       return native_rest_options(path, query)
+    }
+    if native_comment_id(path) == Some(0) {
+      return native_comment_create(input, content, principal, query, body)
     }
     if native_media_name(path) is Some(name) {
       if request.verb == "POST" && !name.is_empty() {
@@ -169,6 +175,10 @@ fn rest_precondition(value : String?, current : String) -> RestResponse? {
 ///|
 fn native_discovery_routes(value : Json) -> Json {
   if value is Object(routes) {
+    routes["/moonpress/v1/comments"] = {
+      "namespace": "moonpress/v1".to_json(),
+      "methods": ["POST", "OPTIONS"].to_json(),
+    }
     for path in ["/moonpress/v1/media", "/moonpress/v1/media/(?P<name>[^/]+)"] {
       routes[path] = {
         "namespace": "moonpress/v1".to_json(),

@@ -10,7 +10,8 @@ fn prepare_authoring_vault(input : String, name : String) -> Bool raise {
   if name != ".moonpress-history" &&
     name != ".moonpress-trash" &&
     name != ".moonpress-access" &&
-    name != ".moonpress-identities" {
+    name != ".moonpress-identities" &&
+    name != ".moonpress-comments" {
     raise InvalidInput("Unknown private authoring vault")
   }
   require_input_kind(input + "/content", 2)
