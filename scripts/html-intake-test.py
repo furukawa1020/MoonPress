@@ -10,6 +10,7 @@ cases += [('<pre><code class="language-moonbit">  x &lt; y\n```\n</code></pre>',
 cases += [('<p>Before</p><hr /><p>After</p>','<p>Before</p>\n<hr>\n<p>After</p>\n')]
 cases += [('<p>Look <img src="https://example.test/image.png" alt="月 &amp; stars" /> here.</p>','<p>Look <img src="https://example.test/image.png" alt="月 &amp; stars"> here.</p>\n')]
 cases += [('<!-- wp:quote --><blockquote class="wp-block-quote"><!-- wp:paragraph --><p>Quoted <strong>bold</strong> end.</p><!-- /wp:paragraph --></blockquote><!-- /wp:quote -->','<blockquote>\n<p>Quoted <strong>bold</strong> end.</p>\n</blockquote>\n'),('<!-- wp:image {"id":123,"sizeSlug":"large","linkDestination":"none"} --><figure class="wp-block-image size-large"><img src="https://example.test/image.png" alt="Moon" class="wp-image-123" /></figure><!-- /wp:image -->','<p><img src="https://example.test/image.png" alt="Moon"></p>\n')]
+cases += [('<p>Before <del>old</del> after.</p>','<p>Before <del>old</del> after.</p>\n'),('<p><s>Removed</s></p>','<p><del>Removed</del></p>\n')]
 if len(sys.argv)>1:cases+=json.loads(pathlib.Path(sys.argv[1]).read_text())
 with NativeSite() as site:
     for index,(body,expected) in enumerate(cases):
@@ -20,7 +21,7 @@ with NativeSite() as site:
         assert status==200 and value['content']['rendered']=='<p>Changed <strong>bold</strong> end.</p>\n'
     _,current_headers,_=site.request(path+'?context=edit',role='author')
     before={p.name:p.read_bytes() for p in (site.site/'content').glob('*.md')}
-    for body in ['<p>A<strong>B</strong>C</p>','<p><a href="javascript:alert(1)">x</a></p>','<p><span>x</span></p>','<p>x<!-- hidden -->y</p>','<p><strong>x</p>','<!-- wp:latest-posts /-->','<!-- wp:paragraph --><p>A</p><!-- /wp:heading -->']:
+    for body in ['<p><del onclick="bad">x</del></p>','<p><del> edge </del></p>','<p>A<strong>B</strong>C</p>','<p><a href="javascript:alert(1)">x</a></p>','<p><span>x</span></p>','<p>x<!-- hidden -->y</p>','<p><strong>x</p>','<!-- wp:latest-posts /-->','<!-- wp:paragraph --><p>A</p><!-- /wp:heading -->']:
         assert site.request('/wp-json/wp/v2/posts','POST',{'title':'Rejected','content':body},'author')[0]==400
         assert site.request(path,'POST',{'content':body},'author',current_headers['ETag'])[0]==400
     assert before=={p.name:p.read_bytes() for p in (site.site/'content').glob('*.md')}
