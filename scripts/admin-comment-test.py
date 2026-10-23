@@ -8,6 +8,7 @@ with NativeSite() as s:
     with Operator(s.site) as operator:
         status,body=operator.request('/comments')
         assert status==200 and '&lt;script&gt;never execute&lt;/script&gt;' in body and '&lt;Reader&gt;' in body and '<script>' not in body
+        assert 'class="table-scroll" role="region" aria-label="Comments" tabindex="0"' in body
         assert 'hold (1)' in body and 'approved (0)' in body and 'href="/comments"' in body
         assert operator.request('/comments?status=approved')[0]==200
         for suffix in ['status=bad','page=0','private=true','search='+('x'*257)]:assert operator.request('/comments?'+suffix)[0]==400

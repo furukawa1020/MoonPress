@@ -42,7 +42,7 @@ fn admin_comments(input : String, query : Map[String, String]) -> String raise {
     admin_hidden("status", status) +
     "<label><!--mp:ja-->コメントを探す<!--mp:en-->Search comments<!--mp:end--><input name=\"search\" maxlength=\"256\" value=\"" +
     escape_html(query.get("search").unwrap_or("")) +
-    "\"></label><button><!--mp:ja-->探す<!--mp:en-->Search<!--mp:end--></button></form><p>\{rows.length()} comments</p><div class=\"table-scroll\"><table><thead><tr><th>ID</th><th>Post</th><th>Author</th><th>Status</th><th>Text</th></tr></thead><tbody>",
+    "\"></label><button><!--mp:ja-->探す<!--mp:en-->Search<!--mp:end--></button></form><p>\{rows.length()} comments</p>" + admin_table_start("Comments") + "<thead><tr><th>ID</th><th>Post</th><th>Author</th><th>Status</th><th>Text</th></tr></thead><tbody>",
   )
   for i = start; i < rows.length() && i < start + size; i = i + 1 {
     let c = rows[i].comment
