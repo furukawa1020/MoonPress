@@ -24,6 +24,11 @@ try:
         try:request('/wp-json/');break
         except OSError:time.sleep(.03)
     else:raise ValueError('Native REST listener unavailable')
+    selected=request('/wp-json/wp/v2/posts?slug=oracle-post&_fields=id,title.rendered')
+    assert len(selected)==len(core['projection'])
+    for ours,theirs in zip(selected,core['projection']):
+        assert set(ours)==set(theirs)=={'id','title'} and set(ours['title'])==set(theirs['title'])=={'rendered'}
+        assert ours['id']==theirs['id'] and text(ours['title']['rendered'])==text(theirs['title']['rendered'])
     for row in expected:
         collection='pages' if row['kind']=='page' else 'posts'
         native=request('/wp-json/wp/v2/'+collection+'?slug='+row['slug'])

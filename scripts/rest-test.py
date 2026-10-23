@@ -41,6 +41,9 @@ with tempfile.TemporaryDirectory() as temporary:
         assert '<script>' not in posts[0]['content']['rendered'] and '&lt;script&gt;' in posts[0]['content']['rendered']
         assert 'raw' not in posts[0]['content'] and posts[0]['author']==1
         assert request('/wp-json/wp/v2/posts/100')[2]==posts[0]
+        projected=request('/wp-json/wp/v2/posts?_fields=id,title.rendered');assert set(projected[2][0])=={'id','title'} and set(projected[2][0]['title'])=={'rendered'}
+        assert request('/wp-json/wp/v2/posts/100?_fields=title.raw')[2]=={'title':{}}
+        assert request('/wp-json/wp/v2/posts/100?_fields=id..raw')[0]==400
         assert request('/wp-json/wp/v2/pages')[2][0]['id']==200
         assert request('/wp-json/wp/v2/posts?per_page=1&page=2')[2][0]['id']==101
         assert request('/wp-json/wp/v2/posts?orderby=id&order=desc')[2][0]['id']==101
