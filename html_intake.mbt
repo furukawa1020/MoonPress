@@ -298,6 +298,10 @@ fn html_blocks(nodes : Array[IntakeHtml]) -> String raise {
           body.write_string("---\n\n")
           continue
         }
+        if name == "table" {
+          body.write_string(html_table(attrs, children) + "\n")
+          continue
+        }
         if name == "pre" {
           body.write_string(html_pre(attrs, children) + "\n")
           continue

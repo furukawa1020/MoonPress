@@ -353,3 +353,5 @@ Comment inventory `include`/`exclude` accept at most 100 distinct positive IDs. 
 `GET/HEAD comments/summary` requires fresh moderate_comments authority and returns hold/approved/spam/trash counts plus comment/event/byte usage and limits. It returns no text, identities or physical paths and creates no storage on empty reads.
 
 HTML intake accepts attribute-free del/s as native strikethrough only when exact native inline rendering preserves its text and nesting. Unsupported attributes and lossy delimiter boundaries are refused.
+
+HTML intake accepts plain rectangular tables: one th header row, optional thead/tbody sections, and matching td body rows. At most 32 columns and 1,000 body rows; supported inline cells round-trip through native Markdown. Header scope=col is allowed. Spans, styling, captions, ragged rows and nested tables are explicitly refused. Actual WordPress core-export fixtures cover both tables and strikethrough.
