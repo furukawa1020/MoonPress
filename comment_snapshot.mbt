@@ -51,3 +51,11 @@ fn native_comment_summary(
     "comment_limit": (1024 : Int).to_json(),
   })
 }
+
+///|
+fn comment_snapshot(input : String) -> CommentState raise {
+  let content = open_authoring_subdirectory(input, "content")
+  defer directory_close(content.fd)
+  content.lock()
+  comment_snapshot_at(input, content)
+}
