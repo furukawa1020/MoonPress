@@ -25,6 +25,9 @@ fn html_pre(
         _ => false
       }
     }) {
+    if children.length() != 1 {
+      raise InvalidInput("Whitespace siblings inside pre cannot be discarded")
+    }
     match html_single_root(children) {
       Element("code", attrs, literal) => {
         for key, value in attrs {
