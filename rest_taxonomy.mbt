@@ -18,11 +18,20 @@ fn native_taxonomy_read(
   query : Map[String, String],
 ) -> RestResponse raise {
   for key, _ in query {
-    if !["page", "per_page"].contains(key) {
+    if !["page", "per_page", "search", "name"].contains(key) {
       return rest_error(400, "rest_invalid_param")
     }
   }
   try rest_page_bounds(0, query) |> ignore catch {
+    _ => return rest_error(400, "rest_invalid_param")
+  }
+  let (search, exact) = try {
+    let exact = match query.get("name") {
+      Some(value) => Some(rest_named_terms([value.to_json()])[0])
+      None => None
+    }
+    (native_query_text(query.get("search").unwrap_or("")), exact)
+  } catch {
     _ => return rest_error(400, "rest_invalid_param")
   }
   let counts : Map[String, Int] = Map([])
@@ -43,7 +52,12 @@ fn native_taxonomy_read(
       }
     }
   }
-  let names = counts.keys().to_array()
+  let names = counts
+    .keys()
+    .to_array()
+    .filter(name => {
+      (exact is None || exact == Some(name)) && name.to_lower().contains(search)
+    })
   names.sort()
   let (start, size, pages) = match rest_page_bounds(names.length(), query) {
     Some(value) => value
