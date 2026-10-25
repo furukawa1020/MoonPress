@@ -77,6 +77,7 @@ fn admin_comments(input : String, query : Map[String, String]) -> String raise {
 fn admin_comment_item(
   input : String,
   query : Map[String, String],
+  token : String,
 ) -> (Int, String) raise {
   if query.length() != 1 {
     raise InvalidInput("Expected one comment ID")
@@ -103,7 +104,9 @@ fn admin_comment_item(
       escape_html(c.author_name) +
       "</p><pre>" +
       escape_html(c.content) +
-      "</pre><p>Revision: <code>" +
+      "</pre>" +
+      admin_comment_actions(row, token) +
+      "<p>Revision: <code>" +
       row.revision +
       "</code></p><p><a href=\"/comments?status=" +
       c.status +
@@ -111,4 +114,67 @@ fn admin_comment_item(
       title_en="Inspect comment",
     ),
   )
+}
+
+///|
+fn admin_comment_actions(row : CommentRow, token : String) -> String {
+  if row.comment.status == "trash" {
+    return ""
+  }
+  "<form method=\"post\" action=\"/comment-status\">" +
+  admin_hidden("token", token) +
+  admin_hidden("id", row.comment.id.to_string()) +
+  admin_hidden("revision", row.revision) +
+  "<button name=\"status\" value=\"approved\"><!--mp:ja-->承認<!--mp:en-->Approve<!--mp:end--></button> <button name=\"status\" value=\"hold\"><!--mp:ja-->保留<!--mp:en-->Hold<!--mp:end--></button> <button name=\"status\" value=\"spam\"><!--mp:ja-->スパム<!--mp:en-->Spam<!--mp:end--></button></form>"
+}
+
+///|
+fn operator_comment_change(
+  input : String,
+  id : Int,
+  revision : String,
+  status : String,
+) -> RestResponse raise {
+  let content = open_authoring_subdirectory(input, "content")
+  defer directory_close(content.fd)
+  content.lock()
+  native_comment_change(
+    input,
+    content,
+    id,
+    Some("\"" + revision + "\""),
+    status,
+  )
+}
+
+///|
+fn admin_comment_action(
+  input : String,
+  token : String,
+  fields : Map[String, String],
+) -> (Int, String) raise {
+  if fields.length() != 4 {
+    raise InvalidInput("Invalid comment action fields")
+  }
+  let id = rest_positive(admin_field(fields, "id"), 2147483647)
+  let status = admin_field(fields, "status")
+  if !["approved", "hold", "spam"].contains(status) {
+    raise InvalidInput("Invalid comment action")
+  }
+  let result = operator_comment_change(
+    input,
+    id,
+    admin_field(fields, "revision"),
+    status,
+  )
+  if result.code != 200 {
+    return (
+      result.code,
+      admin_page(
+        "Comment unchanged",
+        "<p>The comment changed, is unavailable, or cannot enter this state. Reload and review before retrying.</p><p><a href=\"/comment?id=\{id}\">Inspect current comment</a></p>",
+      ),
+    )
+  }
+  admin_comment_item(input, Map([("id", id.to_string())]), token)
 }

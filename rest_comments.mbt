@@ -281,6 +281,20 @@ fn native_comment_moderate(
       _ => return rest_error(400, "rest_invalid_param")
     }
   }
+  native_comment_change(input, content, id, expected, status)
+}
+
+///|
+fn native_comment_change(
+  input : String,
+  content : AuthoringDirectory,
+  id : Int,
+  expected : String?,
+  status : String,
+) -> RestResponse raise {
+  if !["approved", "hold", "spam", "trash"].contains(status) {
+    return rest_error(400, "rest_invalid_param")
+  }
   let log = match comment_open(input, content) {
     Some(log) => log
     None => return rest_error(404, "moonpress_comment_missing")

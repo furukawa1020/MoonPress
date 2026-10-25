@@ -158,6 +158,7 @@ fn admin_route(
       return admin_comment_item(
         input,
         admin_form(request.target[9:].to_owned()),
+        token,
       )
     }
     if request.target == "/comments" {
@@ -295,6 +296,9 @@ fn admin_route(
   let fields = admin_form(body)
   if admin_field(fields, "token") != token {
     raise InvalidInput("Form token rejected; reload the page")
+  }
+  if request.target == "/comment-status" {
+    return admin_comment_action(input, token, fields)
   }
   if ["/trash-post", "/trash-restore", "/trash-purge"].contains(request.target) {
     return (200, admin_trash_action(input, request.target, fields))

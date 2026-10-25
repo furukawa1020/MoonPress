@@ -18,7 +18,8 @@ class Operator:
         self.__exit__();raise AssertionError('Operator listener unavailable')
     def request(self,path,method='GET',fields=None,headers=None):
         h={'Accept-Language':'en',**(headers or {})};payload=None
-        if fields is not None:payload=urllib.parse.urlencode(fields);h['Content-Type']='application/x-www-form-urlencoded'
+        if fields is not None:
+            payload=urllib.parse.urlencode(fields);h['Content-Type']='application/x-www-form-urlencoded';h.setdefault('Origin',f'http://127.0.0.1:{self.port}')
         c=http.client.HTTPConnection('127.0.0.1',self.port,timeout=8);c.request(method,path,payload,h);r=c.getresponse();body=r.read().decode();c.close();return r.status,body
     def token(self,body):return re.search(r'name="token" value="([a-f0-9]{64})"',body)[1]
     def __exit__(self,*args):self.process.terminate();self.process.wait(timeout=8)
