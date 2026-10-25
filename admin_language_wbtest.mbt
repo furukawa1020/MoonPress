@@ -64,6 +64,11 @@ test "language return paths cannot redirect outside administration" {
     admin_language_target("/edit?name=%E6%9C%88.md"),
     "/edit?name=%E6%9C%88.md",
   )
+  assert_eq(admin_language_target("/comment?id=7"), "/comment?id=7")
+  assert_eq(
+    admin_language_target("/comments?status=spam&page=2"),
+    "/comments?status=spam&page=2",
+  )
   let request = admin_headers(
     "GET /language/en?return=%2Fedit%3Fname%3Dmoon.md HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nAccept-Language: ja\r\nCookie: moonpress-language=en\r\n\r\n",
     "127.0.0.1:8080",

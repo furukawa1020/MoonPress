@@ -47,7 +47,7 @@ fn admin_comments(input : String, query : Map[String, String]) -> String raise {
   for i = start; i < rows.length() && i < start + size; i = i + 1 {
     let c = rows[i].comment
     out.write_string(
-      "<tr><td>\{c.id}</td><td>\{c.post}</td><td>" +
+      "<tr><td><a href=\"/comment?id=\{c.id}\">\{c.id}</a></td><td>\{c.post}</td><td>" +
       escape_html(c.author_name) +
       "</td><td>" +
       c.status +
@@ -71,4 +71,44 @@ fn admin_comments(input : String, query : Map[String, String]) -> String raise {
   }
   out.write_string("</p>")
   admin_page("コメント", out.to_string(), title_en="Comments")
+}
+
+///|
+fn admin_comment_item(
+  input : String,
+  query : Map[String, String],
+) -> (Int, String) raise {
+  if query.length() != 1 {
+    raise InvalidInput("Expected one comment ID")
+  }
+  let id = rest_positive(admin_field(query, "id"), 2147483647)
+  let state = comment_snapshot(input)
+  if id > state.rows.length() {
+    return (
+      404,
+      admin_page(
+        "Comment missing", "<p>This comment does not exist.</p><p><a href=\"/comments\">Comments</a></p>",
+      ),
+    )
+  }
+  let row = state.rows[id - 1]
+  let c = row.comment
+  (
+    200,
+    admin_page(
+      "コメントの確認",
+      "<p>ID: \{c.id} · Post: \{c.post} · Status: " +
+      c.status +
+      "</p><p>" +
+      escape_html(c.author_name) +
+      "</p><pre>" +
+      escape_html(c.content) +
+      "</pre><p>Revision: <code>" +
+      row.revision +
+      "</code></p><p><a href=\"/comments?status=" +
+      c.status +
+      "\"><!--mp:ja-->一覧へ戻る<!--mp:en-->Return to comments<!--mp:end--></a></p>",
+      title_en="Inspect comment",
+    ),
+  )
 }
