@@ -363,3 +363,5 @@ Filter REST articles after ISO8601 timestamps, with exclusive UTC boundaries and
 Filter REST articles before ISO8601 timestamps; combine before and after before counts and pagination.
 
 Restrict REST search with search_columns=post_title,post_content,post_excerpt; empty selection searches all supported columns.
+
+Support REST orderby=author with deterministic ID tie breaks and normal order direction.

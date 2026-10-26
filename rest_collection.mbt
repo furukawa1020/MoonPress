@@ -13,7 +13,7 @@ fn rest_validate_collection(
       (key == "order" && value != "asc" && value != "desc") ||
       (
         key == "orderby" &&
-        !["date", "id", "title", "slug", "include"].contains(value)
+        !["date", "id", "title", "slug", "include", "author"].contains(value)
       ) {
       raise InvalidInput("Unsupported collection query")
     }
