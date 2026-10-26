@@ -369,3 +369,5 @@ Support REST orderby=author with deterministic ID tie breaks and normal order di
 Support REST orderby=include_slugs to preserve the requested slug sequence regardless of order direction.
 
 Accept bounded REST bracket arrays: key[]=value or contiguous key[0]=value; reject mixed scalar forms and sparse or repeated indices.
+
+Support public REST context=embed with id/date/slug/type/link/title/excerpt/author; content and raw fields stay excluded.

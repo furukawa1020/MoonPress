@@ -111,7 +111,11 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
       path != "/wp-json/" {
       args["context"] = {
         "type": "string".to_json(),
-        "enum": ["view", "edit"].to_json(),
+        "enum": (if article {
+          ["view", "embed", "edit"]
+        } else {
+          ["view", "edit"]
+        }).to_json(),
         "default": "view".to_json(),
       }
       if rest_is_search(path) {
