@@ -12,19 +12,20 @@ fn html_table_elements(nodes : Array[IntakeHtml]) -> Array[IntakeHtml] raise {
 }
 
 ///|
-fn html_table_cells(row : IntakeHtml, tag : String) -> Array[String] raise {
+fn html_table_cells(
+  row : IntakeHtml,
+  tag : String,
+) -> (Array[String], Array[String]) raise {
   let children = match row {
     Element("tr", attrs, children) if attrs.is_empty() => children
     _ => raise InvalidInput("Expected plain table row")
   }
   let cells : Array[String] = []
+  let alignments : Array[String] = []
   for cell in html_table_elements(children) {
     match cell {
       Element(name, attrs, children) if name == tag => {
-        if attrs.keys().any(key => key != "scope" || tag != "th") ||
-          (attrs.contains("scope") && attrs.get("scope") != Some("col")) {
-          raise InvalidInput("Unsupported table cell attributes")
-        }
+        alignments.push(html_table_alignment(attrs, tag))
         let empty = children.all(child => {
           match child {
             Text(text) => text.trim().is_empty()
@@ -39,7 +40,7 @@ fn html_table_cells(row : IntakeHtml, tag : String) -> Array[String] raise {
   if cells.is_empty() || cells.length() > 32 {
     raise InvalidInput("Table width bound")
   }
-  cells
+  (cells, alignments)
 }
 
 ///|
@@ -76,10 +77,13 @@ fn html_table(
   if rows.length() > 1001 {
     raise InvalidInput("Table row bound")
   }
-  let header = html_table_cells(rows[0], "th")
+  let (header, alignment) = html_table_cells(rows[0], "th")
   let body : Array[Array[String]] = []
   for i = 1; i < rows.length(); i = i + 1 {
-    let cells = html_table_cells(rows[i], "td")
+    let (cells, row_alignment) = html_table_cells(rows[i], "td")
+    if row_alignment != alignment {
+      raise InvalidInput("Native tables require uniform column alignment")
+    }
     if cells.length() != header.length() {
       raise InvalidInput("Ragged HTML table")
     }
@@ -87,19 +91,24 @@ fn html_table(
   }
   let out = StringBuilder()
   out.write_string("| " + header.join(" | ") + " |\n|")
-  for _ in header {
-    out.write_string(" --- |")
+  for align in alignment {
+    out.write_string(
+      " " +
+      (match align {
+        "left" => ":---"
+        "center" => ":---:"
+        "right" => "---:"
+        _ => "---"
+      }) +
+      " |",
+    )
   }
   out.write_string("\n")
   for row in body {
     out.write_string("| " + row.join(" | ") + " |\n")
   }
   let markdown = out.to_string()
-  let table : TableData = {
-    header,
-    alignment: header.map(_ => ""),
-    rows: body,
-  }
+  let table : TableData = { header, alignment, rows: body, }
   if render_markdown(markdown) != render_table(table) {
     raise InvalidInput("HTML table cannot round-trip through native Markdown")
   }

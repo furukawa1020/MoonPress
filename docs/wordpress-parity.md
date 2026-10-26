@@ -15,7 +15,7 @@ Plugin extensions are an open-ended ecosystem, not a finite core checklist.
 | Revisions / rollback | Explicit opt-in, immutable distinct-version preimages, manual checkpoints, browser/CLI diff and current-version-bound restore; not every save event |
 | Trash / restore / purge | Private durable records, reviewed source removal, restore to vacant original name as mode 0600, individual acknowledged purge; no timed automatic purge |
 | Categories / tags | Separate flat metadata, escaped indexes/archives, pagination; category hierarchy missing |
-| Rich editing | Structured fields and documented Markdown subset, escaped preview; validated static paragraph/heading/list/quote/code/separator/image/table/strikethrough intake; no Gutenberg editor or general HTML authoring |
+| Rich editing | Structured fields and documented Markdown subset, escaped preview; validated static paragraph/heading/list/quote/code/separator/image/table/strikethrough intake, Gutenberg header/body table wrappers and uniform column alignment; no Gutenberg editor or general HTML authoring |
 | Autosave | Missing; interrupted native staging can be inspected/rescued, but unsaved browser typing is not autosaved |
 | Media | Import/list/replace/preview, reference inspection and guarded removal; crop/rotate, responsive variants and attachment metadata missing |
 | Themes / menus | Trusted static HTML/CSS layouts, named layouts, starter navigation; no WordPress PHP theme or block-theme compatibility |
@@ -71,3 +71,9 @@ Native category and tag inventories now support public counts, exact-name lookup
 Comments gain visibility-scoped search, stable date/ID ordering, include/exclude selection and private moderator counts/capacity inspection. The local operator can browse, inspect, moderate, trash and restore with CSRF/version guards and without JavaScript. Tables use keyboard-focusable scroll regions, and language switches retain inspection context. Conservative HTML strikethrough and rectangular table interchange are covered by native and actual WordPress export fixtures. Approved comment display is opt-in and preserves clean/incremental parity.
 
 Remaining comment features include threaded replies, anonymous posting, notifications and a public submission interface. The production serving benchmark remains distinct from authoring API capacity.
+
+Native REST discovery now exposes post/page types and capability-scoped
+publication statuses, resource links and pagination links. Actual core
+comparisons exercise anonymous, subscriber, author and administrator metadata
+across view/embed/edit. These report the implemented subset and do not claim a
+Gutenberg editor, general block-theme runtime or arbitrary PHP plugin execution.
