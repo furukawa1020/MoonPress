@@ -267,3 +267,5 @@ python3 scripts/rest-status-detail-test.py
 python3 scripts/rest-resource-links-test.py
 
 python3 scripts/rest-page-links-test.py
+
+python3 scripts/rest-detail-slash-test.py

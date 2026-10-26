@@ -402,3 +402,5 @@ Expose REST individual implemented statuses; nonpublic status details require an
 Add REST article _links for implemented self/collection/about resources in public, edit and embed views; never advertise unsupported author/media endpoints.
 
 Emit bounded REST collection prev/next Link headers while retaining query filters, field selection and envelope metadata.
+
+Accept one trailing slash on valid REST post/page details through the shared read/update/delete parser; reject extra path segments.
