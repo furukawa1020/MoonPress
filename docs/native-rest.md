@@ -365,3 +365,5 @@ Filter REST articles before ISO8601 timestamps; combine before and after before 
 Restrict REST search with search_columns=post_title,post_content,post_excerpt; empty selection searches all supported columns.
 
 Support REST orderby=author with deterministic ID tie breaks and normal order direction.
+
+Support REST orderby=include_slugs to preserve the requested slug sequence regardless of order direction.

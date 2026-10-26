@@ -82,6 +82,9 @@ fn rest_filter_posts(
   if query.get("orderby") == Some("include") && selected_ids.is_empty() {
     raise InvalidInput("Include ordering needs IDs")
   }
+  if query.get("orderby") == Some("include_slugs") && !query.contains("slug") {
+    raise InvalidInput("Slug ordering requires slug selection")
+  }
   posts.filter(post => {
     let doc = post.document
     let id = doc.wp_id.unwrap()
@@ -131,8 +134,21 @@ fn rest_order_posts(
   for i = 0; i < selected_ids.length(); i = i + 1 {
     ranks[selected_ids[i]] = i
   }
+  let slug_ranks : Map[String, Int] = Map([])
+  let requested = query.get("slug").unwrap_or("").split(",").to_array()
+  for i = 0; i < requested.length(); i = i + 1 {
+    let slug = requested[i].to_owned()
+    if !slug_ranks.contains(slug) {
+      slug_ranks[slug] = i
+    }
+  }
   posts.sort_by(fn(a, b) {
     let compared = match orderby {
+      "include_slugs" =>
+        slug_ranks
+        .get(a.document.slug.unwrap_or(a.stem))
+        .unwrap_or(0)
+        .compare(slug_ranks.get(b.document.slug.unwrap_or(b.stem)).unwrap_or(0))
       "author" => a.document.author.compare(b.document.author)
       "id" => a.document.wp_id.unwrap().compare(b.document.wp_id.unwrap())
       "title" => a.document.title.compare(b.document.title)
@@ -159,7 +175,7 @@ fn rest_order_posts(
     } else {
       compared
     }
-    if ascending || orderby == "include" {
+    if ascending || orderby == "include" || orderby == "include_slugs" {
       compared
     } else {
       0 - compared
