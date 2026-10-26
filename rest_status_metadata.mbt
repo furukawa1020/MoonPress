@@ -61,7 +61,21 @@ fn rest_status_metadata(
     }
     return rest_ok(Json::object(fields))
   }
-  rest_error(404, "rest_status_invalid")
+  let status = path[24:].to_owned()
+  if !["publish", "draft", "future", "trash"].contains(status) {
+    return rest_error(404, "rest_status_invalid")
+  }
+  if status != "publish" && !editor {
+    return rest_error(
+      if principal is None {
+        401
+      } else {
+        403
+      },
+      "rest_cannot_read_status",
+    )
+  }
+  rest_ok(rest_status_value(status, context))
 }
 
 ///|

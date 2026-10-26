@@ -396,3 +396,5 @@ Expose REST /wp/v2/types/post and /wp/v2/types/page with collection/detail parit
 Expose authorized REST type edit metadata only for editable types; supports/capability mappings never appear in public context.
 
 Expose REST /wp/v2/statuses with public-only anonymous discovery and capability-scoped draft/future/trash metadata.
+
+Expose REST individual implemented statuses; nonpublic status details require an editing capability and unsupported states remain absent.
