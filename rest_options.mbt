@@ -128,6 +128,13 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
         }
       }
       if rest_is_collection(path) {
+        args["search_columns"] = {
+          "type": "array".to_json(),
+          "items": {
+            "type": "string".to_json(),
+            "enum": ["post_title", "post_content", "post_excerpt"].to_json(),
+          },
+        }
         args["before"] = {
           "type": "string".to_json(),
           "format": "date-time".to_json(),
