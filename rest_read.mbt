@@ -252,6 +252,8 @@ fn rest_route(
         "/wp/v2/users/me": route,
         "/wp/v2/search": route,
         "/wp/v2/types": route,
+        "/wp/v2/types/post": route,
+        "/wp/v2/types/page": route,
       }),
       "moonpress": {
         "read_only": false.to_json(),
