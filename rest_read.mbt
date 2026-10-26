@@ -98,6 +98,7 @@ fn rest_post_value(document : Document, stem : String, base : String) -> Json {
     None => document.date.unwrap_or("1970-01-01") + "T00:00:00"
   }
   {
+    "_links": rest_article_links(document, base),
     "id": document.wp_id.unwrap().to_json(),
     "date": date.to_json(),
     "date_gmt": date.to_json(),
