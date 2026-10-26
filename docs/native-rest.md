@@ -371,3 +371,5 @@ Support REST orderby=include_slugs to preserve the requested slug sequence regar
 Accept bounded REST bracket arrays: key[]=value or contiguous key[0]=value; reject mixed scalar forms and sparse or repeated indices.
 
 Support public REST context=embed with id/date/slug/type/link/title/excerpt/author; content and raw fields stay excluded.
+
+Support REST _envelope=1: HTTP 200 wraps body/status/headers, including errors, filtered bodies and pagination metadata.

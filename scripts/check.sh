@@ -247,3 +247,5 @@ python3 scripts/rest-slug-order-test.py
 python3 scripts/rest-array-query-test.py
 
 python3 scripts/rest-embed-context-test.py
+
+python3 scripts/rest-envelope-test.py
