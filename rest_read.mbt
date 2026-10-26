@@ -210,7 +210,7 @@ fn rest_route(
     }
     let edit_route : Json = {
       "namespace": "wp/v2".to_json(),
-      "methods": ["GET", "HEAD", "POST", "DELETE", "OPTIONS"].to_json(),
+      "methods": ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"].to_json(),
     }
     return rest_ok({
       "name": "MoonPress".to_json(),

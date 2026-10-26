@@ -105,6 +105,8 @@ fn rest_client(
         _ => rest_error(500, "moonpress_workflow_unavailable")
       }
     } else if request.verb == "POST" ||
+      request.verb == "PUT" ||
+      request.verb == "PATCH" ||
       request.verb == "DELETE" ||
       (
         request.verb != "OPTIONS" &&
@@ -133,7 +135,7 @@ fn rest_client(
             query,
             base,
             request.authorization,
-            if request.verb == "POST" {
+            if ["POST", "PUT", "PATCH"].contains(request.verb) {
               Some(body)
             } else {
               None

@@ -19,7 +19,7 @@ fn rest_methods(path : String) -> Array[String]? {
         _ => false
       }
       if valid {
-        return Some(["GET", "HEAD", "POST", "DELETE", "OPTIONS"])
+        return Some(["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
       }
     }
   }
@@ -159,7 +159,7 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
         }
       }
     }
-    if verb == "POST" && article {
+    if ["POST", "PUT", "PATCH"].contains(verb) && article {
       for name in ["moonpress_categories", "moonpress_tags"] {
         args[name] = {
           "type": "array".to_json(),
@@ -173,7 +173,7 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
         }
       }
     }
-    if verb == "POST" && article {
+    if ["POST", "PUT", "PATCH"].contains(verb) && article {
       args["slug"] = { "type": "string".to_json() }
     }
     if verb == "DELETE" {
