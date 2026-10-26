@@ -9,7 +9,14 @@ fn rest_validate_collection(
         "exclude", "author", "author_exclude", "offset", "status", "moonpress_category",
         "search_columns", "moonpress_tag", "after", "before",
       ].contains(key) ||
-      (key == "context" && value != (if edit { "edit" } else { "view" })) ||
+      (
+        key == "context" &&
+        (if edit {
+          value != "edit"
+        } else {
+          value != "view" && value != "embed"
+        })
+      ) ||
       (key == "order" && value != "asc" && value != "desc") ||
       (
         key == "orderby" &&
@@ -132,7 +139,10 @@ fn rest_collection_result(
           instant~,
         )
       } else {
-        rest_post_value(posts[i].document, posts[i].stem, base)
+        rest_article_context(
+          rest_post_value(posts[i].document, posts[i].stem, base),
+          query,
+        )
       },
     )
   }

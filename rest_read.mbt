@@ -231,7 +231,7 @@ fn rest_route(
       }),
       "moonpress": {
         "read_only": false.to_json(),
-        "contexts": ["view", "edit"].to_json(),
+        "contexts": ["view", "embed", "edit"].to_json(),
         "unsupported": [
           "force-delete", "taxonomy-ids", "embeds", "xml-rpc", "php-plugins",
         ].to_json(),
@@ -297,7 +297,12 @@ fn rest_route(
   if id is Some(id) {
     for post in posts {
       if post.document.wp_id == Some(id) {
-        return rest_ok(rest_post_value(post.document, post.stem, base))
+        return rest_ok(
+          rest_article_context(
+            rest_post_value(post.document, post.stem, base),
+            query,
+          ),
+        )
       }
     }
     return rest_error(404, "rest_post_invalid_id")
