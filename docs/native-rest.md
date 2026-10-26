@@ -359,3 +359,5 @@ HTML intake accepts plain rectangular tables: one th header row, optional thead/
 Native settings accept boolean `comments` for opt-in approved static article discussion. The operator interface exposes versioned moderation and display settings; [comment publication and incremental guarantees](site-settings.md#approved-comments-in-article-pages). Publishing still requires a build and deployment.
 
 Filter REST articles after ISO8601 timestamps, with exclusive UTC boundaries and numeric offsets.
+
+Filter REST articles before ISO8601 timestamps; combine before and after before counts and pagination.
