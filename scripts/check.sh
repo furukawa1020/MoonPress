@@ -251,3 +251,5 @@ python3 scripts/rest-embed-context-test.py
 python3 scripts/rest-envelope-test.py
 
 python3 scripts/rest-put-patch-test.py
+
+python3 scripts/rest-namespace-test.py

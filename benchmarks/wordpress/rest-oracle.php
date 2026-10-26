@@ -32,6 +32,35 @@ foreach ([['search'=>'oracle-post', 'slug'=>'oracle-post', 'orderby'=>'id'], ['i
     $response = rest_do_request($request);
     $result['filtered'][] = ['params'=>$params, 'ids'=>array_column($response->get_data(), 'id')];
 }
+$result['query_compat'] = [];
+$queries = [
+    ['after'=>'2020-01-01T00:00:00Z'],
+    ['after'=>'2019-12-31T23:59:59Z'],
+    ['after'=>'2020-01-01T09:00:00+09:00'],
+    ['before'=>'2020-01-01T00:00:00Z'],
+    ['before'=>'2020-01-01T00:00:01Z'],
+    ['after'=>'2019-12-31T00:00:00Z','before'=>'2020-01-02T00:00:00Z'],
+    ['search'=>'oracle-post','search_columns'=>['post_title']],
+    ['search'=>'oracle-post','search_columns'=>['post_excerpt']],
+    ['orderby'=>'author','order'=>'asc'],
+    ['slug'=>['oracle-post','missing-oracle'],'orderby'=>'include_slugs'],
+];
+foreach ($queries as $params) {
+    $request = new WP_REST_Request('GET', '/wp/v2/posts');
+    $request->set_param('slug', 'oracle-post');
+    foreach ($params as $key=>$value) { $request->set_param($key, $value); }
+    $response = rest_do_request($request);
+    if ($response->get_status() !== 200) { throw new RuntimeException('Core query compatibility failed'); }
+    $result['query_compat'][] = ['params'=>$params,'ids'=>array_column($response->get_data(),'id'),'total'=>$response->get_headers()['X-WP-Total']];
+}
+$request = new WP_REST_Request('GET', '/wp/v2/posts');
+$request->set_param('slug', 'oracle-post');
+$request->set_param('context', 'embed');
+$result['embed'] = rest_do_request($request)->get_data();
+$request = new WP_REST_Request('GET', '/wp/v2/posts');
+$request->set_param('slug', 'oracle-post');
+$response = rest_do_request($request);
+$result['envelope'] = rest_get_server()->envelope_response($response, false)->get_data();
 $request = new WP_REST_Request('GET', '/wp/v2/search');
 $request->set_param('include', (string)$result['ids']['oracle-post']['id']);
 $request->set_param('type', 'post');

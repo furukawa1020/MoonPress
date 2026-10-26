@@ -7,8 +7,8 @@ fn rest_methods(path : String) -> Array[String]? {
     return Some(["GET", "HEAD", "POST", "OPTIONS"])
   }
   if [
-      "/wp-json", "/wp-json/", "/wp-json/wp/v2/users/me", "/wp-json/wp/v2/search",
-      "/wp-json/wp/v2/search/",
+      "/wp-json", "/wp-json/", "/wp-json/wp/v2", "/wp-json/wp/v2/", "/wp-json/wp/v2/users/me",
+      "/wp-json/wp/v2/search", "/wp-json/wp/v2/search/",
     ].contains(path) {
     return Some(["GET", "HEAD", "OPTIONS"])
   }
@@ -117,6 +117,13 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
           ["view", "edit"]
         }).to_json(),
         "default": "view".to_json(),
+      }
+      if path == "/wp-json/wp/v2" || path == "/wp-json/wp/v2/" {
+        args["context"] = {
+          "type": "string".to_json(),
+          "enum": ["view"].to_json(),
+          "default": "view".to_json(),
+        }
       }
       if rest_is_search(path) {
         args["context"] = {

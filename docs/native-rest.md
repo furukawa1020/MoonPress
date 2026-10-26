@@ -10,16 +10,17 @@ Reference schemas: [posts](https://developer.wordpress.org/rest-api/reference/po
 | Route | Current behavior |
 | --- | --- |
 | `/wp-json/` | Discovery declares the implemented subset and omissions |
+| `/wp-json/wp/v2` | Read-only namespace index; optional `context=view` |
 | `/wp-json/wp/v2/posts` | Public post list; authenticated JSON POST creates a new post |
 | `/wp-json/wp/v2/pages` | Public fixed-page list; authenticated JSON POST creates a new page |
-| `/wp-json/wp/v2/posts/ID`, `/wp-json/wp/v2/pages/ID` | Public detail; authenticated `context=edit`, JSON POST updates and guarded DELETE to trash |
+| `/wp-json/wp/v2/posts/ID`, `/wp-json/wp/v2/pages/ID` | Public detail; authenticated `context=edit`, JSON POST/PUT/PATCH updates and guarded DELETE to trash |
 | `/wp-json/wp/v2/users/me` | Generated Basic credentials required; current identity only |
 | `/wp-json/wp/v2/search` | Public post/page universal search subset |
 
-GET and HEAD are supported for reads. Collection parameters are `context=view`, `page`
+GET and HEAD are supported for reads. Collection parameters are `context=view|embed`, `page`
 (1–4096), `per_page` (1–100), comma-separated `slug`, `order=asc|desc`, and
-`orderby=date|id|title|slug|include`. Responses include `X-WP-Total` and `X-WP-TotalPages`.
-Unknown/duplicate parameters are rejected. Detail accepts `context=view` or authorized `context=edit`.
+`orderby=date|id|title|slug|include|author|include_slugs`. Responses include `X-WP-Total` and `X-WP-TotalPages`.
+Unknown/duplicate parameters are rejected. Detail accepts `context=view|embed` or authorized `context=edit`.
 Trailing collection slashes are accepted. `_embed`, taxonomies,
 authentication cookies, cross-origin CORS, XML-RPC, permanent deletion and remote trash restoration are not implemented. No unknown parameters are silently treated as effective.
 
@@ -375,3 +376,15 @@ Support public REST context=embed with id/date/slug/type/link/title/excerpt/auth
 Support REST _envelope=1: HTTP 200 wraps body/status/headers, including errors, filtered bodies and pagination metadata.
 
 Support guarded REST article PUT and PATCH updates through the existing permission, revision, JSON and durable write pipeline.
+
+Expose /wp-json/wp/v2 and its trailing-slash alias as a read-only namespace index containing the implemented wp/v2 routes.
+
+ISO8601 date bounds accept second-precision timestamps, with `Z`, a numeric
+`+HH:MM`/`-HH:MM` offset, or no zone (native UTC). Fractional seconds and
+noncanonical dates are rejected. Modified dates are not available. Search still
+uses the documented bounded native term matcher; WordPress quoted phrases,
+negative terms, SQL wildcard/collation rules and relevance ranking are not
+claimed. Bracket arrays are a bounded subset: request-order contiguous indices
+or append notation, without nested arrays or mixing scalar and array forms.
+The envelope keeps numeric pagination values and applies field projection to
+the body before wrapping; it also wraps credential denials after target parsing.
