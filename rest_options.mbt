@@ -1,5 +1,8 @@
 ///|
 fn rest_methods(path : String) -> Array[String]? {
+  if rest_is_metadata(path) {
+    return Some(["GET", "HEAD", "OPTIONS"])
+  }
   if path.has_prefix("/wp-json/moonpress/") {
     return native_rest_methods(path)
   }
@@ -28,6 +31,9 @@ fn rest_methods(path : String) -> Array[String]? {
 
 ///|
 fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
+  if rest_is_metadata(path) {
+    return rest_metadata_options(path, query)
+  }
   if path.has_prefix("/wp-json/moonpress/") {
     return native_rest_options(path, query)
   }
