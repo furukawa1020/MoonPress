@@ -31,6 +31,27 @@ try:
         assert ours['id']==theirs['id'] and text(ours['title']['rendered'])==text(theirs['title']['rendered'])
     for probe in core['filtered']:
         assert [p['id'] for p in request('/wp-json/wp/v2/posts?'+urllib.parse.urlencode(probe['params']))]==probe['ids']
+    for probe in core['query_compat']:
+        params={'slug':'oracle-post',**probe['params']}
+        wire=[]
+        for key,value in params.items():
+            if isinstance(value,list):wire.extend((key+'[]',item) for item in value)
+            else:wire.append((key,value))
+        native=request('/wp-json/wp/v2/posts?'+urllib.parse.urlencode(wire))
+        assert [p['id'] for p in native]==probe['ids'],probe
+        assert len(native)==probe['total'],probe
+    native_embed=request('/wp-json/wp/v2/posts?slug=oracle-post&context=embed')
+    fields=['id','date','slug','type','title','excerpt','author']
+    for ours,theirs in zip(native_embed,core['embed']):
+        assert set(ours).issubset(set(theirs)) and 'content' not in ours
+        for key in fields:
+            if key in ['title','excerpt']:assert text(ours[key]['rendered'])==text(theirs[key]['rendered'])
+            else:assert ours[key]==theirs[key],key
+    native_envelope=request('/wp-json/wp/v2/posts?slug=oracle-post&_envelope=1')
+    assert native_envelope['status']==core['envelope']['status']==200
+    for key in ['X-WP-Total','X-WP-TotalPages']:
+        assert type(native_envelope['headers'][key]) is type(core['envelope']['headers'][key])
+        assert native_envelope['headers'][key]==core['envelope']['headers'][key]
     native_options=request('/wp-json/wp/v2/posts','OPTIONS')
     assert native_options['schema']['properties']['id']['type']==core['options']['schema']['properties']['id']['type']=='integer'
     assert {'GET','POST'}.issubset(set(native_options['methods'])) and {'GET','POST'}.issubset(set(core['options']['methods']))

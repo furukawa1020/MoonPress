@@ -161,7 +161,14 @@ fn rest_client(
           match user {
             Some(user) => Some(user)
             None =>
-              return rest_response(if envelope { rest_envelope(rest_error(401, "rest_not_logged_in"), allowed) } else { rest_error(401, "rest_not_logged_in") }, head)
+              return rest_response(
+                if envelope {
+                  rest_envelope(rest_error(401, "rest_not_logged_in"), allowed)
+                } else {
+                  rest_error(401, "rest_not_logged_in")
+                },
+                head,
+              )
           }
         }
         None => None

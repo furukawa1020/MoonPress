@@ -196,6 +196,26 @@ fn rest_route(
   base : String,
   principal : AccessPrincipal?,
 ) -> RestResponse raise {
+  if path == "/wp-json/wp/v2" || path == "/wp-json/wp/v2/" {
+    if query.keys().any(key => key != "context") ||
+      (query.contains("context") && query.get("context") != Some("view")) {
+      return rest_error(400, "rest_invalid_param")
+    }
+    let index = rest_route(input, "/wp-json/", Map([]), base, principal)
+    let routes : Map[String, Json] = Map([])
+    if index.value is Object(root) &&
+      root.get("routes") is Some(Object(registered)) {
+      for key, value in registered {
+        if key.has_prefix("/wp/v2/") {
+          routes[key] = value
+        }
+      }
+    }
+    return rest_ok({
+      "namespace": "wp/v2".to_json(),
+      "routes": Json::object(routes),
+    })
+  }
   if path == "/wp-json/" || path == "/wp-json" {
     if !query.is_empty() {
       return rest_error(400, "rest_invalid_param")
