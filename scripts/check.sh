@@ -269,3 +269,5 @@ python3 scripts/rest-resource-links-test.py
 python3 scripts/rest-page-links-test.py
 
 python3 scripts/rest-detail-slash-test.py
+
+python3 scripts/rest-table-block-test.py
