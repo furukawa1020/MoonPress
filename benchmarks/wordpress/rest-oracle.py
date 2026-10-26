@@ -106,3 +106,5 @@ subprocess.run([sys.executable,'scripts/rest-comment-query-test.py'],check=True)
 subprocess.run([sys.executable,'scripts/rest-comment-summary-test.py'],check=True)
 
 subprocess.run([sys.executable,'scripts/admin-comment-test.py'],check=True)
+
+subprocess.run([sys.executable,'scripts/static-comment-test.py'],check=True)

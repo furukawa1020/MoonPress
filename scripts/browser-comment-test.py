@@ -1,5 +1,5 @@
 """Real no-JavaScript operator moderation journey, reusing W3C WebDriver helpers."""
-import pathlib,runpy,subprocess,tempfile
+import json,pathlib,runpy,subprocess,tempfile
 from rest_fixture import NativeSite
 from operator_fixture import Operator
 helpers=runpy.run_path('scripts/browser-test.py',run_name='browser_helpers')
@@ -27,6 +27,10 @@ with NativeSite() as site,tempfile.TemporaryDirectory() as temporary:
             browser.click('button[value="hold"]');browser.expect_text('Status: hold')
             assert site.request(route)[2]==[]
             browser.screenshot('comments-restored-to-hold')
+            browser.go(f'http://127.0.0.1:{operator.port}/site-settings')
+            browser.click('form[action="/comment-display"] button[value="true"]')
+            browser.expect_text('Comments in article pages: enabled')
+            assert json.loads((site.site/'site.json').read_text())['comments'] is True
             print('Real Chrome comment journey passed: escaped literal text, no script, approval, trash and hold-only restoration with JavaScript disabled.')
         finally:
             if browser:browser.quit()
