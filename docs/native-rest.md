@@ -16,6 +16,8 @@ Reference schemas: [posts](https://developer.wordpress.org/rest-api/reference/po
 | `/wp-json/wp/v2/posts/ID`, `/wp-json/wp/v2/pages/ID` | Public detail; authenticated `context=edit`, JSON POST/PUT/PATCH updates and guarded DELETE to trash |
 | `/wp-json/wp/v2/users/me` | Generated Basic credentials required; current identity only |
 | `/wp-json/wp/v2/search` | Public post/page universal search subset |
+| `/wp-json/wp/v2/types`, `/types/post`, `/types/page` | Implemented post/page metadata; edit fields scoped to editable types |
+| `/wp-json/wp/v2/statuses`, `/statuses/NAME` | Implemented publish/draft/future/trash metadata; nonpublic states require editing capability |
 
 GET and HEAD are supported for reads. Collection parameters are `context=view|embed`, `page`
 (1–4096), `per_page` (1–100), comma-separated `slug`, `order=asc|desc`, and
@@ -34,7 +36,7 @@ filename or exact Markdown/frontmatter.
 Descriptions supply excerpts; automatic WordPress excerpt generation is absent.
 Dates are native UTC publication schedule or date-at-midnight, falling back to
 1970-01-01; arbitrary site timezones and actual modification timestamps are not
-represented. Taxonomy numeric IDs, links/embeds, GUIDs, attachment data and
+represented. Taxonomy numeric IDs, embedded resources, GUIDs, attachment data and
 other WordPress fields are omitted rather than fabricated.
 
 Draft, future and unlisted articles are excluded from public view even with
@@ -406,3 +408,22 @@ Emit bounded REST collection prev/next Link headers while retaining query filter
 Accept one trailing slash on valid REST post/page details through the shared read/update/delete parser; reject extra path segments.
 
 Import Gutenberg core/table wrappers into native header/body tables, validating fixed-layout metadata; captions, headerless tables and arbitrary styling remain unsupported.
+
+Preserve uniform HTML/Gutenberg table column alignment for left/center/right; reject conflicting styles, mixed per-cell alignment and unsupported attributes.
+
+Metadata collections are keyed objects. `_fields` selects fields within each
+item. Type `supports`, `capabilities` and `viewable` are edit-only; embed omits
+description. Only native post/page types and implemented publication statuses
+are advertised. WordPress custom types, pending/private/password states, PHP
+runtime capabilities, hierarchy and full editing support are not implemented.
+Article `_links` currently resolves self, collection and type information.
+Collection `Link` headers preserve filters and expose previous/next pages; the
+same pagination metadata is available inside `_envelope` responses.
+
+As in WordPress, the individual public `publish` status exposes its static edit-context flags to anonymous readers; edit-context collection discovery and nonpublic state details still require editing capability. This returns no article or user data.
+
+`supports.editor=true` advertises native article body editing only. WordPress
+7.1 may return editor support as an options array containing `notes`; those
+collaborative editor notes are not implemented or advertised. The core oracle
+compares editor availability for that version-specific extension and exact
+values/types for the remaining represented metadata.

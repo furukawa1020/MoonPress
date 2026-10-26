@@ -42,7 +42,9 @@ fn rest_status_metadata(
       role_capabilities(user.role).contains("edit_pages")
     })
     .unwrap_or(false)
-  if context == "edit" && !editor {
+  let collection = path == "/wp-json/wp/v2/statuses" ||
+    path == "/wp-json/wp/v2/statuses/"
+  if collection && context == "edit" && !editor {
     return rest_error(
       if principal is None {
         401

@@ -129,3 +129,10 @@ subprocess.run([sys.executable,'scripts/rest-comment-summary-test.py'],check=Tru
 subprocess.run([sys.executable,'scripts/admin-comment-test.py'],check=True)
 
 subprocess.run([sys.executable,'scripts/static-comment-test.py'],check=True)
+
+metadata_oracle=work/'metadata-core.json'
+subprocess.run(['php','benchmarks/wordpress/metadata-oracle.php',wordpress,metadata_oracle],check=True)
+subprocess.run([sys.executable,'scripts/rest-metadata-oracle-test.py',metadata_oracle],check=True)
+table_oracle=work/'table-core.json'
+subprocess.run(['php','benchmarks/wordpress/table-oracle.php',wordpress,table_oracle],check=True)
+subprocess.run([sys.executable,'scripts/rest-table-alignment-test.py',table_oracle],check=True)
