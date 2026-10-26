@@ -20,6 +20,7 @@ fn WxrReader::html_block(
     | "preformatted"
     | "separator" => []
     "image" => ["id", "sizeSlug", "linkDestination"]
+    "table" => ["hasFixedLayout"]
     "heading" => ["level"]
     "list" => ["ordered", "start"]
     _ => raise InvalidInput("Unsupported WordPress block: " + name)
@@ -70,13 +71,16 @@ fn WxrReader::html_block(
     "quote" => "blockquote"
     "code" | "preformatted" => "pre"
     "separator" => "hr"
-    "image" => "figure"
+    "image" | "table" => "figure"
     _ => if ordered { "ol" } else { "ul" }
   }
   match element {
     Some(Element(tag, attrs, children)) => {
       if tag != expected {
         raise InvalidInput("WordPress block HTML/attributes disagree")
+      }
+      if name == "table" {
+        return html_table_block(attrs, children, fields)
       }
       if name == "image" {
         return html_image_block(attrs, children, fields)

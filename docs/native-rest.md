@@ -404,3 +404,5 @@ Add REST article _links for implemented self/collection/about resources in publi
 Emit bounded REST collection prev/next Link headers while retaining query filters, field selection and envelope metadata.
 
 Accept one trailing slash on valid REST post/page details through the shared read/update/delete parser; reject extra path segments.
+
+Import Gutenberg core/table wrappers into native header/body tables, validating fixed-layout metadata; captions, headerless tables and arbitrary styling remain unsupported.
