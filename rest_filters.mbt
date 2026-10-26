@@ -133,6 +133,7 @@ fn rest_order_posts(
   }
   posts.sort_by(fn(a, b) {
     let compared = match orderby {
+      "author" => a.document.author.compare(b.document.author)
       "id" => a.document.wp_id.unwrap().compare(b.document.wp_id.unwrap())
       "title" => a.document.title.compare(b.document.title)
       "slug" =>
