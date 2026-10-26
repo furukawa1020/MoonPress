@@ -70,6 +70,7 @@ fn rest_client(
   let mut read = false
   let mut conditional : String? = None
   let mut selection : Array[String] = []
+  let mut keyed = false
   let mut envelope = false
   let mut allowed : String? = None
   let result = try {
@@ -93,6 +94,7 @@ fn rest_client(
         )
     }
     let (path, query) = rest_target(request.target)
+    keyed = rest_metadata_collection(path)
     envelope = query.contains("_envelope")
     query.remove("_envelope")
     allowed = rest_methods(path).map(methods => methods.join(", "))
@@ -112,7 +114,8 @@ fn rest_client(
         request.verb != "OPTIONS" &&
         query.get("context") == Some("edit") &&
         path != "/wp-json/wp/v2/users/me" &&
-        !rest_is_search(path)
+        !rest_is_search(path) &&
+        !rest_is_metadata(path)
       ) {
       try {
         if request.verb == "DELETE" {
@@ -187,7 +190,14 @@ fn rest_client(
   let result = if result.code >= 200 &&
     result.code < 300 &&
     !selection.is_empty() {
-    { ..result, value: rest_project(result.value, selection), }
+    {
+      ..result,
+      value: if keyed {
+        rest_project_keyed(result.value, selection)
+      } else {
+        rest_project(result.value, selection)
+      },
+    }
   } else {
     result
   }

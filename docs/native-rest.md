@@ -388,3 +388,5 @@ claimed. Bracket arrays are a bounded subset: request-order contiguous indices
 or append notation, without nested arrays or mixing scalar and array forms.
 The envelope keeps numeric pagination values and applies field projection to
 the body before wrapping; it also wraps credential denials after target parsing.
+
+Expose REST /wp/v2/types for native post/page collections, including keyed per-item field projection; omit unsupported runtime metadata.

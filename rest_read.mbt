@@ -196,6 +196,9 @@ fn rest_route(
   base : String,
   principal : AccessPrincipal?,
 ) -> RestResponse raise {
+  if rest_is_metadata(path) {
+    return rest_metadata(path, query, principal)
+  }
   if path == "/wp-json/wp/v2" || path == "/wp-json/wp/v2/" {
     if query.keys().any(key => key != "context") ||
       (query.contains("context") && query.get("context") != Some("view")) {
@@ -248,6 +251,7 @@ fn rest_route(
         "/wp/v2/pages/(?P<id>[0-9]+)": edit_route,
         "/wp/v2/users/me": route,
         "/wp/v2/search": route,
+        "/wp/v2/types": route,
       }),
       "moonpress": {
         "read_only": false.to_json(),
