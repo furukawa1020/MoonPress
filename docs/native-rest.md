@@ -419,3 +419,5 @@ runtime capabilities, hierarchy and full editing support are not implemented.
 Article `_links` currently resolves self, collection and type information.
 Collection `Link` headers preserve filters and expose previous/next pages; the
 same pagination metadata is available inside `_envelope` responses.
+
+As in WordPress, the individual public `publish` status exposes its static edit-context flags to anonymous readers; edit-context collection discovery and nonpublic state details still require editing capability. This returns no article or user data.
