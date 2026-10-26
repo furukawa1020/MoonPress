@@ -44,6 +44,7 @@ fn rest_target(target : String) -> (String, Map[String, String]) raise {
     Some((path, text)) => (path.to_owned(), text.to_owned())
     None => (target, "")
   }
+  let array_counts : Map[String, Int] = Map([])
   let query : Map[String, String] = Map([])
   if !text.is_empty() {
     for pair in text.split("&") {
@@ -52,10 +53,39 @@ fn rest_target(target : String) -> (String, Map[String, String]) raise {
           (admin_decode(key.to_owned()), admin_decode(value.to_owned()))
         None => raise InvalidInput("Expected query key=value")
       }
-      if query.contains(key) {
-        raise InvalidInput("Duplicate REST query parameter")
+      if key.contains("[") {
+        let (name, suffix) = match key.split_once("[") {
+          Some((name, suffix)) => (name.to_owned(), suffix.to_owned())
+          None => raise InvalidInput("Invalid array query")
+        }
+        if ![
+            "include", "exclude", "author", "author_exclude", "slug", "status", "search_columns",
+            "_fields", "subtype",
+          ].contains(name) ||
+          !suffix.has_suffix("]") {
+          raise InvalidInput("Unsupported array query")
+        }
+        let count = array_counts.get(name).unwrap_or(0)
+        if count >= 100 || (count == 0 && query.contains(name)) {
+          raise InvalidInput("Mixed or oversized array query")
+        }
+        let index = suffix[:suffix.length() - 1].to_owned()
+        if !index.is_empty() && index != count.to_string() {
+          raise InvalidInput(
+            "Array indices must be contiguous in request order",
+          )
+        }
+        if value.is_empty() {
+          raise InvalidInput("Empty array element")
+        }
+        query[name] = if count == 0 { value } else { query[name] + "," + value }
+        array_counts[name] = count + 1
+      } else {
+        if query.contains(key) {
+          raise InvalidInput("Duplicate REST query parameter")
+        }
+        query[key] = value
       }
-      query[key] = value
     }
   }
   (path, query)

@@ -243,3 +243,5 @@ python3 scripts/rest-search-columns-test.py
 python3 scripts/rest-author-order-test.py
 
 python3 scripts/rest-slug-order-test.py
+
+python3 scripts/rest-array-query-test.py

@@ -367,3 +367,5 @@ Restrict REST search with search_columns=post_title,post_content,post_excerpt; e
 Support REST orderby=author with deterministic ID tie breaks and normal order direction.
 
 Support REST orderby=include_slugs to preserve the requested slug sequence regardless of order direction.
+
+Accept bounded REST bracket arrays: key[]=value or contiguous key[0]=value; reject mixed scalar forms and sparse or repeated indices.
