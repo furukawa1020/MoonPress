@@ -235,3 +235,5 @@ python3 scripts/admin-comment-test.py
 python3 scripts/static-comment-test.py
 
 python3 scripts/rest-after-test.py
+
+python3 scripts/rest-before-test.py

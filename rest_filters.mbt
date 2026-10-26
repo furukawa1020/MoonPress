@@ -29,6 +29,7 @@ fn rest_filter_posts(
   posts : Array[RestPost],
   query : Map[String, String],
 ) -> Array[RestPost] raise {
+  let before = query.get("before").map(value => rest_date_bound(value))
   let after = query.get("after").map(value => rest_date_bound(value))
   let category = query
     .get("moonpress_category")
@@ -78,6 +79,7 @@ fn rest_filter_posts(
     } else {
       (doc.title + "\n" + doc.description + "\n" + doc.body).to_lower()
     }
+    (before is None || rest_post_timestamp(doc) < before.unwrap()) &&
     (after is None || rest_post_timestamp(doc) > after.unwrap()) &&
     (category is None || doc.categories.contains(category.unwrap())) &&
     (tag is None || doc.tags.contains(tag.unwrap())) &&
