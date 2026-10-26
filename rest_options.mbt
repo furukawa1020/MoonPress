@@ -128,6 +128,10 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
         }
       }
       if rest_is_collection(path) {
+        args["after"] = {
+          "type": "string".to_json(),
+          "format": "date-time".to_json(),
+        }
         for name in ["page", "per_page", "offset"] {
           args[name] = { "type": "integer".to_json() }
         }
