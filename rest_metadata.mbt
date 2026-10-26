@@ -1,5 +1,8 @@
 ///|
 fn rest_is_metadata(path : String) -> Bool {
+  if ["/wp-json/wp/v2/statuses", "/wp-json/wp/v2/statuses/"].contains(path) {
+    return true
+  }
   [
     "/wp-json/wp/v2/types", "/wp-json/wp/v2/types/", "/wp-json/wp/v2/types/post",
     "/wp-json/wp/v2/types/page",
@@ -8,6 +11,9 @@ fn rest_is_metadata(path : String) -> Bool {
 
 ///|
 fn rest_metadata_collection(path : String) -> Bool {
+  if ["/wp-json/wp/v2/statuses", "/wp-json/wp/v2/statuses/"].contains(path) {
+    return true
+  }
   ["/wp-json/wp/v2/types", "/wp-json/wp/v2/types/"].contains(path)
 }
 
@@ -34,6 +40,9 @@ fn rest_metadata(
   query : Map[String, String],
   principal : AccessPrincipal?,
 ) -> RestResponse raise {
+  if input_path.has_prefix("/wp-json/wp/v2/statuses") {
+    return rest_status_metadata(input_path, query, principal)
+  }
   if query.keys().any(key => key != "context") ||
     !["view", "embed", "edit"].contains(query.get("context").unwrap_or("view")) {
     return rest_error(400, "rest_invalid_param")
@@ -117,6 +126,9 @@ fn rest_metadata_options(
   path : String,
   query : Map[String, String],
 ) -> RestResponse {
+  if path.has_prefix("/wp-json/wp/v2/statuses") {
+    return rest_status_options(query)
+  }
   if !query.is_empty() {
     return rest_error(400, "rest_invalid_param")
   }

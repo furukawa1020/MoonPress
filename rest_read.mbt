@@ -252,6 +252,7 @@ fn rest_route(
         "/wp/v2/users/me": route,
         "/wp/v2/search": route,
         "/wp/v2/types": route,
+        "/wp/v2/statuses": route,
         "/wp/v2/types/post": route,
         "/wp/v2/types/page": route,
       }),
