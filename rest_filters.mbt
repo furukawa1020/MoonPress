@@ -41,6 +41,17 @@ fn rest_filter_posts(
   let exclude = rest_id_list(query.get("exclude"))
   let authors = rest_id_list(query.get("author"))
   let others = rest_id_list(query.get("author_exclude"))
+  let columns = query
+    .get("search_columns")
+    .unwrap_or("")
+    .split(",")
+    .map(s => s.to_owned())
+    .to_array()
+    .filter(s => !s.is_empty())
+  if columns.length() > 3 ||
+    columns.any(s => !["post_title", "post_content", "post_excerpt"].contains(s)) {
+    raise InvalidInput("Invalid search columns")
+  }
   let search = query.get("search").unwrap_or("").trim().to_owned().to_lower()
   if search.length() > 256 {
     raise InvalidInput("Search exceeds 256 characters")
@@ -77,7 +88,23 @@ fn rest_filter_posts(
     let haystack = if terms.is_empty() {
       ""
     } else {
-      (doc.title + "\n" + doc.description + "\n" + doc.body).to_lower()
+      ((if columns.is_empty() || columns.contains("post_title") {
+        doc.title
+      } else {
+        ""
+      }) +
+      "\n" +
+      (if columns.is_empty() || columns.contains("post_excerpt") {
+        doc.description
+      } else {
+        ""
+      }) +
+      "\n" +
+      (if columns.is_empty() || columns.contains("post_content") {
+        doc.body
+      } else {
+        ""
+      })).to_lower()
     }
     (before is None || rest_post_timestamp(doc) < before.unwrap()) &&
     (after is None || rest_post_timestamp(doc) > after.unwrap()) &&

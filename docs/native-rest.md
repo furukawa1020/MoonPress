@@ -361,3 +361,5 @@ Native settings accept boolean `comments` for opt-in approved static article dis
 Filter REST articles after ISO8601 timestamps, with exclusive UTC boundaries and numeric offsets.
 
 Filter REST articles before ISO8601 timestamps; combine before and after before counts and pagination.
+
+Restrict REST search with search_columns=post_title,post_content,post_excerpt; empty selection searches all supported columns.
