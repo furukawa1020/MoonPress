@@ -1,6 +1,14 @@
 ///|
-fn rest_envelope(result : RestResponse, allowed : String?) -> RestResponse {
+fn rest_envelope(
+  result : RestResponse,
+  allowed : String?,
+  page_links? : String? = None,
+) -> RestResponse {
+  let pagination = page_links
   let headers : Map[String, Json] = Map([])
+  if pagination is Some(value) {
+    headers["Link"] = value.to_json()
+  }
   if result.total is Some(total) {
     headers["X-WP-Total"] = total.to_json()
   }
