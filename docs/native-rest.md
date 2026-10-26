@@ -373,3 +373,5 @@ Accept bounded REST bracket arrays: key[]=value or contiguous key[0]=value; reje
 Support public REST context=embed with id/date/slug/type/link/title/excerpt/author; content and raw fields stay excluded.
 
 Support REST _envelope=1: HTTP 200 wraps body/status/headers, including errors, filtered bodies and pagination metadata.
+
+Support guarded REST article PUT and PATCH updates through the existing permission, revision, JSON and durable write pipeline.

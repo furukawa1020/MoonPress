@@ -46,7 +46,13 @@ fn admin_headers(
       start[0] != "GET" &&
       start[0] != "POST" &&
       !(allow_head && start[0] == "HEAD") &&
-      !(rest && (start[0] == "DELETE" || start[0] == "OPTIONS"))
+      !(rest &&
+      (
+        start[0] == "DELETE" ||
+        start[0] == "OPTIONS" ||
+        start[0] == "PUT" ||
+        start[0] == "PATCH"
+      ))
     ) {
     raise InvalidInput("Unsupported request line")
   }
@@ -123,7 +129,7 @@ fn admin_headers(
   if length > limit {
     raise InvalidInput("Request body exceeds route limit (\{limit} bytes)")
   }
-  if start[0] == "POST" {
+  if start[0] == "POST" || (rest && (start[0] == "PUT" || start[0] == "PATCH")) {
     if !headers.contains("content-length") ||
       (if rest {
         content_type != "application/json" &&

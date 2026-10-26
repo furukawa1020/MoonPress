@@ -249,3 +249,5 @@ python3 scripts/rest-array-query-test.py
 python3 scripts/rest-embed-context-test.py
 
 python3 scripts/rest-envelope-test.py
+
+python3 scripts/rest-put-patch-test.py
