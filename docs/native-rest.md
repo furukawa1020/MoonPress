@@ -390,3 +390,5 @@ The envelope keeps numeric pagination values and applies field projection to
 the body before wrapping; it also wraps credential denials after target parsing.
 
 Expose REST /wp/v2/types for native post/page collections, including keyed per-item field projection; omit unsupported runtime metadata.
+
+Expose REST /wp/v2/types/post and /wp/v2/types/page with collection/detail parity and read-only schemas.

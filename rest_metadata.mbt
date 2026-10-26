@@ -1,6 +1,9 @@
 ///|
 fn rest_is_metadata(path : String) -> Bool {
-  ["/wp-json/wp/v2/types", "/wp-json/wp/v2/types/"].contains(path)
+  [
+    "/wp-json/wp/v2/types", "/wp-json/wp/v2/types/", "/wp-json/wp/v2/types/post",
+    "/wp-json/wp/v2/types/page",
+  ].contains(path)
 }
 
 ///|
@@ -35,6 +38,12 @@ fn rest_metadata(
       "post": rest_type_value("post"),
       "page": rest_type_value("page"),
     })
+  }
+  if input_path == "/wp-json/wp/v2/types/post" {
+    return rest_ok(rest_type_value("post"))
+  }
+  if input_path == "/wp-json/wp/v2/types/page" {
+    return rest_ok(rest_type_value("page"))
   }
   rest_error(404, "rest_no_route")
 }

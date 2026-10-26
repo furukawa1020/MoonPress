@@ -255,3 +255,5 @@ python3 scripts/rest-put-patch-test.py
 python3 scripts/rest-namespace-test.py
 
 python3 scripts/rest-types-test.py
+
+python3 scripts/rest-type-detail-test.py
