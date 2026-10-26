@@ -40,9 +40,20 @@ fn rest_target(target : String) -> (String, Map[String, String]) raise {
     target.contains("#") {
     raise InvalidInput("Invalid REST target")
   }
-  let (path, text) = match target.split_once("?") {
+  let (raw_path, text) = match target.split_once("?") {
     Some((path, text)) => (path.to_owned(), text.to_owned())
     None => (target, "")
+  }
+  let path = if raw_path.has_suffix("/") {
+    let candidate = raw_path[:raw_path.length() - 1].to_owned()
+    let item = rest_edit_target(candidate) catch { _ => None }
+    if item is Some(_) {
+      candidate
+    } else {
+      raw_path
+    }
+  } else {
+    raw_path
   }
   let array_counts : Map[String, Int] = Map([])
   let query : Map[String, String] = Map([])
