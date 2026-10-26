@@ -421,3 +421,9 @@ Collection `Link` headers preserve filters and expose previous/next pages; the
 same pagination metadata is available inside `_envelope` responses.
 
 As in WordPress, the individual public `publish` status exposes its static edit-context flags to anonymous readers; edit-context collection discovery and nonpublic state details still require editing capability. This returns no article or user data.
+
+`supports.editor=true` advertises native article body editing only. WordPress
+7.1 may return editor support as an options array containing `notes`; those
+collaborative editor notes are not implemented or advertised. The core oracle
+compares editor availability for that version-specific extension and exact
+values/types for the remaining represented metadata.
