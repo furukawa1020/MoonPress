@@ -70,6 +70,7 @@ fn rest_client(
   let mut read = false
   let mut conditional : String? = None
   let mut selection : Array[String] = []
+  let mut envelope = false
   let mut allowed : String? = None
   let result = try {
     let (request, body) = admin_read_request(
@@ -92,6 +93,8 @@ fn rest_client(
         )
     }
     let (path, query) = rest_target(request.target)
+    envelope = query.contains("_envelope")
+    query.remove("_envelope")
     allowed = rest_methods(path).map(methods => methods.join(", "))
     selection = rest_fields(query.get("_fields"))
     query.remove("_fields")
@@ -156,7 +159,7 @@ fn rest_client(
           match user {
             Some(user) => Some(user)
             None =>
-              return rest_response(rest_error(401, "rest_not_logged_in"), head)
+              return rest_response(if envelope { rest_envelope(rest_error(401, "rest_not_logged_in"), allowed) } else { rest_error(401, "rest_not_logged_in") }, head)
           }
         }
         None => None
@@ -182,7 +185,16 @@ fn rest_client(
   if @utf8.encode(result.value.stringify()).length() > 16777216 {
     return rest_response(rest_error(500, "moonpress_response_limit"), head)
   }
-  rest_response(rest_conditional(result, read, conditional), head, allowed~)
+  let result = rest_conditional(result, read, conditional)
+  rest_response(
+    if envelope {
+      rest_envelope(result, allowed)
+    } else {
+      result
+    },
+    head,
+    allowed~,
+  )
 }
 
 ///|
