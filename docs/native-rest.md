@@ -400,3 +400,5 @@ Expose REST /wp/v2/statuses with public-only anonymous discovery and capability-
 Expose REST individual implemented statuses; nonpublic status details require an editing capability and unsupported states remain absent.
 
 Add REST article _links for implemented self/collection/about resources in public, edit and embed views; never advertise unsupported author/media endpoints.
+
+Emit bounded REST collection prev/next Link headers while retaining query filters, field selection and envelope metadata.

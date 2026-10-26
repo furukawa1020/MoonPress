@@ -3,6 +3,7 @@ fn rest_response(
   result : RestResponse,
   head : Bool,
   allowed? : String? = None,
+  page_links? : String? = None,
 ) -> Bytes {
   let bytes = @utf8.encode(result.value.stringify() + "\n")
   let status = match result.code {
@@ -29,6 +30,10 @@ fn rest_response(
       "Content-Length: \{bytes.length()}\r\n"
     }) +
     "Connection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'\r\n" +
+    (match page_links {
+      Some(value) => "Link: " + value + "\r\n"
+      None => ""
+    }) +
     (match allowed {
       Some(value) => "Allow: " + value + "\r\n"
       None => ""
@@ -70,6 +75,8 @@ fn rest_client(
   let mut read = false
   let mut conditional : String? = None
   let mut selection : Array[String] = []
+  let mut page_target = ""
+  let mut page_base = ""
   let mut keyed = false
   let mut envelope = false
   let mut allowed : String? = None
@@ -93,6 +100,8 @@ fn rest_client(
           head,
         )
     }
+    page_target = request.target
+    page_base = base
     let (path, query) = rest_target(request.target)
     keyed = rest_metadata_collection(path)
     envelope = query.contains("_envelope")
@@ -204,15 +213,23 @@ fn rest_client(
   if @utf8.encode(result.value.stringify()).length() > 16777216 {
     return rest_response(rest_error(500, "moonpress_response_limit"), head)
   }
+  let page_links = if read {
+    rest_page_links(page_target, page_base, result) catch {
+      _ => None
+    }
+  } else {
+    None
+  }
   let result = rest_conditional(result, read, conditional)
   rest_response(
     if envelope {
-      rest_envelope(result, allowed)
+      rest_envelope(result, allowed, page_links~)
     } else {
       result
     },
     head,
     allowed~,
+    page_links=if envelope { None } else { page_links },
   )
 }
 
