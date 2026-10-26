@@ -392,3 +392,5 @@ the body before wrapping; it also wraps credential denials after target parsing.
 Expose REST /wp/v2/types for native post/page collections, including keyed per-item field projection; omit unsupported runtime metadata.
 
 Expose REST /wp/v2/types/post and /wp/v2/types/page with collection/detail parity and read-only schemas.
+
+Expose authorized REST type edit metadata only for editable types; supports/capability mappings never appear in public context.
