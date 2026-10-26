@@ -1,5 +1,8 @@
 ///|
 fn rest_is_metadata(path : String) -> Bool {
+  if path.has_prefix("/wp-json/wp/v2/statuses/") && !path[24:].is_empty() {
+    return true
+  }
   if ["/wp-json/wp/v2/statuses", "/wp-json/wp/v2/statuses/"].contains(path) {
     return true
   }

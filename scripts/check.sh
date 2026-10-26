@@ -261,3 +261,5 @@ python3 scripts/rest-type-detail-test.py
 python3 scripts/rest-type-edit-test.py
 
 python3 scripts/rest-statuses-test.py
+
+python3 scripts/rest-status-detail-test.py
