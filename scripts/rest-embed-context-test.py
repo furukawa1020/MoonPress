@@ -6,7 +6,7 @@ with NativeSite() as s:
         assert code==201;id=str(r['id'])
         normal=s.request(route+'/'+id)[2]
         code,h,rows=s.request(route+'?context=embed')
-        expected={k:normal[k] for k in ['id','date','slug','type','link','title','excerpt','author']}
+        expected={k:normal[k] for k in ['id','date','slug','type','link','title','excerpt','author','_links']}
         assert code==200 and rows==[expected] and h['X-WP-Total']=='1'
         assert s.request(route+'/'+id+'?context=embed')[2]==expected
         assert s.request(route+'/'+id+'?context=embed&_fields=id,content.raw')[2]=={'id':r['id']}

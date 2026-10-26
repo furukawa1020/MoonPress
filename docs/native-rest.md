@@ -398,3 +398,5 @@ Expose authorized REST type edit metadata only for editable types; supports/capa
 Expose REST /wp/v2/statuses with public-only anonymous discovery and capability-scoped draft/future/trash metadata.
 
 Expose REST individual implemented statuses; nonpublic status details require an editing capability and unsupported states remain absent.
+
+Add REST article _links for implemented self/collection/about resources in public, edit and embed views; never advertise unsupported author/media endpoints.
