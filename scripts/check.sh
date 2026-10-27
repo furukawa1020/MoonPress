@@ -327,3 +327,5 @@ python3 scripts/rest-wp-tags-test.py
 python3 scripts/rest-wp-tag-detail-test.py
 
 python3 scripts/rest-term-id-selection-test.py
+
+python3 scripts/rest-term-slug-selection-test.py
