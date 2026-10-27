@@ -29,6 +29,7 @@ fn rest_filter_posts(
   posts : Array[RestPost],
   query : Map[String, String],
 ) -> Array[RestPost] raise {
+  rest_validate_term_filters(query)
   let before = query.get("before").map(value => rest_date_bound(value))
   let after = query.get("after").map(value => rest_date_bound(value))
   let category = query
@@ -85,6 +86,13 @@ fn rest_filter_posts(
   if query.get("orderby") == Some("include_slugs") && !query.contains("slug") {
     raise InvalidInput("Slug ordering requires slug selection")
   }
+  let selected : Map[Int, Bool] = Map([])
+  for post in posts {
+    selected[post.document.wp_id.unwrap()] = rest_filter_document_terms(
+      post.document,
+      query,
+    )
+  }
   posts.filter(post => {
     let doc = post.document
     let id = doc.wp_id.unwrap()
@@ -109,6 +117,7 @@ fn rest_filter_posts(
         ""
       })).to_lower()
     }
+    selected[id] &&
     (before is None || rest_post_timestamp(doc) < before.unwrap()) &&
     (after is None || rest_post_timestamp(doc) > after.unwrap()) &&
     (category is None || doc.categories.contains(category.unwrap())) &&
