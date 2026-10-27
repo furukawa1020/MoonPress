@@ -289,3 +289,5 @@ python3 scripts/rest-update-author-test.py
 python3 scripts/rest-create-date-test.py
 
 python3 scripts/rest-update-date-test.py
+
+python3 scripts/rest-public-users-test.py

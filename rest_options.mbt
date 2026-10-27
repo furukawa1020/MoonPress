@@ -1,5 +1,8 @@
 ///|
 fn rest_methods(path : String) -> Array[String]? {
+  if rest_is_users(path) {
+    return Some(["GET", "HEAD", "OPTIONS"])
+  }
   if rest_is_metadata(path) {
     return Some(["GET", "HEAD", "OPTIONS"])
   }
@@ -31,6 +34,9 @@ fn rest_methods(path : String) -> Array[String]? {
 
 ///|
 fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
+  if rest_is_users(path) {
+    return rest_users_options(path, query)
+  }
   if rest_is_metadata(path) {
     return rest_metadata_options(path, query)
   }
