@@ -124,7 +124,8 @@ fn rest_client(
         query.get("context") == Some("edit") &&
         path != "/wp-json/wp/v2/users/me" &&
         !rest_is_search(path) &&
-        !rest_is_metadata(path)
+        !rest_is_metadata(path) &&
+        !rest_is_users(path)
       ) {
       try {
         if request.verb == "DELETE" {

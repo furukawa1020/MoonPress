@@ -208,6 +208,9 @@ fn rest_route(
   base : String,
   principal : AccessPrincipal?,
 ) -> RestResponse raise {
+  if rest_is_users(path) {
+    return rest_users(input, path, query)
+  }
   if rest_is_metadata(path) {
     return rest_metadata(path, query, principal)
   }
@@ -262,6 +265,7 @@ fn rest_route(
         "/wp/v2/posts/(?P<id>[0-9]+)": edit_route,
         "/wp/v2/pages/(?P<id>[0-9]+)": edit_route,
         "/wp/v2/users/me": route,
+        "/wp/v2/users": route,
         "/wp/v2/search": route,
         "/wp/v2/types": route,
         "/wp/v2/statuses": route,

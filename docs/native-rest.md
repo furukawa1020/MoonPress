@@ -443,3 +443,5 @@ Allow guarded REST author reassignment with active-target validation and edit-ot
 Accept date as a native UTC creation alias for date_gmt; both supplied values must agree and retain second-precision validation.
 
 Accept guarded REST date updates through native UTC date_gmt validation without granting publication capability.
+
+Expose read-only public user profiles containing id/name/slug only for active principals with currently public native articles.
