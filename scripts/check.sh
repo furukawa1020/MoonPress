@@ -299,3 +299,5 @@ python3 scripts/rest-user-id-filters-test.py
 python3 scripts/rest-user-search-test.py
 
 python3 scripts/rest-user-pages-test.py
+
+python3 scripts/rest-author-links-test.py

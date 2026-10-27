@@ -453,3 +453,5 @@ Filter public users by bounded include/exclude identities after publication/acti
 Search visible native user labels and select bounded slugs; hidden or inactive principals never affect results or counts.
 
 Order visible public users by id/name/slug and paginate after visibility/filtering with counts and navigable Link headers.
+
+Link positive article author identities to native public user resources; revoked or nonpublic author profiles remain unavailable.
