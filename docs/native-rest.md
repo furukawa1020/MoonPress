@@ -429,3 +429,5 @@ compares editor availability for that version-specific extension and exact
 values/types for the remaining represented metadata.
 
 Accept string or strict {raw:string} titles in native REST create/update; unsupported object fields are rejected.
+
+Accept raw content objects through the same conservative HTML intake and guarded native REST write pipeline.

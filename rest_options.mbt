@@ -190,7 +190,7 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
       args["slug"] = { "type": "string".to_json() }
     }
     if ["POST", "PUT", "PATCH"].contains(verb) && article {
-      for name in ["title"] {
+      for name in ["title", "content"] {
         args[name] = {
           "type": ["string", "object"].to_json(),
           "required": (name == "title" && rest_is_collection(path)).to_json(),

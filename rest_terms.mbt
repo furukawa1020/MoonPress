@@ -26,7 +26,7 @@ fn rest_named_terms(value : Json) -> Array[String] raise {
 ///|
 fn rest_write_types(fields : Map[String, Json]) -> Unit raise {
   for key, value in fields {
-    let value = if ["title"].contains(key) {
+    let value = if ["title", "content"].contains(key) {
       let normalized = rest_raw_input(value)
       fields[key] = normalized
       normalized
