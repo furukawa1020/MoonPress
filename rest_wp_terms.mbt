@@ -40,6 +40,11 @@ fn rest_wp_term_target(path : String) -> (String, Int)? {
     if path == prefix || path == prefix + "/" {
       return Some((kind, 0))
     }
+    if path.has_prefix(prefix + "/") {
+      let tail = path[prefix.length() + 1:].trim_end(chars="/").to_owned()
+      let id = rest_positive(tail, 2147483647) catch { _ => return None }
+      return Some((kind, id))
+    }
   }
   None
 }
@@ -112,9 +117,17 @@ fn rest_wp_terms(
   if !query.is_empty() {
     return rest_error(400, "rest_invalid_param")
   }
-  let (kind, _) = rest_wp_term_target(path).unwrap()
+  let (kind, id) = rest_wp_term_target(path).unwrap()
   let terms = rest_public_terms(rest_public_posts(input), kind) catch {
     _ => return rest_error(500, "moonpress_terms_unavailable")
+  }
+  if id > 0 {
+    for term in terms {
+      if term.id == id {
+        return rest_ok(rest_term_value(term, base))
+      }
+    }
+    return rest_error(404, "rest_term_invalid")
   }
   let rows : Array[Json] = []
   for i = 0; i < terms.length() && i < 10; i = i + 1 {
