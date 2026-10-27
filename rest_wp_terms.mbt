@@ -35,7 +35,7 @@ fn rest_term_slug(name : String) -> String {
 
 ///|
 fn rest_wp_term_target(path : String) -> (String, Int)? {
-  for (plural, kind) in [("categories", "category")] {
+  for (plural, kind) in [("categories", "category"), ("tags", "post_tag")] {
     let prefix = "/wp-json/wp/v2/" + plural
     if path == prefix || path == prefix + "/" {
       return Some((kind, 0))
