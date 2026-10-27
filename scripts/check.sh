@@ -323,3 +323,5 @@ python3 scripts/rest-wp-categories-test.py
 python3 scripts/rest-wp-category-detail-test.py
 
 python3 scripts/rest-wp-tags-test.py
+
+python3 scripts/rest-wp-tag-detail-test.py
