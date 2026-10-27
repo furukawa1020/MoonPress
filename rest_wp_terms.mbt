@@ -117,11 +117,12 @@ fn rest_wp_terms(
   for key, _ in query {
     if ![
         "include", "exclude", "slug", "orderby", "search", "post", "parent", "hide_empty",
-        "order",
+        "order", "page", "per_page", "offset",
       ].contains(key) {
       return rest_error(400, "rest_invalid_param")
     }
   }
+  rest_page_bounds(0, query) |> ignore
   let post_id = query.get("post").map(value => rest_positive(value, 2147483647))
   let parent = rest_nonnegative(query.get("parent").unwrap_or("0"), 2147483647)
   if !["true", "false", "1", "0"].contains(
@@ -213,13 +214,17 @@ fn rest_wp_terms(
     }
     return rest_error(404, "rest_term_invalid")
   }
+  let (start, size, pages) = match rest_page_bounds(terms.length(), query) {
+    Some(bounds) => bounds
+    None => return rest_error(400, "rest_term_invalid_page_number")
+  }
   let rows : Array[Json] = []
-  for i = 0; i < terms.length() && i < 10; i = i + 1 {
+  for i = start; i < terms.length() && i < start + size; i = i + 1 {
     rows.push(rest_term_value(terms[i], base))
   }
   {
     ..rest_ok(rows.to_json()),
     total: Some(terms.length()),
-    pages: Some((terms.length() + 9) / 10),
+    pages: Some(pages),
   }
 }
