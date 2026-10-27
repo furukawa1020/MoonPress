@@ -40,6 +40,9 @@ fn rest_methods(path : String) -> Array[String]? {
 
 ///|
 fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
+  if rest_is_taxonomies(path) || rest_wp_term_target(path) is Some(_) {
+    return rest_term_options(path, query)
+  }
   if rest_wp_comment_id(path) is Some(_) {
     return rest_wp_comments_options(path, query)
   }
@@ -95,6 +98,16 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
           "rendered": { "type": "string".to_json(), "readonly": true.to_json() },
           "raw": { "type": "string".to_json(), "context": ["edit"].to_json() },
         },
+      }
+    }
+  }
+  if path.has_prefix("/wp-json/wp/v2/posts") {
+    for name in ["categories", "tags"] {
+      properties[name] = {
+        "type": "array".to_json(),
+        "items": { "type": "integer".to_json() },
+        "readonly": true.to_json(),
+        "context": ["view", "edit"].to_json(),
       }
     }
   }
@@ -155,11 +168,37 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
         for name in ["page", "per_page"] {
           args[name] = { "type": "integer".to_json() }
         }
-        for name in ["search", "include", "exclude", "type", "subtype"] {
-          args[name] = { "type": "string".to_json() }
+        args["search"] = { "type": "string".to_json() }
+        args["type"] = {
+          "type": "string".to_json(),
+          "enum": ["post", "term"].to_json(),
+          "default": "post".to_json(),
+        }
+        for name in ["include", "exclude"] {
+          args[name] = {
+            "type": "array".to_json(),
+            "items": { "type": "integer".to_json() },
+          }
+        }
+        args["subtype"] = {
+          "type": "array".to_json(),
+          "items": {
+            "type": "string".to_json(),
+            "enum": ["any", "post", "page", "category", "post_tag"].to_json(),
+          },
         }
       }
       if rest_is_collection(path) {
+        for name in ["categories", "tags", "categories_exclude", "tags_exclude"] {
+          args[name] = {
+            "type": "array".to_json(),
+            "items": { "type": "integer".to_json() },
+          }
+        }
+        args["tax_relation"] = {
+          "type": "string".to_json(),
+          "enum": ["AND", "OR"].to_json(),
+        }
         args["search_columns"] = {
           "type": "array".to_json(),
           "items": {
