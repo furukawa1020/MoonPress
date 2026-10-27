@@ -77,3 +77,15 @@ publication statuses, resource links and pagination links. Actual core
 comparisons exercise anonymous, subscriber, author and administrator metadata
 across view/embed/edit. These report the implemented subset and do not claim a
 Gutenberg editor, general block-theme runtime or arbitrary PHP plugin execution.
+
+## Further authoring and public REST expansion (20 changes)
+
+Native authoring accepts bounded raw title/content/excerpt objects, active-author
+assignment/reassignment with edit-others and version checks, legacy author-zero
+filters and a UTC date alias. Public author profiles, filters, lexical ordering,
+pagination and article author links are available without private account fields.
+Comments gain multi-article/author/date filters, native embed projection and a
+read-only WordPress-shaped approved-public adapter with accurate discovery.
+Actual core fixtures compare raw authoring/date cases, lexical title ordering,
+public native author identity and view/embed comment fields. This does not add
+PHP themes/plugins, Gutenberg runtime editing, private posts or threaded replies.

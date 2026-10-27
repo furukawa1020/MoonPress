@@ -1,7 +1,7 @@
 ///|
 fn rest_methods(path : String) -> Array[String]? {
   if rest_wp_comment_id(path) is Some(_) {
-    return Some(["GET", "HEAD"])
+    return Some(["GET", "HEAD", "OPTIONS"])
   }
   if rest_is_users(path) {
     return Some(["GET", "HEAD", "OPTIONS"])
@@ -37,6 +37,9 @@ fn rest_methods(path : String) -> Array[String]? {
 
 ///|
 fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
+  if rest_wp_comment_id(path) is Some(_) {
+    return rest_wp_comments_options(path, query)
+  }
   if rest_is_users(path) {
     return rest_users_options(path, query)
   }

@@ -9,7 +9,8 @@ fn rest_page_links(
     (
       !rest_is_collection(path) &&
       !rest_is_search(path) &&
-      !rest_users_collection(path)
+      !rest_users_collection(path) &&
+      rest_wp_comment_id(path) != Some(0)
     ) {
     return None
   }

@@ -209,7 +209,9 @@ fn rest_route(
   principal : AccessPrincipal?,
 ) -> RestResponse raise {
   if rest_wp_comment_id(path) is Some(_) {
-    return rest_wp_comments(input, path, query, base)
+    return rest_wp_comments(input, path, query, base) catch {
+      _ => rest_error(500, "moonpress_comments_unavailable")
+    }
   }
   if rest_is_users(path) {
     return rest_users(input, path, query)
@@ -269,6 +271,8 @@ fn rest_route(
         "/wp/v2/pages/(?P<id>[0-9]+)": edit_route,
         "/wp/v2/users/me": route,
         "/wp/v2/users": route,
+        "/wp/v2/comments": route,
+        "/wp/v2/comments/(?P<id>[0-9]+)": route,
         "/wp/v2/users/(?P<id>[0-9]+)": route,
         "/wp/v2/search": route,
         "/wp/v2/types": route,
