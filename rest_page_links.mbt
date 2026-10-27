@@ -16,9 +16,19 @@ fn rest_page_links(
     return None
   }
   let pages = result.pages.unwrap_or(0)
-  let page = rest_positive(original.get("page").unwrap_or("1"), 4096)
+  let terms = rest_wp_term_target(path) is Some((_, 0))
+  let page = if terms {
+    let (start, size, _) = rest_term_page_bounds(
+      result.total.unwrap_or(0),
+      original,
+    )
+    (start + size - 1) / size + 1
+  } else {
+    rest_positive(original.get("page").unwrap_or("1"), 4096)
+  }
+  let previous = if terms && page - 1 > pages { pages } else { page - 1 }
   let links : Array[String] = []
-  for (next, rel) in [(page - 1, "prev"), (page + 1, "next")] {
+  for (next, rel) in [(previous, "prev"), (page + 1, "next")] {
     if next < 1 || next > pages {
       continue
     }

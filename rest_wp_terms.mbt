@@ -134,7 +134,7 @@ fn rest_wp_terms(
   if !["view", "embed"].contains(query.get("context").unwrap_or("view")) {
     return rest_error(400, "rest_invalid_param")
   }
-  rest_page_bounds(0, query) |> ignore
+  rest_term_page_bounds(0, query) |> ignore
   let post_id = query.get("post").map(value => rest_positive(value, 2147483647))
   let parent = rest_nonnegative(query.get("parent").unwrap_or("0"), 2147483647)
   if !["true", "false", "1", "0"].contains(
@@ -188,7 +188,7 @@ fn rest_wp_terms(
   }
   let terms = available.filter(term => {
     (selected_ids.is_empty() || selected_ids.contains(term.id)) &&
-    !exclude.contains(term.id) &&
+    (!selected_ids.is_empty() || !exclude.contains(term.id)) &&
     (slugs.is_empty() || slugs.contains(term.slug)) &&
     term.name.to_lower().contains(search) &&
     parent == 0 &&
@@ -232,10 +232,7 @@ fn rest_wp_terms(
     }
     return rest_error(404, "rest_term_invalid")
   }
-  let (start, size, pages) = match rest_page_bounds(terms.length(), query) {
-    Some(bounds) => bounds
-    None => return rest_error(400, "rest_term_invalid_page_number")
-  }
+  let (start, size, pages) = rest_term_page_bounds(terms.length(), query)
   let rows : Array[Json] = []
   for i = start; i < terms.length() && i < start + size; i = i + 1 {
     rows.push(

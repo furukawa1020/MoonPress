@@ -13,6 +13,7 @@ with NativeSite() as s:
     assert s.request(route+'&search=secret')[2]==[]
     selected=rows[0]['id'];assert s.request(route+'&include='+str(selected))[2]==[rows[0]]
     assert len(s.request(route+'&exclude='+str(selected))[2])==3
+    assert s.request(route+'&include='+str(selected)+'&exclude='+str(selected))[2]==[rows[0]]
     assert s.request(route+'&per_page=1&page=2')[1]['X-WP-TotalPages']=='4'
     assert 'rel="next"' in s.request(route+'&per_page=1')[1]['Link']
     assert s.request(route+'&subtype=page')[0]==400

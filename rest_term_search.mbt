@@ -44,7 +44,7 @@ fn rest_term_search(
   let selected = terms.filter(term => {
     term.name.to_lower().contains(search) &&
     (selected_ids.is_empty() || selected_ids.contains(term.id)) &&
-    !exclude.contains(term.id)
+    (!selected_ids.is_empty() || !exclude.contains(term.id))
   })
   selected.sort_by(fn(a, b) {
     let compared = a.name.lexical_compare(b.name)

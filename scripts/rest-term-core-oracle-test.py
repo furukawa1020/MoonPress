@@ -74,7 +74,7 @@ with NativeSite() as s:
         code,_,rows=s.request('/wp-json/wp/v2/'+plural+'?post='+str(draft['id']))
         assert code==200 and rows==[]
     for p in core['queries']:
-        plural=p['plural'];params={'include':list(native[plural].values()),'hide_empty':True,'per_page':100}
+        plural=p['plural'];params={'slug':['term-'+n.encode().hex() for n in native[plural]],'hide_empty':True,'per_page':100}
         for k,v in p['probe'].items():
             if k=='include_names':params['include']=[native[plural][n] for n in v]
             elif k=='exclude_names':params['exclude']=[native[plural][n] for n in v]
@@ -97,6 +97,9 @@ with NativeSite() as s:
         theirs=core['search'][kind]
         assert {r['title'] for r in rows}=={r['title'] for r in theirs}
         assert all(r['type']=='term' and r['subtype']==kind for r in rows+theirs)
+        params['exclude']=[native[plural]['c4-a']]
+        code,_,rows=s.request('/wp-json/wp/v2/search?'+query(params));assert code==200
+        assert {r['title'] for r in rows}=={r['title'] for r in core['search_with_exclusion'][kind]}==set(native[plural])
     # Relationship IDs use independently allocated stores, but identify the same names.
     for f in core['fixtures'][:3]:
         row=s.request('/wp-json/wp/v2/posts/'+str(f['id']))[2]
@@ -104,4 +107,4 @@ with NativeSite() as s:
         assert 'categories' not in embed and 'tags' not in embed
         assert 'categories' not in core['post_embed'][f['slug']] and 'tags' not in core['post_embed'][f['slug']]
         for plural in ['categories','tags']:assert set(row[plural])=={native[plural][n] for n in f[plural]}
-print('Actual WordPress core: taxonomy metadata, view/embed terms, 34 term queries, 9 taxonomy relations and public term search agree within the documented public flat subset; IDs are explicitly mapped across independent stores.')
+print('Actual WordPress core: taxonomy metadata, view/embed terms, 44 term queries, 9 taxonomy relations and public term search agree within the documented public flat subset; IDs are explicitly mapped across independent stores.')
