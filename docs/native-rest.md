@@ -427,3 +427,5 @@ As in WordPress, the individual public `publish` status exposes its static edit-
 collaborative editor notes are not implemented or advertised. The core oracle
 compares editor availability for that version-specific extension and exact
 values/types for the remaining represented metadata.
+
+Accept string or strict {raw:string} titles in native REST create/update; unsupported object fields are rejected.
