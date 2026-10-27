@@ -5,7 +5,12 @@ fn rest_page_links(
   result : RestResponse,
 ) -> String? raise {
   let (path, original) = rest_target(target)
-  if result.code != 200 || (!rest_is_collection(path) && !rest_is_search(path)) {
+  if result.code != 200 ||
+    (
+      !rest_is_collection(path) &&
+      !rest_is_search(path) &&
+      !rest_users_collection(path)
+    ) {
     return None
   }
   let pages = result.pages.unwrap_or(0)

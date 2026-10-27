@@ -297,3 +297,5 @@ python3 scripts/rest-public-user-detail-test.py
 python3 scripts/rest-user-id-filters-test.py
 
 python3 scripts/rest-user-search-test.py
+
+python3 scripts/rest-user-pages-test.py
