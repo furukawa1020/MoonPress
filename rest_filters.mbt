@@ -39,8 +39,8 @@ fn rest_filter_posts(
     .map(value => rest_named_terms([value.to_json()])[0])
   let selected_ids = rest_id_list(query.get("include"))
   let exclude = rest_id_list(query.get("exclude"))
-  let authors = rest_id_list(query.get("author"))
-  let others = rest_id_list(query.get("author_exclude"))
+  let authors = rest_author_ids(query.get("author"))
+  let others = rest_author_ids(query.get("author_exclude"))
   let columns = query
     .get("search_columns")
     .unwrap_or("")
