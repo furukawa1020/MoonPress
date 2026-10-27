@@ -507,3 +507,67 @@ supported values. Counts, Link headers, projections and envelopes preserve this
 public scope. Native comment embed keeps its earlier identity-minimizing schema.
 Native journal epoch fields retain their existing Int64 string representation;
 the WordPress adapter formats dates explicitly as second-precision UTC strings.
+
+
+## Public taxonomy read compatibility
+
+`GET|HEAD|OPTIONS /wp-json/wp/v2/taxonomies` and `/taxonomies/category` /
+`/taxonomies/post_tag` describe the implemented post taxonomies in `view` and
+`embed`. The keyed collection supports `_fields` and `type=post|page`; pages
+have no WordPress taxonomy registration. Metadata deliberately omits unsupported
+hierarchy and term management capabilities.
+
+`/wp-json/wp/v2/categories`, `/tags` and their positive-ID detail routes expose
+only terms assigned to currently public native posts. Draft, unlisted,
+not-yet-due and page-only names remain unavailable, even to an administrator on
+these public routes. This inventory has no independent empty-term registry or
+automatic Uncategorized term. Consequently `hide_empty=false` does not expand
+it to the empty/private-only terms WordPress may expose. Category `parent` is
+always zero; parent selection is flat, and tag parent queries are rejected.
+Term creation, numeric assignment writes, renaming, descriptions, hierarchy and
+private term editing remain unsupported. Named native authoring arrays continue
+to work.
+
+Term IDs use the first 31 bits of SHA-256 over `taxonomy + "\n" + exact name`
+(zero maps to one). They are stable across ordering, count changes and server
+restarts, but a rename changes identity, and imported WordPress IDs are not
+preserved. Any detected public ID collision fails the term/article inventory
+closed instead of aliasing two names. Slugs are the lossless UTF-8 hex encoding
+of the name prefixed by `term-`; they are native stable slugs, not WordPress
+`sanitize_title` results. Archive links resolve to existing native category/tag
+filenames. Consumers must map independently allocated WordPress/native IDs and
+slugs during migration; there is no general WordPress database identity import.
+
+Term collections support bounded comma/bracket `include`, `exclude`, `slug`,
+literal case-insensitive `search`, public `post`, `hide_empty`, flat category
+`parent`, `order`, `orderby=name|slug|id|count|include|include_slugs`, and
+`page`/`per_page`/`offset`. Selected-ID/slug ordering preserves request order.
+`view` returns count/description (and category parent); `embed` omits those.
+`_fields`, `_envelope`, ETag/HEAD and pagination links use the shared response
+pipeline. Invalid credentials never fall back to anonymous reads. Unicode name
+ordering is deterministic lexical order; it does not emulate every database
+collation, locale or WordPress name/slug normalization rule.
+
+Post representations include read-only numeric `categories`/`tags`, in
+view/edit (omitted in embed), alongside native named arrays. Numeric include/exclude collection
+filters use OR within each include list and default AND across nonempty clauses;
+`tax_relation=AND|OR` combines all include and exclude clauses as WordPress does.
+Empty clauses are ignored. Advanced object taxonomy queries (operators and
+include_children) remain unsupported. Ordinary role/ownership/public visibility
+filters continue to apply. Public term details may be absent for terms returned
+in an authorized draft's edit representation.
+
+Term self/collection/about/post relationship links and post `wp:term` links
+support traversal. These links do not advertise embedding because `_embed` is
+not implemented. Universal search accepts `type=term` and
+`subtype=category|post_tag|any`, bounded ID selection, search and pagination.
+Search ordering is deterministic native name/ID order; no general database
+relevance/collation guarantee is implied. All new routes accurately advertise
+read-only methods, supported arguments and view/embed fields in OPTIONS.
+
+The actual WordPress core oracle compares metadata and view/embed fields, 30
+term query cases, nine include/exclude AND/OR relationships and public term
+search. It seeds matching explicit slugs and maps independently allocated IDs;
+links are checked as working native archives/API relationships rather than
+requiring WordPress dynamic URLs. The comparison uses public nonempty flat
+terms and does not claim empty/private terms, hierarchy or term-write parity.

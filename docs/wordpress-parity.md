@@ -89,3 +89,23 @@ read-only WordPress-shaped approved-public adapter with accurate discovery.
 Actual core fixtures compare raw authoring/date cases, lexical title ordering,
 public native author identity and view/embed comment fields. This does not add
 PHP themes/plugins, Gutenberg runtime editing, private posts or threaded replies.
+
+
+## Public taxonomy REST expansion (20 further changes)
+
+MoonBit native now exposes category/tag taxonomy metadata, public term lists and
+details, ID/slug/search/post filters, lexical/count/request ordering, pagination,
+view/embed projections, numeric article term identities and filters, taxonomy
+AND/OR relation, relationship links, universal term search and accurate OPTIONS.
+Actual WordPress core fixtures compare the implemented public flat subset with
+explicit cross-store identity mapping. Focused HTTP regressions also cover
+private-name omission, corruption, collision refusal and input bounds.
+
+This is a read compatibility layer over native named terms. IDs are deterministic
+name-derived native identities and slugs use lossless UTF-8 hex, not imported
+WordPress database identities or core slug normalization. Empty/private-only
+terms, the automatic default category, general term writes/renames/descriptions,
+category hierarchy and arbitrary database collation are still missing. PHP
+plugins/themes, Gutenberg runtime editing, private/password posts, full media
+attachment metadata and threaded comments remain separate gaps. See the precise
+[REST contract](native-rest.md#public-taxonomy-read-compatibility).

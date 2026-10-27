@@ -140,3 +140,8 @@ subprocess.run([sys.executable,'scripts/rest-table-alignment-test.py',table_orac
 interchange_oracle=work/'interchange-core.json'
 subprocess.run(['php','benchmarks/wordpress/interchange-oracle.php',wordpress,interchange_oracle],check=True)
 subprocess.run([sys.executable,'scripts/rest-interchange-oracle-test.py',interchange_oracle],check=True)
+
+
+taxonomy_oracle=work/'taxonomy-core.json'
+subprocess.run(['php','benchmarks/wordpress/taxonomy-oracle.php',wordpress,taxonomy_oracle],check=True)
+subprocess.run([sys.executable,'scripts/rest-term-core-oracle-test.py',taxonomy_oracle],check=True)
