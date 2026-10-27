@@ -303,3 +303,5 @@ python3 scripts/rest-user-pages-test.py
 python3 scripts/rest-author-links-test.py
 
 python3 scripts/rest-comment-posts-test.py
+
+python3 scripts/rest-comment-authors-test.py

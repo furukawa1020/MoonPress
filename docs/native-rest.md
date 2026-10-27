@@ -457,3 +457,5 @@ Order visible public users by id/name/slug and paginate after visibility/filteri
 Link positive article author identities to native public user resources; revoked or nonpublic author profiles remain unavailable.
 
 Select native comments across bounded article ID arrays while retaining public-parent visibility before filtering and pagination.
+
+Filter visible native comments by author and author_exclude identity arrays without widening approval or ownership scope.
