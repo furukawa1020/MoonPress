@@ -276,6 +276,7 @@ fn rest_route(
         "/wp/v2/users/(?P<id>[0-9]+)": route,
         "/wp/v2/search": route,
         "/wp/v2/types": route,
+        "/wp/v2/taxonomies": route,
         "/wp/v2/statuses": route,
         "/wp/v2/statuses/(?P<status>[a-z]+)": route,
         "/wp/v2/types/post": route,

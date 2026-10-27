@@ -1,5 +1,8 @@
 ///|
 fn rest_is_metadata(path : String) -> Bool {
+  if rest_is_taxonomies(path) {
+    return true
+  }
   if path.has_prefix("/wp-json/wp/v2/statuses/") && !path[24:].is_empty() {
     return true
   }
@@ -14,6 +17,9 @@ fn rest_is_metadata(path : String) -> Bool {
 
 ///|
 fn rest_metadata_collection(path : String) -> Bool {
+  if rest_taxonomies_collection(path) {
+    return true
+  }
   if ["/wp-json/wp/v2/statuses", "/wp-json/wp/v2/statuses/"].contains(path) {
     return true
   }
@@ -43,6 +49,9 @@ fn rest_metadata(
   query : Map[String, String],
   principal : AccessPrincipal?,
 ) -> RestResponse raise {
+  if rest_is_taxonomies(input_path) {
+    return rest_taxonomies(input_path, query)
+  }
   if input_path.has_prefix("/wp-json/wp/v2/statuses") {
     return rest_status_metadata(input_path, query, principal)
   }
