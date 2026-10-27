@@ -347,3 +347,5 @@ python3 scripts/rest-article-term-filter-test.py
 python3 scripts/rest-article-tax-relation-test.py
 
 python3 scripts/rest-term-resource-links-test.py
+
+python3 scripts/rest-term-universal-search-test.py

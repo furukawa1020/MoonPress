@@ -21,8 +21,9 @@ with NativeSite() as site:
     assert status==200 and headers['X-WP-Total']=='3' and headers['X-WP-TotalPages']=='3' and len(rows)==1
     status,head_headers,body=site.request(route+'?search=Needle','HEAD')
     assert status==200 and head_headers['X-WP-Total']=='2' and body is None
-    for query in ['type=term','subtype=attachment','subtype=any,post','context=edit','page=0','per_page=101','page=100','search='+urllib.parse.quote('x '*17),'include=no','unknown=1','orderby=relevance']:
+    for query in ['type=attachment','subtype=attachment','subtype=any,post','context=edit','page=0','per_page=101','page=100','search='+urllib.parse.quote('x '*17),'include=no','unknown=1','orderby=relevance']:
         assert site.request(route+'?'+query)[0]==400,query
+    assert site.request(route+'?type=term')[2]==[]
     status,headers,value=site.request(route,'POST',data={})
     assert status==405 and headers['Allow']=='GET, HEAD, OPTIONS'
     assert site.request(route,'OPTIONS')[2]['methods']==['GET','HEAD','OPTIONS']

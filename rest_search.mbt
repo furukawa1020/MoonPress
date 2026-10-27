@@ -9,6 +9,9 @@ fn rest_search(
   query : Map[String, String],
   base : String,
 ) -> RestResponse raise {
+  if query.get("type") == Some("term") {
+    return rest_term_search(input, query, base)
+  }
   for key, value in query {
     if ![
         "context", "page", "per_page", "search", "include", "exclude", "type", "subtype",
