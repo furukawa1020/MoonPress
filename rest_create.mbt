@@ -41,7 +41,11 @@ fn rest_create(
       return rest_error(400, "rest_invalid_param")
     }
   }
-  rest_with_access(input, authorization, fn(principal, directory) raise {
+  rest_with_access_users(input, authorization, fn(
+    principal,
+    directory,
+    users,
+  ) raise {
     let kind = if path.has_prefix("/wp-json/wp/v2/posts") {
       "post"
     } else {
@@ -57,7 +61,7 @@ fn rest_create(
         @json.parse(decode_text(body, "REST creation")),
         [
           "title", "content", "excerpt", "slug", "status", "date_gmt", "moonpress_categories",
-          "moonpress_tags",
+          "moonpress_tags", "author",
         ],
         "REST creation",
       )
@@ -71,6 +75,22 @@ fn rest_create(
         Some(String(value)) => value
         _ => fallback
       }
+    }
+    let (author_code, author) = rest_assign_author(
+      users,
+      principal,
+      kind,
+      fields.get("author"),
+    )
+    if author_code != 200 {
+      return rest_error(
+        author_code,
+        if author_code == 403 {
+          "rest_cannot_edit_others"
+        } else {
+          "rest_invalid_author"
+        },
+      )
     }
     let title = text("title", "")
     let status = text("status", "draft")
@@ -90,7 +110,7 @@ fn rest_create(
       "kind": kind,
       "title": title,
       "draft": status == "draft",
-      "author": principal.id,
+      "author": author,
       "description": text("excerpt", ""),
     }
     let attributes = match metadata {

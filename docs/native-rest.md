@@ -435,3 +435,5 @@ Accept raw content objects through the same conservative HTML intake and guarded
 Accept raw excerpt objects while retaining the native plain-text excerpt contract and strict field validation.
 
 Allow legacy author ID 0 in bounded REST author and author_exclude filters; article include/exclude IDs remain positive.
+
+Allow active author assignment on REST creation; assigning another principal requires edit_others_posts/pages under the same access/content locks.

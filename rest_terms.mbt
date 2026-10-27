@@ -33,7 +33,9 @@ fn rest_write_types(fields : Map[String, Json]) -> Unit raise {
     } else {
       value
     }
-    if key == "moonpress_categories" || key == "moonpress_tags" {
+    if key == "author" {
+      fields[key] = rest_author_number(value).to_json()
+    } else if key == "moonpress_categories" || key == "moonpress_tags" {
       rest_named_terms(value) |> ignore
     } else if !(value is String(_)) {
       raise InvalidInput("Expected string field")

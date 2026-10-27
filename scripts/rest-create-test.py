@@ -7,9 +7,10 @@ with NativeSite() as fixture:
     assert fixture.request(posts,'POST',{'title':'Denied'},'subscriber')[0]==403
     assert fixture.request(pages,'POST',{'title':'Denied'},'author')[0]==403
     assert not (fixture.site/'.moonpress-identities').exists()
-    for data in [{'title':'No','author':1},{'title':''},{'title':'No','content':'<script>x</script>'},{'title':'No','slug':'../escape'},{'title':'No','date_gmt':'bad'},{'title':'No','status':'future'}]:
+    for data in [{'title':''},{'title':'No','content':'<script>x</script>'},{'title':'No','slug':'../escape'},{'title':'No','date_gmt':'bad'},{'title':'No','status':'future'}]:
         assert fixture.request(posts,'POST',data,'author')[0]==400,data
     assert not (fixture.site/'.moonpress-identities').exists()
+    assert fixture.request(posts,'POST',{'title':'No','author':1},'author')[0]==403
     assert fixture.request(posts,'POST',{'title':'No','status':'publish'},'contributor')[0]==403
     created=fixture.request(posts,'POST',{'title':'First post','content':'<p>Safe &amp; text</p>'},'contributor')
     assert created[0]==201 and created[2]['status']=='draft' and created[2]['author']==fixture.ids['contributor']
