@@ -335,3 +335,5 @@ python3 scripts/rest-term-search-test.py
 python3 scripts/rest-term-post-selection-test.py
 
 python3 scripts/rest-term-ordering-test.py
+
+python3 scripts/rest-term-pagination-test.py
