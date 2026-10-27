@@ -528,8 +528,8 @@ Term creation, numeric assignment writes, renaming, descriptions, hierarchy and
 private term editing remain unsupported. Named native authoring arrays continue
 to work.
 
-Term IDs use the first 31 bits of SHA-256 over `taxonomy + "\n" + exact name`
-(zero maps to one). They are stable across ordering, count changes and server
+Term IDs use the first eight hex digits of SHA-256 over
+`taxonomy + "\n" + exact name`, with the high bit cleared (zero maps to one). They are stable across ordering, count changes and server
 restarts, but a rename changes identity, and imported WordPress IDs are not
 preserved. Any detected public ID collision fails the term/article inventory
 closed instead of aliasing two names. Slugs are the lossless UTF-8 hex encoding
@@ -542,6 +542,9 @@ Term collections support bounded comma/bracket `include`, `exclude`, `slug`,
 literal case-insensitive `search`, public `post`, `hide_empty`, flat category
 `parent`, `order`, `orderby=name|slug|id|count|include|include_slugs`, and
 `page`/`per_page`/`offset`. Selected-ID/slug ordering preserves request order.
+For a hidden or unknown `post` selector this public-only adapter returns an
+empty selection; WordPress can instead return an unreadable-post error. This
+status difference is explicitly exercised by the core fixture.
 `view` returns count/description (and category parent); `embed` omits those.
 `_fields`, `_envelope`, ETag/HEAD and pagination links use the shared response
 pipeline. Invalid credentials never fall back to anonymous reads. Unicode name
@@ -549,8 +552,8 @@ ordering is deterministic lexical order; it does not emulate every database
 collation, locale or WordPress name/slug normalization rule.
 
 Post representations include read-only numeric `categories`/`tags`, in
-view/edit (omitted in embed), alongside native named arrays. Numeric include/exclude collection
-filters use OR within each include list and default AND across nonempty clauses;
+view/edit (omitted in embed), alongside native named arrays. Numeric
+include/exclude collection filters use OR within each include list and default AND across nonempty clauses;
 `tax_relation=AND|OR` combines all include and exclude clauses as WordPress does.
 Empty clauses are ignored. Advanced object taxonomy queries (operators and
 include_children) remain unsupported. Ordinary role/ownership/public visibility

@@ -67,6 +67,12 @@ with NativeSite() as s:
             assert prop['type']==actual['type'],(route,name,prop,actual)
             assert set(prop['context'])<=set(actual['context']),(route,name,prop,actual)
             if name in ['id','count']:assert prop['readonly']==actual['readonly']==True
+    # Private selector response status is an explicit public-only subset difference.
+    draft=next(f for f in core['fixtures'] if f['status']=='draft')
+    for plural,probe in core['private_post_selector'].items():
+        assert probe['status']==401 and probe['data']['code']=='rest_forbidden_context'
+        code,_,rows=s.request('/wp-json/wp/v2/'+plural+'?post='+str(draft['id']))
+        assert code==200 and rows==[]
     for p in core['queries']:
         plural=p['plural'];params={'include':list(native[plural].values()),'hide_empty':True,'per_page':100}
         for k,v in p['probe'].items():
