@@ -114,7 +114,7 @@ fn rest_update_source(
     @json.parse(decode_text(body, "REST body")),
     [
       "title", "content", "excerpt", "status", "date_gmt", "slug", "moonpress_categories",
-      "moonpress_tags",
+      "moonpress_tags", "author",
     ],
     "REST update",
   )
@@ -125,6 +125,19 @@ fn rest_update_source(
     _ => raise InvalidInput("Expected metadata")
   }
   let before = metadata.stringify()
+  if changes.get("author") is Some(value) {
+    let author = rest_author_number(value)
+    if author != principal.id &&
+      !role_capabilities(principal.role).contains(
+        "edit_others_" +
+        (if document.kind == "page" { "pages" } else { "posts" }),
+      ) {
+      raise InvalidInput("Author reassignment requires edit others")
+    }
+    if author != document.author {
+      fields["author"] = author.to_json()
+    }
+  }
   let mut next_body = current_body
   for key in ["title", "excerpt", "content"] {
     if changes.get(key) is Some(String(value)) {
@@ -238,7 +251,11 @@ fn rest_edit(
       return rest_error(400, "rest_invalid_param")
     }
   }
-  rest_with_access(input, authorization, fn(principal, directory) raise {
+  rest_with_access_users(input, authorization, fn(
+    principal,
+    directory,
+    users,
+  ) raise {
     let (name, snapshot, document) = match
       rest_find_post(input, directory, kind, id) {
       Some(found) => found
@@ -275,6 +292,26 @@ fn rest_edit(
     }
     let request_json = @json.parse(decode_text(body.unwrap(), "REST body")) catch {
       _ => return rest_error(400, "rest_invalid_param")
+    }
+    if request_json is Object(fields) && fields.contains("author") {
+      let (author_code, _) = rest_assign_author(
+        users,
+        principal,
+        kind,
+        fields.get("author"),
+      ) catch {
+        _ => return rest_error(400, "rest_invalid_author")
+      }
+      if author_code != 200 {
+        return rest_error(
+          author_code,
+          if author_code == 403 {
+            "rest_cannot_edit_others"
+          } else {
+            "rest_invalid_author"
+          },
+        )
+      }
     }
     if request_json is Object(fields) {
       if fields.get("status") is Some(String(status)) &&

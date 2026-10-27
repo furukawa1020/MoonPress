@@ -283,3 +283,5 @@ python3 scripts/rest-raw-excerpt-test.py
 python3 scripts/rest-author-zero-test.py
 
 python3 scripts/rest-create-author-test.py
+
+python3 scripts/rest-update-author-test.py
