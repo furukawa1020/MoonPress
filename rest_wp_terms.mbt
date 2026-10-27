@@ -114,13 +114,24 @@ fn rest_wp_terms(
   query : Map[String, String],
   base : String,
 ) -> RestResponse raise {
-  if !query.is_empty() {
-    return rest_error(400, "rest_invalid_param")
+  for key, _ in query {
+    if !["include", "exclude"].contains(key) {
+      return rest_error(400, "rest_invalid_param")
+    }
   }
+  let include = rest_id_list(query.get("include"))
+  let exclude = rest_id_list(query.get("exclude"))
   let (kind, id) = rest_wp_term_target(path).unwrap()
-  let terms = rest_public_terms(rest_public_posts(input), kind) catch {
+  let available = rest_public_terms(rest_public_posts(input), kind) catch {
     _ => return rest_error(500, "moonpress_terms_unavailable")
   }
+  if id > 0 && !query.is_empty() {
+    return rest_error(400, "rest_invalid_param")
+  }
+  let terms = available.filter(term => {
+    (include.is_empty() || include.contains(term.id)) &&
+    !exclude.contains(term.id)
+  })
   if id > 0 {
     for term in terms {
       if term.id == id {
