@@ -115,9 +115,15 @@ fn rest_wp_terms(
   base : String,
 ) -> RestResponse raise {
   for key, _ in query {
-    if !["include", "exclude"].contains(key) {
+    if !["include", "exclude", "slug", "orderby"].contains(key) {
       return rest_error(400, "rest_invalid_param")
     }
+  }
+  let slugs = rest_term_slugs(query.get("slug"))
+  let orderby = query.get("orderby").unwrap_or("name")
+  if !["name", "include_slugs"].contains(orderby) ||
+    (orderby == "include_slugs" && slugs.is_empty()) {
+    return rest_error(400, "rest_invalid_param")
   }
   let include = rest_id_list(query.get("include"))
   let exclude = rest_id_list(query.get("exclude"))
@@ -130,8 +136,16 @@ fn rest_wp_terms(
   }
   let terms = available.filter(term => {
     (include.is_empty() || include.contains(term.id)) &&
-    !exclude.contains(term.id)
+    !exclude.contains(term.id) &&
+    (slugs.is_empty() || slugs.contains(term.slug))
   })
+  if orderby == "include_slugs" {
+    let ranks : Map[String, Int] = Map([])
+    for i = 0; i < slugs.length(); i = i + 1 {
+      ranks[slugs[i]] = i
+    }
+    terms.sort_by(fn(a, b) { ranks[a.slug].compare(ranks[b.slug]) })
+  }
   if id > 0 {
     for term in terms {
       if term.id == id {
