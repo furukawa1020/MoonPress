@@ -10,7 +10,10 @@ with NativeSite() as s:
         assert s.request(route+'?orderby=name&order=desc')[2]==rows[::-1]
         assert [r['id'] for r in s.request(route+'?orderby=id')[2]]==sorted(r['id'] for r in rows)
         ids=[r['id'] for r in rows[::-1]]
-        assert s.request(route+'?include='+','.join(map(str,ids))+'&orderby=include&order=desc')[2]==rows[::-1]
+        assert s.request(route+'?include='+','.join(map(str,ids))+'&orderby=include&order=desc')[2]==rows
+        assert s.request(route+'?include='+','.join(map(str,ids))+'&orderby=include&order=asc')[2]==rows[::-1]
+        slugs=[r['slug'] for r in rows[::-1]]
+        assert s.request(route+'?slug='+','.join(slugs)+'&orderby=include_slugs&order=desc')[2]==rows
         assert s.request(route+'?orderby=include')[0]==400
         assert s.request(route+'?orderby=private')[0]==400
         assert s.request(route+'?order=sideways')[0]==400

@@ -541,7 +541,8 @@ slugs during migration; there is no general WordPress database identity import.
 Term collections support bounded comma/bracket `include`, `exclude`, `slug`,
 literal case-insensitive `search`, public `post`, `hide_empty`, flat category
 `parent`, `order`, `orderby=name|slug|id|count|include|include_slugs`, and
-`page`/`per_page`/`offset`. Selected-ID/slug ordering preserves request order.
+`page`/`per_page`/`offset`. Selected-ID/slug ordering preserves request order for `asc` and reverses it
+for `desc`, matching core term ordering (unlike the post include-order rule).
 For a hidden or unknown `post` selector this public-only adapter returns an
 empty selection; WordPress can instead return an unreadable-post error. This
 status difference is explicitly exercised by the core fixture.
@@ -568,7 +569,7 @@ Search ordering is deterministic native name/ID order; no general database
 relevance/collation guarantee is implied. All new routes accurately advertise
 read-only methods, supported arguments and view/embed fields in OPTIONS.
 
-The actual WordPress core oracle compares metadata and view/embed fields, 30
+The actual WordPress core oracle compares metadata and view/embed fields, 34
 term query cases, nine include/exclude AND/OR relationships and public term
 search. It seeds matching explicit slugs and maps independently allocated IDs;
 links are checked as working native archives/API relationships rather than

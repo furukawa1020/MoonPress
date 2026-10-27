@@ -212,7 +212,7 @@ fn rest_wp_terms(
       _ => a.name.lexical_compare(b.name)
     }
     let compared = if compared == 0 { a.id.compare(b.id) } else { compared }
-    if order == "asc" || ["include", "include_slugs"].contains(orderby) {
+    if order == "asc" {
       compared
     } else {
       0 - compared

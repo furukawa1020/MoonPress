@@ -39,7 +39,7 @@ foreach(['categories'=>'category','tags'=>'post_tag'] as $plural=>$kind){
  foreach(['view','embed'] as $context){
   foreach($public as $name){$out['details'][$plural][$context][$name]=c4_request('/wp/v2/'.$plural.'/'.$terms[$kind][$name],['context'=>$context])['rows'];}
  }
- $probes=[[],['search'=>'C4-AA'],['search'=>'secret'],['search'=>'%'],['slug'=>['term-'.bin2hex('c4-z'),'term-'.bin2hex('c4-a')],'orderby'=>'include_slugs'],['include_names'=>['c4-z','c4-a'],'orderby'=>'include','order'=>'desc'],['exclude_names'=>['c4-a']],['post'=>$fixtures[0]['id']],['post'=>$fixtures[2]['id']],['orderby'=>'name','order'=>'desc'],['orderby'=>'slug'],['orderby'=>'count','order'=>'desc'],['per_page'=>1,'page'=>2],['per_page'=>1,'offset'=>2],['context'=>'embed']];
+ $probes=[[],['search'=>'C4-AA'],['search'=>'secret'],['search'=>'%'],['slug'=>['term-'.bin2hex('c4-z'),'term-'.bin2hex('c4-a')],'orderby'=>'include_slugs'],['include_names'=>['c4-z','c4-a'],'orderby'=>'include','order'=>'desc'],['include_names'=>['c4-z','c4-a'],'orderby'=>'include','order'=>'asc'],['slug'=>['term-'.bin2hex('c4-z'),'term-'.bin2hex('c4-a')],'orderby'=>'include_slugs','order'=>'desc'],['exclude_names'=>['c4-a']],['post'=>$fixtures[0]['id']],['post'=>$fixtures[2]['id']],['orderby'=>'name','order'=>'desc'],['orderby'=>'slug'],['orderby'=>'count','order'=>'desc'],['per_page'=>1,'page'=>2],['per_page'=>1,'offset'=>2],['context'=>'embed']];
  foreach($probes as $probe){
   $params=['include'=>array_map(fn($n)=>$terms[$kind][$n],$public),'hide_empty'=>true,'per_page'=>100];
   foreach($probe as $k=>$v){

@@ -104,4 +104,4 @@ with NativeSite() as s:
         assert 'categories' not in embed and 'tags' not in embed
         assert 'categories' not in core['post_embed'][f['slug']] and 'tags' not in core['post_embed'][f['slug']]
         for plural in ['categories','tags']:assert set(row[plural])=={native[plural][n] for n in f[plural]}
-print('Actual WordPress core: taxonomy metadata, view/embed terms, 30 term queries, 9 taxonomy relations and public term search agree within the documented public flat subset; IDs are explicitly mapped across independent stores.')
+print('Actual WordPress core: taxonomy metadata, view/embed terms, 34 term queries, 9 taxonomy relations and public term search agree within the documented public flat subset; IDs are explicitly mapped across independent stores.')
