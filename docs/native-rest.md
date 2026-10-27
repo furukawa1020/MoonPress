@@ -571,6 +571,9 @@ Term self/collection/about/post relationship links and post `wp:term` links
 support traversal. These links do not advertise embedding because `_embed` is
 not implemented. Universal search accepts `type=term` and
 `subtype=category|post_tag|any`, bounded ID selection, search and pagination.
+As in the core term search handler, each result has id/title/url/type, with
+`type=category|post_tag` and no `subtype`; the request selector remains
+`type=term`. Term search titles are plain JSON labels, not rendered HTML.
 Search ordering is deterministic native name/ID order; no general database
 relevance/collation guarantee is implied. All new routes accurately advertise
 read-only methods, supported arguments and view/embed fields in OPTIONS.

@@ -107,8 +107,8 @@ with NativeSite() as s:
             params={'type':'term','subtype':kind,'search':'c4-','include':list(native[plural].values()),'per_page':100}
             code,_,rows=s.request('/wp-json/wp/v2/search?'+query(params));assert code==200
             theirs=core['search'][kind]
-            assert {r['title'] for r in rows}=={r['title'] for r in theirs}
-            assert all(r['type']=='term' and r['subtype']==kind for r in rows+theirs)
+            assert {r['title'] for r in rows}=={r['title'] for r in theirs}, ('titles',rows,theirs)
+            assert all(r['type']==kind and 'subtype' not in r for r in rows+theirs), ('shape',rows,theirs)
             params['exclude']=[native[plural]['c4-a']]
             code,_,rows=s.request('/wp-json/wp/v2/search?'+query(params));assert code==200
             assert {r['title'] for r in rows}=={r['title'] for r in core['search_with_exclusion'][kind]}==set(native[plural])

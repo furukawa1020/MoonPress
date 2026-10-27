@@ -68,10 +68,9 @@ fn rest_term_search(
     }
     rows.push({
       "id": term.id.to_json(),
-      "title": escape_html(term.name).to_json(),
+      "title": term.name.to_json(),
       "url": url,
-      "type": "term".to_json(),
-      "subtype": term.taxonomy.to_json(),
+      "type": term.taxonomy.to_json(),
     })
   }
   {
