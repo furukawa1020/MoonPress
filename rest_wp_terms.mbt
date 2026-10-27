@@ -117,6 +117,7 @@ fn rest_wp_terms(
   for key, _ in query {
     if ![
         "include", "exclude", "slug", "orderby", "search", "post", "parent", "hide_empty",
+        "order",
       ].contains(key) {
       return rest_error(400, "rest_invalid_param")
     }
@@ -131,12 +132,19 @@ fn rest_wp_terms(
   let search = native_query_text(query.get("search").unwrap_or(""))
   let slugs = rest_term_slugs(query.get("slug"))
   let orderby = query.get("orderby").unwrap_or("name")
-  if !["name", "include_slugs"].contains(orderby) ||
+  let order = query.get("order").unwrap_or("asc")
+  if !["name", "slug", "id", "count", "include", "include_slugs"].contains(
+      orderby,
+    ) ||
+    !["asc", "desc"].contains(order) ||
     (orderby == "include_slugs" && slugs.is_empty()) {
     return rest_error(400, "rest_invalid_param")
   }
   let include = rest_id_list(query.get("include"))
   let exclude = rest_id_list(query.get("exclude"))
+  if orderby == "include" && include.is_empty() {
+    return rest_error(400, "rest_invalid_param")
+  }
   let (kind, id) = rest_wp_term_target(path).unwrap()
   if kind != "category" && query.contains("parent") {
     return rest_error(400, "rest_invalid_param")
@@ -173,13 +181,30 @@ fn rest_wp_terms(
     parent == 0 &&
     (post_id is None || selected_names.contains(term.name))
   })
-  if orderby == "include_slugs" {
-    let ranks : Map[String, Int] = Map([])
-    for i = 0; i < slugs.length(); i = i + 1 {
-      ranks[slugs[i]] = i
-    }
-    terms.sort_by(fn(a, b) { ranks[a.slug].compare(ranks[b.slug]) })
+  let ranks : Map[Int, Int] = Map([])
+  for i = 0; i < include.length(); i = i + 1 {
+    ranks[include[i]] = i
   }
+  let slug_ranks : Map[String, Int] = Map([])
+  for i = 0; i < slugs.length(); i = i + 1 {
+    slug_ranks[slugs[i]] = i
+  }
+  terms.sort_by(fn(a, b) {
+    let compared = match orderby {
+      "include" => ranks[a.id].compare(ranks[b.id])
+      "include_slugs" => slug_ranks[a.slug].compare(slug_ranks[b.slug])
+      "id" => a.id.compare(b.id)
+      "count" => a.count.compare(b.count)
+      "slug" => a.slug.lexical_compare(b.slug)
+      _ => a.name.lexical_compare(b.name)
+    }
+    let compared = if compared == 0 { a.id.compare(b.id) } else { compared }
+    if order == "asc" || ["include", "include_slugs"].contains(orderby) {
+      compared
+    } else {
+      0 - compared
+    }
+  })
   if id > 0 {
     for term in terms {
       if term.id == id {
