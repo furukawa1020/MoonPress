@@ -68,7 +68,7 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
       ] {
       properties[field] = {
         "type": "string".to_json(),
-        "readonly": ["date", "type", "link", "moonpress_revision"]
+        "readonly": ["type", "link", "moonpress_revision"]
         .contains(field)
         .to_json(),
       }
@@ -187,6 +187,10 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
       }
     }
     if ["POST", "PUT", "PATCH"].contains(verb) && article {
+      args["date"] = {
+        "type": "string".to_json(),
+        "format": "date-time".to_json(),
+      }
       args["author"] = { "type": "integer".to_json(), "minimum": (1).to_json() }
       args["slug"] = { "type": "string".to_json() }
     }
