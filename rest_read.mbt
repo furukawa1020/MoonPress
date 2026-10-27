@@ -266,6 +266,7 @@ fn rest_route(
         "/wp/v2/pages/(?P<id>[0-9]+)": edit_route,
         "/wp/v2/users/me": route,
         "/wp/v2/users": route,
+        "/wp/v2/users/(?P<id>[0-9]+)": route,
         "/wp/v2/search": route,
         "/wp/v2/types": route,
         "/wp/v2/statuses": route,

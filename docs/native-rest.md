@@ -445,3 +445,5 @@ Accept date as a native UTC creation alias for date_gmt; both supplied values mu
 Accept guarded REST date updates through native UTC date_gmt validation without granting publication capability.
 
 Expose read-only public user profiles containing id/name/slug only for active principals with currently public native articles.
+
+Expose read-only visible author details at /wp/v2/users/ID while keeping users/me private identity behavior separate.
