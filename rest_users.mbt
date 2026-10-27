@@ -45,11 +45,13 @@ fn rest_users(
   query : Map[String, String],
 ) -> RestResponse raise {
   for key, value in query {
-    if !["context", "include", "exclude"].contains(key) ||
+    if !["context", "include", "exclude", "search", "slug"].contains(key) ||
       (key == "context" && !["view", "embed"].contains(value)) {
       return rest_error(400, "rest_invalid_param")
     }
   }
+  let search = native_query_text(query.get("search").unwrap_or(""))
+  let slugs = rest_user_slugs(query.get("slug"))
   let included = rest_id_list(query.get("include"))
   let excluded = rest_id_list(query.get("exclude"))
   if !rest_users_collection(path) && query.keys().any(key => key != "context") {
@@ -59,6 +61,8 @@ fn rest_users(
     _ => return rest_error(500, "moonpress_users_unavailable")
   }
   let users = users.filter(user => {
+    (slugs.is_empty() || slugs.contains(user.login)) &&
+    user.login.contains(search) &&
     (included.is_empty() || included.contains(user.id)) &&
     !excluded.contains(user.id)
   })
@@ -110,6 +114,13 @@ fn rest_users_options(
         "type": "array".to_json(),
         "items": { "type": "integer".to_json() },
       }
+    }
+  }
+  if rest_users_collection(path) {
+    args["search"] = { "type": "string".to_json() }
+    args["slug"] = {
+      "type": "array".to_json(),
+      "items": { "type": "string".to_json() },
     }
   }
   rest_ok({
