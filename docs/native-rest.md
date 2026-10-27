@@ -16,6 +16,8 @@ Reference schemas: [posts](https://developer.wordpress.org/rest-api/reference/po
 | `/wp-json/wp/v2/posts/ID`, `/wp-json/wp/v2/pages/ID` | Public detail; authenticated `context=edit`, JSON POST/PUT/PATCH updates and guarded DELETE to trash |
 | `/wp-json/wp/v2/users/me` | Generated Basic credentials required; current identity only |
 | `/wp-json/wp/v2/search` | Public post/page universal search subset |
+| `/wp-json/wp/v2/users`, `/users/ID` | Active native authors with public articles; id/name/slug only |
+| `/wp-json/wp/v2/comments`, `/comments/ID` | Read-only approved comments on public native articles; view/embed |
 | `/wp-json/wp/v2/types`, `/types/post`, `/types/page` | Implemented post/page metadata; edit fields scoped to editable types |
 | `/wp-json/wp/v2/statuses`, `/statuses/NAME` | Implemented publish/draft/future/trash metadata; nonpublic states require editing capability |
 
@@ -119,15 +121,16 @@ role/ownership 403. All unsupported fields are refused. The source stays intact
 on validation failures. A storage/durability error returns generic 500; reload
 before retrying because a replacement may already be visible.
 
-Supported string fields are `title`, `content`, `excerpt`, `status`, and
-`date_gmt`. IDs, author, kind, slug, taxonomies, visibility and layout cannot be
-changed here. Titles are nonempty native plain text and excerpts are plain text.
+Supported text fields are `title`, `content`, `excerpt`, `status`, `date_gmt` and
+the native UTC `date` alias. Title/content/excerpt accept strings or strict
+`{"raw":"..."}` objects. Slugs and named native taxonomy arrays are editable.
+A positive active `author` may be assigned subject to edit-others capability.
+IDs, kind, visibility and layout cannot be changed here. Titles are nonempty native plain text and excerpts are plain text.
 Content accepts the same bounded HTML/plain-text conversion as WXR intake:
 paragraphs/headings, representable inline formatting/links/code, flat lists and
 validated basic static blocks as described below. Unsupported blocks/HTML,
 scripts and embedded media are refused. Returning an unchanged
-`content.raw` preserves the existing Markdown exactly, including richer native
-formatting. Empty updates and unchanged title/excerpt/content preserve exact source bytes,
+`content.raw` (generated safe HTML) preserves the existing source Markdown exactly, including richer native formatting. Empty updates and unchanged title/excerpt/content preserve exact source bytes,
 mtime and history. This strict subset is not a drop-in Gutenberg save endpoint.
 
 Status may be `draft`, `publish` or `future`. Publishing/scheduling requires the
@@ -150,7 +153,7 @@ draft/published state. No user/admin mutation endpoints are present.
 
 `_fields=id,title.rendered` selects bounded comma-separated properties after authorization, including nested properties. It applies to successful collection/detail/user/edit responses; unknown fields are omitted, never synthesized. Limits: 32 selectors, eight segments, 2048 characters. Error bodies and pagination/ETag headers remain intact.
 
-Collection filters also accept `search` (up to 16 whitespace-separated AND terms, 256 characters), comma-separated `include`, `exclude`, `author`, `author_exclude` (100 unique positive IDs each), multiple `slug` values, `offset` (0–409600), and `orderby=title|slug|include`. Include ordering follows the supplied ID order. Search is case-insensitive literal native title/excerpt/body matching; SQL collation, quoted phrases, negative terms and relevance ranking are not emulated. Visibility is checked before all filters.
+Collection filters also accept `search` (up to 16 whitespace-separated AND terms, 256 characters), comma-separated `include`, `exclude`, `author`, `author_exclude` (100 unique IDs each; include/exclude are positive and author filters also allow legacy 0), multiple `slug` values, `offset` (0–409600), and `orderby=title|slug|include`. Include ordering follows the supplied ID order. Search is case-insensitive literal native title/excerpt/body matching; SQL collation, quoted phrases, negative terms and relevance ranking are not emulated. Visibility is checked before all filters.
 
 As in WP_Query, an explicit `offset` takes precedence over the page offset; page/total validation is retained.
 
@@ -158,7 +161,7 @@ Authenticated collection `context=edit` accepts `status=publish|draft|future|any
 
 ## Native REST creation
 
-Authenticated JSON POST to posts/pages collections accepts string title/content/excerpt/slug/status/date_gmt. Title is required and nonempty. Contributors can create draft posts, authors can publish their own posts, and editors/administrators can create pages. Author is always the authenticated principal; caller-supplied author/ID/type/visibility and unknown fields are refused. Status defaults to draft; dates default to the captured current UTC instant. Supported native content conversion and 256 KiB request limits apply. No build or hosting deployment occurs.
+Authenticated JSON POST to posts/pages collections accepts title/content/excerpt as strings or strict raw objects; slug/status/date_gmt/date are text and author is a positive integer. Title is required and nonempty. Contributors can create draft posts, authors can publish their own posts, and editors/administrators can create pages. Author defaults to the authenticated principal. Assigning another active native principal requires the corresponding edit_others_posts/pages capability. Caller-supplied ID/type/visibility and unknown fields are refused. Status defaults to draft; dates default to the captured current UTC instant. Supported native content conversion and 256 KiB request limits apply. No build or hosting deployment occurs.
 
 Responses are 201 with an edit-context object, ETag and relative Location header. Slugs are safe flat native stems; omitted slugs derive from the title or post/page ID. Existing filenames and canonical slugs are preserved by trying -2 through -128 suffixes. Native Unicode slugs are not WordPress percent-encoded database slugs.
 
@@ -465,3 +468,42 @@ Filter visible native comments with exclusive ISO8601 after/before timestamps us
 Expose native comment embed context using a minimal approved-public projection with no raw content or private author identity.
 
 Expose approved public comments through read-only /wp/v2/comments and /comments/ID with WordPress-shaped fields, UTC dates and strict view/embed scope.
+
+Advertise the supported read-only WordPress comment schema/routes and collection pagination; native guarded workflows remain the only comment write API.
+
+## Additional authoring and public interchange
+
+Raw object inputs require exactly one string `raw` property. Output-only keys
+inside those input objects are refused. Content still uses the conservative
+HTML intake, and excerpts remain plain text. Article `date` and `date_gmt`
+represent the same native UTC second; if both are supplied they must agree.
+Arbitrary site timezones, nullable date resets and other scheduling formats
+remain unsupported. Author activity/capabilities are checked with the access
+vault and content directory held through guarded publication.
+
+Public `/wp/v2/users` and `/users/ID` expose id/name/slug from native login labels
+only for active principals with currently public API-visible articles. Private
+roles, capabilities, username fields, email and credential digests are omitted.
+Filters include include/exclude IDs, literal native label search and bounded
+slugs; orderby=id|name|slug, order=asc|desc, page and per_page are supported.
+Publication/activity filtering precedes counts and pagination even for admins.
+Arbitrary WordPress user profiles and imported external identities are not
+synthesized; an imported article's author link may therefore be unavailable.
+Name ordering is lexical, not the toolchain's default shortlex comparison;
+article title/slug ordering likewise uses native lexical ordering rather than
+a complete WordPress database collation implementation.
+
+Public `/wp/v2/comments` and `/comments/ID` are read-only adapters over the native
+comment journal. They return registered-author identity, public author label,
+escaped content, UTC date/date_gmt, static comment link, type=comment and parent=0.
+Only approved comments with currently public API-visible parent articles are
+returned, including for administrator requests. The write/edit/private workflow
+remains `/moonpress/v1/comments`. Threaded replies, anonymous writes, comment
+email/IP/avatar metadata, pingbacks and private/edit context are not implemented.
+Embed omits post/status/date_gmt as in core. Collection filters include article,
+author/author_exclude, include/exclude, literal search, after/before, pagination,
+order and orderby=id|date|date_gmt; status=approve and type=comment are the only
+supported values. Counts, Link headers, projections and envelopes preserve this
+public scope. Native comment embed keeps its earlier identity-minimizing schema.
+Native journal epoch fields retain their existing Int64 string representation;
+the WordPress adapter formats dates explicitly as second-precision UTC strings.

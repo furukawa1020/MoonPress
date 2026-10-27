@@ -136,3 +136,7 @@ subprocess.run([sys.executable,'scripts/rest-metadata-oracle-test.py',metadata_o
 table_oracle=work/'table-core.json'
 subprocess.run(['php','benchmarks/wordpress/table-oracle.php',wordpress,table_oracle],check=True)
 subprocess.run([sys.executable,'scripts/rest-table-alignment-test.py',table_oracle],check=True)
+
+interchange_oracle=work/'interchange-core.json'
+subprocess.run(['php','benchmarks/wordpress/interchange-oracle.php',wordpress,interchange_oracle],check=True)
+subprocess.run([sys.executable,'scripts/rest-interchange-oracle-test.py',interchange_oracle],check=True)
