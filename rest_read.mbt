@@ -299,7 +299,7 @@ fn rest_route(
         "read_only": false.to_json(),
         "contexts": ["view", "embed", "edit"].to_json(),
         "unsupported": [
-          "force-delete", "taxonomy-ids", "embeds", "xml-rpc", "php-plugins",
+          "force-delete", "taxonomy-writes", "embeds", "xml-rpc", "php-plugins",
         ].to_json(),
       },
     })

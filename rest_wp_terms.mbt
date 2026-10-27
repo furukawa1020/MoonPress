@@ -92,6 +92,7 @@ fn rest_term_value(
   context? : String = "view",
 ) -> Json {
   let value : Json = {
+    "_links": rest_term_links(term, base),
     "id": term.id.to_json(),
     "name": escape_html(term.name).to_json(),
     "slug": term.slug.to_json(),
