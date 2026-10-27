@@ -86,7 +86,11 @@ fn rest_public_terms(
 }
 
 ///|
-fn rest_term_value(term : RestTerm, base : String) -> Json {
+fn rest_term_value(
+  term : RestTerm,
+  base : String,
+  context? : String = "view",
+) -> Json {
   let value : Json = {
     "id": term.id.to_json(),
     "name": escape_html(term.name).to_json(),
@@ -104,7 +108,11 @@ fn rest_term_value(term : RestTerm, base : String) -> Json {
   if term.taxonomy == "category" && value is Object(fields) {
     fields["parent"] = (0).to_json()
   }
-  value
+  if context == "embed" {
+    rest_project(value, ["id", "name", "slug", "taxonomy", "link", "_links"])
+  } else {
+    value
+  }
 }
 
 ///|
@@ -117,10 +125,13 @@ fn rest_wp_terms(
   for key, _ in query {
     if ![
         "include", "exclude", "slug", "orderby", "search", "post", "parent", "hide_empty",
-        "order", "page", "per_page", "offset",
+        "order", "page", "per_page", "offset", "context",
       ].contains(key) {
       return rest_error(400, "rest_invalid_param")
     }
+  }
+  if !["view", "embed"].contains(query.get("context").unwrap_or("view")) {
+    return rest_error(400, "rest_invalid_param")
   }
   rest_page_bounds(0, query) |> ignore
   let post_id = query.get("post").map(value => rest_positive(value, 2147483647))
@@ -171,7 +182,7 @@ fn rest_wp_terms(
       }
     }
   }
-  if id > 0 && !query.is_empty() {
+  if id > 0 && query.keys().any(key => key != "context") {
     return rest_error(400, "rest_invalid_param")
   }
   let terms = available.filter(term => {
@@ -209,7 +220,13 @@ fn rest_wp_terms(
   if id > 0 {
     for term in terms {
       if term.id == id {
-        return rest_ok(rest_term_value(term, base))
+        return rest_ok(
+          rest_term_value(
+            term,
+            base,
+            context=query.get("context").unwrap_or("view"),
+          ),
+        )
       }
     }
     return rest_error(404, "rest_term_invalid")
@@ -220,7 +237,13 @@ fn rest_wp_terms(
   }
   let rows : Array[Json] = []
   for i = start; i < terms.length() && i < start + size; i = i + 1 {
-    rows.push(rest_term_value(terms[i], base))
+    rows.push(
+      rest_term_value(
+        terms[i],
+        base,
+        context=query.get("context").unwrap_or("view"),
+      ),
+    )
   }
   {
     ..rest_ok(rows.to_json()),
