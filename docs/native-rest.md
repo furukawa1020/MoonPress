@@ -449,3 +449,5 @@ Expose read-only public user profiles containing id/name/slug only for active pr
 Expose read-only visible author details at /wp/v2/users/ID while keeping users/me private identity behavior separate.
 
 Filter public users by bounded include/exclude identities after publication/activity visibility and before result counts.
+
+Search visible native user labels and select bounded slugs; hidden or inactive principals never affect results or counts.
