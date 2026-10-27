@@ -277,3 +277,5 @@ python3 scripts/rest-table-alignment-test.py
 python3 scripts/rest-raw-title-test.py
 
 python3 scripts/rest-raw-content-test.py
+
+python3 scripts/rest-raw-excerpt-test.py
