@@ -441,3 +441,5 @@ Allow active author assignment on REST creation; assigning another principal req
 Allow guarded REST author reassignment with active-target validation and edit-others capability; ownership takes effect immediately.
 
 Accept date as a native UTC creation alias for date_gmt; both supplied values must agree and retain second-precision validation.
+
+Accept guarded REST date updates through native UTC date_gmt validation without granting publication capability.
