@@ -208,6 +208,9 @@ fn rest_route(
   base : String,
   principal : AccessPrincipal?,
 ) -> RestResponse raise {
+  if rest_wp_comment_id(path) is Some(_) {
+    return rest_wp_comments(input, path, query, base)
+  }
   if rest_is_users(path) {
     return rest_users(input, path, query)
   }

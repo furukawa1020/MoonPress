@@ -463,3 +463,5 @@ Filter visible native comments by author and author_exclude identity arrays with
 Filter visible native comments with exclusive ISO8601 after/before timestamps using the same bounded UTC/offset parser as articles.
 
 Expose native comment embed context using a minimal approved-public projection with no raw content or private author identity.
+
+Expose approved public comments through read-only /wp/v2/comments and /comments/ID with WordPress-shaped fields, UTC dates and strict view/embed scope.

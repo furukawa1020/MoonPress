@@ -121,6 +121,7 @@ fn native_comments_read(
   principal : AccessPrincipal?,
   id : Int,
   query : Map[String, String],
+  projection? : ((CommentRow) -> Json raise)? = None,
 ) -> RestResponse raise {
   let embed = query.get("context") == Some("embed")
   let edit = query.get("context") == Some("edit")
@@ -241,7 +242,7 @@ fn native_comments_read(
     for row in allowed {
       if row.comment.id == id {
         return rest_ok(
-          native_comment_project(row, edit, embed),
+          native_comment_project(row, edit, embed, projection~),
           etag=if edit { Some(row.revision) } else { None },
         )
       }
@@ -254,7 +255,7 @@ fn native_comments_read(
   }
   let selected : Array[Json] = []
   for i = start; i < allowed.length() && i < start + size; i = i + 1 {
-    selected.push(native_comment_project(allowed[i], edit, embed))
+    selected.push(native_comment_project(allowed[i], edit, embed, projection~))
   }
   {
     ..rest_ok(selected.to_json()),
