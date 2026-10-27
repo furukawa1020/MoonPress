@@ -461,3 +461,5 @@ Select native comments across bounded article ID arrays while retaining public-p
 Filter visible native comments by author and author_exclude identity arrays without widening approval or ownership scope.
 
 Filter visible native comments with exclusive ISO8601 after/before timestamps using the same bounded UTC/offset parser as articles.
+
+Expose native comment embed context using a minimal approved-public projection with no raw content or private author identity.
