@@ -41,6 +41,7 @@ with NativeSite() as s:
         fields['kind']=fields.pop('type')
         (s.site/'content'/ (f['slug']+'.md')).write_text('---\n'+json.dumps(fields)+'\n---\nBody\n')
     native={}
+    failures=[]
     for plural,kind in [('categories','category'),('tags','post_tag')]:
         route='/wp-json/wp/v2/'+plural;code,_,rows=s.request(route);assert code==200,(code,rows)
         assert {r['name'] for r in rows}=={'c4-a','c4-aa','c4-z'}
@@ -62,6 +63,10 @@ with NativeSite() as s:
             for k in ours:assert ours[k]==theirs[k],(k,ours,theirs)
     for route,theirs in core['options'].items():
         options=s.request('/wp-json/wp/v2/'+route,'OPTIONS')[2]
+        if route in ['categories','tags']:
+            ours_args=next(e['args'] for e in options['endpoints'] if 'GET' in e['methods'])
+            core_args=next(e['args'] for e in theirs['endpoints'] if 'GET' in e['methods'])
+            assert ('offset' in ours_args)==('offset' in core_args),(route,ours_args,core_args)
         for name,prop in options['schema']['properties'].items():
             actual=theirs['schema']['properties'][name]
             assert prop['type']==actual['type'],(route,name,prop,actual)
@@ -74,32 +79,41 @@ with NativeSite() as s:
         code,_,rows=s.request('/wp-json/wp/v2/'+plural+'?post='+str(draft['id']))
         assert code==200 and rows==[]
     for p in core['queries']:
-        plural=p['plural'];params={'slug':['term-'+n.encode().hex() for n in native[plural]],'hide_empty':True,'per_page':100}
-        for k,v in p['probe'].items():
-            if k=='include_names':params['include']=[native[plural][n] for n in v]
-            elif k=='exclude_names':params['exclude']=[native[plural][n] for n in v]
-            else:params[k]=v
-        code,h,rows=s.request('/wp-json/wp/v2/'+plural+'?'+query(params));assert code==200,(p,code,rows)
-        assert [r['name'] for r in rows]==[r['name'] for r in p['result']['rows']],(p,rows)
-        assert int(h['X-WP-Total'])==int(p['result']['headers']['X-WP-Total'])
-        assert int(h['X-WP-TotalPages'])==int(p['result']['headers']['X-WP-TotalPages'])
+        try:
+            plural=p['plural'];params={'slug':['term-'+n.encode().hex() for n in native[plural]],'hide_empty':True,'per_page':100}
+            for k,v in p['probe'].items():
+                if k=='include_names':params['include']=[native[plural][n] for n in v]
+                elif k=='exclude_names':params['exclude']=[native[plural][n] for n in v]
+                else:params[k]=v
+            code,h,rows=s.request('/wp-json/wp/v2/'+plural+'?'+query(params));assert code==200,(p,code,rows)
+            assert [r['name'] for r in rows]==[r['name'] for r in p['result']['rows']],(p,rows)
+            assert int(h['X-WP-Total'])==int(p['result']['headers']['X-WP-Total'])
+            assert int(h['X-WP-TotalPages'])==int(p['result']['headers']['X-WP-TotalPages'])
+        except AssertionError as error:
+            failures.append(repr((p['plural'],p['probe'],str(error))))
     for p in core['relations']:
-        params={'include':[f['id'] for f in core['fixtures'][:3]],'orderby':'id','order':'asc'}
-        for k,v in p['probe'].items():
-            if k=='tax_relation':params[k]=v
-            else:
-                plural='categories' if k.startswith('categories') else 'tags';params[k]=[native[plural][n] for n in v]
-        code,_,rows=s.request('/wp-json/wp/v2/posts?'+query(params));assert code==200,(code,rows)
-        assert [r['slug'] for r in rows]==p['slugs'],(p,rows)
+        try:
+            params={'include':[f['id'] for f in core['fixtures'][:3]],'orderby':'id','order':'asc'}
+            for k,v in p['probe'].items():
+                if k=='tax_relation':params[k]=v
+                else:
+                    plural='categories' if k.startswith('categories') else 'tags';params[k]=[native[plural][n] for n in v]
+            code,_,rows=s.request('/wp-json/wp/v2/posts?'+query(params));assert code==200,(code,rows)
+            assert [r['slug'] for r in rows]==p['slugs'],(p,rows)
+        except AssertionError as error:
+            failures.append(repr((p['probe'],str(error))))
     for kind,plural in [('category','categories'),('post_tag','tags')]:
-        params={'type':'term','subtype':kind,'search':'c4-','include':list(native[plural].values()),'per_page':100}
-        code,_,rows=s.request('/wp-json/wp/v2/search?'+query(params));assert code==200
-        theirs=core['search'][kind]
-        assert {r['title'] for r in rows}=={r['title'] for r in theirs}
-        assert all(r['type']=='term' and r['subtype']==kind for r in rows+theirs)
-        params['exclude']=[native[plural]['c4-a']]
-        code,_,rows=s.request('/wp-json/wp/v2/search?'+query(params));assert code==200
-        assert {r['title'] for r in rows}=={r['title'] for r in core['search_with_exclusion'][kind]}==set(native[plural])
+        try:
+            params={'type':'term','subtype':kind,'search':'c4-','include':list(native[plural].values()),'per_page':100}
+            code,_,rows=s.request('/wp-json/wp/v2/search?'+query(params));assert code==200
+            theirs=core['search'][kind]
+            assert {r['title'] for r in rows}=={r['title'] for r in theirs}
+            assert all(r['type']=='term' and r['subtype']==kind for r in rows+theirs)
+            params['exclude']=[native[plural]['c4-a']]
+            code,_,rows=s.request('/wp-json/wp/v2/search?'+query(params));assert code==200
+            assert {r['title'] for r in rows}=={r['title'] for r in core['search_with_exclusion'][kind]}==set(native[plural])
+        except AssertionError as error:
+            failures.append(repr((kind,str(error))))
     # Relationship IDs use independently allocated stores, but identify the same names.
     for f in core['fixtures'][:3]:
         row=s.request('/wp-json/wp/v2/posts/'+str(f['id']))[2]
@@ -107,4 +121,5 @@ with NativeSite() as s:
         assert 'categories' not in embed and 'tags' not in embed
         assert 'categories' not in core['post_embed'][f['slug']] and 'tags' not in core['post_embed'][f['slug']]
         for plural in ['categories','tags']:assert set(row[plural])=={native[plural][n] for n in f[plural]}
+    assert not failures, '\n'.join(failures)
 print('Actual WordPress core: taxonomy metadata, view/embed terms, 44 term queries, 9 taxonomy relations and public term search agree within the documented public flat subset; IDs are explicitly mapped across independent stores.')

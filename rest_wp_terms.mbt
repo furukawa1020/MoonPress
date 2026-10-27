@@ -232,7 +232,11 @@ fn rest_wp_terms(
     }
     return rest_error(404, "rest_term_invalid")
   }
-  let (start, size, pages) = rest_term_page_bounds(terms.length(), query)
+  let (start, size, pages) = rest_term_page_bounds(
+    terms.length(),
+    query,
+    offsets=kind == "post_tag",
+  )
   let rows : Array[Json] = []
   for i = start; i < terms.length() && i < start + size; i = i + 1 {
     rows.push(

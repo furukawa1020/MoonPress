@@ -21,6 +21,7 @@ fn rest_page_links(
     let (start, size, _) = rest_term_page_bounds(
       result.total.unwrap_or(0),
       original,
+      offsets=rest_wp_term_target(path) is Some(("post_tag", 0)),
     )
     (start + size - 1) / size + 1
   } else {

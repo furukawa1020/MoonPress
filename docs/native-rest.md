@@ -543,10 +543,10 @@ literal case-insensitive `search`, public `post`, `hide_empty`, flat category
 `parent`, `order`, `orderby=name|slug|id|count|include|include_slugs`, and
 `page`/`per_page`. Selected-ID/slug ordering preserves request order for `asc` and reverses it
 for `desc`, matching core term ordering (unlike the post include-order rule).
-Term pages beyond the result set return an empty collection. Core does not
-register `offset` for these term collections: supplied bounded numeric offsets
-are ignored, so the page determines the position. OPTIONS does not advertise
-offset support.
+Term pages beyond the result set return an empty collection. As in core,
+category collections do not register `offset`: supplied bounded numeric offsets
+are ignored there. Tags support a nonzero offset; zero uses the page-derived
+position. OPTIONS advertises offset only for tags.
 A nonempty term `include` selection overrides `exclude`, including in universal
 term search; this is the WordPress term-query precedence rule.
 For a hidden or unknown `post` selector this public-only adapter returns an

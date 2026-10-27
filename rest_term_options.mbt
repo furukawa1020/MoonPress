@@ -111,6 +111,13 @@ fn rest_term_options(
       "maximum": (100).to_json(),
       "default": (10).to_json(),
     }
+    if target is Some(("post_tag", _)) {
+      args["offset"] = {
+        "type": "integer".to_json(),
+        "minimum": (0).to_json(),
+        "maximum": (409600).to_json(),
+      }
+    }
   }
   rest_ok({
     "namespace": "wp/v2".to_json(),
