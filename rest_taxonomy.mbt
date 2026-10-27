@@ -67,9 +67,9 @@ fn native_taxonomy_read(
     let compared = if orderby == "count" {
       counts[a].compare(counts[b])
     } else {
-      a.compare(b)
+      a.lexical_compare(b)
     }
-    let compared = if compared == 0 { a.compare(b) } else { compared }
+    let compared = if compared == 0 { a.lexical_compare(b) } else { compared }
     if order == "asc" {
       compared
     } else {
