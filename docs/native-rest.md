@@ -431,3 +431,5 @@ values/types for the remaining represented metadata.
 Accept string or strict {raw:string} titles in native REST create/update; unsupported object fields are rejected.
 
 Accept raw content objects through the same conservative HTML intake and guarded native REST write pipeline.
+
+Accept raw excerpt objects while retaining the native plain-text excerpt contract and strict field validation.
