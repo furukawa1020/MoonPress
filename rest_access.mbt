@@ -1,8 +1,8 @@
 ///|
-fn rest_with_access(
+fn rest_with_access_users(
   input : String,
   authorization : String?,
-  run : (AccessPrincipal, AuthoringDirectory) -> RestResponse raise,
+  run : (AccessPrincipal, AuthoringDirectory, Array[AccessUser]) -> RestResponse raise,
 ) -> RestResponse raise {
   let (login, secret) = match authorization {
     Some(value) =>
@@ -32,5 +32,16 @@ fn rest_with_access(
   defer directory_close(directory.fd)
   require_same_authoring_site(directory, vault)
   directory.lock()
-  run(principal, directory)
+  run(principal, directory, state.users)
+}
+
+///|
+fn rest_with_access(
+  input : String,
+  authorization : String?,
+  run : (AccessPrincipal, AuthoringDirectory) -> RestResponse raise,
+) -> RestResponse raise {
+  rest_with_access_users(input, authorization, (principal, directory, _users) => {
+    run(principal, directory)
+  })
 }

@@ -54,7 +54,7 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
     }
     properties["author"] = {
       "type": "integer".to_json(),
-      "readonly": true.to_json(),
+      "readonly": false.to_json(),
     }
     for name in ["moonpress_categories", "moonpress_tags"] {
       properties[name] = {
@@ -187,6 +187,7 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
       }
     }
     if ["POST", "PUT", "PATCH"].contains(verb) && article {
+      args["author"] = { "type": "integer".to_json(), "minimum": (1).to_json() }
       args["slug"] = { "type": "string".to_json() }
     }
     if ["POST", "PUT", "PATCH"].contains(verb) && article {
