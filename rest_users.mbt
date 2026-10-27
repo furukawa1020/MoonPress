@@ -45,14 +45,23 @@ fn rest_users(
   query : Map[String, String],
 ) -> RestResponse raise {
   for key, value in query {
-    if !["context"].contains(key) ||
+    if !["context", "include", "exclude"].contains(key) ||
       (key == "context" && !["view", "embed"].contains(value)) {
       return rest_error(400, "rest_invalid_param")
     }
   }
+  let included = rest_id_list(query.get("include"))
+  let excluded = rest_id_list(query.get("exclude"))
+  if !rest_users_collection(path) && query.keys().any(key => key != "context") {
+    return rest_error(400, "rest_invalid_param")
+  }
   let users = rest_public_users(input) catch {
     _ => return rest_error(500, "moonpress_users_unavailable")
   }
+  let users = users.filter(user => {
+    (included.is_empty() || included.contains(user.id)) &&
+    !excluded.contains(user.id)
+  })
   if !rest_users_collection(path) {
     let id = rest_positive(path[21:].to_owned(), 2147483647)
     for user in users {
@@ -95,6 +104,14 @@ fn rest_users_options(
       },
     ),
   ])
+  if rest_users_collection(path) {
+    for name in ["include", "exclude"] {
+      args[name] = {
+        "type": "array".to_json(),
+        "items": { "type": "integer".to_json() },
+      }
+    }
+  }
   rest_ok({
     "namespace": "wp/v2".to_json(),
     "methods": ["GET", "HEAD", "OPTIONS"].to_json(),

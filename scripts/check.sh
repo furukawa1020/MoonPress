@@ -293,3 +293,5 @@ python3 scripts/rest-update-date-test.py
 python3 scripts/rest-public-users-test.py
 
 python3 scripts/rest-public-user-detail-test.py
+
+python3 scripts/rest-user-id-filters-test.py
