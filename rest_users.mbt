@@ -5,7 +5,15 @@ fn rest_users_collection(path : String) -> Bool {
 
 ///|
 fn rest_is_users(path : String) -> Bool {
-  rest_users_collection(path)
+  if rest_users_collection(path) {
+    return true
+  }
+  if path.has_prefix("/wp-json/wp/v2/users/") {
+    return try rest_positive(path[21:].to_owned(), 2147483647) > 0 catch {
+      _ => false
+    }
+  }
+  false
 }
 
 ///|
@@ -46,6 +54,12 @@ fn rest_users(
     _ => return rest_error(500, "moonpress_users_unavailable")
   }
   if !rest_users_collection(path) {
+    let id = rest_positive(path[21:].to_owned(), 2147483647)
+    for user in users {
+      if user.id == id {
+        return rest_ok(rest_user_value(user))
+      }
+    }
     return rest_error(404, "rest_user_invalid_id")
   }
   {
