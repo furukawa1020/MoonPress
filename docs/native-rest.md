@@ -459,3 +459,5 @@ Link positive article author identities to native public user resources; revoked
 Select native comments across bounded article ID arrays while retaining public-parent visibility before filtering and pagination.
 
 Filter visible native comments by author and author_exclude identity arrays without widening approval or ownership scope.
+
+Filter visible native comments with exclusive ISO8601 after/before timestamps using the same bounded UTC/offset parser as articles.
