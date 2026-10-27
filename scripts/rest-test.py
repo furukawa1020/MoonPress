@@ -63,7 +63,8 @@ with tempfile.TemporaryDirectory() as temporary:
         for query in ['status=draft','per_page=101','page=2','page=01','page=1&page=1','_embed=true','per_page=2147483648']:
             assert request('/wp-json/wp/v2/posts?'+query)[0]==400,query
         assert request('/wp-json/wp/v2/posts/100/revisions')[0]==400
-        assert request('/wp-json/wp/v2/comments')[0]==404
+        comment_status,comment_headers,comment_rows=request('/wp-json/wp/v2/comments')
+        assert comment_status==200 and comment_rows==[] and comment_headers['X-WP-Total']=='0' and comment_headers['X-WP-TotalPages']=='0'
         assert request('/wp-json/wp/v2/users/me')[0]==401
         assert request('/wp-json/wp/v2/posts?context=edit')[0]==401
         assert request('/wp-json/wp/v2/posts?context=edit&status=draft',headers={'Authorization':token})[2][0]['id']==300
