@@ -132,7 +132,7 @@ fn native_comments_read(
   for key, value in query {
     if ![
         "context", "status", "post", "page", "per_page", "search", "orderby", "order",
-        "include", "exclude",
+        "include", "exclude", "author", "author_exclude",
       ].contains(key) ||
       (id > 0 && key != "context") ||
       (key == "context" && value != "view" && value != "edit") {
@@ -151,6 +151,12 @@ fn native_comments_read(
   let (included, excluded) = (
     rest_id_list(query.get("include")),
     rest_id_list(query.get("exclude")),
+  ) catch {
+    _ => return rest_error(400, "rest_invalid_param")
+  }
+  let (authors, excluded_authors) = (
+    rest_author_ids(query.get("author")),
+    rest_author_ids(query.get("author_exclude")),
   ) catch {
     _ => return rest_error(400, "rest_invalid_param")
   }
@@ -190,6 +196,8 @@ fn native_comments_read(
     (item.content + "\n" + item.author_name).to_lower().contains(search) &&
     (included.is_empty() || included.contains(item.id)) &&
     !excluded.contains(item.id) &&
+    (authors.is_empty() || authors.contains(item.author)) &&
+    !excluded_authors.contains(item.author) &&
     (posts.is_empty() || posts.contains(item.post)) &&
     (status == "any" || item.status == status) &&
     (if edit {
