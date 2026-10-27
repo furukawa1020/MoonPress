@@ -20,5 +20,28 @@ fn rest_article_links(document : Document, base : String) -> Json {
       },
     ].to_json()
   }
+  if document.kind == "post" && value is Object(fields) {
+    fields["curies"] = [
+      {
+        "name": "wp".to_json(),
+        "href": "https://api.w.org/{rel}".to_json(),
+        "templated": true.to_json(),
+      },
+    ].to_json()
+    fields["wp:term"] = [
+      {
+        "taxonomy": "category".to_json(),
+        "href": (base +
+        "wp-json/wp/v2/categories?post=" +
+        document.wp_id.unwrap().to_string()).to_json(),
+      },
+      {
+        "taxonomy": "post_tag".to_json(),
+        "href": (base +
+        "wp-json/wp/v2/tags?post=" +
+        document.wp_id.unwrap().to_string()).to_json(),
+      },
+    ].to_json()
+  }
   value
 }
