@@ -27,7 +27,7 @@ fn rest_term_search(
     return rest_error(400, "rest_invalid_param")
   }
   let search = native_query_text(query.get("search").unwrap_or(""))
-  let include = rest_id_list(query.get("include"))
+  let selected_ids = rest_id_list(query.get("include"))
   let exclude = rest_id_list(query.get("exclude"))
   rest_page_bounds(0, query) |> ignore
   let posts = rest_public_posts(input) catch {
@@ -43,7 +43,7 @@ fn rest_term_search(
   }
   let selected = terms.filter(term => {
     term.name.to_lower().contains(search) &&
-    (include.is_empty() || include.contains(term.id)) &&
+    (selected_ids.is_empty() || selected_ids.contains(term.id)) &&
     !exclude.contains(term.id)
   })
   selected.sort_by(fn(a, b) {

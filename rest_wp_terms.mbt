@@ -153,9 +153,9 @@ fn rest_wp_terms(
     (orderby == "include_slugs" && slugs.is_empty()) {
     return rest_error(400, "rest_invalid_param")
   }
-  let include = rest_id_list(query.get("include"))
+  let selected_ids = rest_id_list(query.get("include"))
   let exclude = rest_id_list(query.get("exclude"))
-  if orderby == "include" && include.is_empty() {
+  if orderby == "include" && selected_ids.is_empty() {
     return rest_error(400, "rest_invalid_param")
   }
   let (kind, id) = rest_wp_term_target(path).unwrap()
@@ -187,7 +187,7 @@ fn rest_wp_terms(
     return rest_error(400, "rest_invalid_param")
   }
   let terms = available.filter(term => {
-    (include.is_empty() || include.contains(term.id)) &&
+    (selected_ids.is_empty() || selected_ids.contains(term.id)) &&
     !exclude.contains(term.id) &&
     (slugs.is_empty() || slugs.contains(term.slug)) &&
     term.name.to_lower().contains(search) &&
@@ -195,8 +195,8 @@ fn rest_wp_terms(
     (post_id is None || selected_names.contains(term.name))
   })
   let ranks : Map[Int, Int] = Map([])
-  for i = 0; i < include.length(); i = i + 1 {
-    ranks[include[i]] = i
+  for i = 0; i < selected_ids.length(); i = i + 1 {
+    ranks[selected_ids[i]] = i
   }
   let slug_ranks : Map[String, Int] = Map([])
   for i = 0; i < slugs.length(); i = i + 1 {
