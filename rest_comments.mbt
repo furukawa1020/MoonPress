@@ -122,6 +122,7 @@ fn native_comments_read(
   id : Int,
   query : Map[String, String],
 ) -> RestResponse raise {
+  let embed = query.get("context") == Some("embed")
   let edit = query.get("context") == Some("edit")
   if edit && principal is None {
     return rest_error(401, "rest_not_logged_in")
@@ -135,7 +136,12 @@ fn native_comments_read(
         "include", "exclude", "author", "author_exclude", "after", "before",
       ].contains(key) ||
       (id > 0 && key != "context") ||
-      (key == "context" && value != "view" && value != "edit") {
+      (
+        key == "context" &&
+        value != "view" &&
+        value != "edit" &&
+        value != "embed"
+      ) {
       return rest_error(400, "rest_invalid_param")
     }
   }
@@ -235,7 +241,7 @@ fn native_comments_read(
     for row in allowed {
       if row.comment.id == id {
         return rest_ok(
-          native_comment_value(row, edit),
+          native_comment_project(row, edit, embed),
           etag=if edit { Some(row.revision) } else { None },
         )
       }
@@ -248,7 +254,7 @@ fn native_comments_read(
   }
   let selected : Array[Json] = []
   for i = start; i < allowed.length() && i < start + size; i = i + 1 {
-    selected.push(native_comment_value(allowed[i], edit))
+    selected.push(native_comment_project(allowed[i], edit, embed))
   }
   {
     ..rest_ok(selected.to_json()),
