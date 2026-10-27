@@ -70,8 +70,8 @@ fn rest_target(target : String) -> (String, Map[String, String]) raise {
           None => raise InvalidInput("Invalid array query")
         }
         if ![
-            "include", "exclude", "author", "author_exclude", "slug", "status", "search_columns",
-            "_fields", "subtype",
+            "include", "exclude", "author", "author_exclude", "post", "slug", "status",
+            "search_columns", "_fields", "subtype",
           ].contains(name) ||
           !suffix.has_suffix("]") {
           raise InvalidInput("Unsupported array query")

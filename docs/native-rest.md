@@ -455,3 +455,5 @@ Search visible native user labels and select bounded slugs; hidden or inactive p
 Order visible public users by id/name/slug and paginate after visibility/filtering with counts and navigable Link headers.
 
 Link positive article author identities to native public user resources; revoked or nonpublic author profiles remain unavailable.
+
+Select native comments across bounded article ID arrays while retaining public-parent visibility before filtering and pagination.

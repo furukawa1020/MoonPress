@@ -157,12 +157,9 @@ fn native_comments_read(
   let search = native_query_text(query.get("search").unwrap_or("")) catch {
     _ => return rest_error(400, "rest_invalid_param")
   }
-  let post = try {
+  let posts = try {
     rest_page_bounds(0, query) |> ignore
-    match query.get("post") {
-      Some(value) => Some(rest_positive(value, 2147483647))
-      None => None
-    }
+    rest_id_list(query.get("post"))
   } catch {
     _ => return rest_error(400, "rest_invalid_param")
   }
@@ -193,7 +190,7 @@ fn native_comments_read(
     (item.content + "\n" + item.author_name).to_lower().contains(search) &&
     (included.is_empty() || included.contains(item.id)) &&
     !excluded.contains(item.id) &&
-    (post is None || post == Some(item.post)) &&
+    (posts.is_empty() || posts.contains(item.post)) &&
     (status == "any" || item.status == status) &&
     (if edit {
       moderator || principal.unwrap().id == item.author
