@@ -433,3 +433,5 @@ Accept string or strict {raw:string} titles in native REST create/update; unsupp
 Accept raw content objects through the same conservative HTML intake and guarded native REST write pipeline.
 
 Accept raw excerpt objects while retaining the native plain-text excerpt contract and strict field validation.
+
+Allow legacy author ID 0 in bounded REST author and author_exclude filters; article include/exclude IDs remain positive.
