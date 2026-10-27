@@ -45,11 +45,21 @@ fn rest_users(
   query : Map[String, String],
 ) -> RestResponse raise {
   for key, value in query {
-    if !["context", "include", "exclude", "search", "slug"].contains(key) ||
+    if ![
+        "context", "include", "exclude", "search", "slug", "order", "orderby", "per_page",
+        "page",
+      ].contains(key) ||
       (key == "context" && !["view", "embed"].contains(value)) {
       return rest_error(400, "rest_invalid_param")
     }
   }
+  let orderby = query.get("orderby").unwrap_or("name")
+  let order = query.get("order").unwrap_or("asc")
+  if !["id", "name", "slug"].contains(orderby) ||
+    !["asc", "desc"].contains(order) {
+    return rest_error(400, "rest_invalid_param")
+  }
+  rest_page_bounds(0, query) |> ignore
   let search = native_query_text(query.get("search").unwrap_or(""))
   let slugs = rest_user_slugs(query.get("slug"))
   let included = rest_id_list(query.get("include"))
@@ -75,10 +85,31 @@ fn rest_users(
     }
     return rest_error(404, "rest_user_invalid_id")
   }
+  users.sort_by(fn(a, b) {
+    let compared = if orderby == "id" {
+      a.id.compare(b.id)
+    } else {
+      a.login.lexical_compare(b.login)
+    }
+    let compared = if compared == 0 { a.id.compare(b.id) } else { compared }
+    if order == "asc" {
+      compared
+    } else {
+      0 - compared
+    }
+  })
+  let (start, size, pages) = match rest_page_bounds(users.length(), query) {
+    Some(bounds) => bounds
+    None => return rest_error(400, "rest_user_invalid_page_number")
+  }
+  let values : Array[Json] = []
+  for i = start; i < users.length() && i < start + size; i = i + 1 {
+    values.push(rest_user_value(users[i]))
+  }
   {
-    ..rest_ok(users.map(user => rest_user_value(user)).to_json()),
+    ..rest_ok(values.to_json()),
     total: Some(users.length()),
-    pages: Some(if users.is_empty() { 0 } else { 1 }),
+    pages: Some(pages),
   }
 }
 
@@ -121,6 +152,19 @@ fn rest_users_options(
     args["slug"] = {
       "type": "array".to_json(),
       "items": { "type": "string".to_json() },
+    }
+  }
+  if rest_users_collection(path) {
+    for name in ["page", "per_page"] {
+      args[name] = { "type": "integer".to_json() }
+    }
+    args["order"] = {
+      "type": "string".to_json(),
+      "enum": ["asc", "desc"].to_json(),
+    }
+    args["orderby"] = {
+      "type": "string".to_json(),
+      "enum": ["id", "name", "slug"].to_json(),
     }
   }
   rest_ok({

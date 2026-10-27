@@ -451,3 +451,5 @@ Expose read-only visible author details at /wp/v2/users/ID while keeping users/m
 Filter public users by bounded include/exclude identities after publication/activity visibility and before result counts.
 
 Search visible native user labels and select bounded slugs; hidden or inactive principals never affect results or counts.
+
+Order visible public users by id/name/slug and paginate after visibility/filtering with counts and navigable Link headers.

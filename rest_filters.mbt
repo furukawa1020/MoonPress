@@ -151,11 +151,11 @@ fn rest_order_posts(
         .compare(slug_ranks.get(b.document.slug.unwrap_or(b.stem)).unwrap_or(0))
       "author" => a.document.author.compare(b.document.author)
       "id" => a.document.wp_id.unwrap().compare(b.document.wp_id.unwrap())
-      "title" => a.document.title.compare(b.document.title)
+      "title" => a.document.title.lexical_compare(b.document.title)
       "slug" =>
         a.document.slug
         .unwrap_or(a.stem)
-        .compare(b.document.slug.unwrap_or(b.stem))
+        .lexical_compare(b.document.slug.unwrap_or(b.stem))
       "include" =>
         ranks
         .get(a.document.wp_id.unwrap())
