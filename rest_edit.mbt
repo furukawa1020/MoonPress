@@ -114,10 +114,11 @@ fn rest_update_source(
     @json.parse(decode_text(body, "REST body")),
     [
       "title", "content", "excerpt", "status", "date_gmt", "slug", "moonpress_categories",
-      "moonpress_tags", "author",
+      "moonpress_tags", "author", "date",
     ],
     "REST update",
   )
+  rest_input_date(changes)
   rest_write_types(changes)
   let (metadata, current_body) = document_parts(source, "REST post")
   let fields = match metadata {
