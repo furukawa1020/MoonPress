@@ -1,6 +1,5 @@
 ///|
-fn rest_now_utc() -> String raise {
-  let instant = authoring_time()
+fn rest_now_utc(instant? : Int64 = authoring_time()) -> String raise {
   if instant < 0L || instant > 253402300799L {
     raise InvalidInput("Publication clock unavailable")
   }

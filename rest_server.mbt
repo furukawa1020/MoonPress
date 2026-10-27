@@ -125,7 +125,8 @@ fn rest_client(
         path != "/wp-json/wp/v2/users/me" &&
         !rest_is_search(path) &&
         !rest_is_metadata(path) &&
-        !rest_is_users(path)
+        !rest_is_users(path) &&
+        rest_wp_comment_id(path) is None
       ) {
       try {
         if request.verb == "DELETE" {

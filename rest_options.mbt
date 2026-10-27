@@ -1,5 +1,8 @@
 ///|
 fn rest_methods(path : String) -> Array[String]? {
+  if rest_wp_comment_id(path) is Some(_) {
+    return Some(["GET", "HEAD"])
+  }
   if rest_is_users(path) {
     return Some(["GET", "HEAD", "OPTIONS"])
   }

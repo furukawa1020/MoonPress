@@ -309,3 +309,5 @@ python3 scripts/rest-comment-authors-test.py
 python3 scripts/rest-comment-dates-test.py
 
 python3 scripts/rest-comment-embed-test.py
+
+python3 scripts/rest-wp-comments-test.py
