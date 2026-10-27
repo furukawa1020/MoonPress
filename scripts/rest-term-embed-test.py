@@ -7,7 +7,7 @@ with NativeSite() as s:
     for plural in ['categories','tags']:
         route='/wp-json/wp/v2/'+plural;rows=s.request(route)[2]
         code,h,embed=s.request(route+'?context=embed')
-        assert code==200 and all(set(r)=={'id','name','slug','taxonomy','link'} for r in embed)
+        assert code==200 and all(set(r)=={'id','name','slug','taxonomy','link','_links'} for r in embed)
         assert s.request(route+'/'+str(rows[0]['id'])+'?context=embed')[2]==embed[0]
         assert s.request(route+'?context=edit',role='administrator')[0]==400
         assert s.request(route+'?context=embed&_fields=id')[2]==[{'id':r['id']} for r in rows]

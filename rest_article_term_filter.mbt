@@ -15,11 +15,18 @@ fn rest_filter_document_terms(
       clauses.push(!exclude.any(id => ids.contains(id)))
     }
   }
-  clauses.all(value => value)
+  if query.get("tax_relation") == Some("OR") && !clauses.is_empty() {
+    clauses.any(value => value)
+  } else {
+    clauses.all(value => value)
+  }
 }
 
 ///|
 fn rest_validate_term_filters(query : Map[String, String]) -> Unit raise {
+  if !["AND", "OR"].contains(query.get("tax_relation").unwrap_or("AND")) {
+    raise InvalidInput("Invalid taxonomy relation")
+  }
   for name in ["categories", "tags", "categories_exclude", "tags_exclude"] {
     rest_id_list(query.get(name)) |> ignore
   }
