@@ -8,7 +8,7 @@ fn rest_validate_collection(
         "context", "per_page", "page", "slug", "order", "orderby", "search", "include",
         "exclude", "author", "author_exclude", "offset", "status", "moonpress_category",
         "search_columns", "moonpress_tag", "after", "before", "categories", "tags",
-        "categories_exclude", "tags_exclude",
+        "categories_exclude", "tags_exclude", "tax_relation",
       ].contains(key) ||
       (
         key == "context" &&
