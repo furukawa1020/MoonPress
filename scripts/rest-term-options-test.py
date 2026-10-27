@@ -14,6 +14,7 @@ with NativeSite() as s:
         route='/wp-json/wp/v2/'+plural;row=s.request(route)[2][0]
         options=s.request(route,'OPTIONS')[2];args=options['endpoints'][0]['args'];props=options['schema']['properties']
         assert args['include']['items']['type']=='integer' and args['per_page']['maximum']==100
+        assert ('offset' in args)==(plural=='tags')
         assert props['count']['context']==['view'] and props['id']['type']=='integer'
         assert ('parent' in props)==(plural=='categories')
         assert 'post' not in s.request(route+'/'+str(row['id']),'OPTIONS')[2]['endpoints'][0]['args']

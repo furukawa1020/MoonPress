@@ -6,10 +6,10 @@ fn rest_filter_document_terms(
   let clauses : Array[Bool] = []
   for (plural, kind) in [("categories", "category"), ("tags", "post_tag")] {
     let ids = rest_document_term_ids(document, kind)
-    let include = rest_id_list(query.get(plural))
+    let selected_ids = rest_id_list(query.get(plural))
     let exclude = rest_id_list(query.get(plural + "_exclude"))
-    if !include.is_empty() {
-      clauses.push(include.any(id => ids.contains(id)))
+    if !selected_ids.is_empty() {
+      clauses.push(selected_ids.any(id => ids.contains(id)))
     }
     if !exclude.is_empty() {
       clauses.push(!exclude.any(id => ids.contains(id)))

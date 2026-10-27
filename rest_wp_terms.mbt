@@ -134,7 +134,7 @@ fn rest_wp_terms(
   if !["view", "embed"].contains(query.get("context").unwrap_or("view")) {
     return rest_error(400, "rest_invalid_param")
   }
-  rest_page_bounds(0, query) |> ignore
+  rest_term_page_bounds(0, query) |> ignore
   let post_id = query.get("post").map(value => rest_positive(value, 2147483647))
   let parent = rest_nonnegative(query.get("parent").unwrap_or("0"), 2147483647)
   if !["true", "false", "1", "0"].contains(
@@ -153,9 +153,9 @@ fn rest_wp_terms(
     (orderby == "include_slugs" && slugs.is_empty()) {
     return rest_error(400, "rest_invalid_param")
   }
-  let include = rest_id_list(query.get("include"))
+  let selected_ids = rest_id_list(query.get("include"))
   let exclude = rest_id_list(query.get("exclude"))
-  if orderby == "include" && include.is_empty() {
+  if orderby == "include" && selected_ids.is_empty() {
     return rest_error(400, "rest_invalid_param")
   }
   let (kind, id) = rest_wp_term_target(path).unwrap()
@@ -187,16 +187,16 @@ fn rest_wp_terms(
     return rest_error(400, "rest_invalid_param")
   }
   let terms = available.filter(term => {
-    (include.is_empty() || include.contains(term.id)) &&
-    !exclude.contains(term.id) &&
+    (selected_ids.is_empty() || selected_ids.contains(term.id)) &&
+    (!selected_ids.is_empty() || !exclude.contains(term.id)) &&
     (slugs.is_empty() || slugs.contains(term.slug)) &&
     term.name.to_lower().contains(search) &&
     parent == 0 &&
     (post_id is None || selected_names.contains(term.name))
   })
   let ranks : Map[Int, Int] = Map([])
-  for i = 0; i < include.length(); i = i + 1 {
-    ranks[include[i]] = i
+  for i = 0; i < selected_ids.length(); i = i + 1 {
+    ranks[selected_ids[i]] = i
   }
   let slug_ranks : Map[String, Int] = Map([])
   for i = 0; i < slugs.length(); i = i + 1 {
@@ -212,7 +212,7 @@ fn rest_wp_terms(
       _ => a.name.lexical_compare(b.name)
     }
     let compared = if compared == 0 { a.id.compare(b.id) } else { compared }
-    if order == "asc" || ["include", "include_slugs"].contains(orderby) {
+    if order == "asc" {
       compared
     } else {
       0 - compared
@@ -232,10 +232,11 @@ fn rest_wp_terms(
     }
     return rest_error(404, "rest_term_invalid")
   }
-  let (start, size, pages) = match rest_page_bounds(terms.length(), query) {
-    Some(bounds) => bounds
-    None => return rest_error(400, "rest_term_invalid_page_number")
-  }
+  let (start, size, pages) = rest_term_page_bounds(
+    terms.length(),
+    query,
+    offsets=kind == "post_tag",
+  )
   let rows : Array[Json] = []
   for i = start; i < terms.length() && i < start + size; i = i + 1 {
     rows.push(
