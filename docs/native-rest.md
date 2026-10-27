@@ -437,3 +437,5 @@ Accept raw excerpt objects while retaining the native plain-text excerpt contrac
 Allow legacy author ID 0 in bounded REST author and author_exclude filters; article include/exclude IDs remain positive.
 
 Allow active author assignment on REST creation; assigning another principal requires edit_others_posts/pages under the same access/content locks.
+
+Allow guarded REST author reassignment with active-target validation and edit-others capability; ownership takes effect immediately.
