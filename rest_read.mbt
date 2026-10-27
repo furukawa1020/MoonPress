@@ -208,6 +208,9 @@ fn rest_route(
   base : String,
   principal : AccessPrincipal?,
 ) -> RestResponse raise {
+  if rest_wp_term_target(path) is Some(_) {
+    return rest_wp_terms(input, path, query, base)
+  }
   if rest_wp_comment_id(path) is Some(_) {
     return rest_wp_comments(input, path, query, base) catch {
       _ => rest_error(500, "moonpress_comments_unavailable")
@@ -276,6 +279,7 @@ fn rest_route(
         "/wp/v2/users/(?P<id>[0-9]+)": route,
         "/wp/v2/search": route,
         "/wp/v2/types": route,
+        "/wp/v2/categories": route,
         "/wp/v2/taxonomies": route,
         "/wp/v2/taxonomies/(?P<taxonomy>[a-z_]+)": route,
         "/wp/v2/statuses": route,
