@@ -26,6 +26,13 @@ fn rest_named_terms(value : Json) -> Array[String] raise {
 ///|
 fn rest_write_types(fields : Map[String, Json]) -> Unit raise {
   for key, value in fields {
+    let value = if ["title"].contains(key) {
+      let normalized = rest_raw_input(value)
+      fields[key] = normalized
+      normalized
+    } else {
+      value
+    }
     if key == "moonpress_categories" || key == "moonpress_tags" {
       rest_named_terms(value) |> ignore
     } else if !(value is String(_)) {

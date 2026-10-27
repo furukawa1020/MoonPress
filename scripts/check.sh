@@ -273,3 +273,5 @@ python3 scripts/rest-detail-slash-test.py
 python3 scripts/rest-table-block-test.py
 
 python3 scripts/rest-table-alignment-test.py
+
+python3 scripts/rest-raw-title-test.py

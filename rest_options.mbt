@@ -189,6 +189,23 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
     if ["POST", "PUT", "PATCH"].contains(verb) && article {
       args["slug"] = { "type": "string".to_json() }
     }
+    if ["POST", "PUT", "PATCH"].contains(verb) && article {
+      for name in ["title"] {
+        args[name] = {
+          "type": ["string", "object"].to_json(),
+          "required": (name == "title" && rest_is_collection(path)).to_json(),
+          "oneOf": [
+            { "type": "string".to_json() },
+            {
+              "type": "object".to_json(),
+              "properties": { "raw": { "type": "string".to_json() } },
+              "required": ["raw"].to_json(),
+              "additionalProperties": false.to_json(),
+            },
+          ].to_json(),
+        }
+      }
+    }
     if verb == "DELETE" {
       args["force"] = {
         "type": "boolean".to_json(),
