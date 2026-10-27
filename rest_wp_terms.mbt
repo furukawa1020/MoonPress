@@ -115,9 +115,18 @@ fn rest_wp_terms(
   base : String,
 ) -> RestResponse raise {
   for key, _ in query {
-    if !["include", "exclude", "slug", "orderby", "search"].contains(key) {
+    if ![
+        "include", "exclude", "slug", "orderby", "search", "post", "parent", "hide_empty",
+      ].contains(key) {
       return rest_error(400, "rest_invalid_param")
     }
+  }
+  let post_id = query.get("post").map(value => rest_positive(value, 2147483647))
+  let parent = rest_nonnegative(query.get("parent").unwrap_or("0"), 2147483647)
+  if !["true", "false", "1", "0"].contains(
+      query.get("hide_empty").unwrap_or("false"),
+    ) {
+    return rest_error(400, "rest_invalid_param")
   }
   let search = native_query_text(query.get("search").unwrap_or(""))
   let slugs = rest_term_slugs(query.get("slug"))
@@ -129,8 +138,29 @@ fn rest_wp_terms(
   let include = rest_id_list(query.get("include"))
   let exclude = rest_id_list(query.get("exclude"))
   let (kind, id) = rest_wp_term_target(path).unwrap()
-  let available = rest_public_terms(rest_public_posts(input), kind) catch {
+  if kind != "category" && query.contains("parent") {
+    return rest_error(400, "rest_invalid_param")
+  }
+  let posts = rest_public_posts(input) catch {
     _ => return rest_error(500, "moonpress_terms_unavailable")
+  }
+  let available = rest_public_terms(posts, kind) catch {
+    _ => return rest_error(500, "moonpress_terms_unavailable")
+  }
+  let selected_names : Array[String] = []
+  if post_id is Some(selected) {
+    for post in posts {
+      if post.document.kind == "post" && post.document.wp_id == Some(selected) {
+        for
+          name in (if kind == "category" {
+            post.document.categories
+          } else {
+            post.document.tags
+          }) {
+          selected_names.push(name)
+        }
+      }
+    }
   }
   if id > 0 && !query.is_empty() {
     return rest_error(400, "rest_invalid_param")
@@ -139,7 +169,9 @@ fn rest_wp_terms(
     (include.is_empty() || include.contains(term.id)) &&
     !exclude.contains(term.id) &&
     (slugs.is_empty() || slugs.contains(term.slug)) &&
-    term.name.to_lower().contains(search)
+    term.name.to_lower().contains(search) &&
+    parent == 0 &&
+    (post_id is None || selected_names.contains(term.name))
   })
   if orderby == "include_slugs" {
     let ranks : Map[String, Int] = Map([])

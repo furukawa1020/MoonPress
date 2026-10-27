@@ -331,3 +331,5 @@ python3 scripts/rest-term-id-selection-test.py
 python3 scripts/rest-term-slug-selection-test.py
 
 python3 scripts/rest-term-search-test.py
+
+python3 scripts/rest-term-post-selection-test.py
