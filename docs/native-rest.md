@@ -439,3 +439,5 @@ Allow legacy author ID 0 in bounded REST author and author_exclude filters; arti
 Allow active author assignment on REST creation; assigning another principal requires edit_others_posts/pages under the same access/content locks.
 
 Allow guarded REST author reassignment with active-target validation and edit-others capability; ownership takes effect immediately.
+
+Accept date as a native UTC creation alias for date_gmt; both supplied values must agree and retain second-precision validation.

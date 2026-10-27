@@ -61,10 +61,11 @@ fn rest_create(
         @json.parse(decode_text(body, "REST creation")),
         [
           "title", "content", "excerpt", "slug", "status", "date_gmt", "moonpress_categories",
-          "moonpress_tags", "author",
+          "moonpress_tags", "author", "date",
         ],
         "REST creation",
       )
+      rest_input_date(fields)
       rest_write_types(fields)
       fields
     } catch {
