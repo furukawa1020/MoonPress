@@ -1,0 +1,80 @@
+name: Taxonomy batch exact source verification
+on:
+  push:
+    branches: [verify/721-taxonomy-batch]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    name: native (PR ${{ matrix.source.pr }}, ${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        source: [{"pr":737,"revision":"585321efd457a367526671345786e37359fb40a3","tree":"3f13a776e48644c5274f6f0cd6db79c6cbf228cb"},{"pr":738,"revision":"7d7932134146d8b2276503f2970b36db7ba40723","tree":"488f6f739759802172f754d5ca86dd1d3bb2272f"},{"pr":739,"revision":"55e15620aff047fbeb8db8de8c03349162620145","tree":"19790c50cd09666047299677bfaba6149e9019ff"},{"pr":740,"revision":"bc4902879cb204e971cadbfde845a94bc871d1eb","tree":"9278b197f6b82c4567e5b8a0ab7d21f831127682"},{"pr":741,"revision":"e33976529d0dbd752253bb7c4550e4c31a6c5ae5","tree":"db523d0c8d3dd9e8df386c5f884ccbc07a25b622"}]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - name: Fetch and verify exact source
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ matrix.source.revision }}
+          EXPECTED_TREE: ${{ matrix.source.tree }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$REVISION"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$EXPECTED_TREE"
+          git log -1 --format='%H %T'
+      - name: Set up pinned MoonBit native toolchain
+        run: |
+          bash scripts/setup.sh
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Verify native library and all CLI regressions
+        run: bash scripts/check.sh
+      - name: Verify administration in real Chrome without JavaScript
+        run: |
+          google-chrome --version
+          chromedriver --version
+          python3 scripts/browser-test.py
+          python3 scripts/browser-comment-test.py
+  compare:
+    name: compare (PR ${{ matrix.source.pr }})
+    strategy:
+      fail-fast: false
+      matrix:
+        source: [{"pr":737,"revision":"585321efd457a367526671345786e37359fb40a3","tree":"3f13a776e48644c5274f6f0cd6db79c6cbf228cb"},{"pr":738,"revision":"7d7932134146d8b2276503f2970b36db7ba40723","tree":"488f6f739759802172f754d5ca86dd1d3bb2272f"},{"pr":739,"revision":"55e15620aff047fbeb8db8de8c03349162620145","tree":"19790c50cd09666047299677bfaba6149e9019ff"},{"pr":740,"revision":"bc4902879cb204e971cadbfde845a94bc871d1eb","tree":"9278b197f6b82c4567e5b8a0ab7d21f831127682"},{"pr":741,"revision":"e33976529d0dbd752253bb7c4550e4c31a6c5ae5","tree":"db523d0c8d3dd9e8df386c5f884ccbc07a25b622"}]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Fetch and verify exact source
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ matrix.source.revision }}
+          EXPECTED_TREE: ${{ matrix.source.tree }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$REVISION"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$EXPECTED_TREE"
+          git log -1 --format='%H %T'
+      - name: Set up pinned MoonBit native toolchain
+        run: |
+          bash scripts/setup.sh
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Build exact native source
+        run: moon build --target native --release
+      - name: Install production serving comparison dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y nginx php8.3-fpm
+          sudo systemctl stop nginx php8.3-fpm
+      - name: Verify hardened public origin
+        run: python3 scripts/nginx-origin-test.py
+      - name: Compare actual WordPress with exact native source
+        run: bash benchmarks/wordpress/run.sh
