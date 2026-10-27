@@ -315,3 +315,5 @@ python3 scripts/rest-wp-comments-test.py
 python3 scripts/rest-wp-comments-options-test.py
 
 python3 scripts/rest-taxonomy-index-test.py
+
+python3 scripts/rest-taxonomy-detail-test.py

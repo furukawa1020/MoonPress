@@ -5,7 +5,8 @@ fn rest_taxonomies_collection(path : String) -> Bool {
 
 ///|
 fn rest_is_taxonomies(path : String) -> Bool {
-  rest_taxonomies_collection(path)
+  rest_taxonomies_collection(path) ||
+  path.has_prefix("/wp-json/wp/v2/taxonomies/")
 }
 
 ///|
@@ -32,7 +33,16 @@ fn rest_taxonomies(path : String, query : Map[String, String]) -> RestResponse {
     return rest_error(400, "rest_invalid_param")
   }
   if !rest_taxonomies_collection(path) {
-    return rest_error(404, "rest_taxonomy_invalid")
+    if query.contains("type") {
+      return rest_error(400, "rest_invalid_param")
+    }
+    let kind = path[26:].trim_end(chars="/").to_owned()
+    if !["category", "post_tag"].contains(kind) {
+      return rest_error(404, "rest_taxonomy_invalid")
+    }
+    return rest_ok(
+      rest_taxonomy_value(kind, query.get("context").unwrap_or("view")),
+    )
   }
   let values : Map[String, Json] = Map([])
   if query.get("type") != Some("page") {
