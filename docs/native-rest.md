@@ -541,10 +541,12 @@ slugs during migration; there is no general WordPress database identity import.
 Term collections support bounded comma/bracket `include`, `exclude`, `slug`,
 literal case-insensitive `search`, public `post`, `hide_empty`, flat category
 `parent`, `order`, `orderby=name|slug|id|count|include|include_slugs`, and
-`page`/`per_page`/`offset`. Selected-ID/slug ordering preserves request order for `asc` and reverses it
+`page`/`per_page`. Selected-ID/slug ordering preserves request order for `asc` and reverses it
 for `desc`, matching core term ordering (unlike the post include-order rule).
-Term pages beyond the result set return an empty collection. An explicit zero
-offset uses the page-derived position, as core term collections do.
+Term pages beyond the result set return an empty collection. Core does not
+register `offset` for these term collections: supplied bounded numeric offsets
+are ignored, so the page determines the position. OPTIONS does not advertise
+offset support.
 A nonempty term `include` selection overrides `exclude`, including in universal
 term search; this is the WordPress term-query precedence rule.
 For a hidden or unknown `post` selector this public-only adapter returns an

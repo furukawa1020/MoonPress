@@ -11,11 +11,11 @@ with NativeSite() as s:
         assert 'rel="next"' in h['Link'] and 'per_page=1' in h['Link']
         code,h,page=s.request(route+'?per_page=1&page=2')
         assert page==rows[1:] and 'rel="prev"' in h['Link']
-        assert s.request(route+'?per_page=1&offset=1')[2]==rows[1:]
+        assert s.request(route+'?per_page=1&offset=1')[2]==rows[:1]
         assert s.request(route+'?per_page=1&page=2&offset=0')[2]==rows[1:]
-        code,h,empty=s.request(route+'?per_page=1&offset=9')
+        code,h,empty=s.request(route+'?per_page=1&page=9')
         assert code==200 and empty==[] and 'rel="prev"' in h['Link'] and 'rel="next"' not in h['Link']
-        assert s.request(route+'?offset=20')[2]==[]
+        assert s.request(route+'?offset=20')[2]==rows
         assert s.request(route+'?page=3&per_page=1')[2]==[]
         assert s.request(route+'?page=0')[0]==400 and s.request(route+'?per_page=101')[0]==400
         assert s.request(route+'?per_page=1','HEAD')[1]['X-WP-Total']=='2'

@@ -75,7 +75,7 @@ test "public flat term OPTIONS reports only implemented methods and arguments" {
 }
 
 ///|
-test "term paging permits empty tail pages and treats zero offset as page based" {
+test "term paging permits empty tail pages and ignores unregistered offset positions" {
   assert_eq(
     rest_term_page_bounds(3, Map([("per_page", "1"), ("page", "9")])),
     (8, 1, 3),
@@ -89,7 +89,7 @@ test "term paging permits empty tail pages and treats zero offset as page based"
   )
   assert_eq(
     rest_term_page_bounds(3, Map([("per_page", "2"), ("offset", "1")])),
-    (1, 2, 2),
+    (0, 2, 2),
   )
   assert_eq(rest_term_page_bounds(0, Map([("page", "2")])), (10, 10, 0))
 }
