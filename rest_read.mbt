@@ -108,28 +108,31 @@ fn rest_post_value(document : Document, stem : String, base : String) -> Json {
     Some(value) => value[:19].to_owned()
     None => document.date.unwrap_or("1970-01-01") + "T00:00:00"
   }
-  {
-    "_links": rest_article_links(document, base),
-    "id": document.wp_id.unwrap().to_json(),
-    "date": date.to_json(),
-    "date_gmt": date.to_json(),
-    "slug": document.slug.unwrap_or(stem).to_json(),
-    "status": "publish".to_json(),
-    "type": document.kind.to_json(),
-    "link": (base + url_component(document.slug.unwrap_or(stem) + ".html")).to_json(),
-    "title": { "rendered": escape_html(document.title).to_json() },
-    "content": {
-      "rendered": render_markdown(document.body).to_json(),
-      "protected": false.to_json(),
+  rest_article_term_ids(
+    {
+      "_links": rest_article_links(document, base),
+      "id": document.wp_id.unwrap().to_json(),
+      "date": date.to_json(),
+      "date_gmt": date.to_json(),
+      "slug": document.slug.unwrap_or(stem).to_json(),
+      "status": "publish".to_json(),
+      "type": document.kind.to_json(),
+      "link": (base + url_component(document.slug.unwrap_or(stem) + ".html")).to_json(),
+      "title": { "rendered": escape_html(document.title).to_json() },
+      "content": {
+        "rendered": render_markdown(document.body).to_json(),
+        "protected": false.to_json(),
+      },
+      "excerpt": {
+        "rendered": ("<p>" + escape_html(document.description) + "</p>\n").to_json(),
+        "protected": false.to_json(),
+      },
+      "author": document.author.to_json(),
+      "moonpress_categories": document.categories.to_json(),
+      "moonpress_tags": document.tags.to_json(),
     },
-    "excerpt": {
-      "rendered": ("<p>" + escape_html(document.description) + "</p>\n").to_json(),
-      "protected": false.to_json(),
-    },
-    "author": document.author.to_json(),
-    "moonpress_categories": document.categories.to_json(),
-    "moonpress_tags": document.tags.to_json(),
-  }
+    document,
+  )
 }
 
 ///|
@@ -197,6 +200,7 @@ fn rest_public_posts(input : String) -> Array[RestPost] raise {
       posts.push(post)
     }
   }
+  rest_validate_term_inventory(posts)
   posts
 }
 
