@@ -248,7 +248,7 @@ fn native_comments_read(
     (if edit {
       moderator || principal.unwrap().id == item.author
     } else {
-      item.status == "approved" && public.contains(item.post)
+      comment_public(row, rows) && public.contains(item.post)
     })
   })
   allowed.sort_by(fn(a, b) {
