@@ -415,3 +415,5 @@ python3 scripts/rest-native-comment-patch-test.py
 python3 scripts/rest-wp-comment-status-update-test.py
 
 python3 scripts/rest-wp-comment-put-test.py
+
+python3 scripts/rest-wp-comment-patch-test.py
