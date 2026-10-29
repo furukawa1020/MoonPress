@@ -1,7 +1,7 @@
 ///|
 fn admin_comments(input : String, query : Map[String, String]) -> String raise {
   for key, _ in query {
-    if !["status", "page", "search"].contains(key) {
+    if !["status", "page", "search", "parent"].contains(key) {
       raise InvalidInput("Invalid comment query")
     }
   }
@@ -9,9 +9,13 @@ fn admin_comments(input : String, query : Map[String, String]) -> String raise {
   if !["any", "hold", "approved", "spam", "trash"].contains(status) {
     raise InvalidInput("Invalid comment status")
   }
+  let parent = query
+    .get("parent")
+    .map(value => rest_nonnegative(value, 2147483647))
   let search = native_query_text(query.get("search").unwrap_or(""))
   let state = comment_snapshot(input)
   let rows = state.rows.filter(row => {
+    (parent is None || row.comment.parent.unwrap_or(0) == parent.unwrap()) &&
     (status == "any" || row.comment.status == status) &&
     (row.comment.content + "\n" + row.comment.author_name)
     .to_lower()
@@ -32,6 +36,7 @@ fn admin_comments(input : String, query : Map[String, String]) -> String raise {
     out.write_string(
       "<a href=\"/comments?status=" +
       filter +
+      (if parent is Some(p) { "&amp;parent=\{p}" } else { "" }) +
       "\">" +
       filter +
       " (\{count})</a> · ",
@@ -40,11 +45,12 @@ fn admin_comments(input : String, query : Map[String, String]) -> String raise {
   out.write_string(
     "</p><form method=\"get\" action=\"/comments\">" +
     admin_hidden("status", status) +
+    (if parent is Some(p) { admin_hidden("parent", p.to_string()) } else { "" }) +
     "<label><!--mp:ja-->コメントを探す<!--mp:en-->Search comments<!--mp:end--><input name=\"search\" maxlength=\"256\" value=\"" +
     escape_html(query.get("search").unwrap_or("")) +
     "\"></label><button><!--mp:ja-->探す<!--mp:en-->Search<!--mp:end--></button></form><p>\{rows.length()} comments</p>" +
     admin_table_start("Comments") +
-    "<thead><tr><th>ID</th><th>Post</th><th>Author</th><th>Status</th><th>Text</th></tr></thead><tbody>",
+    "<thead><tr><th>ID</th><th>Post</th><th>Author</th><th>Status</th><th>Text</th><th>Parent</th></tr></thead><tbody>",
   )
   for i = start; i < rows.length() && i < start + size; i = i + 1 {
     let c = rows[i].comment
@@ -55,6 +61,8 @@ fn admin_comments(input : String, query : Map[String, String]) -> String raise {
       c.status +
       "</td><td>" +
       escape_html(c.content) +
+      "</td><td>" +
+      admin_comment_parent(c) +
       "</td></tr>",
     )
   }
@@ -67,6 +75,7 @@ fn admin_comments(input : String, query : Map[String, String]) -> String raise {
         status +
         "&amp;page=\{number}&amp;search=" +
         url_component(query.get("search").unwrap_or("")) +
+        (if parent is Some(p) { "&amp;parent=\{p}" } else { "" }) +
         "\">Page \{number}</a> · ",
       )
     }
@@ -107,6 +116,9 @@ fn admin_comment_item(
       "</p><pre>" +
       escape_html(c.content) +
       "</pre>" +
+      "<p>Parent: " +
+      admin_comment_parent(c) +
+      " · <a href=\"/comments?status=any&amp;parent=\{c.id}\">Replies</a></p>" +
       admin_comment_actions(row, token) +
       "<p>Revision: <code>" +
       row.revision +
@@ -182,4 +194,12 @@ fn admin_comment_action(
     )
   }
   admin_comment_item(input, Map([("id", id.to_string())]), token)
+}
+
+///|
+fn admin_comment_parent(c : NativeComment) -> String {
+  match c.parent {
+    Some(id) => "<a href=\"/comment?id=\{id}\">\{id}</a>"
+    None => "0"
+  }
 }
