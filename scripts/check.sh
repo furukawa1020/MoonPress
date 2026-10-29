@@ -423,3 +423,5 @@ python3 scripts/rest-wp-comment-content-update-test.py
 python3 scripts/rest-wp-comment-name-update-test.py
 
 python3 scripts/rest-wp-comment-delete-test.py
+
+python3 scripts/rest-wp-comment-restore-test.py
