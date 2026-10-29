@@ -419,3 +419,5 @@ python3 scripts/rest-wp-comment-put-test.py
 python3 scripts/rest-wp-comment-patch-test.py
 
 python3 scripts/rest-wp-comment-content-update-test.py
+
+python3 scripts/rest-wp-comment-name-update-test.py
