@@ -31,7 +31,7 @@ Plugin extensions are an open-ended ecosystem, not a finite core checklist.
 | Import / export | Verified static-site ZIP plus WXR export and reviewed private-draft intake; documented subset with explicit refusals |
 | Deployment / updates | Native release candidates and configured static hosting; a local build is not a deployment |
 
-Next implementation priorities include full attachment metadata, threaded comment replies and notifications,
+Next implementation priorities include full attachment metadata, comment notifications,
 private/password visibility and broader route/schema/block coverage. These are
 remaining work, not hidden behind placeholder UI.
 
@@ -70,7 +70,7 @@ Native category and tag inventories now support public counts, exact-name lookup
 
 Comments gain visibility-scoped search, stable date/ID ordering, include/exclude selection and private moderator counts/capacity inspection. The local operator can browse, inspect, moderate, trash and restore with CSRF/version guards and without JavaScript. Tables use keyboard-focusable scroll regions, and language switches retain inspection context. Conservative HTML strikethrough and rectangular table interchange are covered by native and actual WordPress export fixtures. Approved comment display is opt-in and preserves clean/incremental parity.
 
-Remaining comment features include threaded replies, anonymous posting, notifications and a public submission interface. The production serving benchmark remains distinct from authoring API capacity.
+Remaining comment features include anonymous posting, notifications and a public submission interface. The production serving benchmark remains distinct from authoring API capacity.
 
 Native REST discovery now exposes post/page types and capability-scoped
 publication statuses, resource links and pagination links. Actual core
@@ -88,7 +88,7 @@ Comments gain multi-article/author/date filters, native embed projection and a
 read-only WordPress-shaped approved-public adapter with accurate discovery.
 Actual core fixtures compare raw authoring/date cases, lexical title ordering,
 public native author identity and view/embed comment fields. This does not add
-PHP themes/plugins, Gutenberg runtime editing, private posts or threaded replies.
+PHP themes/plugins, Gutenberg runtime editing or private posts.
 
 
 ## Public taxonomy REST expansion (20 further changes)
@@ -107,5 +107,16 @@ WordPress database identities or core slug normalization. Empty/private-only
 terms, the automatic default category, general term writes/renames/descriptions,
 category hierarchy and arbitrary database collation are still missing. PHP
 plugins/themes, Gutenberg runtime editing, private/password posts, full media
-attachment metadata and threaded comments remain separate gaps. See the precise
+attachment metadata remain separate gaps. See the precise
 [REST contract](native-rest.md#public-taxonomy-read-compatibility).
+
+
+Threaded comments now retain legacy logs, validate same-article approved parents,
+limit replies to eight ancestors, hide descendants below nonpublic ancestors,
+and render escaped nested static lists with incremental/clean parity. Operator
+inspection links parents and filtered children. WordPress-shaped collection
+creation requires generated credentials, supports raw/plain text and always holds
+new comments. Twenty focused issue changes include parent filters, offset and
+ordering, resource links, accurate OPTIONS and an actual-core query/create oracle.
+This remains a documented subset; anonymous posting, notifications, WP edit/item
+writes, rich HTML comment intake and arbitrary database collation are missing.

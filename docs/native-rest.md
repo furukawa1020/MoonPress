@@ -17,7 +17,7 @@ Reference schemas: [posts](https://developer.wordpress.org/rest-api/reference/po
 | `/wp-json/wp/v2/users/me` | Generated Basic credentials required; current identity only |
 | `/wp-json/wp/v2/search` | Public post/page universal search subset |
 | `/wp-json/wp/v2/users`, `/users/ID` | Active native authors with public articles; id/name/slug only |
-| `/wp-json/wp/v2/comments`, `/comments/ID` | Read-only approved comments on public native articles; view/embed |
+| `/wp-json/wp/v2/comments`, `/comments/ID` | Approved public comment reads and authenticated pending collection creation; view/embed |
 | `/wp-json/wp/v2/types`, `/types/post`, `/types/page` | Implemented post/page metadata; edit fields scoped to editable types |
 | `/wp-json/wp/v2/statuses`, `/statuses/NAME` | Implemented publish/draft/future/trash metadata; nonpublic states require editing capability |
 
@@ -467,9 +467,9 @@ Filter visible native comments with exclusive ISO8601 after/before timestamps us
 
 Expose native comment embed context using a minimal approved-public projection with no raw content or private author identity.
 
-Expose approved public comments through read-only /wp/v2/comments and /comments/ID with WordPress-shaped fields, UTC dates and strict view/embed scope.
+Expose approved public comment reads through /wp/v2/comments and /comments/ID with WordPress-shaped fields, UTC dates and strict view/embed scope.
 
-Advertise the supported read-only WordPress comment schema/routes and collection pagination; native guarded workflows remain the only comment write API.
+Advertise the supported public-read/authenticated-create WordPress comment schema/routes and collection pagination; native guarded workflows handle moderation.
 
 ## Additional authoring and public interchange
 
@@ -493,18 +493,24 @@ Name ordering is lexical, not the toolchain's default shortlex comparison;
 article title/slug ordering likewise uses native lexical ordering rather than
 a complete WordPress database collation implementation.
 
-Public `/wp/v2/comments` and `/comments/ID` are read-only adapters over the native
-comment journal. They return registered-author identity, public author label,
-escaped content, UTC date/date_gmt, static comment link, type=comment and parent=0.
-Only approved comments with currently public API-visible parent articles are
-returned, including for administrator requests. The write/edit/private workflow
-remains `/moonpress/v1/comments`. Threaded replies, anonymous writes, comment
-email/IP/avatar metadata, pingbacks and private/edit context are not implemented.
-Embed omits post/status/date_gmt as in core. Collection filters include article,
-author/author_exclude, include/exclude, literal search, after/before, pagination,
-order and orderby=id|date|date_gmt; status=approve and type=comment are the only
-supported values. Counts, Link headers, projections and envelopes preserve this
-public scope. Native comment embed keeps its earlier identity-minimizing schema.
+Public `/wp/v2/comments` and `/comments/ID` read the native comment journal.
+They return public author identity/label, escaped content, UTC date/date_gmt,
+static anchors, type=comment, numeric parent and related-resource links.
+Reads require approved comments on public articles and approved ancestors.
+Collection POST requires generated credentials and always creates a held comment.
+It accepts post, parent (default 0), optional author_name (default login), and
+bounded plain content as a string or raw object. Only attribute-free paragraphs and breaks are normalized to plain text; other HTML is refused.
+No anonymous creation, impersonation, private metadata, item writes or WP edit
+reads are implemented. Native edit reads remain owner/moderator scoped.
+
+Both APIs accept parent/parent_exclude, offset, author_name/post/include ordering
+and the earlier post/author/date/search/ID filters. WP include order ignores
+order=desc; offset=0 follows page, nonzero offset overrides it, and high pages
+return empty lists with totals. Native offset=0 explicitly starts at zero and
+native out-of-range pages retain their validation error. WP non-date sort ties
+follow the core descending ID fallback; native ties follow requested direction.
+Lexical ordering supports the native normalized text subset, not all SQL collations.
+Native comment embed keeps its earlier identity-minimizing schema.
 Native journal epoch fields retain their existing Int64 string representation;
 the WordPress adapter formats dates explicitly as second-precision UTC strings.
 
