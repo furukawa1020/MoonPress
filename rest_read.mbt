@@ -217,7 +217,7 @@ fn rest_route(
     return rest_wp_terms(input, path, query, base)
   }
   if rest_wp_comment_id(path) is Some(_) {
-    return rest_wp_comments(input, path, query, base) catch {
+    return rest_wp_comments(input, path, query, base, principal~) catch {
       _ => rest_error(500, "moonpress_comments_unavailable")
     }
   }

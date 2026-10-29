@@ -68,10 +68,23 @@ fn rest_wp_comments(
   path : String,
   query : Map[String, String],
   base : String,
+  principal? : AccessPrincipal? = None,
 ) -> RestResponse raise {
   let id = rest_wp_comment_id(path).unwrap()
+  let edit = query.get("context") == Some("edit")
   let embed = query.get("context") == Some("embed")
-  if query.get("context") is Some(value) && !["view", "embed"].contains(value) {
+  if edit && id > 0 {
+    let user = match principal {
+      Some(user) => user
+      None => return rest_error(401, "rest_not_logged_in")
+    }
+    if !role_capabilities(user.role).contains("moderate_comments") {
+      return rest_error(403, "rest_forbidden_context")
+    }
+  }
+  if query.get("context") is Some(value) &&
+    !["view", "embed"].contains(value) &&
+    !(edit && id > 0) {
     return rest_error(400, "rest_invalid_param")
   }
   if query.get("status") is Some(value) && value != "approve" {
@@ -84,7 +97,7 @@ fn rest_wp_comments(
     return rest_error(400, "rest_invalid_param")
   }
   let selected = query.copy()
-  selected["context"] = "view"
+  selected["context"] = if edit { "edit" } else { "view" }
   selected.remove("type")
   if id == 0 {
     selected["status"] = "approved"
@@ -116,10 +129,12 @@ fn rest_wp_comments(
   let result = native_comments_read(
     input,
     content,
-    None,
+    principal,
     id,
     selected,
-    projection=Some(row => rest_wp_comment_value(row, articles, base, embed)),
+    projection=Some(row => {
+      rest_wp_comment_value(row, articles, base, embed, edit~)
+    }),
     wp_order=true,
   )
   if result.code == 404 {
