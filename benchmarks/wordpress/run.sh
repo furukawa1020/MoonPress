@@ -32,4 +32,5 @@ printf '%s  %s\n' '85cfad65e24eb3b25ed536f52ce52c3971bd42a852d6f2c6a5bea8c5c429c
 unzip -q "$work/importer.zip" -d "$work/plugin"
 python3 benchmarks/wordpress/wxr-oracle.py "$work/wordpress" "$work/plugin/wordpress-importer" "$work"
 python3 benchmarks/wordpress/comment-oracle.py "$work/wordpress" "$work"
+python3 benchmarks/wordpress/comment-management-oracle.py "$work/wordpress" "$work"
 python3 benchmarks/wordpress/emit.py "$work/native.json" "$work/http.json"

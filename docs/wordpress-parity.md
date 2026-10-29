@@ -120,3 +120,20 @@ new comments. Twenty focused issue changes include parent filters, offset and
 ordering, resource links, accurate OPTIONS and an actual-core query/create oracle.
 This remains a documented subset; anonymous posting, notifications, WP edit/item
 writes, rich HTML comment intake and arbitrary database collation are missing.
+
+
+## Comment editing and management (20 changes)
+
+Native edit journal events preserve immutable identities while atomically changing
+plain content, public label and moderation state. Conditional POST/PUT/PATCH writes,
+no-op preservation, log capacity and corruption guards have HTTP and native tests.
+The WordPress-shaped adapter adds moderator edit details/lists, private status
+selection, guarded content/name/status updates, post-edit-authority checks, trash
+and hold-only restore, type ordering and accurate OPTIONS/discovery.
+
+A real-core oracle compares 48 role/ownership/type/state read-write probes,
+6 edit collections, 8 transitions and 2 type orders with independent ID mapping.
+Native If-Match requirements, immutable identity, approved-only ordinary views,
+strict text intake, lack of private email/IP metadata, and hold-only restoration
+remain deliberate subset boundaries. Full WordPress runtime/plugin/theme/editor
+and database compatibility are still not claimed.
