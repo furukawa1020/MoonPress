@@ -180,7 +180,7 @@ fn native_comments_read(
   }
   let orderby = query.get("orderby").unwrap_or("id")
   let order = query.get("order").unwrap_or("asc")
-  if !["id", "date", "author_name", "parent", "post", "include"].contains(
+  if !["id", "date", "author_name", "parent", "post", "type", "include"].contains(
       orderby,
     ) ||
     !["asc", "desc"].contains(order) {
@@ -268,7 +268,9 @@ fn native_comments_read(
     ranks[id] = i
   }
   allowed.sort_by(fn(a, b) {
-    let compared = if orderby == "include" {
+    let compared = if orderby == "type" {
+      0
+    } else if orderby == "include" {
       ranks[a.comment.id].compare(ranks[b.comment.id])
     } else if orderby == "date" {
       a.comment.created.compare(b.comment.created)
@@ -285,7 +287,7 @@ fn native_comments_read(
     }
     let compared = if compared == 0 &&
       wp_order &&
-      ["author_name", "parent", "post"].contains(orderby) {
+      ["author_name", "parent", "post", "type"].contains(orderby) {
       if order == "asc" {
         b.comment.id.compare(a.comment.id)
       } else {

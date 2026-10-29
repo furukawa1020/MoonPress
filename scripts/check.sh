@@ -427,3 +427,5 @@ python3 scripts/rest-wp-comment-delete-test.py
 python3 scripts/rest-wp-comment-restore-test.py
 
 python3 scripts/rest-wp-comment-post-authority-test.py
+
+python3 scripts/rest-wp-comment-type-order-test.py
