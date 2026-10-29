@@ -144,6 +144,19 @@ fn rest_wp_comments(
     }),
     wp_order=true,
   )
+  let result = if result.code == 200 &&
+    id > 0 &&
+    !edit &&
+    principal is Some(user) {
+    let row = wp_comment_row(input, content, id).unwrap()
+    if wp_comment_can_edit(user, row, articles) {
+      { ..result, etag: Some(row.revision), }
+    } else {
+      result
+    }
+  } else {
+    result
+  }
   if result.code == 404 {
     rest_error(404, "rest_comment_invalid_id")
   } else {

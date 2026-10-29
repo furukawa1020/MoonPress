@@ -57,9 +57,6 @@ fn rest_wp_comment_update(
   base : String,
   verb : String,
 ) -> RestResponse raise {
-  if !role_capabilities(principal.role).contains("moderate_comments") {
-    return rest_error(403, "rest_cannot_edit")
-  }
   let selected = query.copy()
   if verb == "DELETE" {
     if selected.get("force") is Some(value) {
@@ -81,6 +78,9 @@ fn rest_wp_comment_update(
   let row = match wp_comment_row(input, content, id) {
     Some(row) => row
     None => return rest_error(404, "rest_comment_invalid_id")
+  }
+  if !wp_comment_can_edit(principal, row, rest_all_posts_at(input, content)) {
+    return rest_error(403, "rest_cannot_edit")
   }
   if verb == "DELETE" {
     if rest_precondition(expected, row.revision) is Some(error) {
