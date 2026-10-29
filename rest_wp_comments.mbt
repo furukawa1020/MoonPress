@@ -24,9 +24,10 @@ fn rest_wp_comment_value(
   articles : Array[RestPost],
   base : String,
   embed : Bool,
+  edit? : Bool = false,
 ) -> Json raise {
   let c = row.comment
-  let native = native_comment_value(row, false)
+  let native = native_comment_value(row, edit)
   let content = match native {
     Object(fields) => fields["content"]
     _ => Json::null()
@@ -56,7 +57,7 @@ fn rest_wp_comment_value(
   if !embed {
     fields["date_gmt"] = date.to_json()
     fields["post"] = c.post.to_json()
-    fields["status"] = "approved".to_json()
+    fields["status"] = c.status.to_json()
   }
   Json::object(fields)
 }
