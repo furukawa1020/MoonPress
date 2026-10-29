@@ -49,7 +49,12 @@ fn native_comment_edit(
   } catch {
     _ => return rest_error(400, "rest_invalid_param")
   }
-  let next = { ..current.comment, content: text, author_name: label, }
+  let status = match fields.get("status") {
+    None => current.comment.status
+    Some(String(value)) if ["hold", "approved", "spam"].contains(value) => value
+    _ => return rest_error(400, "rest_invalid_param")
+  }
+  let next = { ..current.comment, content: text, author_name: label, status, }
   if next == current.comment {
     return rest_ok(
       native_comment_value(current, true),
