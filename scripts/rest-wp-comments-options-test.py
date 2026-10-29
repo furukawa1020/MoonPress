@@ -3,8 +3,8 @@ from comment_fixture import set_status
 with NativeSite() as s:
     root='/wp-json/wp/v2/comments'
     code,h,meta=s.request(root,'OPTIONS')
-    assert code==200 and meta['methods']==['GET','HEAD','POST','OPTIONS'] and meta['schema']['properties']['date_gmt']['context']==['view']
-    args=meta['endpoints'][0]['args'];assert args['context']['enum']==['view','embed'] and args['post']['type']=='array' and args['status']['enum']==['approve']
+    assert code==200 and meta['methods']==['GET','HEAD','POST','OPTIONS'] and meta['schema']['properties']['date_gmt']['context']==['view','edit']
+    args=meta['endpoints'][0]['args'];assert args['context']['enum']==['view','embed','edit'] and args['post']['type']=='array' and args['status']['enum']==['approve','hold','spam','trash','all']
     assert '/wp/v2/comments' in s.request('/wp-json/')[2]['routes']
     post=s.request('/wp-json/wp/v2/posts','POST',{'title':'Paging','status':'publish'},'author')[2]
     for n in range(2):

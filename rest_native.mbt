@@ -262,7 +262,9 @@ fn native_discovery_routes(value : Json) -> Json {
     }
     routes["/moonpress/v1/comments/(?P<id>[0-9]+)"] = {
       "namespace": "moonpress/v1".to_json(),
-      "methods": ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"].to_json(),
+      "methods": native_rest_methods("/wp-json/moonpress/v1/comments/1")
+      .unwrap()
+      .to_json(),
     }
     for path in ["/moonpress/v1/media", "/moonpress/v1/media/(?P<name>[^/]+)"] {
       routes[path] = {
