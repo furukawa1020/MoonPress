@@ -154,9 +154,9 @@ fn native_comments_read(
     .unwrap_or(if edit { "any" } else { "approved" })
   for key, value in query {
     if ![
-        "context", "status", "post", "page", "per_page", "search", "orderby", "order",
-        "include", "exclude", "author", "author_exclude", "after", "before", "parent",
-        "parent_exclude",
+        "context", "status", "post", "page", "offset", "per_page", "search", "orderby",
+        "order", "include", "exclude", "author", "author_exclude", "after", "before",
+        "parent", "parent_exclude",
       ].contains(key) ||
       (id > 0 && key != "context") ||
       (
