@@ -132,6 +132,11 @@ fn native_comment_create(
   {
     ..rest_ok(native_comment_value(row, true), etag=Some(row.revision)),
     code: 201,
+    location: Some(
+      "/wp-json/moonpress/v1/comments/" +
+      row.comment.id.to_string() +
+      "?context=edit",
+    ),
   }
 }
 
