@@ -155,7 +155,8 @@ fn native_comments_read(
   for key, value in query {
     if ![
         "context", "status", "post", "page", "per_page", "search", "orderby", "order",
-        "include", "exclude", "author", "author_exclude", "after", "before",
+        "include", "exclude", "author", "author_exclude", "after", "before", "parent",
+        "parent_exclude",
       ].contains(key) ||
       (id > 0 && key != "context") ||
       (
@@ -192,6 +193,12 @@ fn native_comments_read(
     rest_author_ids(query.get("author")),
     rest_author_ids(query.get("author_exclude")),
   ) catch {
+    _ => return rest_error(400, "rest_invalid_param")
+  }
+  let parents = rest_author_ids(query.get("parent")) catch {
+    _ => return rest_error(400, "rest_invalid_param")
+  }
+  let excluded_parents = rest_author_ids(query.get("parent_exclude")) catch {
     _ => return rest_error(400, "rest_invalid_param")
   }
   let search = native_query_text(query.get("search").unwrap_or("")) catch {
@@ -235,6 +242,8 @@ fn native_comments_read(
     (authors.is_empty() || authors.contains(item.author)) &&
     !excluded_authors.contains(item.author) &&
     (posts.is_empty() || posts.contains(item.post)) &&
+    (parents.is_empty() || parents.contains(item.parent.unwrap_or(0))) &&
+    !excluded_parents.contains(item.parent.unwrap_or(0)) &&
     (status == "any" || item.status == status) &&
     (if edit {
       moderator || principal.unwrap().id == item.author
