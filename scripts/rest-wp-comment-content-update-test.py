@@ -1,0 +1,17 @@
+from rest_fixture import NativeSite
+from comment_fixture import set_status
+with NativeSite() as s:
+    posts='/wp-json/wp/v2/posts';route='/wp-json/moonpress/v1/comments'
+    a=s.request(posts,'POST',{'title':'One','status':'publish','slug':'one'},'author')[2]
+    b=s.request(posts,'POST',{'title':'Two','status':'publish','slug':'two'},'author')[2]
+    def create(post=a['id'],parent=0,label='Reader',text='Text',role='subscriber'):
+        code,h,row=s.request(route,'POST',{'post':post,'parent':parent,'author_name':label,'content':text},role)
+        assert code==201,(code,row)
+        return row
+    row=create();url='/wp-json/wp/v2/comments/'+str(row['id']);tag=s.request(url+'?context=edit',role='editor')[1]['ETag']
+    code,h,data=s.request(url,'PATCH',{'content':{'raw':'Edited'},'status':'approve'},'editor',tag);assert code==200 and data['content']['raw']=='Edited' and data['status']=='approved'
+    assert 'Edited' in s.request(url)[2]['content']['rendered']
+    assert s.request(url,'POST',{'content':'<script>x</script>'},'editor',h['ETag'])[0]==400
+    assert s.request(url,'POST',{'content':{'raw':'x','rendered':'y'}},'editor',h['ETag'])[0]==400
+    assert s.request(url,'POST',{'content':'Plain'},'editor',h['ETag'])[2]['content']['raw']=='Plain'
+    s.restart();assert s.request(url)[2]['content']['rendered']=='<p>Plain</p>\n'
