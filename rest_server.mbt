@@ -11,6 +11,8 @@ fn rest_response(
     201 => "201 Created"
     304 => "304 Not Modified"
     409 => "409 Conflict"
+    410 => "410 Gone"
+    501 => "501 Not Implemented"
     400 => "400 Bad Request"
     401 => "401 Unauthorized"
     403 => "403 Forbidden"
@@ -115,7 +117,7 @@ fn rest_client(
       rest_native(input, path, query, base, request, body) catch {
         _ => rest_error(500, "moonpress_workflow_unavailable")
       }
-    } else if ["POST", "PUT", "PATCH"].contains(request.verb) &&
+    } else if ["POST", "PUT", "PATCH", "DELETE"].contains(request.verb) &&
       rest_wp_comment_id(path) is Some(id) &&
       id > 0 {
       rest_with_access(input, request.authorization, (principal, content) => {

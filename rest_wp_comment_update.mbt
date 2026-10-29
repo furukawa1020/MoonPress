@@ -60,7 +60,19 @@ fn rest_wp_comment_update(
   if !role_capabilities(principal.role).contains("moderate_comments") {
     return rest_error(403, "rest_cannot_edit")
   }
-  for key, value in query {
+  let selected = query.copy()
+  if verb == "DELETE" {
+    if selected.get("force") is Some(value) {
+      if value == "true" || value == "1" {
+        return rest_error(501, "moonpress_permanent_delete_unsupported")
+      }
+      if value != "false" && value != "0" {
+        return rest_error(400, "rest_invalid_param")
+      }
+      selected.remove("force")
+    }
+  }
+  for key, value in selected {
     if key != "context" || !["view", "embed", "edit"].contains(value) {
       return rest_error(400, "rest_invalid_param")
     }
@@ -69,6 +81,20 @@ fn rest_wp_comment_update(
   let row = match wp_comment_row(input, content, id) {
     Some(row) => row
     None => return rest_error(404, "rest_comment_invalid_id")
+  }
+  if verb == "DELETE" {
+    if rest_precondition(expected, row.revision) is Some(error) {
+      return error
+    }
+    if row.comment.status == "trash" {
+      return rest_error(410, "rest_already_trashed")
+    }
+    return wp_comment_result(
+      input,
+      content,
+      native_comment_change(input, content, id, expected, "trash"),
+      base,
+    )
   }
   if row.comment.status == "trash" {
     return rest_error(409, "moonpress_comment_trashed")
