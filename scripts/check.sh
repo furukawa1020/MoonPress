@@ -371,3 +371,5 @@ python3 scripts/rest-static-comment-threads-test.py
 python3 scripts/rest-operator-comment-parent-test.py
 
 python3 scripts/rest-native-comment-offset-test.py
+
+python3 scripts/rest-comment-author-order-test.py
