@@ -375,3 +375,5 @@ python3 scripts/rest-native-comment-offset-test.py
 python3 scripts/rest-comment-author-order-test.py
 
 python3 scripts/rest-comment-post-order-test.py
+
+python3 scripts/rest-comment-include-order-test.py

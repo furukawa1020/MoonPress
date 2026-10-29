@@ -174,7 +174,7 @@ fn native_comments_read(
   }
   let orderby = query.get("orderby").unwrap_or("id")
   let order = query.get("order").unwrap_or("asc")
-  if !["id", "date", "author_name", "post"].contains(orderby) ||
+  if !["id", "date", "author_name", "post", "include"].contains(orderby) ||
     !["asc", "desc"].contains(order) {
     return rest_error(400, "rest_invalid_param")
   }
@@ -183,6 +183,9 @@ fn native_comments_read(
     rest_id_list(query.get("exclude")),
   ) catch {
     _ => return rest_error(400, "rest_invalid_param")
+  }
+  if orderby == "include" && included.is_empty() {
+    return rest_error(400, "rest_invalid_param")
   }
   let (after, before) = (
     query.get("after").map(value => rest_date_bound(value)),
@@ -252,8 +255,14 @@ fn native_comments_read(
       comment_public(row, rows) && public.contains(item.post)
     })
   })
+  let ranks : Map[Int, Int] = Map([])
+  for i, id in included {
+    ranks[id] = i
+  }
   allowed.sort_by(fn(a, b) {
-    let compared = if orderby == "date" {
+    let compared = if orderby == "include" {
+      ranks[a.comment.id].compare(ranks[b.comment.id])
+    } else if orderby == "date" {
       a.comment.created.compare(b.comment.created)
     } else if orderby == "post" {
       a.comment.post.compare(b.comment.post)
@@ -269,7 +278,7 @@ fn native_comments_read(
     } else {
       compared
     }
-    if order == "asc" {
+    if order == "asc" || orderby == "include" {
       compared
     } else {
       0 - compared
