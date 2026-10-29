@@ -36,9 +36,11 @@ with NativeSite() as s:
             for k in ['X-WP-Total','X-WP-TotalPages']:assert str(headers[k])==str(expected['headers'][k])
         except (AssertionError,KeyError,TypeError) as e:failures.append((probe['params'],str(e)))
     code,headers,row=s.request(route,'POST',{'post':posts[0],'parent':ids[0],'content':{'raw':'<p>Pending<br>reply</p><p>Text</p>'}},'subscriber')
-    expected=core['created'];assert code==expected['code']==201,(row,expected)
-    assert row['status']==expected['rows']['status']=='hold' and text(row['content']['rendered'])==text(expected['rows']['content']['rendered'])
-    assert row['content']['raw']=='Pending\nreply\n\nText' and row['parent']==ids[0] and expected['rows']['parent']==core['ids'][0]
-    assert row['id'] not in [r['id'] for r in s.request(route)[2]]
+    try:
+        expected=core['created'];assert code==expected['code']==201,(row,expected)
+        assert row['status']==expected['rows']['status']=='hold' and text(row['content']['rendered'])==text(expected['rows']['content']['rendered'])
+        assert row['content']['raw']=='Pending\nreply\n\nText' and row['parent']==ids[0] and expected['rows']['parent']==core['ids'][0]
+        assert row['id'] not in [r['id'] for r in s.request(route)[2]]
+    except (AssertionError,KeyError,TypeError) as e:failures.append(('creation',str(e)))
 assert not failures,json.dumps(failures,indent=2)
 print('Actual WordPress core: 25 comment query cases, reply relationships, rendered text, totals and configured moderated creation passed.')

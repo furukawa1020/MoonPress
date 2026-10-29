@@ -16,7 +16,7 @@ foreach(['id','date','date_gmt','author_name','post','include'] as $orderby){for
 foreach([['parent'=>[0]],['parent'=>[$ids[0]]],['parent_exclude'=>[0]],['post'=>[$posts[0]]],['search'=>'Alpha'],['include'=>[$ids[2],$ids[0]],'exclude'=>[$ids[0]]],['per_page'=>2],['per_page'=>2,'page'=>2],['per_page'=>2,'page'=>99],['per_page'=>2,'offset'=>1],['per_page'=>2,'offset'=>0,'page'=>2],['per_page'=>2,'offset'=>99],['per_page'=>2,'offset'=>1,'page'=>99]] as $q){$probes[]=array_merge(['include'=>$ids,'orderby'=>'id','order'=>'asc'],$q);}
 $results=[];foreach($probes as $q){$results[]=['params'=>$q,'result'=>c5req('/wp/v2/comments',$q)];}
 // Compare authenticated pending creation with core explicitly configured to moderate all comments.
-$user=wp_create_user('c5-reader','disposable-oracle-password');if(is_wp_error($user)){$user=username_exists('c5-reader');}
+$user=wp_create_user('c5-reader','disposable-oracle-password','c5-reader@example.invalid');if(is_wp_error($user)){$user=username_exists('c5-reader');}
 wp_set_current_user($user);add_filter('pre_comment_approved',fn()=>0);
 $created=c5req('/wp/v2/comments',['post'=>$posts[0],'parent'=>$ids[0],'content'=>['raw'=>'<p>Pending<br>reply</p><p>Text</p>']],'POST');
 file_put_contents($argv[2],json_encode(['posts'=>$posts,'ids'=>$ids,'probes'=>$results,'created'=>$created]));
