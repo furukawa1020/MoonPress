@@ -143,6 +143,7 @@ fn native_comments_read(
   id : Int,
   query : Map[String, String],
   projection? : ((CommentRow) -> Json raise)? = None,
+  wp_order? : Bool = false,
 ) -> RestResponse raise {
   let embed = query.get("context") == Some("embed")
   let edit = query.get("context") == Some("edit")
@@ -273,7 +274,15 @@ fn native_comments_read(
     } else {
       a.comment.id.compare(b.comment.id)
     }
-    let compared = if compared == 0 {
+    let compared = if compared == 0 &&
+      wp_order &&
+      ["author_name", "post"].contains(orderby) {
+      if order == "asc" {
+        b.comment.id.compare(a.comment.id)
+      } else {
+        a.comment.id.compare(b.comment.id)
+      }
+    } else if compared == 0 {
       a.comment.id.compare(b.comment.id)
     } else {
       compared
