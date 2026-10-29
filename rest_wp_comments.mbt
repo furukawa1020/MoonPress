@@ -93,6 +93,17 @@ fn rest_wp_comments(
     }
     selected["order"] = query.get("order").unwrap_or("desc")
   }
+  if id == 0 {
+    let (page, size, offset) = (
+      rest_positive(query.get("page").unwrap_or("1"), 4096),
+      rest_positive(query.get("per_page").unwrap_or("10"), 100),
+      rest_nonnegative(query.get("offset").unwrap_or("0"), 409600),
+    ) catch {
+      _ => return rest_error(400, "rest_invalid_param")
+    }
+    selected["offset"] = (if offset == 0 { (page - 1) * size } else { offset }).to_string()
+    selected["page"] = "1"
+  }
   let content = open_authoring_subdirectory(input, "content")
   defer directory_close(content.fd)
   content.lock()

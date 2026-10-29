@@ -56,7 +56,7 @@ fn rest_wp_comments_options(
         "items": { "type": "integer".to_json() },
       }
     }
-    for name in ["page", "per_page"] {
+    for name in ["page", "per_page", "offset"] {
       args[name] = { "type": "integer".to_json() }
     }
     for name in ["after", "before"] {
