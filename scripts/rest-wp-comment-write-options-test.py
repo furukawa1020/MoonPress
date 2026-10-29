@@ -12,6 +12,6 @@ with NativeSite() as s:
     assert set(schema['methods'])=={'GET','HEAD','POST','OPTIONS'}
     write=next(e for e in schema['endpoints'] if e['methods']==['POST'])['args'];assert write['post']['required'] and write['content']['required'] and 'author' not in write
     assert schema['moonpress']['creation_status']=='hold'
-    assert 'POST' not in s.request(wp+'/1','OPTIONS')[2]['methods']
+    assert 'POST' in s.request(wp+'/1','OPTIONS')[2]['methods']
     assert 'POST' in s.request('/wp-json/')[2]['routes']['/wp/v2/comments']['methods']
     assert s.request(wp+'?context=edit',role='editor')[0]==200

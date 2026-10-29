@@ -8,7 +8,7 @@ fn rest_methods(path : String) -> Array[String]? {
       if id == 0 {
         ["GET", "HEAD", "POST", "OPTIONS"]
       } else {
-        ["GET", "HEAD", "OPTIONS"]
+        ["GET", "HEAD", "POST", "OPTIONS"]
       },
     )
   }

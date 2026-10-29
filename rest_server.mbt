@@ -115,6 +115,24 @@ fn rest_client(
       rest_native(input, path, query, base, request, body) catch {
         _ => rest_error(500, "moonpress_workflow_unavailable")
       }
+    } else if ["POST"].contains(request.verb) &&
+      rest_wp_comment_id(path) is Some(id) &&
+      id > 0 {
+      rest_with_access(input, request.authorization, (principal, content) => {
+        rest_wp_comment_update(
+          input,
+          content,
+          principal,
+          path,
+          query,
+          request.if_match,
+          body,
+          base,
+          request.verb,
+        )
+      }) catch {
+        _ => rest_error(500, "moonpress_comment_update_unavailable")
+      }
     } else if request.verb == "POST" && rest_wp_comment_id(path) == Some(0) {
       rest_with_access(input, request.authorization, (principal, content) => {
         rest_wp_comment_create(input, content, principal, query, body, base)
