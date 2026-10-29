@@ -3,7 +3,7 @@ from comment_fixture import set_status
 with NativeSite() as s:
     root='/wp-json/wp/v2/comments'
     code,h,meta=s.request(root,'OPTIONS')
-    assert code==200 and meta['methods']==['GET','HEAD','OPTIONS'] and meta['schema']['properties']['date_gmt']['context']==['view']
+    assert code==200 and meta['methods']==['GET','HEAD','POST','OPTIONS'] and meta['schema']['properties']['date_gmt']['context']==['view']
     args=meta['endpoints'][0]['args'];assert args['context']['enum']==['view','embed'] and args['post']['type']=='array' and args['status']['enum']==['approve']
     assert '/wp/v2/comments' in s.request('/wp-json/')[2]['routes']
     post=s.request('/wp-json/wp/v2/posts','POST',{'title':'Paging','status':'publish'},'author')[2]
@@ -15,4 +15,4 @@ with NativeSite() as s:
     assert s.request(root+'?unknown=1')[0]==400
     record=sorted((s.site/'.moonpress-comments').glob('*.json'))[0];record.chmod(0o644)
     assert s.request(root)[0]==500
-print('WordPress comment discovery: accurate read-only schema, bounded filters, root discovery, pagination and envelopes passed.')
+print('WordPress comment discovery: accurate public-read and authenticated-create schema, bounded filters, root discovery, pagination and envelopes passed.')

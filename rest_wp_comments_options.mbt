@@ -87,21 +87,64 @@ fn rest_wp_comments_options(
       "default": "date_gmt".to_json(),
     }
   }
+  let endpoints : Array[Json] = [
+    { "methods": ["GET"].to_json(), "args": Json::object(args) },
+    { "methods": ["HEAD"].to_json(), "args": Json::object(args) },
+    { "methods": ["OPTIONS"].to_json(), "args": Json::object(Map([])) },
+  ]
+  if rest_wp_comment_id(path) == Some(0) {
+    endpoints.push({
+      "methods": ["POST"].to_json(),
+      "args": {
+        "context": {
+          "type": "string".to_json(),
+          "enum": ["view", "embed", "edit"].to_json(),
+          "default": "edit".to_json(),
+        },
+        "post": {
+          "type": "integer".to_json(),
+          "required": true.to_json(),
+          "minimum": (1).to_json(),
+        },
+        "parent": {
+          "type": "integer".to_json(),
+          "minimum": (0).to_json(),
+          "default": (0).to_json(),
+        },
+        "author_name": {
+          "type": "string".to_json(),
+          "maxLength": (80).to_json(),
+        },
+        "content": {
+          "required": true.to_json(),
+          "oneOf": [
+            { "type": "string".to_json() },
+            {
+              "type": "object".to_json(),
+              "properties": { "raw": { "type": "string".to_json() } },
+              "required": ["raw"].to_json(),
+              "additionalProperties": false.to_json(),
+            },
+          ].to_json(),
+        },
+      },
+    })
+  }
   rest_ok({
     "namespace": "wp/v2".to_json(),
-    "methods": ["GET", "HEAD", "OPTIONS"].to_json(),
+    "methods": rest_methods(path).unwrap().to_json(),
     "schema": {
       "type": "object".to_json(),
       "properties": Json::object(properties),
     },
-    "endpoints": [
-      { "methods": ["GET"].to_json(), "args": Json::object(args) },
-      { "methods": ["HEAD"].to_json(), "args": Json::object(args) },
-      { "methods": ["OPTIONS"].to_json(), "args": Json::object(Map([])) },
-    ].to_json(),
+    "endpoints": endpoints.to_json(),
     "moonpress": {
       "subset": true.to_json(),
-      "approved_public_only": true.to_json(),
+      "approved_public_reads_only": true.to_json(),
+      "authenticated_creation": true.to_json(),
+      "creation_status": "hold".to_json(),
+      "creation_response_context": "edit".to_json(),
+      "max_reply_ancestors": (8).to_json(),
       "native_writes": "/wp-json/moonpress/v1/comments".to_json(),
     },
   })
