@@ -105,6 +105,12 @@ fn comment_replay(log : AuthoringDirectory) -> CommentState raise {
       }
       comment_validate_parent(rows, comment)
       rows.push({ comment, revision: next, })
+    } else if event.action == "edit" {
+      if comment.id > rows.length() {
+        raise InvalidInput("Unknown comment")
+      }
+      comment_validate_edit(rows[comment.id - 1].comment, comment)
+      rows[comment.id - 1] = { comment, revision: next, }
     } else if event.action == "status" {
       if comment.id > rows.length() {
         raise InvalidInput("Unknown comment")
@@ -137,6 +143,11 @@ fn comment_append(
       comment.status != "hold" {
       raise InvalidInput("Invalid comment creation")
     }
+  } else if action == "edit" {
+    if comment.id < 1 || comment.id > state.rows.length() {
+      raise InvalidInput("Unknown comment")
+    }
+    comment_validate_edit(state.rows[comment.id - 1].comment, comment)
   } else if action == "status" {
     if comment.id < 1 || comment.id > state.rows.length() {
       raise InvalidInput("Unknown comment")
