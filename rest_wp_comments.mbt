@@ -49,7 +49,7 @@ fn rest_wp_comment_value(
     ("content", content),
     ("date", date.to_json()),
     ("link", link.to_json()),
-    ("parent", (0).to_json()),
+    ("parent", c.parent.unwrap_or(0).to_json()),
     ("type", "comment".to_json()),
   ])
   if !embed {
