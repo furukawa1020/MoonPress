@@ -365,3 +365,5 @@ python3 scripts/rest-comment-ancestor-visibility-test.py
 python3 scripts/rest-wp-comment-parent-test.py
 
 python3 scripts/rest-wp-comment-parent-filters-test.py
+
+python3 scripts/rest-static-comment-threads-test.py
