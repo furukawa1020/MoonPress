@@ -381,3 +381,5 @@ python3 scripts/rest-comment-include-order-test.py
 python3 scripts/rest-wp-comment-offset-test.py
 
 python3 scripts/rest-wp-comment-ordering-test.py
+
+python3 scripts/rest-wp-comment-links-test.py
