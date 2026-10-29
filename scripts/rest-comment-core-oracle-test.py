@@ -16,4 +16,4 @@ with NativeSite() as s:
     assert 'raw' not in s.request(h['Location'])[2]['content']
     child=s.request(wp,'POST',{'post':a['id'],'parent':pending['id'],'content':'Reply'},'subscriber')[2];set_status(s,child['id'],'approved')
     set_status(s,pending['id'],'spam');assert s.request(wp)[2]==[]
-    assert s.request(wp+'?context=edit',role='editor')[0]==400
+    assert s.request(wp+'?context=edit',role='editor')[0]==200
