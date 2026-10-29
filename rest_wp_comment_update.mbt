@@ -75,10 +75,24 @@ fn rest_wp_comment_update(
   }
   let fields = strict_json_object(
     @json.parse(decode_text(body, "Comment update")),
-    ["status"],
+    ["status", "content"],
     "Comment update",
   ) catch {
     _ => return rest_error(400, "rest_invalid_param")
+  }
+  if fields.contains("content") {
+    fields["content"] = wp_comment_input(fields["content"]).to_json() catch {
+      _ => return rest_error(400, "rest_invalid_param")
+    }
+    if fields.get("status") is Some(String("approve")) {
+      fields["status"] = "approved".to_json()
+    }
+    return wp_comment_result(
+      input,
+      content,
+      native_comment_edit(input, content, id, expected, fields),
+      base,
+    )
   }
   let status = match fields.get("status") {
     Some(String("approve")) => "approved"
