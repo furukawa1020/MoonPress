@@ -369,3 +369,5 @@ python3 scripts/rest-wp-comment-parent-filters-test.py
 python3 scripts/rest-static-comment-threads-test.py
 
 python3 scripts/rest-operator-comment-parent-test.py
+
+python3 scripts/rest-native-comment-offset-test.py

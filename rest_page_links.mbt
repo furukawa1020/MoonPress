@@ -11,9 +11,44 @@ fn rest_page_links(
       !rest_is_search(path) &&
       !rest_users_collection(path) &&
       rest_wp_comment_id(path) != Some(0) &&
+      native_comment_id(path) != Some(0) &&
       !(rest_wp_term_target(path) is Some((_, 0)))
     ) {
     return None
+  }
+  if native_comment_id(path) == Some(0) && original.contains("offset") {
+    let offset = rest_nonnegative(original["offset"], 409600)
+    let size = rest_positive(original.get("per_page").unwrap_or("10"), 100)
+    let links : Array[String] = []
+    for
+      (next, rel) in [
+        (if offset > size { offset - size } else { 0 }, "prev"),
+        (offset + size, "next"),
+      ] {
+      if (rel == "prev" && offset == 0) ||
+        (rel == "next" && next >= result.total.unwrap_or(0)) {
+        continue
+      }
+      let query = original.copy()
+      query.remove("page")
+      query["offset"] = next.to_string()
+      let keys = query.keys().to_array()
+      keys.sort()
+      let pairs = keys.map(key => {
+        url_component(key) + "=" + url_component(query[key])
+      })
+      links.push(
+        "<" +
+        base +
+        path[1:].to_owned() +
+        "?" +
+        pairs.join("&") +
+        ">; rel=\"" +
+        rel +
+        "\"",
+      )
+    }
+    return if links.is_empty() { None } else { Some(links.join(", ")) }
   }
   let pages = result.pages.unwrap_or(0)
   let terms = rest_wp_term_target(path) is Some((_, 0))
