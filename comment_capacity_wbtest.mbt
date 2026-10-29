@@ -8,6 +8,7 @@ test "comment capacity returns without touching storage" {
     content: "Text",
     status: "hold",
     created: 0L,
+    parent: None,
   }
   let state : CommentState = {
     sequence: 4096,

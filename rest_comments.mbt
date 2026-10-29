@@ -24,6 +24,7 @@ fn native_comment_value(row : CommentRow, edit : Bool) -> Json {
   let fields : Map[String, Json] = Map([
     ("id", comment.id.to_json()),
     ("post", comment.post.to_json()),
+    ("parent", comment.parent.unwrap_or(0).to_json()),
     ("author_name", comment.author_name.to_json()),
     ("created", comment.created.to_json()),
     ("status", comment.status.to_json()),
@@ -103,6 +104,7 @@ fn native_comment_create(
     content: text,
     status: "hold",
     created: now,
+    parent: None,
   }
   let row = match comment_append(log, state, comment, "create") {
     Some(row) => row

@@ -2,6 +2,7 @@
 priv struct NativeComment {
   id : Int
   post : Int
+  parent : Int?
   author : Int
   author_name : String
   content : String
@@ -72,7 +73,9 @@ fn comment_replay(log : AuthoringDirectory) -> CommentState raise {
     )
     strict_json_object(
       fields.get("comment").unwrap(),
-      ["id", "post", "author", "author_name", "content", "status", "created"],
+      [
+        "id", "post", "parent", "author", "author_name", "content", "status", "created",
+      ],
       "Comment",
     )
     |> ignore
@@ -100,6 +103,7 @@ fn comment_replay(log : AuthoringDirectory) -> CommentState raise {
         comment.status != "hold" {
         raise InvalidInput("Invalid comment creation")
       }
+      comment_validate_parent(rows, comment)
       rows.push({ comment, revision: next, })
     } else if event.action == "status" {
       if comment.id > rows.length() {
@@ -149,6 +153,9 @@ fn comment_append(
   }
   if state.sequence >= 4096 {
     return None
+  }
+  if action == "create" {
+    comment_validate_parent(state.rows, comment)
   }
   let event : CommentEvent = {
     schema: 1,

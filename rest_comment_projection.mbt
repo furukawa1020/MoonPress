@@ -10,7 +10,7 @@ fn native_comment_project(
   }
   let value = native_comment_value(row, edit)
   if embed {
-    rest_project(value, ["id", "author_name", "created", "content"])
+    rest_project(value, ["id", "author_name", "parent", "created", "content"])
   } else {
     value
   }
