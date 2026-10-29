@@ -377,3 +377,5 @@ python3 scripts/rest-comment-author-order-test.py
 python3 scripts/rest-comment-post-order-test.py
 
 python3 scripts/rest-comment-include-order-test.py
+
+python3 scripts/rest-wp-comment-offset-test.py

@@ -62,7 +62,12 @@ fn rest_page_links(
   } else {
     rest_positive(original.get("page").unwrap_or("1"), 4096)
   }
-  let previous = if terms && page - 1 > pages { pages } else { page - 1 }
+  let previous = if (terms || rest_wp_comment_id(path) == Some(0)) &&
+    page - 1 > pages {
+    pages
+  } else {
+    page - 1
+  }
   let links : Array[String] = []
   for (next, rel) in [(previous, "prev"), (page + 1, "next")] {
     if next < 1 || next > pages {
