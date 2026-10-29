@@ -20,20 +20,23 @@ fn rest_wp_comments_options(
       } else {
         "string"
       }).to_json(),
-      "readonly": true.to_json(),
+      "readonly": (!["post", "parent", "content", "author_name", "status"].contains(
+        name,
+      )).to_json(),
       "context": (if ["date_gmt", "post", "status"].contains(name) {
-        ["view"]
+        ["view", "edit"]
       } else {
-        ["view", "embed"]
+        ["view", "embed", "edit"]
       }).to_json(),
     }
   }
   properties["content"] = {
     "type": "object".to_json(),
-    "readonly": true.to_json(),
-    "context": ["view", "embed"].to_json(),
+    "readonly": false.to_json(),
+    "context": ["view", "embed", "edit"].to_json(),
     "properties": {
       "rendered": { "type": "string".to_json(), "readonly": true.to_json() },
+      "raw": { "type": "string".to_json(), "context": ["edit"].to_json() },
     },
   }
   let args : Map[String, Json] = Map([
@@ -41,7 +44,7 @@ fn rest_wp_comments_options(
       "context",
       {
         "type": "string".to_json(),
-        "enum": ["view", "embed"].to_json(),
+        "enum": ["view", "embed", "edit"].to_json(),
         "default": "view".to_json(),
       },
     ),
@@ -68,7 +71,7 @@ fn rest_wp_comments_options(
     args["search"] = { "type": "string".to_json() }
     args["status"] = {
       "type": "string".to_json(),
-      "enum": ["approve"].to_json(),
+      "enum": ["approve", "hold", "spam", "trash", "all"].to_json(),
       "default": "approve".to_json(),
     }
     args["type"] = {
@@ -130,6 +133,43 @@ fn rest_wp_comments_options(
       },
     })
   }
+  if rest_wp_comment_id(path) is Some(id) && id > 0 {
+    let writes : Json = {
+      "context": {
+        "type": "string".to_json(),
+        "enum": ["view", "embed", "edit"].to_json(),
+      },
+      "status": {
+        "type": "string".to_json(),
+        "enum": ["approve", "hold", "spam"].to_json(),
+      },
+      "author_name": { "type": "string".to_json(), "maxLength": (80).to_json() },
+      "content": {
+        "oneOf": [
+          { "type": "string".to_json() },
+          {
+            "type": "object".to_json(),
+            "properties": { "raw": { "type": "string".to_json() } },
+            "required": ["raw"].to_json(),
+            "additionalProperties": false.to_json(),
+          },
+        ].to_json(),
+      },
+    }
+    for verb in ["POST", "PUT", "PATCH"] {
+      endpoints.push({ "methods": [verb].to_json(), "args": writes })
+    }
+    endpoints.push({
+      "methods": ["DELETE"].to_json(),
+      "args": {
+        "force": {
+          "type": "boolean".to_json(),
+          "enum": [false].to_json(),
+          "default": false.to_json(),
+        },
+      },
+    })
+  }
   rest_ok({
     "namespace": "wp/v2".to_json(),
     "methods": rest_methods(path).unwrap().to_json(),
@@ -141,6 +181,13 @@ fn rest_wp_comments_options(
     "moonpress": {
       "subset": true.to_json(),
       "approved_public_reads_only": true.to_json(),
+      "edit_requires_moderation": true.to_json(),
+      "item_writes_require_if_match": true.to_json(),
+      "permanent_delete": false.to_json(),
+      "restore_status": "hold".to_json(),
+      "immutable_on_update": [
+        "id", "post", "parent", "author", "date", "date_gmt",
+      ].to_json(),
       "authenticated_creation": true.to_json(),
       "creation_status": "hold".to_json(),
       "creation_response_context": "edit".to_json(),
