@@ -13,7 +13,25 @@ fn rest_wp_comment_create(
     return rest_error(400, "rest_invalid_param")
   }
   selected.remove("context")
-  let result = native_comment_create(input, content, principal, selected, body)
+  let normalized = try {
+    let fields = strict_json_object(
+      @json.parse(decode_text(body, "Comment body")),
+      ["post", "parent", "author_name", "content"],
+      "Comment body",
+    )
+    fields["content"] = wp_comment_input(
+      fields.get("content").unwrap_or(Json::null()),
+    ).to_json()
+    if !fields.contains("author_name") {
+      fields["author_name"] = principal.login.to_json()
+    }
+    @utf8.encode(Json::object(fields).stringify())
+  } catch {
+    _ => return rest_error(400, "rest_invalid_param")
+  }
+  let result = native_comment_create(
+    input, content, principal, selected, normalized,
+  )
   if result.code != 201 {
     return result
   }
