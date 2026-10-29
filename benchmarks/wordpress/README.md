@@ -80,3 +80,13 @@ A pending creation Location identifies the resource but public GET stays 404 unt
 approval; the native edit Location is available only to the owner or moderator.
 
 The core oracle compares multiline plain raw creation. Paragraph/break normalization has separate native HTTP regressions. Core rejects comment orderby=author_name: native retains that ordering, while the WordPress-shaped route supports parent/post/include and rejects author_name.
+
+
+`comment-management-oracle.php` / `.py` compare actual core edit authority and
+responses across five roles plus anonymous requests, four post/page ownership
+and draft/publish fixtures, 48 detail read/write probes, six private collections,
+eight update/trash/restore transitions and two type orders. The fixture provides
+registered users with valid disposable email values. Native fixture identities
+are explicitly mapped; only supported public author/raw/status/content fields
+are compared, never copied private metadata. Native If-Match, immutable identity,
+hold-only restoration and ordinary approved-only reads are documented extensions.

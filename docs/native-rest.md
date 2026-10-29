@@ -17,7 +17,7 @@ Reference schemas: [posts](https://developer.wordpress.org/rest-api/reference/po
 | `/wp-json/wp/v2/users/me` | Generated Basic credentials required; current identity only |
 | `/wp-json/wp/v2/search` | Public post/page universal search subset |
 | `/wp-json/wp/v2/users`, `/users/ID` | Active native authors with public articles; id/name/slug only |
-| `/wp-json/wp/v2/comments`, `/comments/ID` | Approved public comment reads and authenticated pending collection creation; view/embed |
+| `/wp-json/wp/v2/comments`, `/comments/ID` | Public view/embed, moderator edit reads, guarded creation/update/trash |
 | `/wp-json/wp/v2/types`, `/types/post`, `/types/page` | Implemented post/page metadata; edit fields scoped to editable types |
 | `/wp-json/wp/v2/statuses`, `/statuses/NAME` | Implemented publish/draft/future/trash metadata; nonpublic states require editing capability |
 
@@ -493,26 +493,56 @@ Name ordering is lexical, not the toolchain's default shortlex comparison;
 article title/slug ordering likewise uses native lexical ordering rather than
 a complete WordPress database collation implementation.
 
-Public `/wp/v2/comments` and `/comments/ID` read the native comment journal.
-They return public author identity/label, escaped content, UTC date/date_gmt,
-static anchors, type=comment, numeric parent and related-resource links.
-Reads require approved comments on public articles and approved ancestors.
+Public `/wp/v2/comments` and `/comments/ID` read the native journal. Ordinary
+view/embed reads retain approved-public-article and approved-ancestor visibility,
+even for privileged callers. Explicit edit detail/list reads require fresh
+moderate_comments authority and expose raw plain text and private statuses.
+The edit collection defaults to approve; status=hold|spam|trash|all selects
+nonpublic state only in edit context. Its counts/pagination cover the selected
+private scope, not the ordinary public projection. Email/IP/user-agent fields
+are never synthesized.
+
 Collection POST requires generated credentials and always creates a held comment.
 It accepts post, parent (default 0), optional author_name (default login), and
-bounded plain content as a string or raw object. Only attribute-free paragraphs and breaks are normalized to plain text; other HTML is refused.
-No anonymous creation, impersonation, private metadata, item writes or WP edit
-reads are implemented. Native edit reads remain owner/moderator scoped.
+bounded plain content as a string or strict raw object. Attribute-free paragraphs
+and breaks normalize to plain text; other HTML is refused. Exact HTML raw fidelity,
+anonymous creation, avatars, pingbacks/trackbacks, notes and arbitrary metadata
+remain unsupported.
 
-Both APIs accept parent/parent_exclude, offset, parent/post/include ordering
-and the earlier post/author/date/search/ID filters. Native author_name ordering
-is available only in the native namespace; the WordPress-shaped adapter rejects
-it as core does. WP include order ignores
-order=desc; offset=0 follows page, nonzero offset overrides it, and high pages
-return empty lists with totals. Native offset=0 explicitly starts at zero and
-native out-of-range pages retain their validation error. WP non-date sort ties
-follow the core descending ID fallback; native ties follow requested direction.
-Lexical ordering supports the native normalized text subset, not all SQL collations.
-Native comment embed keeps its earlier identity-minimizing schema.
+Item POST/PUT/PATCH update content, author_name and status=approve|hold|spam.
+The caller must have moderate_comments or native article-editing authority for
+the comment's article. The existing post/page owner, role and publication checks
+apply; comment authorship alone gives no editing authority. Edit-context GETs
+retain their separate moderate_comments requirement, as in core for normal comments.
+ID, post, parent, author principal and created time remain immutable. PUT/PATCH
+preserve omitted fields. A valid compound change appends one edit event; exact
+no-ops preserve the original bytes and source version. Invalid compound input,
+capacity exhaustion and stale versions do not partially apply.
+
+Writes require the current quoted source If-Match (428 missing, 400 malformed,
+412 stale). This stronger native concurrency policy is not WordPress's default.
+Privileged edit detail and successful mutations return source ETags. For an
+approved public detail, an authenticated caller with item-write authority also
+receives its source ETag; anonymous/public callers retain representation ETags.
+Source ETags are write guards, not representation-conditional 304 validators.
+Private comment visibility still requires explicit edit context and moderation.
+
+DELETE trashes only; force=true permanent deletion is refused with 501. Repeated
+trash returns 410 after checking the version. A trashed comment can be restored
+only with a standalone status=hold update, followed by a separate approval.
+Direct approval or payload editing while trashed is refused. Source deletion and
+WordPress's automatic previous-status restoration are not implemented.
+
+Both APIs accept parent/parent_exclude, offset and parent/post/include ordering,
+plus the earlier post/author/date/search/ID filters. Native author_name ordering
+remains a native extension: the WordPress adapter rejects it. The WordPress type
+order handles only implemented comment rows with core's descending ID tie break.
+WP include order ignores order=desc; offset=0 follows page, nonzero offset wins,
+and high pages return empty lists with totals. Native explicit offset=0 starts
+at zero and out-of-range native pages retain their validation error. SQL collation
+and unsupported comment kinds are not emulated. Native embed retains its minimal
+identity projection. OPTIONS advertises actual read/write fields and guard policy.
+
 Native journal epoch fields retain their existing Int64 string representation;
 the WordPress adapter formats dates explicitly as second-precision UTC strings.
 
