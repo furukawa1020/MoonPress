@@ -14,4 +14,4 @@ with NativeSite() as s:
     assert schema['moonpress']['creation_status']=='hold'
     assert 'POST' not in s.request(wp+'/1','OPTIONS')[2]['methods']
     assert 'POST' in s.request('/wp-json/')[2]['routes']['/wp/v2/comments']['methods']
-    assert s.request(wp+'?context=edit',role='editor')[0]==400
+    assert s.request(wp+'?context=edit',role='editor')[0]==200

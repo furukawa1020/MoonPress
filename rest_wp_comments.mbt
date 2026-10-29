@@ -73,7 +73,7 @@ fn rest_wp_comments(
   let id = rest_wp_comment_id(path).unwrap()
   let edit = query.get("context") == Some("edit")
   let embed = query.get("context") == Some("embed")
-  if edit && id > 0 {
+  if edit {
     let user = match principal {
       Some(user) => user
       None => return rest_error(401, "rest_not_logged_in")
@@ -84,7 +84,7 @@ fn rest_wp_comments(
   }
   if query.get("context") is Some(value) &&
     !["view", "embed"].contains(value) &&
-    !(edit && id > 0) {
+    !edit {
     return rest_error(400, "rest_invalid_param")
   }
   if query.get("status") is Some(value) && value != "approve" {
