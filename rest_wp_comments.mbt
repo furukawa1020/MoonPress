@@ -87,7 +87,7 @@ fn rest_wp_comments(
     !edit {
     return rest_error(400, "rest_invalid_param")
   }
-  if query.get("status") is Some(value) && value != "approve" {
+  if query.get("status") is Some(value) && value != "approve" && !edit {
     return rest_error(400, "rest_invalid_param")
   }
   if query.get("type") is Some(value) && value != "comment" {
@@ -100,7 +100,14 @@ fn rest_wp_comments(
   selected["context"] = if edit { "edit" } else { "view" }
   selected.remove("type")
   if id == 0 {
-    selected["status"] = "approved"
+    selected["status"] = match query.get("status").unwrap_or("approve") {
+      "approve" => "approved"
+      "hold" => "hold"
+      "spam" => "spam"
+      "trash" => "trash"
+      "all" => "any"
+      _ => return rest_error(400, "rest_invalid_param")
+    }
     selected["orderby"] = match query.get("orderby").unwrap_or("date_gmt") {
       "date_gmt" | "date" => "date"
       "id" => "id"

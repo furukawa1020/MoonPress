@@ -397,3 +397,5 @@ python3 scripts/rest-comment-core-oracle-test.py
 python3 scripts/rest-wp-comment-edit-detail-test.py
 
 python3 scripts/rest-wp-comment-edit-list-test.py
+
+python3 scripts/rest-wp-comment-edit-status-test.py
