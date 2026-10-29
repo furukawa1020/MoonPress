@@ -35,7 +35,21 @@ fn native_comment_edit(
   } catch {
     _ => return rest_error(400, "rest_invalid_param")
   }
-  let next = { ..current.comment, content: text, }
+  let label = try {
+    let label = match fields.get("author_name") {
+      None => current.comment.author_name
+      Some(String(value)) => value.trim().to_owned()
+      _ => raise InvalidInput("Expected public name")
+    }
+    comment_text(label, 80)
+    if label.any(c => c.is_control()) {
+      raise InvalidInput("Invalid name")
+    }
+    label
+  } catch {
+    _ => return rest_error(400, "rest_invalid_param")
+  }
+  let next = { ..current.comment, content: text, author_name: label, }
   if next == current.comment {
     return rest_ok(
       native_comment_value(current, true),

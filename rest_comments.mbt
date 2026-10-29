@@ -350,12 +350,12 @@ fn native_comment_moderate(
   if verb != "DELETE" {
     let fields = strict_json_object(
       @json.parse(decode_text(body, "Comment edit")),
-      ["status", "content"],
+      ["status", "content", "author_name"],
       "Comment edit",
     ) catch {
       _ => return rest_error(400, "rest_invalid_param")
     }
-    if fields.contains("content") {
+    if fields.contains("content") || fields.contains("author_name") {
       if fields.contains("status") {
         return rest_error(400, "rest_invalid_param")
       }
