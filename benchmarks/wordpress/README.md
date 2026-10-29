@@ -60,3 +60,23 @@ recorded. RSS can double-count shared pages, is not peak memory, and excludes
 the separate MySQL service; it must not be compared with native generation peak.
 
 Published concurrent evidence: [2026-10-22 report](../../docs/wordpress-capacity-2026-10-22.md), including raw records and deterministic regeneration.
+
+
+Comment compatibility oracle: `comment-oracle.php` calls the real core REST controller;
+`comment-oracle.py` compares 27 independently seeded query cases with native HTTP.
+It maps fixture IDs, checks parent/post relationships, rendered text and total headers,
+and compares authenticated reply creation with core configured to hold all comments.
+The comparison includes offset=0/page precedence, empty high pages and include order
+in both directions. It is not a claim of complete WordPress compatibility.
+
+MoonPress comment policy: generated credentials are required for creation, every new
+comment is held for moderation, article and approved ancestor visibility constrain
+public reads, and replies allow at most eight ancestors. Content is bounded plain
+text (HTML is escaped literally), with string or `{ "raw": "text" } input on the
+WordPress-shaped collection. Public view/embed and authenticated creation responses
+are supported; WordPress edit reads, item writes, anonymous comments, rich HTML intake,
+author impersonation, email/IP/URL metadata, pingbacks and trackbacks remain unsupported.
+A pending creation Location identifies the resource but public GET stays 404 until
+approval; the native edit Location is available only to the owner or moderator.
+
+The core oracle compares multiline plain raw creation. Paragraph/break normalization has separate native HTTP regressions. Core rejects comment orderby=author_name: native retains that ordering, while the WordPress-shaped route supports parent/post/include and rejects author_name.

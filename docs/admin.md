@@ -345,3 +345,5 @@ Comment inspection offers no-JavaScript approval, hold and spam forms. Every mut
 The same versioned forms can trash a comment and restore it to hold. Trash never offers direct approval; restoring requires a separate later approval before public display. No permanent purge is offered. CI exercises listing, approval, trash and hold-only restore in real Chrome with JavaScript disabled.
 
 The Site settings page has a single **Show approved comments / Hide comments** button with settings-version protection. It changes source configuration; build and publish the reviewed result to update the public site. Comment inventory and inspection URLs are preserved when switching administration language. The browser CI covers the complete no-JavaScript moderation and display-setting journey.
+
+Comment inspection shows its parent and a Replies link. The inventory accepts a bounded parent filter, including parent=0 for roots; parent filtering survives search and page navigation. These links do not change moderation state.

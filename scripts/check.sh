@@ -391,3 +391,5 @@ python3 scripts/rest-wp-comment-create-test.py
 python3 scripts/rest-wp-comment-raw-test.py
 
 python3 scripts/rest-wp-comment-write-options-test.py
+
+python3 scripts/rest-comment-core-oracle-test.py
