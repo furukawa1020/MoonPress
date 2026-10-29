@@ -113,6 +113,7 @@ fn rest_wp_comments(
       "id" => "id"
       "parent" => "parent"
       "post" => "post"
+      "type" => "type"
       "include" => "include"
       _ => return rest_error(400, "rest_invalid_param")
     }
