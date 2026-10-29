@@ -13,5 +13,5 @@ with NativeSite() as s:
     assert code==201 and row['status']=='hold' and row['content']['raw']=='Pending' and h['Location']==wp+'/'+str(row['id'])
     assert s.request(wp)[2]==[] and s.request(h['Location'])[0]==404
     assert s.request(wp,'POST',{'post':a['id'],'content':'Anon'})[0]==401
-    assert s.request(wp+'/'+str(row['id']),'POST',{},'editor')[0]==405
+    assert s.request(wp+'/'+str(row['id']),'POST',{},'editor')[0]==400
     assert s.request(wp,'DELETE',role='editor')[0]==405

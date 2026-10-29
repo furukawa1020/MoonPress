@@ -411,3 +411,5 @@ python3 scripts/rest-atomic-comment-edit-test.py
 python3 scripts/rest-native-comment-put-test.py
 
 python3 scripts/rest-native-comment-patch-test.py
+
+python3 scripts/rest-wp-comment-status-update-test.py

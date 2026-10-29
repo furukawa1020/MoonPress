@@ -280,7 +280,12 @@ fn rest_route(
         "/wp/v2/users/me": route,
         "/wp/v2/users": route,
         "/wp/v2/comments": create_route,
-        "/wp/v2/comments/(?P<id>[0-9]+)": route,
+        "/wp/v2/comments/(?P<id>[0-9]+)": {
+          "namespace": "wp/v2".to_json(),
+          "methods": rest_methods("/wp-json/wp/v2/comments/1")
+          .unwrap()
+          .to_json(),
+        },
         "/wp/v2/users/(?P<id>[0-9]+)": route,
         "/wp/v2/search": route,
         "/wp/v2/types": route,
