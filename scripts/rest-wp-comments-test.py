@@ -13,7 +13,7 @@ with NativeSite() as s:
     embedded=s.request(detail+'?context=embed')[2];assert 'post' not in embedded and 'status' not in embedded and 'date_gmt' not in embedded
     assert s.request(root+'?_fields=id')[2]==[{'id':c['id']}]
     assert s.request(detail,'HEAD')[2] is None
-    assert s.request(root,'POST',{},'administrator')[0]==405
+    assert s.request(root,'POST',{},'administrator')[0]==400
     for q in ['context=edit','status=hold','type=pingback','orderby=parent']:assert s.request(root+'?'+q,role='administrator')[0]==400
     s.request('/wp-json/wp/v2/posts/'+str(post['id']),'PATCH',{'status':'draft'},'author',post_h['ETag'])
     assert s.request(detail)[0]==404 and s.request(root,role='administrator')[2]==[]

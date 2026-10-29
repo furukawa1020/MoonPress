@@ -3,8 +3,14 @@ fn rest_methods(path : String) -> Array[String]? {
   if rest_wp_term_target(path) is Some(_) {
     return Some(["GET", "HEAD", "OPTIONS"])
   }
-  if rest_wp_comment_id(path) is Some(_) {
-    return Some(["GET", "HEAD", "OPTIONS"])
+  if rest_wp_comment_id(path) is Some(id) {
+    return Some(
+      if id == 0 {
+        ["GET", "HEAD", "POST", "OPTIONS"]
+      } else {
+        ["GET", "HEAD", "OPTIONS"]
+      },
+    )
   }
   if rest_is_users(path) {
     return Some(["GET", "HEAD", "OPTIONS"])
