@@ -174,7 +174,7 @@ fn native_comments_read(
   }
   let orderby = query.get("orderby").unwrap_or("id")
   let order = query.get("order").unwrap_or("asc")
-  if !["id", "date", "author_name"].contains(orderby) ||
+  if !["id", "date", "author_name", "post"].contains(orderby) ||
     !["asc", "desc"].contains(order) {
     return rest_error(400, "rest_invalid_param")
   }
@@ -255,6 +255,8 @@ fn native_comments_read(
   allowed.sort_by(fn(a, b) {
     let compared = if orderby == "date" {
       a.comment.created.compare(b.comment.created)
+    } else if orderby == "post" {
+      a.comment.post.compare(b.comment.post)
     } else if orderby == "author_name" {
       a.comment.author_name
       .to_lower()
