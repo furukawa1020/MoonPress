@@ -48,10 +48,10 @@ fn native_comment_create(
   if !query.is_empty() {
     return rest_error(400, "rest_invalid_param")
   }
-  let (post, text, label) = try {
+  let (post, text, label, parent) = try {
     let fields = strict_json_object(
       @json.parse(decode_text(body, "Comment body")),
-      ["post", "content", "author_name"],
+      ["post", "parent", "content", "author_name"],
       "Comment body",
     )
     let post = rest_positive(
@@ -72,7 +72,11 @@ fn native_comment_create(
     if label.any(c => c.is_control()) {
       raise InvalidInput("Invalid public name")
     }
-    (post, text, label)
+    let parent = rest_nonnegative(
+      fields.get("parent").unwrap_or((0).to_json()).stringify(),
+      2147483647,
+    )
+    (post, text, label, parent)
   } catch {
     _ => return rest_error(400, "rest_invalid_param")
   }
@@ -104,7 +108,22 @@ fn native_comment_create(
     content: text,
     status: "hold",
     created: now,
-    parent: None,
+    parent: if parent == 0 {
+      None
+    } else {
+      Some(parent)
+    },
+  }
+  if parent > 0 &&
+    (
+      parent > state.rows.length() ||
+      !comment_public(state.rows[parent - 1], state.rows) ||
+      state.rows[parent - 1].comment.post != post
+    ) {
+    return rest_error(400, "rest_comment_invalid_parent")
+  }
+  comment_validate_parent(state.rows, comment) catch {
+    _ => return rest_error(400, "rest_comment_invalid_parent")
   }
   let row = match comment_append(log, state, comment, "create") {
     Some(row) => row
