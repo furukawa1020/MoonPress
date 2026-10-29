@@ -89,6 +89,9 @@ fn rest_wp_comments(
     selected["orderby"] = match query.get("orderby").unwrap_or("date_gmt") {
       "date_gmt" | "date" => "date"
       "id" => "id"
+      "author_name" => "author_name"
+      "post" => "post"
+      "include" => "include"
       _ => return rest_error(400, "rest_invalid_param")
     }
     selected["order"] = query.get("order").unwrap_or("desc")
@@ -115,6 +118,7 @@ fn rest_wp_comments(
     id,
     selected,
     projection=Some(row => rest_wp_comment_value(row, articles, base, embed)),
+    wp_order=true,
   )
   if result.code == 404 {
     rest_error(404, "rest_comment_invalid_id")
