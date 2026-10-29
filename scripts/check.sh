@@ -353,3 +353,5 @@ python3 scripts/rest-term-universal-search-test.py
 python3 scripts/rest-term-options-test.py
 
 python3 scripts/rest-term-core-oracle-test.py
+
+python3 scripts/rest-comment-parent-log-test.py
