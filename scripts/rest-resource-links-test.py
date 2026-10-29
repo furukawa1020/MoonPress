@@ -11,5 +11,5 @@ with NativeSite() as s:
         assert s.request(self_path)[2]['_links']==row['_links']
         assert s.request(self_path+'?context=embed')[2]['_links']==row['_links']
         assert s.request(self_path+'?_fields=_links.about')[2]=={'_links':{'about':row['_links']['about']}}
-        assert set(row['_links'])=={'self','collection','about','author'} | ({'wp:term','curies'} if plural=='posts' else set())
+        assert set(row['_links'])=={'self','collection','about','author','replies'} | ({'wp:term','curies'} if plural=='posts' else set())
 print('REST article links: resolvable native self/collection/type resources, contexts and nested projection passed.')

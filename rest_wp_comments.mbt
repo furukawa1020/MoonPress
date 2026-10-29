@@ -43,6 +43,7 @@ fn rest_wp_comment_value(
   let date = rest_now_utc(instant=c.created)
   let fields : Map[String, Json] = Map([
     ("id", c.id.to_json()),
+    ("_links", rest_comment_links(c, articles, base)),
     ("author", c.author.to_json()),
     ("author_name", c.author_name.to_json()),
     ("author_url", "".to_json()),

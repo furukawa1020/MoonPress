@@ -9,6 +9,13 @@ fn rest_article_links(document : Document, base : String) -> Json {
       },
     ].to_json(),
     "collection": [{ "href": collection.to_json() }].to_json(),
+    "replies": [
+      {
+        "href": (base +
+        "wp-json/wp/v2/comments?post=" +
+        document.wp_id.unwrap().to_string()).to_json(),
+      },
+    ].to_json(),
     "about": [
       { "href": (base + "wp-json/wp/v2/types/" + document.kind).to_json() },
     ].to_json(),
