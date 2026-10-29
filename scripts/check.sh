@@ -359,3 +359,5 @@ python3 scripts/rest-comment-parent-log-test.py
 python3 scripts/rest-native-comment-replies-test.py
 
 python3 scripts/rest-native-comment-parents-test.py
+
+python3 scripts/rest-comment-ancestor-visibility-test.py
