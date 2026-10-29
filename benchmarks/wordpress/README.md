@@ -63,7 +63,7 @@ Published concurrent evidence: [2026-10-22 report](../../docs/wordpress-capacity
 
 
 Comment compatibility oracle: `comment-oracle.php` calls the real core REST controller;
-`comment-oracle.py` compares 25 independently seeded query cases with native HTTP.
+`comment-oracle.py` compares 27 independently seeded query cases with native HTTP.
 It maps fixture IDs, checks parent/post relationships, rendered text and total headers,
 and compares authenticated reply creation with core configured to hold all comments.
 The comparison includes offset=0/page precedence, empty high pages and include order
@@ -78,3 +78,5 @@ are supported; WordPress edit reads, item writes, anonymous comments, rich HTML 
 author impersonation, email/IP/URL metadata, pingbacks and trackbacks remain unsupported.
 A pending creation Location identifies the resource but public GET stays 404 until
 approval; the native edit Location is available only to the owner or moderator.
+
+The core oracle compares multiline plain raw creation. Paragraph/break normalization has separate native HTTP regressions. Core rejects comment orderby=author_name: native retains that ordering, while the WordPress-shaped route supports parent/post/include and rejects author_name.

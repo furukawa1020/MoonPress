@@ -29,18 +29,21 @@ with NativeSite() as s:
         code,headers,rows=s.request(route+'?'+urllib.parse.urlencode(pairs));expected=probe['result']
         try:
             assert code==expected['code'],(code,expected['code'])
+            if code!=200:
+                assert code==400,(rows,expected)
+                continue
             assert [r['id'] for r in rows]==[cmap[r['id']] for r in expected['rows']],([r['id'] for r in rows],[cmap[r['id']] for r in expected['rows']])
             for a,b in zip(rows,expected['rows']):
                 assert a['post']==pmap[b['post']] and a['parent']==cmap.get(b['parent'],0)
                 assert a['author_name']==b['author_name'] and text(a['content']['rendered'])==text(b['content']['rendered'])
             for k in ['X-WP-Total','X-WP-TotalPages']:assert str(headers[k])==str(expected['headers'][k])
         except (AssertionError,KeyError,TypeError) as e:failures.append((probe['params'],str(e)))
-    code,headers,row=s.request(route,'POST',{'post':posts[0],'parent':ids[0],'content':{'raw':'<p>Pending<br>reply</p><p>Text</p>'}},'subscriber')
+    code,headers,row=s.request(route,'POST',{'post':posts[0],'parent':ids[0],'content':{'raw':'Pending\nreply\n\nText'}},'subscriber')
     try:
         expected=core['created'];assert code==expected['code']==201,(row,expected)
         assert row['status']==expected['rows']['status']=='hold' and text(row['content']['rendered'])==text(expected['rows']['content']['rendered'])
         assert row['content']['raw']=='Pending\nreply\n\nText' and row['parent']==ids[0] and expected['rows']['parent']==core['ids'][0]
         assert row['id'] not in [r['id'] for r in s.request(route)[2]]
-    except (AssertionError,KeyError,TypeError) as e:failures.append(('creation',str(e)))
+    except (AssertionError,KeyError,TypeError) as e:failures.append(('creation',{'error':str(e),'native':row,'core':core['created']}))
 assert not failures,json.dumps(failures,indent=2)
-print('Actual WordPress core: 25 comment query cases, reply relationships, rendered text, totals and configured moderated creation passed.')
+print('Actual WordPress core: 27 comment query cases, reply relationships, rendered text, totals and configured moderated creation passed.')

@@ -83,7 +83,7 @@ fn rest_wp_comments_options(
     }
     args["orderby"] = {
       "type": "string".to_json(),
-      "enum": ["date", "date_gmt", "id", "author_name", "post", "include"].to_json(),
+      "enum": ["date", "date_gmt", "id", "parent", "post", "include"].to_json(),
       "default": "date_gmt".to_json(),
     }
   }

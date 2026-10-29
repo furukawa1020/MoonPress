@@ -91,7 +91,7 @@ fn rest_wp_comments(
     selected["orderby"] = match query.get("orderby").unwrap_or("date_gmt") {
       "date_gmt" | "date" => "date"
       "id" => "id"
-      "author_name" => "author_name"
+      "parent" => "parent"
       "post" => "post"
       "include" => "include"
       _ => return rest_error(400, "rest_invalid_param")

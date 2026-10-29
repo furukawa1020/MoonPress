@@ -503,8 +503,10 @@ bounded plain content as a string or raw object. Only attribute-free paragraphs 
 No anonymous creation, impersonation, private metadata, item writes or WP edit
 reads are implemented. Native edit reads remain owner/moderator scoped.
 
-Both APIs accept parent/parent_exclude, offset, author_name/post/include ordering
-and the earlier post/author/date/search/ID filters. WP include order ignores
+Both APIs accept parent/parent_exclude, offset, parent/post/include ordering
+and the earlier post/author/date/search/ID filters. Native author_name ordering
+is available only in the native namespace; the WordPress-shaped adapter rejects
+it as core does. WP include order ignores
 order=desc; offset=0 follows page, nonzero offset overrides it, and high pages
 return empty lists with totals. Native offset=0 explicitly starts at zero and
 native out-of-range pages retain their validation error. WP non-date sort ties

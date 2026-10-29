@@ -180,7 +180,9 @@ fn native_comments_read(
   }
   let orderby = query.get("orderby").unwrap_or("id")
   let order = query.get("order").unwrap_or("asc")
-  if !["id", "date", "author_name", "post", "include"].contains(orderby) ||
+  if !["id", "date", "author_name", "parent", "post", "include"].contains(
+      orderby,
+    ) ||
     !["asc", "desc"].contains(order) {
     return rest_error(400, "rest_invalid_param")
   }
@@ -270,6 +272,8 @@ fn native_comments_read(
       ranks[a.comment.id].compare(ranks[b.comment.id])
     } else if orderby == "date" {
       a.comment.created.compare(b.comment.created)
+    } else if orderby == "parent" {
+      a.comment.parent.unwrap_or(0).compare(b.comment.parent.unwrap_or(0))
     } else if orderby == "post" {
       a.comment.post.compare(b.comment.post)
     } else if orderby == "author_name" {
@@ -281,7 +285,7 @@ fn native_comments_read(
     }
     let compared = if compared == 0 &&
       wp_order &&
-      ["author_name", "post"].contains(orderby) {
+      ["author_name", "parent", "post"].contains(orderby) {
       if order == "asc" {
         b.comment.id.compare(a.comment.id)
       } else {

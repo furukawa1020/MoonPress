@@ -11,7 +11,10 @@ with NativeSite() as s:
     rows=[create(post=b['id'],label='Z'),create(label='Alpha'),create(label='Beta')]
     for r in rows:set_status(s,r['id'],'approved')
     wp='/wp-json/wp/v2/comments'
-    assert [r['author_name'] for r in s.request(wp+'?orderby=author_name&order=asc')[2]]==['Alpha','Beta','Z']
+    assert s.request(wp+'?orderby=author_name')[0]==400
+    child=create(post=b['id'],parent=rows[0]['id']);set_status(s,child['id'],'approved')
+    assert [r['parent'] for r in s.request(wp+'?orderby=parent&order=asc')[2]]==[0,0,0,rows[0]['id']]
+    assert [r['parent'] for r in s.request(wp+'?orderby=parent&order=desc')[2]]==[rows[0]['id'],0,0,0]
     assert s.request(wp+'?orderby=post&order=asc')[2][0]['post']==a['id']
     ids=[r['id'] for r in reversed(rows)]
     for order in ['asc','desc']:
