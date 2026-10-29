@@ -405,3 +405,5 @@ python3 scripts/rest-comment-edit-events-test.py
 python3 scripts/rest-native-comment-content-edit-test.py
 
 python3 scripts/rest-native-comment-name-edit-test.py
+
+python3 scripts/rest-atomic-comment-edit-test.py

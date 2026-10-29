@@ -356,9 +356,6 @@ fn native_comment_moderate(
       _ => return rest_error(400, "rest_invalid_param")
     }
     if fields.contains("content") || fields.contains("author_name") {
-      if fields.contains("status") {
-        return rest_error(400, "rest_invalid_param")
-      }
       return native_comment_edit(input, content, id, expected, fields)
     }
   }
