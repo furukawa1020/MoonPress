@@ -47,7 +47,10 @@ fn rest_wp_comments_options(
     ),
   ])
   if rest_wp_comment_id(path) == Some(0) {
-    for name in ["post", "author", "author_exclude", "include", "exclude"] {
+    for
+      name in [
+        "post", "author", "author_exclude", "include", "exclude", "parent", "parent_exclude",
+      ] {
       args[name] = {
         "type": "array".to_json(),
         "items": { "type": "integer".to_json() },
