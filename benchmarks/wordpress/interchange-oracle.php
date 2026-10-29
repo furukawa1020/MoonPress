@@ -19,6 +19,6 @@ if(is_wp_error($post)){throw new RuntimeException('Cannot seed public article');
 $comment=wp_insert_comment(['comment_post_ID'=>$post,'comment_author'=>'Public reader','comment_content'=>'Core comment text.','comment_approved'=>'1','comment_type'=>'comment','comment_parent'=>0,'user_id'=>$author,'comment_date'=>'2020-01-02 03:04:05','comment_date_gmt'=>'2020-01-02 03:04:05']);
 wp_set_current_user(0);
 $comments=[];
-foreach(['view','embed'] as $context){$request=new WP_REST_Request('GET','/wp/v2/comments/'.$comment);$request->set_param('context',$context);$response=rest_do_request($request);if($response->get_status()!==200){throw new RuntimeException('Core public comment failed');}$comments[$context]=$response->get_data();}
+foreach(['view','embed'] as $context){$request=new WP_REST_Request('GET','/wp/v2/comments/'.$comment);$request->set_param('context',$context);$response=rest_do_request($request);if($response->get_status()!==200){throw new RuntimeException('Core public comment failed');}$comments[$context]=rest_get_server()->response_to_data($response,false);}
 $request=new WP_REST_Request('GET','/wp/v2/users/'.$author);$response=rest_do_request($request);if($response->get_status()!==200){throw new RuntimeException('Core public author failed');}
 file_put_contents($argv[2],json_encode(['title_order'=>$title_order,'raw'=>$rows,'author'=>$response->get_data(),'post'=>(int)$post,'comment'=>$comments],JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE));
