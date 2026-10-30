@@ -213,6 +213,9 @@ fn rest_route(
   base : String,
   principal : AccessPrincipal?,
 ) -> RestResponse raise {
+  if rest_wp_media_target(path) is Some(_) {
+    return rest_wp_media(input, path, query, base)
+  }
   if rest_wp_term_target(path) is Some(_) {
     return rest_wp_terms(input, path, query, base)
   }
