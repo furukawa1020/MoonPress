@@ -443,3 +443,5 @@ python3 scripts/rest-wp-media-04-test.py
 python3 scripts/rest-wp-media-05-test.py
 
 python3 scripts/rest-wp-media-06-test.py
+
+python3 scripts/rest-wp-media-07-test.py

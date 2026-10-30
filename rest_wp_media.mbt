@@ -45,7 +45,7 @@ fn rest_wp_media(
 ) -> RestResponse raise {
   let id = rest_wp_media_target(path).unwrap()
   for key, _ in query {
-    if !["search", "page", "per_page", "context"].contains(key) ||
+    if !["search", "mime_type", "page", "per_page", "context"].contains(key) ||
       (id > 0 && key != "context") {
       return rest_error(400, "rest_invalid_param")
     }
@@ -57,11 +57,21 @@ fn rest_wp_media(
   let size = rest_positive(query.get("per_page").unwrap_or("10"), 100)
   let page = rest_positive(query.get("page").unwrap_or("1"), 4096)
   let start = (page - 1) * size
+  let mime = query.get("mime_type")
+  if mime is Some(value) &&
+    ![
+      "image/png", "image/jpeg", "image/gif", "image/webp", "application/octet-stream",
+    ].contains(value) {
+    return rest_error(400, "rest_invalid_param")
+  }
   let search = native_query_text(query.get("search").unwrap_or(""))
   let rows = wp_media_snapshot(input) catch {
     _ => return rest_error(500, "moonpress_media_unavailable")
   }
-  let rows = rows.filter(row => row.name.to_lower().contains(search))
+  let rows = rows.filter(row => {
+    row.name.to_lower().contains(search) &&
+    (mime is None || mime == Some(row.mime))
+  })
   if id > 0 {
     for row in rows {
       if row.id == id {
