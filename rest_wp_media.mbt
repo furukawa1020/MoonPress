@@ -27,6 +27,14 @@ fn wp_media_value(row : WpMedia, base : String, embed : Bool) -> Json {
     "source_url": (base + url_component(row.name)).to_json(),
     "mime_type": row.mime.to_json(),
     "media_type": (if row.mime.has_prefix("image/") { "image" } else { "file" }).to_json(),
+    "_links": {
+      "self": [
+        {
+          "href": (base + "wp-json/wp/v2/media/" + row.id.to_string()).to_json(),
+        },
+      ].to_json(),
+      "collection": [{ "href": (base + "wp-json/wp/v2/media").to_json() }].to_json(),
+    },
   }
   if embed {
     rest_project(value, [
