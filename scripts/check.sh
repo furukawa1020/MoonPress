@@ -467,3 +467,5 @@ python3 scripts/rest-wp-media-16-test.py
 python3 scripts/rest-wp-media-17-test.py
 
 python3 scripts/rest-wp-media-18-test.py
+
+python3 scripts/rest-wp-media-19-test.py

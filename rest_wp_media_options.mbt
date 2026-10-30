@@ -57,6 +57,12 @@ fn rest_wp_media_options(
     for name in ["search", "mime_type", "media_type"] {
       args[name] = { "type": "string".to_json() }
     }
+    for name in ["mime_type", "media_type"] {
+      args[name] = {
+        "type": "array".to_json(),
+        "items": { "type": "string".to_json() },
+      }
+    }
     args["order"] = {
       "type": "string".to_json(),
       "enum": ["asc", "desc"].to_json(),

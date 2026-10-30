@@ -80,18 +80,12 @@ fn rest_wp_media(
     None => (page - 1) * size
   }
   let search = native_query_text(query.get("search").unwrap_or(""))
-  let mime = query.get("mime_type")
-  if mime is Some(value) &&
-    ![
-      "image/png", "image/jpeg", "image/gif", "image/webp", "application/octet-stream",
-    ].contains(value) {
-    return rest_error(400, "rest_invalid_param")
-  }
-  let media_type = query.get("media_type")
-  if media_type is Some(value) &&
-    !["image", "application", "audio", "video", "text"].contains(value) {
-    return rest_error(400, "rest_invalid_param")
-  }
+  let mimes = wp_media_filter_values(query.get("mime_type"), [
+    "image/png", "image/jpeg", "image/gif", "image/webp", "application/octet-stream",
+  ])
+  let media_types = wp_media_filter_values(query.get("media_type"), [
+    "image", "application", "audio", "video", "text",
+  ])
   let included = rest_id_list(query.get("include"))
   let excluded = rest_id_list(query.get("exclude"))
   let slugs = wp_media_slugs(query.get("slug"))
@@ -114,9 +108,9 @@ fn rest_wp_media(
   let rows = rows.filter(row => {
     row.name.to_lower().contains(search) &&
     (
-      (mime is None && media_type is None) ||
-      mime == Some(row.mime) ||
-      (media_type is Some(kind) && row.mime.has_prefix(kind + "/"))
+      (mimes.is_empty() && media_types.is_empty()) ||
+      mimes.contains(row.mime) ||
+      media_types.any(kind => row.mime.has_prefix(kind + "/"))
     ) &&
     (included.is_empty() || included.contains(row.id)) &&
     (!included.is_empty() || !excluded.contains(row.id)) &&
@@ -182,4 +176,27 @@ fn wp_media_slugs(value : String?) -> Array[String] raise {
     }
   }
   names
+}
+
+///|
+fn wp_media_filter_values(
+  value : String?,
+  allowed : Array[String],
+) -> Array[String] raise {
+  let selected : Array[String] = []
+  if value is Some(value) {
+    for part in value.split(",") {
+      let name = part.trim().to_owned()
+      if !allowed.contains(name) {
+        raise InvalidInput("Unsupported media filter")
+      }
+      if !selected.contains(name) {
+        selected.push(name)
+      }
+      if selected.length() > 100 {
+        raise InvalidInput("Media filter limit")
+      }
+    }
+  }
+  selected
 }
