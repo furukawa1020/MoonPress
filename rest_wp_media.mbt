@@ -18,14 +18,21 @@ fn rest_wp_media_target(path : String) -> Int? {
 }
 
 ///|
-fn wp_media_value(row : WpMedia, base : String, _embed : Bool) -> Json {
-  {
+fn wp_media_value(row : WpMedia, base : String, embed : Bool) -> Json {
+  let value : Json = {
     "slug": ("media-" + @crypto.bytes_to_hex_string(@utf8.encode(row.name))).to_json(),
     "title": { "rendered": escape_html(row.name).to_json() },
     "id": row.id.to_json(),
     "source_url": (base + url_component(row.name)).to_json(),
     "mime_type": row.mime.to_json(),
     "media_type": (if row.mime.has_prefix("image/") { "image" } else { "file" }).to_json(),
+  }
+  if embed {
+    rest_project(value, [
+      "id", "slug", "title", "source_url", "media_type", "mime_type", "_links",
+    ])
+  } else {
+    value
   }
 }
 
@@ -43,9 +50,10 @@ fn rest_wp_media(
       return rest_error(400, "rest_invalid_param")
     }
   }
-  if query.get("context").unwrap_or("view") != "view" {
+  if !["view", "embed"].contains(query.get("context").unwrap_or("view")) {
     return rest_error(400, "rest_invalid_param")
   }
+  let embed = query.get("context") == Some("embed")
   let size = rest_positive(query.get("per_page").unwrap_or("10"), 100)
   let page = rest_positive(query.get("page").unwrap_or("1"), 4096)
   let start = (page - 1) * size
@@ -55,7 +63,7 @@ fn rest_wp_media(
   if id > 0 {
     for row in rows {
       if row.id == id {
-        return rest_ok(wp_media_value(row, base, false))
+        return rest_ok(wp_media_value(row, base, embed))
       }
     }
     return rest_error(404, "rest_post_invalid_id")
@@ -66,7 +74,7 @@ fn rest_wp_media(
   }
   let selected : Array[Json] = []
   for n = start; n < rows.length() && n < start + size; n = n + 1 {
-    selected.push(wp_media_value(rows[n], base, false))
+    selected.push(wp_media_value(rows[n], base, embed))
   }
   {
     ..rest_ok(selected.to_json()),
