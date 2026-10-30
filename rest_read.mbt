@@ -290,6 +290,8 @@ fn rest_route(
           .to_json(),
         },
         "/wp/v2/users/(?P<id>[0-9]+)": route,
+        "/wp/v2/media": route,
+        "/wp/v2/media/(?P<id>[0-9]+)": route,
         "/wp/v2/search": route,
         "/wp/v2/types": route,
         "/wp/v2/tags": route,

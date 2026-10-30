@@ -49,6 +49,9 @@ fn rest_methods(path : String) -> Array[String]? {
 
 ///|
 fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
+  if rest_wp_media_target(path) is Some(_) {
+    return rest_wp_media_options(path, query)
+  }
   if rest_is_taxonomies(path) || rest_wp_term_target(path) is Some(_) {
     return rest_term_options(path, query)
   }
