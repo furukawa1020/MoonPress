@@ -457,3 +457,5 @@ python3 scripts/rest-wp-media-11-test.py
 python3 scripts/rest-wp-media-12-test.py
 
 python3 scripts/rest-wp-media-13-test.py
+
+python3 scripts/rest-wp-media-14-test.py

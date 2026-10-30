@@ -53,7 +53,7 @@ fn rest_wp_media(
   for key, _ in query {
     if ![
         "page", "per_page", "context", "search", "mime_type", "media_type", "include",
-        "exclude", "order", "orderby",
+        "exclude", "order", "orderby", "slug",
       ].contains(key) ||
       (id > 0 && key != "context") {
       return rest_error(400, "rest_invalid_param")
@@ -81,6 +81,7 @@ fn rest_wp_media(
   }
   let included = rest_id_list(query.get("include"))
   let excluded = rest_id_list(query.get("exclude"))
+  let slugs = wp_media_slugs(query.get("slug"))
   let orderby = query.get("orderby").unwrap_or("id")
   let order = query.get("order").unwrap_or("desc")
   if !["id", "title", "include"].contains(orderby) ||
@@ -105,7 +106,8 @@ fn rest_wp_media(
       (media_type is Some(kind) && row.mime.has_prefix(kind + "/"))
     ) &&
     (included.is_empty() || included.contains(row.id)) &&
-    (!included.is_empty() || !excluded.contains(row.id))
+    (!included.is_empty() || !excluded.contains(row.id)) &&
+    (slugs.is_empty() || slugs.contains(wp_media_slug(row.name)))
   })
   if id > 0 {
     for row in rows {
@@ -143,4 +145,28 @@ fn rest_wp_media(
     total: Some(rows.length()),
     pages: Some((rows.length() + size - 1) / size),
   }
+}
+
+///|
+fn wp_media_slugs(value : String?) -> Array[String] raise {
+  let names : Array[String] = []
+  if value is Some(value) {
+    for part in value.split(",") {
+      let name = part.to_owned()
+      if !name.has_prefix("media-") ||
+        name.length() <= 6 ||
+        name.length() > 518 ||
+        (name.length() - 6) % 2 != 0 ||
+        !name[6:].all(c => (c >= 'a' && c <= 'f') || c.is_ascii_digit()) {
+        raise InvalidInput("Invalid media slug")
+      }
+      if !names.contains(name) {
+        names.push(name)
+      }
+      if names.length() > 100 {
+        raise InvalidInput("Media slug limit")
+      }
+    }
+  }
+  names
 }
