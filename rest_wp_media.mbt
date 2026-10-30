@@ -1,26 +1,27 @@
 ///|
 fn rest_wp_media_target(path : String) -> Int? {
-  if path == "/wp-json/wp/v2/media" || path == "/wp-json/wp/v2/media/" {
-    Some(0)
-  } else if path.has_prefix("/wp-json/wp/v2/media/") {
-    let tail = path[21:].to_owned()
-    let tail = if tail.has_suffix("/") {
-      tail[:tail.length() - 1].to_owned()
-    } else {
-      tail
-    }
-    Some(rest_positive(tail, 2147483647)) catch {
-      _ => None
-    }
+  let prefix = "/wp-json/wp/v2/media"
+  if path == prefix || path == prefix + "/" {
+    return Some(0)
+  }
+  if !path.has_prefix(prefix + "/") {
+    return None
+  }
+  let tail = path[prefix.length() + 1:].to_owned()
+  let tail = if tail.has_suffix("/") {
+    tail[:tail.length() - 1].to_owned()
   } else {
-    None
+    tail
+  }
+  Some(rest_positive(tail, 2147483647)) catch {
+    _ => None
   }
 }
 
 ///|
 fn wp_media_value(row : WpMedia, base : String, embed : Bool) -> Json {
   let value : Json = {
-    "slug": ("media-" + @crypto.bytes_to_hex_string(@utf8.encode(row.name))).to_json(),
+    "slug": wp_media_slug(row.name).to_json(),
     "title": { "rendered": escape_html(row.name).to_json() },
     "id": row.id.to_json(),
     "source_url": (base + url_component(row.name)).to_json(),
@@ -37,6 +38,11 @@ fn wp_media_value(row : WpMedia, base : String, embed : Bool) -> Json {
 }
 
 ///|
+fn wp_media_slug(name : String) -> String {
+  "media-" + @crypto.bytes_to_hex_string(@utf8.encode(name))
+}
+
+///|
 fn rest_wp_media(
   input : String,
   path : String,
@@ -45,7 +51,9 @@ fn rest_wp_media(
 ) -> RestResponse raise {
   let id = rest_wp_media_target(path).unwrap()
   for key, _ in query {
-    if !["search", "mime_type", "page", "per_page", "context"].contains(key) ||
+    if !["page", "per_page", "context", "search", "mime_type", "media_type"].contains(
+        key,
+      ) ||
       (id > 0 && key != "context") {
       return rest_error(400, "rest_invalid_param")
     }
@@ -57,6 +65,7 @@ fn rest_wp_media(
   let size = rest_positive(query.get("per_page").unwrap_or("10"), 100)
   let page = rest_positive(query.get("page").unwrap_or("1"), 4096)
   let start = (page - 1) * size
+  let search = native_query_text(query.get("search").unwrap_or(""))
   let mime = query.get("mime_type")
   if mime is Some(value) &&
     ![
@@ -64,13 +73,21 @@ fn rest_wp_media(
     ].contains(value) {
     return rest_error(400, "rest_invalid_param")
   }
-  let search = native_query_text(query.get("search").unwrap_or(""))
+  let media_type = query.get("media_type")
+  if media_type is Some(value) &&
+    !["image", "application", "audio", "video", "text"].contains(value) {
+    return rest_error(400, "rest_invalid_param")
+  }
   let rows = wp_media_snapshot(input) catch {
     _ => return rest_error(500, "moonpress_media_unavailable")
   }
   let rows = rows.filter(row => {
     row.name.to_lower().contains(search) &&
-    (mime is None || mime == Some(row.mime))
+    (
+      (mime is None && media_type is None) ||
+      mime == Some(row.mime) ||
+      (media_type is Some(kind) && row.mime.has_prefix(kind + "/"))
+    )
   })
   if id > 0 {
     for row in rows {
@@ -80,7 +97,11 @@ fn rest_wp_media(
     }
     return rest_error(404, "rest_post_invalid_id")
   }
-  rows.sort_by(fn(a, b) { b.id.compare(a.id) })
+  rows.sort_by(fn(a, b) {
+    let compared = a.id.compare(b.id)
+    let compared = if compared == 0 { a.id.compare(b.id) } else { compared }
+    0 - compared
+  })
   if start > 0 && start >= rows.length() {
     return rest_error(400, "rest_post_invalid_page_number")
   }
