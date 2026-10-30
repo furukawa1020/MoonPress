@@ -140,7 +140,13 @@ fn rest_wp_media(
       0 - compared
     }
   })
-  if page > (rows.length() + size - 1) / size && rows.length() > 0 {
+
+  let total = if query.contains("offset") && start >= rows.length() {
+    0
+  } else {
+    rows.length()
+  }
+  if page > (total + size - 1) / size && total > 0 {
     return rest_error(400, "rest_post_invalid_page_number")
   }
   let selected : Array[Json] = []
@@ -149,8 +155,8 @@ fn rest_wp_media(
   }
   {
     ..rest_ok(selected.to_json()),
-    total: Some(rows.length()),
-    pages: Some((rows.length() + size - 1) / size),
+    total: Some(total),
+    pages: Some((total + size - 1) / size),
   }
 }
 
