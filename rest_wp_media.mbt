@@ -20,6 +20,8 @@ fn rest_wp_media_target(path : String) -> Int? {
 ///|
 fn wp_media_value(row : WpMedia, base : String, _embed : Bool) -> Json {
   {
+    "slug": ("media-" + @crypto.bytes_to_hex_string(@utf8.encode(row.name))).to_json(),
+    "title": { "rendered": escape_html(row.name).to_json() },
     "id": row.id.to_json(),
     "source_url": (base + url_component(row.name)).to_json(),
     "mime_type": row.mime.to_json(),
