@@ -53,7 +53,7 @@ fn rest_wp_media(
   for key, _ in query {
     if ![
         "page", "per_page", "context", "search", "mime_type", "media_type", "include",
-        "exclude",
+        "exclude", "order", "orderby",
       ].contains(key) ||
       (id > 0 && key != "context") {
       return rest_error(400, "rest_invalid_param")
@@ -81,6 +81,11 @@ fn rest_wp_media(
   }
   let included = rest_id_list(query.get("include"))
   let excluded = rest_id_list(query.get("exclude"))
+  let orderby = query.get("orderby").unwrap_or("id")
+  let order = query.get("order").unwrap_or("desc")
+  if !["id"].contains(orderby) || !["asc", "desc"].contains(order) {
+    return rest_error(400, "rest_invalid_param")
+  }
   let rows = wp_media_snapshot(input) catch {
     _ => return rest_error(500, "moonpress_media_unavailable")
   }
@@ -105,7 +110,11 @@ fn rest_wp_media(
   rows.sort_by(fn(a, b) {
     let compared = a.id.compare(b.id)
     let compared = if compared == 0 { a.id.compare(b.id) } else { compared }
-    0 - compared
+    if order == "asc" {
+      compared
+    } else {
+      0 - compared
+    }
   })
   if start > 0 && start >= rows.length() {
     return rest_error(400, "rest_post_invalid_page_number")

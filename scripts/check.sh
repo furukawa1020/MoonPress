@@ -451,3 +451,5 @@ python3 scripts/rest-wp-media-08-test.py
 python3 scripts/rest-wp-media-09-test.py
 
 python3 scripts/rest-wp-media-10-test.py
+
+python3 scripts/rest-wp-media-11-test.py
