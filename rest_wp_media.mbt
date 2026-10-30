@@ -53,7 +53,7 @@ fn rest_wp_media(
   for key, _ in query {
     if ![
         "page", "per_page", "context", "search", "mime_type", "media_type", "include",
-        "exclude", "order", "orderby", "slug",
+        "exclude", "order", "orderby", "slug", "offset",
       ].contains(key) ||
       (id > 0 && key != "context") {
       return rest_error(400, "rest_invalid_param")
@@ -65,7 +65,10 @@ fn rest_wp_media(
   let embed = query.get("context") == Some("embed")
   let size = rest_positive(query.get("per_page").unwrap_or("10"), 100)
   let page = rest_positive(query.get("page").unwrap_or("1"), 4096)
-  let start = (page - 1) * size
+  let start = match query.get("offset") {
+    Some(value) => rest_nonnegative(value, 409600)
+    None => (page - 1) * size
+  }
   let search = native_query_text(query.get("search").unwrap_or(""))
   let mime = query.get("mime_type")
   if mime is Some(value) &&
@@ -133,7 +136,7 @@ fn rest_wp_media(
       0 - compared
     }
   })
-  if start > 0 && start >= rows.length() {
+  if page > (rows.length() + size - 1) / size && rows.length() > 0 {
     return rest_error(400, "rest_post_invalid_page_number")
   }
   let selected : Array[Json] = []
