@@ -53,6 +53,7 @@ fn rest_wp_media(
   for key, _ in query {
     if ![
         "page", "per_page", "context", "search", "mime_type", "media_type", "include",
+        "exclude",
       ].contains(key) ||
       (id > 0 && key != "context") {
       return rest_error(400, "rest_invalid_param")
@@ -79,6 +80,7 @@ fn rest_wp_media(
     return rest_error(400, "rest_invalid_param")
   }
   let included = rest_id_list(query.get("include"))
+  let excluded = rest_id_list(query.get("exclude"))
   let rows = wp_media_snapshot(input) catch {
     _ => return rest_error(500, "moonpress_media_unavailable")
   }
@@ -89,7 +91,8 @@ fn rest_wp_media(
       mime == Some(row.mime) ||
       (media_type is Some(kind) && row.mime.has_prefix(kind + "/"))
     ) &&
-    (included.is_empty() || included.contains(row.id))
+    (included.is_empty() || included.contains(row.id)) &&
+    (!included.is_empty() || !excluded.contains(row.id))
   })
   if id > 0 {
     for row in rows {
