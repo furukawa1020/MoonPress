@@ -90,3 +90,13 @@ registered users with valid disposable email values. Native fixture identities
 are explicitly mapped; only supported public author/raw/status/content fields
 are compared, never copied private metadata. Native If-Match, immutable identity,
 hold-only restoration and ordinary approved-only reads are documented extensions.
+
+
+The media oracle seeds three disposable attachment records and original files in
+actual core, then compares 35 collection queries and six view/embed details with
+native public files. Queries cover MIME/type unions, ID/include/slug mapping,
+selection, title/request ordering, counts and offset/page edge cases. Identity and
+source URL namespaces are compared explicitly rather than pretending to share a
+WordPress database. No attachment dates/owners/image derivatives are inferred.
+The oracle runs after measured experiments, only inside the existing disposable
+GitHub-hosted runner guard.

@@ -137,3 +137,20 @@ Native If-Match requirements, immutable identity, approved-only ordinary views,
 strict text intake, lack of private email/IP metadata, and hold-only restoration
 remain deliberate subset boundaries. Full WordPress runtime/plugin/theme/editor
 and database compatibility are still not claimed.
+
+
+## Public media REST reads (20 changes)
+
+MoonBit native now maps flat public assets to stable filename-derived media IDs,
+WordPress-shaped list/detail and view/embed projections, safe title/slug/URLs,
+verified MIME/type filters, include/exclude/slug selection, deterministic ordering,
+offset/page totals, resource/page links, OPTIONS and real filename/filesize fields.
+Multiple MIME/type arguments follow core 7.1 union semantics. HTTP regressions
+exercise conditional/field/envelope reads and fail-closed snapshot guards; a real
+WordPress oracle maps independent identities for collection and detail comparisons.
+
+This is a public-file read subset. Native default ID order, lossless hex slugs,
+filename titles and strict MIME/search bounds are documented differences. It adds
+no WordPress attachment database, write endpoints, image derivatives/EXIF,
+Gutenberg/media editor, PHP plugin/theme execution or complete runtime parity.
+See [the exact REST scope](native-rest.md#public-wordpress-shaped-media-reads).

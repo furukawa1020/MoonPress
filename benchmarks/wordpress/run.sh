@@ -34,3 +34,5 @@ python3 benchmarks/wordpress/wxr-oracle.py "$work/wordpress" "$work/plugin/wordp
 python3 benchmarks/wordpress/comment-oracle.py "$work/wordpress" "$work"
 python3 benchmarks/wordpress/comment-management-oracle.py "$work/wordpress" "$work"
 python3 benchmarks/wordpress/emit.py "$work/native.json" "$work/http.json"
+
+python3 benchmarks/wordpress/media-oracle.py "$work/wordpress" "$work"

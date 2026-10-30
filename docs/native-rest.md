@@ -622,3 +622,62 @@ search. It seeds matching explicit slugs and maps independently allocated IDs;
 links are checked as working native archives/API relationships rather than
 requiring WordPress dynamic URLs. The comparison uses public nonempty flat
 terms and does not claim empty/private terms, hierarchy or term-write parity.
+
+
+## Public WordPress-shaped media reads
+
+`GET /wp-json/wp/v2/media` and `/media/<id>` expose the site's flat `public/`
+files as a read-only compatibility subset. GET, HEAD and OPTIONS are available;
+POST/PUT/PATCH/DELETE return 405. `view` and `embed` are supported; `edit` is
+unsupported. Invalid supplied credentials still return 401. The existing
+`/moonpress/v1/media` workflow retains its credential/capability requirements.
+These reads neither create a missing directory nor write attachment records.
+
+IDs are positive 31-bit values from the first eight SHA-256 hex digits of
+`media\n<filename>` (high bit removed, zero mapped to one). All IDs are validated
+before filtering/paging/detail lookup; a collision fails the entire snapshot.
+Rename changes identity; replacement preserves it. Slugs are `media-` plus the
+filename's lowercase UTF-8 hex. These are stable native identities, not imported
+WordPress database IDs or core slug normalization.
+
+Fields are `id`, `slug`, escaped filename `title.rendered`, `source_url`,
+`mime_type`, `media_type`, and self/collection `_links`. View additionally
+includes actual `filename` and `filesize`, corresponding to core 7.1 properties.
+Source URLs address the original public file. Signature-verified PNG/JPEG/GIF/WebP
+are images; everything else is `application/octet-stream` and media_type `file`.
+No image decoding, dimensions, EXIF, responsive sizes or attachment page is inferred.
+No database dates, owner, post relationship, caption, description or alt text are
+fabricated. Embeds omit filename/filesize; `_fields`, `_envelope`, HEAD and
+representation-conditional ETags use the common response pipeline.
+
+Collections accept bounded case-insensitive filename substring `search`,
+`include`, `exclude`, `slug`, `orderby=id|title|include`, `order=asc|desc`,
+`page` (1..4096), `per_page` (1..100) and `offset` (0..409600). Search is
+at most 256 UTF-8 bytes without controls. Default order is **id descending**, because native
+files have no attachment publication date. Title sorting uses Unicode lexical
+order, not database collation. Include overrides exclude; include ordering retains
+request order for either direction. Other sorts precede paging and use ID ties.
+Explicit offset, including zero, overrides page for row selection. As in core's
+post controller, page validation uses total/page size separately: an excessive
+nonempty page is 400, while a valid page with an excessive offset returns an empty
+200; an empty collection accepts later pages. Total and total-pages count the
+filtered collection, except that an exhausted explicit offset follows core by
+returning zero totals (and an empty 200 even with a later page). Page links preserve filters and offset, and change page as
+core does (an explicit offset therefore remains authoritative when following one).
+
+`mime_type` accepts the four image MIME types above and application/octet-stream;
+`media_type` filters accept image/application/audio/video/text. They accept comma
+lists or contiguous indexed/unindexed arrays. As in core 7.1, values from **both**
+MIME and media-type filters are combined with OR, then intersected with the other
+query conditions. Unsupported MIME values return 400 rather than silently
+expanding selection. A valid kind with no recognized native files returns empty.
+Advanced core tokenized/negative/stemmed search, arbitrary MIME inference,
+locale/database collation and other attachment query arguments are unsupported.
+
+Snapshots retain the content/site/public directory relationship, lock public
+membership and read the selected bytes through retained handles. Nonregular files,
+symlinks, invalid/reserved filenames, ID collisions, more than 4096 entries,
+more than 8 MiB per file or 64 MiB total fail with a generic 500 before any partial
+response. OPTIONS exposes the actual subset. Full WordPress attachment writes,
+attachment database metadata, media editor and rich media-library compatibility
+remain unimplemented.
