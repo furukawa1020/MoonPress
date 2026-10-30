@@ -152,6 +152,7 @@ fn rest_client(
         !rest_is_search(path) &&
         !rest_is_metadata(path) &&
         !rest_is_users(path) &&
+        rest_wp_media_target(path) is None &&
         rest_wp_term_target(path) is None &&
         rest_wp_comment_id(path) is None
       ) {

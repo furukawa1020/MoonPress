@@ -433,3 +433,5 @@ python3 scripts/rest-wp-comment-type-order-test.py
 python3 scripts/rest-wp-comment-edit-options-test.py
 
 python3 scripts/rest-wp-comment-management-oracle-test.py
+
+python3 scripts/rest-wp-media-02-test.py

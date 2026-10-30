@@ -1,5 +1,8 @@
 ///|
 fn rest_methods(path : String) -> Array[String]? {
+  if rest_wp_media_target(path) is Some(_) {
+    return Some(["GET", "HEAD", "OPTIONS"])
+  }
   if rest_wp_term_target(path) is Some(_) {
     return Some(["GET", "HEAD", "OPTIONS"])
   }
