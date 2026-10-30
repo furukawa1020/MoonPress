@@ -35,6 +35,8 @@ fn wp_media_value(row : WpMedia, base : String, embed : Bool) -> Json {
       ].to_json(),
       "collection": [{ "href": (base + "wp-json/wp/v2/media").to_json() }].to_json(),
     },
+    "filename": row.name.to_json(),
+    "filesize": row.bytes.to_json(),
   }
   if embed {
     rest_project(value, [

@@ -20,6 +20,13 @@ fn rest_wp_media_options(
       "context": ["view", "embed"].to_json(),
     }
   }
+  for name in ["filename", "filesize"] {
+    properties[name] = {
+      "type": (if name == "filesize" { "integer" } else { "string" }).to_json(),
+      "readonly": true.to_json(),
+      "context": ["view"].to_json(),
+    }
+  }
   let args : Map[String, Json] = Map([
     (
       "context",
