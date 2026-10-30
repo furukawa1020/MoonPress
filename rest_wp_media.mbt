@@ -83,7 +83,7 @@ fn rest_wp_media(
   let excluded = rest_id_list(query.get("exclude"))
   let orderby = query.get("orderby").unwrap_or("id")
   let order = query.get("order").unwrap_or("desc")
-  if !["id"].contains(orderby) || !["asc", "desc"].contains(order) {
+  if !["id", "title"].contains(orderby) || !["asc", "desc"].contains(order) {
     return rest_error(400, "rest_invalid_param")
   }
   let rows = wp_media_snapshot(input) catch {
@@ -108,7 +108,11 @@ fn rest_wp_media(
     return rest_error(404, "rest_post_invalid_id")
   }
   rows.sort_by(fn(a, b) {
-    let compared = a.id.compare(b.id)
+    let compared = if orderby == "title" {
+      a.name.lexical_compare(b.name)
+    } else {
+      a.id.compare(b.id)
+    }
     let compared = if compared == 0 { a.id.compare(b.id) } else { compared }
     if order == "asc" {
       compared
