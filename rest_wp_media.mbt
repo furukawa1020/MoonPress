@@ -83,8 +83,16 @@ fn rest_wp_media(
   let excluded = rest_id_list(query.get("exclude"))
   let orderby = query.get("orderby").unwrap_or("id")
   let order = query.get("order").unwrap_or("desc")
-  if !["id", "title"].contains(orderby) || !["asc", "desc"].contains(order) {
+  if !["id", "title", "include"].contains(orderby) ||
+    !["asc", "desc"].contains(order) {
     return rest_error(400, "rest_invalid_param")
+  }
+  if orderby == "include" && included.is_empty() {
+    return rest_error(400, "rest_invalid_param")
+  }
+  let ranks : Map[Int, Int] = Map([])
+  for n = 0; n < included.length(); n = n + 1 {
+    ranks[included[n]] = n
   }
   let rows = wp_media_snapshot(input) catch {
     _ => return rest_error(500, "moonpress_media_unavailable")
@@ -108,6 +116,9 @@ fn rest_wp_media(
     return rest_error(404, "rest_post_invalid_id")
   }
   rows.sort_by(fn(a, b) {
+    if orderby == "include" {
+      return ranks[a.id].compare(ranks[b.id])
+    }
     let compared = if orderby == "title" {
       a.name.lexical_compare(b.name)
     } else {
