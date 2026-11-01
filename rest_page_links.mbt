@@ -53,7 +53,16 @@ fn rest_page_links(
   }
   let pages = result.pages.unwrap_or(0)
   let terms = rest_wp_term_target(path) is Some((_, 0))
-  let page = if terms {
+  let user_collection = rest_users_collection(path)
+  let page = if user_collection {
+    let size = rest_positive(original.get("per_page").unwrap_or("10"), 100)
+    let offset = rest_nonnegative(original.get("offset").unwrap_or("0"), 409600)
+    if offset > 0 {
+      (offset + size - 1) / size + 1
+    } else {
+      rest_positive(original.get("page").unwrap_or("1"), 4096)
+    }
+  } else if terms {
     let (start, size, _) = rest_term_page_bounds(
       result.total.unwrap_or(0),
       original,
@@ -63,7 +72,9 @@ fn rest_page_links(
   } else {
     rest_positive(original.get("page").unwrap_or("1"), 4096)
   }
-  let previous = if (terms || rest_wp_comment_id(path) == Some(0)) &&
+  let previous = if (
+      terms || user_collection || rest_wp_comment_id(path) == Some(0)
+    ) &&
     page - 1 > pages {
     pages
   } else {

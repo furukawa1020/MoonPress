@@ -67,7 +67,7 @@ fn rest_users(
   for key, _ in query {
     if ![
         "context", "include", "exclude", "search", "slug", "order", "orderby", "page",
-        "per_page", "roles", "capabilities", "who", "has_published_posts",
+        "per_page", "roles", "capabilities", "who", "has_published_posts", "offset",
       ].contains(key) ||
       (target != 0 && key != "context") {
       return rest_error(400, "rest_invalid_param")
@@ -142,7 +142,8 @@ fn rest_users(
   }
   let size = rest_positive(query.get("per_page").unwrap_or("10"), 100)
   let page = rest_positive(query.get("page").unwrap_or("1"), 4096)
-  let start = (page - 1) * size
+  let offset = rest_nonnegative(query.get("offset").unwrap_or("0"), 409600)
+  let start = if offset > 0 { offset } else { (page - 1) * size }
   let search = native_query_text(query.get("search").unwrap_or(""))
   let slugs = rest_user_slugs(query.get("slug"))
   let included = rest_id_list(query.get("include"))
@@ -247,9 +248,6 @@ fn rest_users(
       0 - compared
     }
   })
-  if page > (users.length() + size - 1) / size && page != 1 {
-    return rest_error(400, "rest_user_invalid_page_number")
-  }
   let values : Array[Json] = []
   for n = start; n < users.length() && n < start + size; n = n + 1 {
     values.push(rest_user_value(users[n], context, base))
