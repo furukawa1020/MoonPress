@@ -471,3 +471,5 @@ python3 scripts/rest-wp-media-18-test.py
 python3 scripts/rest-wp-media-19-test.py
 
 python3 scripts/rest-wp-media-snapshot-safety-test.py
+
+python3 scripts/rest-c8-user-02-test.py

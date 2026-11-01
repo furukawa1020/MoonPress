@@ -7,7 +7,7 @@ with NativeSite() as s:
     code,h,rows=s.request(route)
     assert code==200 and {r['id'] for r in rows}=={s.ids['author'],s.ids['editor']} and h['X-WP-Total']=='2'
     assert all(set(r)=={'id','name','slug'} for r in rows)
-    assert s.request(route,role='administrator')[2]==rows
+    assert len(s.request(route,role='administrator')[2])==5
     assert s.request(route+'?context=edit',role='administrator')[0]==400
     assert s.request(route,'HEAD')[2] is None and s.request(route,'POST',{})[0]==405
     run('access-change',s.site,s.revision,'revoke','author','-')

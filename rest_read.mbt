@@ -225,7 +225,7 @@ fn rest_route(
     }
   }
   if rest_is_users(path) {
-    return rest_users(input, path, query)
+    return rest_users(input, path, query, principal~, base~)
   }
   if rest_is_metadata(path) {
     return rest_metadata(path, query, principal)

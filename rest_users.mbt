@@ -1,41 +1,42 @@
 ///|
 fn rest_users_collection(path : String) -> Bool {
-  ["/wp-json/wp/v2/users", "/wp-json/wp/v2/users/"].contains(path)
+  path == "/wp-json/wp/v2/users" || path == "/wp-json/wp/v2/users/"
+}
+
+///|
+fn rest_user_target(path : String) -> Int? {
+  if rest_users_collection(path) {
+    return Some(0)
+  }
+  let prefix = "/wp-json/wp/v2/users/"
+  if !path.has_prefix(prefix) {
+    return None
+  }
+  let tail = path[prefix.length():].to_owned()
+  Some(rest_positive(tail, 2147483647)) catch {
+    _ => None
+  }
 }
 
 ///|
 fn rest_is_users(path : String) -> Bool {
-  if rest_users_collection(path) {
-    return true
-  }
-  if path.has_prefix("/wp-json/wp/v2/users/") {
-    return try rest_positive(path[21:].to_owned(), 2147483647) > 0 catch {
-      _ => false
-    }
-  }
-  false
+  rest_user_target(path) is Some(_)
 }
 
 ///|
-fn rest_user_value(user : AccessUser) -> Json {
-  {
-    "id": user.id.to_json(),
-    "name": user.login.to_json(),
-    "slug": user.login.to_json(),
-  }
-}
-
-///|
-fn rest_public_users(input : String) -> Array[AccessUser] raise {
-  if path_kind(input + "/.moonpress-access") == 0 {
-    return []
-  }
-  let vault = access_open(input)
-  defer directory_close(vault.fd)
-  vault.lock()
-  let state = access_replay(vault)
-  let authors = rest_public_posts(input).map(post => post.document.author)
-  state.users.filter(user => user.active && authors.contains(user.id))
+fn rest_user_value(
+  user : AccessPrincipal,
+  context : String,
+  base : String,
+) -> Json raise {
+  let fields : Map[String, Json] = Map([
+    ("id", user.id.to_json()),
+    ("name", user.login.to_json()),
+    ("slug", user.login.to_json()),
+  ])
+  ignore(context)
+  ignore(base)
+  Json::object(fields)
 }
 
 ///|
@@ -43,15 +44,26 @@ fn rest_users(
   input : String,
   path : String,
   query : Map[String, String],
+  principal? : AccessPrincipal? = None,
+  base? : String = "",
 ) -> RestResponse raise {
-  for key, value in query {
+  let target = rest_user_target(path).unwrap()
+  let context = query.get("context").unwrap_or("view")
+  if !["view", "embed"].contains(context) {
+    return rest_error(400, "rest_invalid_param")
+  }
+  for key, _ in query {
     if ![
-        "context", "include", "exclude", "search", "slug", "order", "orderby", "per_page",
-        "page",
+        "context", "include", "exclude", "search", "slug", "order", "orderby", "page",
+        "per_page",
       ].contains(key) ||
-      (key == "context" && !["view", "embed"].contains(value)) {
+      (target != 0 && key != "context") {
       return rest_error(400, "rest_invalid_param")
     }
+  }
+  let admin = match principal {
+    Some(user) => role_capabilities(user.role).contains("list_users")
+    None => false
   }
   let orderby = query.get("orderby").unwrap_or("name")
   let order = query.get("order").unwrap_or("asc")
@@ -59,32 +71,40 @@ fn rest_users(
     !["asc", "desc"].contains(order) {
     return rest_error(400, "rest_invalid_param")
   }
-  rest_page_bounds(0, query) |> ignore
+  let size = rest_positive(query.get("per_page").unwrap_or("10"), 100)
+  let page = rest_positive(query.get("page").unwrap_or("1"), 4096)
+  let start = (page - 1) * size
   let search = native_query_text(query.get("search").unwrap_or(""))
   let slugs = rest_user_slugs(query.get("slug"))
   let included = rest_id_list(query.get("include"))
   let excluded = rest_id_list(query.get("exclude"))
-  if !rest_users_collection(path) && query.keys().any(key => key != "context") {
-    return rest_error(400, "rest_invalid_param")
-  }
-  let users = rest_public_users(input) catch {
+  let all = rest_active_users(input) catch {
     _ => return rest_error(500, "moonpress_users_unavailable")
   }
-  let users = users.filter(user => {
-    (slugs.is_empty() || slugs.contains(user.login)) &&
-    user.login.contains(search) &&
-    (included.is_empty() || included.contains(user.id)) &&
-    !excluded.contains(user.id)
-  })
-  if !rest_users_collection(path) {
-    let id = rest_positive(path[21:].to_owned(), 2147483647)
-    for user in users {
-      if user.id == id {
-        return rest_ok(rest_user_value(user))
+  let posts = rest_public_posts(input) catch {
+    _ => return rest_error(500, "moonpress_users_unavailable")
+  }
+  let public_ids = posts.map(post => post.document.author)
+  if target != 0 {
+    let id = target
+    for user in all {
+      if user.id != id {
+        continue
       }
+      if public_ids.contains(id) {
+        return rest_ok(rest_user_value(user, context, base))
+      }
+      return rest_error(404, "rest_user_invalid_id")
     }
     return rest_error(404, "rest_user_invalid_id")
   }
+  let users = all.filter(user => {
+    (admin || public_ids.contains(user.id)) &&
+    user.login.contains(search) &&
+    (slugs.is_empty() || slugs.contains(user.login)) &&
+    (included.is_empty() || included.contains(user.id)) &&
+    !excluded.contains(user.id)
+  })
   users.sort_by(fn(a, b) {
     let compared = if orderby == "id" {
       a.id.compare(b.id)
@@ -98,18 +118,17 @@ fn rest_users(
       0 - compared
     }
   })
-  let (start, size, pages) = match rest_page_bounds(users.length(), query) {
-    Some(bounds) => bounds
-    None => return rest_error(400, "rest_user_invalid_page_number")
+  if page > (users.length() + size - 1) / size && page != 1 {
+    return rest_error(400, "rest_user_invalid_page_number")
   }
   let values : Array[Json] = []
-  for i = start; i < users.length() && i < start + size; i = i + 1 {
-    values.push(rest_user_value(users[i]))
+  for n = start; n < users.length() && n < start + size; n = n + 1 {
+    values.push(rest_user_value(users[n], context, base))
   }
   {
     ..rest_ok(values.to_json()),
     total: Some(users.length()),
-    pages: Some(pages),
+    pages: Some((users.length() + size - 1) / size),
   }
 }
 
