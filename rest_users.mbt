@@ -8,7 +8,7 @@ fn rest_user_target(path : String) -> Int? {
   if rest_users_collection(path) {
     return Some(0)
   }
-  if path == "/wp-json/wp/v2/users/me" {
+  if ["/wp-json/wp/v2/users/me", "/wp-json/wp/v2/users/me/"].contains(path) {
     return Some(-1)
   }
   let prefix = "/wp-json/wp/v2/users/"
@@ -16,6 +16,11 @@ fn rest_user_target(path : String) -> Int? {
     return None
   }
   let tail = path[prefix.length():].to_owned()
+  let tail = if tail.has_suffix("/") {
+    tail[:tail.length() - 1].to_owned()
+  } else {
+    tail
+  }
   Some(rest_positive(tail, 2147483647)) catch {
     _ => None
   }
