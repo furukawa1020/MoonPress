@@ -493,3 +493,5 @@ python3 scripts/rest-c8-user-10-test.py
 python3 scripts/rest-c8-user-11-test.py
 
 python3 scripts/rest-c8-user-12-test.py
+
+python3 scripts/rest-c8-user-13-test.py

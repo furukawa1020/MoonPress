@@ -136,7 +136,7 @@ fn rest_users(
   )
   let orderby = query.get("orderby").unwrap_or("name")
   let order = query.get("order").unwrap_or("asc")
-  if !["id", "name", "slug"].contains(orderby) ||
+  if !["id", "name", "slug", "include"].contains(orderby) ||
     !["asc", "desc"].contains(order) {
     return rest_error(400, "rest_invalid_param")
   }
@@ -147,6 +147,13 @@ fn rest_users(
   let slugs = rest_user_slugs(query.get("slug"))
   let included = rest_id_list(query.get("include"))
   let excluded = rest_id_list(query.get("exclude"))
+  if orderby == "include" && included.is_empty() {
+    return rest_error(400, "rest_invalid_param")
+  }
+  let ranks : Map[Int, Int] = Map([])
+  for n = 0; n < included.length(); n = n + 1 {
+    ranks[included[n]] = n
+  }
   let all = rest_active_users(input) catch {
     _ => return rest_error(500, "moonpress_users_unavailable")
   }
@@ -214,6 +221,10 @@ fn rest_users(
     (!included.is_empty() || !excluded.contains(user.id))
   })
   users.sort_by(fn(a, b) {
+    if orderby == "include" {
+      let compared = ranks[a.id].compare(ranks[b.id])
+      return if order == "asc" { compared } else { 0 - compared }
+    }
     let compared = if orderby == "id" {
       a.id.compare(b.id)
     } else {
