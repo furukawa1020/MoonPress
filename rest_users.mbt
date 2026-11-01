@@ -8,6 +8,9 @@ fn rest_user_target(path : String) -> Int? {
   if rest_users_collection(path) {
     return Some(0)
   }
+  if path == "/wp-json/wp/v2/users/me" {
+    return Some(-1)
+  }
   let prefix = "/wp-json/wp/v2/users/"
   if !path.has_prefix(prefix) {
     return None
@@ -105,7 +108,10 @@ fn rest_users(
   }
   let public_ids = posts.map(post => post.document.author)
   if target != 0 {
-    let id = target
+    if target == -1 && principal is None {
+      return rest_error(401, "rest_not_logged_in")
+    }
+    let id = if target == -1 { principal.unwrap().id } else { target }
     for user in all {
       if user.id != id {
         continue
