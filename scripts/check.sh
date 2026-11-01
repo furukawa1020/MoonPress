@@ -505,3 +505,5 @@ python3 scripts/rest-c8-user-16-test.py
 python3 scripts/rest-c8-user-17-test.py
 
 python3 scripts/rest-c8-user-18-test.py
+
+python3 scripts/rest-c8-user-19-test.py
