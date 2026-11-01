@@ -336,11 +336,23 @@ fn rest_users_options(
     return rest_error(400, "rest_invalid_param")
   }
   let properties : Map[String, Json] = Map([])
-  for name in ["id", "name", "slug"] {
+  for name in ["id", "name", "slug", "username", "roles", "capabilities"] {
     properties[name] = {
-      "type": (if name == "id" { "integer" } else { "string" }).to_json(),
+      "type": (if name == "id" {
+        "integer"
+      } else if name == "roles" {
+        "array"
+      } else if name == "capabilities" {
+        "object"
+      } else {
+        "string"
+      }).to_json(),
       "readonly": true.to_json(),
-      "context": ["view", "embed"].to_json(),
+      "context": (if ["username", "roles", "capabilities"].contains(name) {
+        ["edit"]
+      } else {
+        ["view", "embed", "edit"]
+      }).to_json(),
     }
   }
   let args : Map[String, Json] = Map([
@@ -348,37 +360,51 @@ fn rest_users_options(
       "context",
       {
         "type": "string".to_json(),
-        "enum": ["view", "embed"].to_json(),
+        "enum": ["view", "embed", "edit"].to_json(),
         "default": "view".to_json(),
       },
     ),
   ])
   if rest_users_collection(path) {
-    for name in ["include", "exclude"] {
+    for
+      name in [
+        "include", "exclude", "slug", "roles", "capabilities", "search_columns",
+      ] {
       args[name] = {
         "type": "array".to_json(),
-        "items": { "type": "integer".to_json() },
+        "items": {
+          "type": (if ["include", "exclude"].contains(name) {
+            "integer"
+          } else {
+            "string"
+          }).to_json(),
+        },
       }
     }
-  }
-  if rest_users_collection(path) {
-    args["search"] = { "type": "string".to_json() }
-    args["slug"] = {
-      "type": "array".to_json(),
-      "items": { "type": "string".to_json() },
-    }
-  }
-  if rest_users_collection(path) {
-    for name in ["page", "per_page"] {
+    for name in ["page", "per_page", "offset"] {
       args[name] = { "type": "integer".to_json() }
+    }
+    args["search"] = {
+      "type": "string".to_json(),
+      "maxLength": (256).to_json(),
+    }
+    args["who"] = { "type": "string".to_json(), "enum": ["authors"].to_json() }
+    args["has_published_posts"] = {
+      "type": ["boolean", "array"].to_json(),
+      "items": {
+        "type": "string".to_json(),
+        "enum": ["post", "page"].to_json(),
+      },
+    }
+    args["orderby"] = {
+      "type": "string".to_json(),
+      "enum": ["id", "name", "slug", "include", "include_slugs"].to_json(),
+      "default": "name".to_json(),
     }
     args["order"] = {
       "type": "string".to_json(),
       "enum": ["asc", "desc"].to_json(),
-    }
-    args["orderby"] = {
-      "type": "string".to_json(),
-      "enum": ["id", "name", "slug"].to_json(),
+      "default": "asc".to_json(),
     }
   }
   rest_ok({
@@ -395,8 +421,11 @@ fn rest_users_options(
     },
     "moonpress": {
       "subset": true.to_json(),
-      "public_authors_only": true.to_json(),
-      "collection": rest_users_collection(path).to_json(),
+      "active_users_only": true.to_json(),
+      "private_detail_requires_self_or_admin": true.to_json(),
+      "edit_collection_requires_list_users": true.to_json(),
+      "credential_fields": false.to_json(),
+      "email_metadata": false.to_json(),
     },
   })
 }
