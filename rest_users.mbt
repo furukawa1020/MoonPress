@@ -67,7 +67,7 @@ fn rest_users(
   for key, _ in query {
     if ![
         "context", "include", "exclude", "search", "slug", "order", "orderby", "page",
-        "per_page",
+        "per_page", "roles",
       ].contains(key) ||
       (target != 0 && key != "context") {
       return rest_error(400, "rest_invalid_param")
@@ -85,6 +85,17 @@ fn rest_users(
         403
       },
       "rest_forbidden_context",
+    )
+  }
+  let roles = rest_user_words(query.get("roles"))
+  if !roles.is_empty() && !admin {
+    return rest_error(
+      if principal is None {
+        401
+      } else {
+        403
+      },
+      "rest_user_cannot_view",
     )
   }
   let orderby = query.get("orderby").unwrap_or("name")
@@ -146,6 +157,7 @@ fn rest_users(
   }
   let users = all.filter(user => {
     (admin || public_ids.contains(user.id)) &&
+    (roles.is_empty() || roles.contains(user.role)) &&
     user.login.contains(search) &&
     (slugs.is_empty() || slugs.contains(user.login)) &&
     (included.is_empty() || included.contains(user.id)) &&
@@ -176,6 +188,31 @@ fn rest_users(
     total: Some(users.length()),
     pages: Some((users.length() + size - 1) / size),
   }
+}
+
+///|
+fn rest_user_words(value : String?) -> Array[String] raise {
+  let words : Array[String] = []
+  if value is Some(value) && !value.is_empty() {
+    let parts = value.split(",").to_array()
+    if parts.length() > 100 {
+      raise InvalidInput("User filter limit")
+    }
+    for part in parts {
+      let word = part.trim().to_owned()
+      if word.is_empty() ||
+        word.length() > 80 ||
+        !word.all(c => {
+          c.is_ascii_alphabetic() || c.is_ascii_digit() || c == '_' || c == '-'
+        }) {
+        raise InvalidInput("Invalid user filter")
+      }
+      if !words.contains(word) {
+        words.push(word)
+      }
+    }
+  }
+  words
 }
 
 ///|
