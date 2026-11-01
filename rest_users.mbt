@@ -67,7 +67,7 @@ fn rest_users(
   for key, _ in query {
     if ![
         "context", "include", "exclude", "search", "slug", "order", "orderby", "page",
-        "per_page", "roles", "capabilities", "who",
+        "per_page", "roles", "capabilities", "who", "has_published_posts",
       ].contains(key) ||
       (target != 0 && key != "context") {
       return rest_error(400, "rest_invalid_param")
@@ -130,6 +130,16 @@ fn rest_users(
         "rest_forbidden_who",
       )
     }
+  }
+  let published = query.get("has_published_posts")
+  if published is Some(value) && !["true", "false", "1", "0"].contains(value) {
+    return rest_error(400, "rest_invalid_param")
+  }
+  let published_types : Array[String] = if published == Some("true") ||
+    published == Some("1") {
+    ["post", "page"]
+  } else {
+    []
   }
   let orderby = query.get("orderby").unwrap_or("name")
   let order = query.get("order").unwrap_or("asc")
@@ -198,6 +208,13 @@ fn rest_users(
       })
     ) &&
     (!authors || user.role != "subscriber") &&
+    (
+      published_types.is_empty() ||
+      posts.any(post => {
+        post.document.author == user.id &&
+        published_types.contains(post.document.kind)
+      })
+    ) &&
     user.login.contains(search) &&
     (slugs.is_empty() || slugs.contains(user.login)) &&
     (included.is_empty() || included.contains(user.id)) &&
