@@ -73,7 +73,7 @@ with tempfile.TemporaryDirectory() as temporary:
         me=request('/wp-json/wp/v2/users/me?context=edit',headers={'Authorization':token})
         assert me[0]==200 and me[2]['roles']==['administrator'] and me[2]['capabilities']['manage_options'] is True
         subscriber=request('/wp-json/wp/v2/users/me?context=edit',headers={'Authorization':basic('bobby',bob['secret'])})
-        assert subscriber[0]==200 and subscriber[2]['capabilities']=={'read':True}
+        assert subscriber[0]==200 and subscriber[2]['capabilities']=={'read':True,'subscriber':True}
         assert 'roles' not in request('/wp-json/wp/v2/users/me',headers={'Authorization':token})[2]
         # Authentication never grants access to private content on this read-only slice.
         assert request('/wp-json/wp/v2/posts/300',headers={'Authorization':token})[0]==404

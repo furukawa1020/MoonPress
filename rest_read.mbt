@@ -317,32 +317,6 @@ fn rest_route(
   if rest_is_search(path) {
     return rest_search(input, query, base)
   }
-  if path == "/wp-json/wp/v2/users/me" {
-    for key, value in query {
-      if key != "context" || (value != "view" && value != "edit") {
-        return rest_error(400, "rest_invalid_param")
-      }
-    }
-    let user = match principal {
-      Some(user) => user
-      None => return rest_error(401, "rest_not_logged_in")
-    }
-    let fields : Map[String, Json] = Map([
-      ("id", user.id.to_json()),
-      ("name", user.login.to_json()),
-      ("slug", user.login.to_json()),
-    ])
-    if query.get("context") == Some("edit") {
-      let capabilities : Map[String, Json] = Map([])
-      for capability in role_capabilities(user.role) {
-        capabilities[capability] = true.to_json()
-      }
-      fields["username"] = user.login.to_json()
-      fields["roles"] = [user.role].to_json()
-      fields["capabilities"] = Json::object(capabilities)
-    }
-    return rest_ok(Json::object(fields))
-  }
   let (kind, tail) = if path == "/wp-json/wp/v2/posts" {
     ("post", "")
   } else if path == "/wp-json/wp/v2/pages" {
