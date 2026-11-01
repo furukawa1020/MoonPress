@@ -68,6 +68,7 @@ fn rest_users(
     if ![
         "context", "include", "exclude", "search", "slug", "order", "orderby", "page",
         "per_page", "roles", "capabilities", "who", "has_published_posts", "offset",
+        "search_columns",
       ].contains(key) ||
       (target != 0 && key != "context") {
       return rest_error(400, "rest_invalid_param")
@@ -162,6 +163,10 @@ fn rest_users(
   for n = 0; n < slugs.length(); n = n + 1 {
     slug_ranks[slugs[n]] = n
   }
+  let columns = rest_user_words(query.get("search_columns"))
+  if columns.any(column => !["id", "name", "username", "slug"].contains(column)) {
+    return rest_error(400, "rest_invalid_param")
+  }
   let all = rest_active_users(input) catch {
     _ => return rest_error(500, "moonpress_users_unavailable")
   }
@@ -223,7 +228,17 @@ fn rest_users(
         published_types.contains(post.document.kind)
       })
     ) &&
-    user.login.contains(search) &&
+    (
+      search.is_empty() ||
+      (
+        (columns.is_empty() || columns.contains("id")) &&
+        user.id.to_string().contains(search)
+      ) ||
+      (
+        (columns.is_empty() || columns.any(column => column != "id")) &&
+        user.login.contains(search)
+      )
+    ) &&
     (slugs.is_empty() || slugs.contains(user.login)) &&
     (included.is_empty() || included.contains(user.id)) &&
     (!included.is_empty() || !excluded.contains(user.id))
