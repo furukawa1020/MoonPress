@@ -61,9 +61,6 @@ fn rest_users(
   if !["view", "embed", "edit"].contains(context) {
     return rest_error(400, "rest_invalid_param")
   }
-  if target == 0 && context == "edit" {
-    return rest_error(400, "rest_invalid_param")
-  }
   for key, _ in query {
     if ![
         "context", "include", "exclude", "search", "slug", "order", "orderby", "page",
@@ -76,6 +73,16 @@ fn rest_users(
   let admin = match principal {
     Some(user) => role_capabilities(user.role).contains("list_users")
     None => false
+  }
+  if target == 0 && context == "edit" && !admin {
+    return rest_error(
+      if principal is None {
+        401
+      } else {
+        403
+      },
+      "rest_forbidden_context",
+    )
   }
   let orderby = query.get("orderby").unwrap_or("name")
   let order = query.get("order").unwrap_or("asc")
