@@ -136,7 +136,7 @@ fn rest_users(
   )
   let orderby = query.get("orderby").unwrap_or("name")
   let order = query.get("order").unwrap_or("asc")
-  if !["id", "name", "slug", "include"].contains(orderby) ||
+  if !["id", "name", "slug", "include", "include_slugs"].contains(orderby) ||
     !["asc", "desc"].contains(order) {
     return rest_error(400, "rest_invalid_param")
   }
@@ -153,6 +153,13 @@ fn rest_users(
   let ranks : Map[Int, Int] = Map([])
   for n = 0; n < included.length(); n = n + 1 {
     ranks[included[n]] = n
+  }
+  if orderby == "include_slugs" && slugs.is_empty() {
+    return rest_error(400, "rest_invalid_param")
+  }
+  let slug_ranks : Map[String, Int] = Map([])
+  for n = 0; n < slugs.length(); n = n + 1 {
+    slug_ranks[slugs[n]] = n
   }
   let all = rest_active_users(input) catch {
     _ => return rest_error(500, "moonpress_users_unavailable")
@@ -224,6 +231,9 @@ fn rest_users(
     if orderby == "include" {
       let compared = ranks[a.id].compare(ranks[b.id])
       return if order == "asc" { compared } else { 0 - compared }
+    }
+    if orderby == "include_slugs" {
+      return slug_ranks[a.login].compare(slug_ranks[b.login])
     }
     let compared = if orderby == "id" {
       a.id.compare(b.id)
