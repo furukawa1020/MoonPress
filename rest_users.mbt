@@ -86,6 +86,9 @@ fn rest_users(
       return rest_error(400, "rest_invalid_param")
     }
   }
+  if target == -1 && principal is None {
+    return rest_error(401, "rest_not_logged_in")
+  }
   let admin = match principal {
     Some(user) => role_capabilities(user.role).contains("list_users")
     None => false
@@ -187,9 +190,6 @@ fn rest_users(
   }
   let public_ids = posts.map(post => post.document.author)
   if target != 0 {
-    if target == -1 && principal is None {
-      return rest_error(401, "rest_not_logged_in")
-    }
     let id = if target == -1 { principal.unwrap().id } else { target }
     for user in all {
       if user.id != id {

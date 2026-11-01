@@ -100,3 +100,13 @@ source URL namespaces are compared explicitly rather than pretending to share a
 WordPress database. No attachment dates/owners/image derivatives are inferred.
 The oracle runs after measured experiments, only inside the existing disposable
 GitHub-hosted runner guard.
+
+
+The user-read oracle creates five single-role disposable users plus public
+post/page and draft fixtures. It compares 90 role/context detail probes, 18 me
+probes and 75 collection queries, including role/capability unions, author and
+publication filters, ID/slug request ordering, offset counts and search columns.
+Public native 404s for unpublished other identities are checked as explicit
+privacy exceptions to core's 401/403 responses. Native capability values are
+compared only for the represented subset; no email/profile metadata is invented.
+It runs after measured experiments under the disposable GitHub-hosted guard.
