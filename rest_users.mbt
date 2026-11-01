@@ -34,7 +34,16 @@ fn rest_user_value(
     ("name", user.login.to_json()),
     ("slug", user.login.to_json()),
   ])
-  ignore(context)
+  if context == "edit" {
+    fields["username"] = user.login.to_json()
+    fields["roles"] = [user.role].to_json()
+    let caps : Map[String, Json] = Map([])
+    for cap in role_capabilities(user.role) {
+      caps[cap] = true.to_json()
+    }
+    caps[user.role] = true.to_json()
+    fields["capabilities"] = Json::object(caps)
+  }
   ignore(base)
   Json::object(fields)
 }
@@ -49,7 +58,10 @@ fn rest_users(
 ) -> RestResponse raise {
   let target = rest_user_target(path).unwrap()
   let context = query.get("context").unwrap_or("view")
-  if !["view", "embed"].contains(context) {
+  if !["view", "embed", "edit"].contains(context) {
+    return rest_error(400, "rest_invalid_param")
+  }
+  if target == 0 && context == "edit" {
     return rest_error(400, "rest_invalid_param")
   }
   for key, _ in query {
@@ -90,6 +102,25 @@ fn rest_users(
     for user in all {
       if user.id != id {
         continue
+      }
+      if context == "edit" {
+        let allowed = match principal {
+          Some(actor) =>
+            actor.id == id ||
+            role_capabilities(actor.role).contains("edit_users")
+          None => false
+        }
+        if !allowed {
+          return rest_error(
+            if principal is None {
+              401
+            } else {
+              403
+            },
+            "rest_forbidden_context",
+          )
+        }
+        return rest_ok(rest_user_value(user, context, base))
       }
       if public_ids.contains(id) ||
         (principal is Some(actor) && actor.id == id) ||
