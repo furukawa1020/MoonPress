@@ -58,7 +58,7 @@ fn rest_options(path : String, query : Map[String, String]) -> RestResponse {
   if rest_wp_comment_id(path) is Some(_) {
     return rest_wp_comments_options(path, query)
   }
-  if rest_is_users(path) {
+  if rest_is_users(path) && path != "/wp-json/wp/v2/users/me" {
     return rest_users_options(path, query)
   }
   if rest_is_metadata(path) {
