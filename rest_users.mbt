@@ -47,7 +47,14 @@ fn rest_user_value(
     caps[user.role] = true.to_json()
     fields["capabilities"] = Json::object(caps)
   }
-  ignore(base)
+  fields["_links"] = {
+    "self": [
+      {
+        "href": (base + "wp-json/wp/v2/users/" + user.id.to_string()).to_json(),
+      },
+    ].to_json(),
+    "collection": [{ "href": (base + "wp-json/wp/v2/users").to_json() }].to_json(),
+  }
   Json::object(fields)
 }
 

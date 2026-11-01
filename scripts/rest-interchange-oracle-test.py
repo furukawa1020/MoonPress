@@ -23,7 +23,7 @@ with NativeSite() as s:
     assert [p['title']['raw'] for p in ordered]==core['title_order']
     code,_,profile=s.request('/wp-json/wp/v2/users/'+str(author));assert code==200
     assert profile['name']==core['author']['name'] and profile['slug']==core['author']['slug'] and profile['id']==author
-    assert set(profile)=={'id','name','slug'} and [p['id'] for p in s.request('/wp-json/wp/v2/users?slug='+login)[2]]==[author]
+    assert set(profile)=={'id','name','slug','_links'} and [p['id'] for p in s.request('/wp-json/wp/v2/users?slug='+login)[2]]==[author]
     created=s.request('/wp-json/moonpress/v1/comments','POST',{'post':core['post'],'content':'Core comment text.','author_name':'Public reader'},login)[2]
     set_status(s,created['id'],'approved')
     # Align the trusted disposable native log's clock with the fixed core fixture.
