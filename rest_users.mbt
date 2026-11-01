@@ -67,7 +67,7 @@ fn rest_users(
   for key, _ in query {
     if ![
         "context", "include", "exclude", "search", "slug", "order", "orderby", "page",
-        "per_page", "roles", "capabilities",
+        "per_page", "roles", "capabilities", "who",
       ].contains(key) ||
       (target != 0 && key != "context") {
       return rest_error(400, "rest_invalid_param")
@@ -108,6 +108,28 @@ fn rest_users(
       },
       "rest_user_cannot_view",
     )
+  }
+  let authors = query.get("who") == Some("authors")
+  if query.get("who") is Some(value) && value != "authors" {
+    return rest_error(400, "rest_invalid_param")
+  }
+  if authors {
+    let can_edit = match principal {
+      Some(user) =>
+        role_capabilities(user.role).contains("edit_posts") ||
+        role_capabilities(user.role).contains("edit_pages")
+      None => false
+    }
+    if !can_edit {
+      return rest_error(
+        if principal is None {
+          401
+        } else {
+          403
+        },
+        "rest_forbidden_who",
+      )
+    }
   }
   let orderby = query.get("orderby").unwrap_or("name")
   let order = query.get("order").unwrap_or("asc")
@@ -167,7 +189,7 @@ fn rest_users(
     return rest_error(404, "rest_user_invalid_id")
   }
   let users = all.filter(user => {
-    (admin || public_ids.contains(user.id)) &&
+    (admin || authors || public_ids.contains(user.id)) &&
     (
       (roles.is_empty() && capabilities.is_empty()) ||
       roles.contains(user.role) ||
@@ -175,6 +197,7 @@ fn rest_users(
         role_capabilities(user.role).contains(cap) || cap == user.role
       })
     ) &&
+    (!authors || user.role != "subscriber") &&
     user.login.contains(search) &&
     (slugs.is_empty() || slugs.contains(user.login)) &&
     (included.is_empty() || included.contains(user.id)) &&
