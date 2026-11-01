@@ -91,7 +91,7 @@ fn rest_users(
       if user.id != id {
         continue
       }
-      if public_ids.contains(id) {
+      if public_ids.contains(id) || (principal is Some(actor) && actor.id == id) {
         return rest_ok(rest_user_value(user, context, base))
       }
       return rest_error(404, "rest_user_invalid_id")
