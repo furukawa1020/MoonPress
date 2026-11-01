@@ -154,3 +154,21 @@ filename titles and strict MIME/search bounds are documented differences. It add
 no WordPress attachment database, write endpoints, image derivatives/EXIF,
 Gutenberg/media editor, PHP plugin/theme execution or complete runtime parity.
 See [the exact REST scope](native-rest.md#public-wordpress-shaped-media-reads).
+
+
+## Authorized user REST reads (20 changes)
+
+MoonBit native now provides administrator user inventories, self/admin unpublished
+profile reads, guarded edit-context projections, unified me/detail responses,
+role/capability selectors, authorized author queries, publication-type filtering,
+request ordering, offset/empty-tail paging, search columns, resource links,
+trailing-slash routes and accurate OPTIONS. Credential hashes never leave the
+private journal; inactive accounts are excluded. Focused regressions cover
+revocation, corrupt journals, conditionals, envelopes and rejected user writes.
+
+A real WordPress oracle compares role/context/read-query behavior with explicit
+identity mapping and separately checks native 404 privacy boundaries for
+unpublished other identities. This remains active, single-role native account
+read compatibility: account writes, arbitrary profiles, emails, registration
+metadata, custom/multisite roles and the full WordPress runtime remain gaps.
+See [the precise contract](native-rest.md#authorized-user-read-compatibility).

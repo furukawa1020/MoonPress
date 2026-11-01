@@ -45,8 +45,8 @@ Draft, future and unlisted articles are excluded from public view even with
 administrator credentials. An unlisted article's standalone static URL remains public; this
 API exclusion does not make it private. Authenticated edit reads may return
 nonpublic articles only when the caller can edit that exact article.
-For `users/me` only, `context=edit` additionally returns the caller's username,
-role and implemented capability subset. User email/profile data is not stored.
+Authorized user `context=edit` reads return username, roles and the native
+capability subset. See the user read contract below; email/profile data is not stored.
 
 ## Saved identities
 
@@ -481,12 +481,9 @@ Arbitrary site timezones, nullable date resets and other scheduling formats
 remain unsupported. Author activity/capabilities are checked with the access
 vault and content directory held through guarded publication.
 
-Public `/wp/v2/users` and `/users/ID` expose id/name/slug from native login labels
-only for active principals with currently public API-visible articles. Private
-roles, capabilities, username fields, email and credential digests are omitted.
-Filters include include/exclude IDs, literal native label search and bounded
-slugs; orderby=id|name|slug, order=asc|desc, page and per_page are supported.
-Publication/activity filtering precedes counts and pagination even for admins.
+Anonymous `/wp/v2/users` and `/users/ID` expose native id/name/slug and resource
+links for active principals with currently public API-visible articles. Authorized
+self/admin detail and admin collection reads have wider scope, documented below.
 Arbitrary WordPress user profiles and imported external identities are not
 synthesized; an imported article's author link may therefore be unavailable.
 Name ordering is lexical, not the toolchain's default shortlex comparison;
@@ -681,3 +678,66 @@ more than 8 MiB per file or 64 MiB total fail with a generic 500 before any part
 response. OPTIONS exposes the actual subset. Full WordPress attachment writes,
 attachment database metadata, media editor and rich media-library compatibility
 remain unimplemented.
+
+
+## Authorized user read compatibility
+
+`GET /wp-json/wp/v2/users`, `/users/ID` and authenticated `/users/me` share the
+same read projection. GET, HEAD and OPTIONS are supported; user account writes
+remain 405. Collection and ID/me accept a single trailing slash; extra segments,
+double slashes and malformed/overflow IDs are refused.
+
+Only active native accounts are selected from the validated access journal.
+Anonymous and ordinary authenticated collections contain public article authors.
+`list_users` grants the native administrator a view/embed/edit collection of all
+active accounts, including users without publications. Detail view/embed allows
+public authors, the user themself, and administrators. Detail edit requires self
+or `edit_users`; edit collection requires `list_users`. Unauthorized edit reads
+are 401/403; nonexistent/inactive identities are 404. Native ordinary detail reads
+continue to return 404 for unpublished other users instead of core's 401/403,
+so public reads do not confirm their existence. The core oracle explicitly tests
+this stronger privacy boundary rather than counting it as an exact status match.
+
+View/embed fields are id, native login-derived name/slug and self/collection
+`_links`. Edit additionally exposes username, the single native role and the
+implemented capability map, including the role flag. Me and ID detail use the
+same serializer. Email, registration date, passwords, credential hashes, active
+flags, avatars and arbitrary profile metadata are not returned or synthesized.
+Native capabilities remain the explicit supported subset of WordPress roles.
+
+Collection filters: include/exclude IDs, bounded native slugs, literal
+case-insensitive search, `roles`, `capabilities`, `who=authors` and
+`has_published_posts`. Role/capability filtering requires list_users (anonymous
+401, nonadmin 403). Each list is OR; core's capability-to-role expansion also
+makes roles and capabilities a combined OR when both are specified. Other query
+conditions intersect that result. `who=authors` requires edit_posts/edit_pages
+and selects non-subscriber roles, including unpublished authors/contributors.
+This authorized selector may widen an ordinary editor's collection, as in core.
+
+`has_published_posts=true|1` restricts to native public post/page authors; false|0
+does not lift the caller's existing visibility constraint. Post/page strings,
+comma lists and arrays select author publication types. Draft, future and
+unlisted articles are excluded. Attachment/custom post types are unsupported.
+Search columns support id/name/username/slug with OR matching; an empty list uses
+all these columns. Email searches are refused because no email is stored.
+Search is at most 256 UTF-8 bytes without controls. Role/capability/column lists
+are at most 100 entries, each at most 80 characters; malformed values are 400.
+
+Ordering supports id/name/slug/include/include_slugs. Request-based sorts require the corresponding nonempty ID or slug selector.
+ID request ordering honors asc/desc (desc reverses the requested ID order); slug request ordering ignores
+direction, matching WP_User_Query. Include overrides exclude. Native name/slug
+sorting is lexical, not arbitrary database collation. Pagination uses page
+1..4096, per_page 1..100 and offset 0..409600. Positive offset overrides page;
+offset=0 follows page. Empty tails return 200 with the filtered total/pages.
+Page links derive their current page from the positive offset and preserve
+filters/offset, as core does. Links never intentionally emit invalid page zero.
+
+OPTIONS declares contexts, array arguments, ordering and edit-only properties.
+Field projection, envelope and conditional response processing happen after
+permission checks. Invalid credentials never fall back to anonymous scope;
+revoked identities disappear immediately on the next successful replay, and
+corrupt stores fail without profile data or mutations. The real-core oracle
+compares the supported identity/capability subset with explicit cross-store IDs
+and explicit 404 privacy exceptions. Arbitrary WordPress account management,
+multisite/custom roles, profile fields, registration metadata, locale collation,
+full-text/wildcard search and external authentication are still outside scope.
