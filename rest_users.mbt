@@ -131,16 +131,9 @@ fn rest_users(
       )
     }
   }
-  let published = query.get("has_published_posts")
-  if published is Some(value) && !["true", "false", "1", "0"].contains(value) {
-    return rest_error(400, "rest_invalid_param")
-  }
-  let published_types : Array[String] = if published == Some("true") ||
-    published == Some("1") {
-    ["post", "page"]
-  } else {
-    []
-  }
+  let published_types = rest_user_published_types(
+    query.get("has_published_posts"),
+  )
   let orderby = query.get("orderby").unwrap_or("name")
   let order = query.get("order").unwrap_or("asc")
   if !["id", "name", "slug"].contains(orderby) ||
@@ -270,6 +263,22 @@ fn rest_user_words(value : String?) -> Array[String] raise {
     }
   }
   words
+}
+
+///|
+fn rest_user_published_types(value : String?) -> Array[String] raise {
+  match value {
+    None => []
+    Some("false" | "0") => []
+    Some("true" | "1") => ["post", "page"]
+    Some(value) => {
+      let types = rest_user_words(Some(value))
+      if types.is_empty() || types.any(kind => !["post", "page"].contains(kind)) {
+        raise InvalidInput("Invalid published post type")
+      }
+      types
+    }
+  }
 }
 
 ///|
