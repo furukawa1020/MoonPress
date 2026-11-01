@@ -67,7 +67,7 @@ fn rest_users(
   for key, _ in query {
     if ![
         "context", "include", "exclude", "search", "slug", "order", "orderby", "page",
-        "per_page", "roles",
+        "per_page", "roles", "capabilities",
       ].contains(key) ||
       (target != 0 && key != "context") {
       return rest_error(400, "rest_invalid_param")
@@ -89,6 +89,17 @@ fn rest_users(
   }
   let roles = rest_user_words(query.get("roles"))
   if !roles.is_empty() && !admin {
+    return rest_error(
+      if principal is None {
+        401
+      } else {
+        403
+      },
+      "rest_user_cannot_view",
+    )
+  }
+  let capabilities = rest_user_words(query.get("capabilities"))
+  if !capabilities.is_empty() && !admin {
     return rest_error(
       if principal is None {
         401
@@ -157,11 +168,17 @@ fn rest_users(
   }
   let users = all.filter(user => {
     (admin || public_ids.contains(user.id)) &&
-    (roles.is_empty() || roles.contains(user.role)) &&
+    (
+      (roles.is_empty() && capabilities.is_empty()) ||
+      roles.contains(user.role) ||
+      capabilities.any(cap => {
+        role_capabilities(user.role).contains(cap) || cap == user.role
+      })
+    ) &&
     user.login.contains(search) &&
     (slugs.is_empty() || slugs.contains(user.login)) &&
     (included.is_empty() || included.contains(user.id)) &&
-    !excluded.contains(user.id)
+    (!included.is_empty() || !excluded.contains(user.id))
   })
   users.sort_by(fn(a, b) {
     let compared = if orderby == "id" {
