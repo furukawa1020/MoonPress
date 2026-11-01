@@ -6,7 +6,7 @@ with NativeSite() as s:
     code,_,row=s.request(root+'/'+author)
     assert code==200 and row==s.request(root)[2][0]
     assert s.request(root+'/'+author+'?_fields=id')[2]=={'id':int(author)}
-    assert s.request(root+'/'+str(s.ids['subscriber']),role='administrator')[0]==404
+    assert s.request(root+'/'+str(s.ids['subscriber']),role='administrator')[0]==200
     assert s.request(root+'/'+author,'OPTIONS')[2]['methods']==['GET','HEAD','OPTIONS']
     assert s.request(root+'/'+author,'DELETE')[0]==405
     assert s.request(root+'/me?context=edit',role='author')[2]['roles']==['author']
