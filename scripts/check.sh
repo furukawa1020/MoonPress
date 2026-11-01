@@ -477,3 +477,5 @@ python3 scripts/rest-c8-user-02-test.py
 python3 scripts/rest-c8-user-03-test.py
 
 python3 scripts/rest-c8-user-04-test.py
+
+python3 scripts/rest-c8-user-05-test.py
