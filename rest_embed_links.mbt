@@ -221,6 +221,7 @@ fn rest_embed_fetch(
   }
   let response = rest_route(input, path, query, base, principal)
   let data = response.value
+  let data = rest_target_hints(data, base)
   return rest_embed_cache(state, href, data)
 }
 

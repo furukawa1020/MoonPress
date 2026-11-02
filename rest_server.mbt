@@ -235,6 +235,13 @@ fn rest_client(
   } catch {
     _ => rest_error(400, "moonpress_request_rejected")
   }
+  let result = if page_target.has_prefix("/wp-json/wp/v2/") &&
+    result.code >= 200 &&
+    result.code < 300 {
+    { ..result, value: rest_target_hints(result.value, page_base), }
+  } else {
+    result
+  }
   let result = if read && embed_selection is Some(selectors) {
     rest_embed_response(input, result, selectors, page_base, embed_credentials)
   } else {
