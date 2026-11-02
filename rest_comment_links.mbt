@@ -17,7 +17,7 @@ fn rest_comment_links(
     ),
   ])
   if c.parent is Some(parent) {
-    fields["up"] = [
+    fields["in-reply-to"] = [
       { "href": (collection + "/" + parent.to_string()).to_json() },
     ].to_json()
   }
