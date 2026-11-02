@@ -61,7 +61,7 @@ fn rest_embed_response(
     if @utf8.encode(value.stringify()).length() > 16777216 {
       raise InvalidInput("Embed response limit")
     }
-    { ..result, etag: None, value, }
+    { ..result, value, }
   } catch {
     _ => rest_error(500, "moonpress_embed_unavailable")
   }
