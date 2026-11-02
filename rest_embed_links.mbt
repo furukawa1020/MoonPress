@@ -154,6 +154,9 @@ fn rest_embed_allowed(
     link.get("taxonomy") == Some("post_tag".to_json()) {
     return true
   }
+  if article && rel == "replies" {
+    return true
+  }
   ignore(comment)
   ignore(link)
   false
