@@ -16,6 +16,13 @@ fn rest_comment_links(
       [{ "href": (collection + "?parent=" + c.id.to_string()).to_json() }].to_json(),
     ),
   ])
+  if c.author > 0 {
+    fields["author"] = [
+      {
+        "href": (base + "wp-json/wp/v2/users/" + c.author.to_string()).to_json(),
+      },
+    ].to_json()
+  }
   if c.parent is Some(parent) {
     fields["in-reply-to"] = [
       { "href": (collection + "/" + parent.to_string()).to_json() },
