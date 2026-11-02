@@ -163,6 +163,9 @@ fn rest_embed_allowed(
   if comment && rel == "in-reply-to" {
     return true
   }
+  if comment && rel == "author" {
+    return true
+  }
   ignore(comment)
   ignore(link)
   false
