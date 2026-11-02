@@ -18,7 +18,8 @@ fn rest_fields(value : String?) -> Array[String] raise {
             c.is_ascii_alphabetic() ||
             c.is_ascii_digit() ||
             c == '_' ||
-            c == '-'
+            c == '-' ||
+            c == ':'
           })
         }) {
         raise InvalidInput("Invalid field selector")
