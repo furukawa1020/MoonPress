@@ -20,12 +20,16 @@ fn rest_comment_links(
     fields["author"] = [
       {
         "href": (base + "wp-json/wp/v2/users/" + c.author.to_string()).to_json(),
+        "embeddable": true.to_json(),
       },
     ].to_json()
   }
   if c.parent is Some(parent) {
     fields["in-reply-to"] = [
-      { "href": (collection + "/" + parent.to_string()).to_json() },
+      {
+        "href": (collection + "/" + parent.to_string()).to_json(),
+        "embeddable": true.to_json(),
+      },
     ].to_json()
   }
   for article in articles {
@@ -39,6 +43,7 @@ fn rest_comment_links(
         {
           "href": (base + "wp-json/wp/v2/" + plural + "/" + c.post.to_string()).to_json(),
           "post_type": article.document.kind.to_json(),
+          "embeddable": true.to_json(),
         },
       ].to_json()
     }
