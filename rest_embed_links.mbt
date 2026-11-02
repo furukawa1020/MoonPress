@@ -149,6 +149,11 @@ fn rest_embed_allowed(
     link.get("taxonomy") == Some("category".to_json()) {
     return true
   }
+  if article &&
+    rel == "wp:term" &&
+    link.get("taxonomy") == Some("post_tag".to_json()) {
+    return true
+  }
   ignore(comment)
   ignore(link)
   false
