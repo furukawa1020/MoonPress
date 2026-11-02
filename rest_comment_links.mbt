@@ -28,9 +28,10 @@ fn rest_comment_links(
       } else {
         "posts"
       }
-      fields["in-reply-to"] = [
+      fields["up"] = [
         {
           "href": (base + "wp-json/wp/v2/" + plural + "/" + c.post.to_string()).to_json(),
+          "post_type": article.document.kind.to_json(),
         },
       ].to_json()
     }
