@@ -2,6 +2,7 @@
 priv struct RestEmbedState {
   cache : Map[String, Json]
   mut bytes : Int
+  mut expanded_bytes : Int
 }
 
 ///|
@@ -43,17 +44,24 @@ fn rest_embed_response(
       user
     }
   }
-  let state : RestEmbedState = { cache: Map([]), bytes: 0, }
-  {
-    ..result,
-    value: rest_embed_data(
+  let state : RestEmbedState = {
+    cache: Map([]),
+    bytes: 0,
+    expanded_bytes: @utf8.encode(result.value.stringify()).length(),
+  }
+  try {
+    let value = rest_embed_data(
       input,
       result.value,
       selectors,
       base,
       principal,
       state,
-    ),
+    )
+    if @utf8.encode(value.stringify()).length() > 16777216 {
+      raise InvalidInput("Embed response limit")
+    }
+    { ..result, value, }
   } catch {
     _ => rest_error(500, "moonpress_embed_unavailable")
   }
@@ -183,8 +191,12 @@ fn rest_embed_fetch(
   principal : AccessPrincipal?,
   state : RestEmbedState,
 ) -> Json raise {
-  if state.cache.get(href) is Some(data) { return data }
-  if state.cache.length() >= 256 { raise InvalidInput("Embed fetch count limit") }
+  if state.cache.get(href) is Some(data) {
+    return rest_embed_expansion(state, data)
+  }
+  if state.cache.length() >= 256 {
+    raise InvalidInput("Embed fetch count limit")
+  }
   let (path, query) = match rest_embed_local(href, base) {
     Some(target) => target
     _ => raise InvalidInput("Nonlocal embed route")
@@ -209,8 +221,30 @@ fn rest_embed_fetch(
   }
   let response = rest_route(input, path, query, base, principal)
   let data = response.value
+  return rest_embed_cache(state, href, data)
+}
+
+///|
+fn rest_embed_expansion(state : RestEmbedState, data : Json) -> Json raise {
   let size = @utf8.encode(data.stringify()).length()
-  if state.bytes + size > 8388608 { raise InvalidInput("Embed byte limit") }
+  if state.expanded_bytes + size > 16777216 {
+    raise InvalidInput("Embed expanded byte limit")
+  }
+  state.expanded_bytes += size
+  data
+}
+
+///|
+fn rest_embed_cache(
+  state : RestEmbedState,
+  href : String,
+  data : Json,
+) -> Json raise {
+  let size = @utf8.encode(data.stringify()).length()
+  if state.bytes + size > 8388608 {
+    raise InvalidInput("Embed cache byte limit")
+  }
+  let data = rest_embed_expansion(state, data)
   state.bytes += size
   state.cache[href] = data
   data
