@@ -108,7 +108,10 @@ fn rest_client(
     page_base = base
     let (path, query) = rest_target(request.target)
     if query.contains("_embed") &&
-      (!read || !path.has_prefix("/wp-json/wp/v2/")) {
+      (
+        (!read && request.verb != "OPTIONS") ||
+        !path.has_prefix("/wp-json/wp/v2/")
+      ) {
       return rest_response(rest_error(400, "moonpress_embed_read_only"), head)
     }
     embed_selection = rest_embed_relations(query.get("_embed"))
@@ -227,7 +230,11 @@ fn rest_client(
       // Request grammar errors and unsupported parameters are returned as 400.
       // Storage failures must not reveal source names or record contents.
       if request.verb == "OPTIONS" {
-        rest_options(path, query)
+        if path.has_prefix("/wp-json/wp/v2/") {
+          rest_embed_options(rest_options(path, query))
+        } else {
+          rest_options(path, query)
+        }
       } else {
         rest_route(input, path, query, base, principal)
       }

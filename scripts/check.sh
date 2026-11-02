@@ -543,3 +543,5 @@ python3 scripts/rest-c9-16-test.py
 python3 scripts/rest-c9-17-test.py
 
 python3 scripts/rest-c9-18-test.py
+
+python3 scripts/rest-c9-19-test.py
