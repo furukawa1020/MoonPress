@@ -112,7 +112,9 @@ fn rest_embed_data(
             continue
           }
           let data = rest_embed_fetch(input, href, rel, base, principal, state)
-          has_value = true
+          if data != ([] : Array[Json]).to_json() {
+            has_value = true
+          }
           slots.push(data)
         }
         if has_value {
@@ -140,6 +142,11 @@ fn rest_embed_allowed(
     fields.get("type") == Some("page".to_json())
   let comment = fields.get("type") == Some("comment".to_json())
   if article && rel == "author" {
+    return true
+  }
+  if article &&
+    rel == "wp:term" &&
+    link.get("taxonomy") == Some("category".to_json()) {
     return true
   }
   ignore(comment)
