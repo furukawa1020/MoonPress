@@ -166,6 +166,9 @@ fn rest_embed_allowed(
   if comment && rel == "author" {
     return true
   }
+  if comment && rel == "children" {
+    return true
+  }
   ignore(comment)
   ignore(link)
   false

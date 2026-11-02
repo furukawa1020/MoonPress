@@ -25,6 +25,7 @@ fn rest_wp_comment_value(
   base : String,
   embed : Bool,
   edit? : Bool = false,
+  children? : Bool = false,
 ) -> Json raise {
   let c = row.comment
   let native = native_comment_value(row, edit)
@@ -58,6 +59,18 @@ fn rest_wp_comment_value(
     fields["date_gmt"] = date.to_json()
     fields["post"] = c.post.to_json()
     fields["status"] = c.status.to_json()
+  }
+  if fields.get("_links") is Some(Object(links)) {
+    if children {
+      links["children"] = [
+        {
+          "href": (base + "wp-json/wp/v2/comments?parent=" + c.id.to_string()).to_json(),
+          "embeddable": true.to_json(),
+        },
+      ].to_json()
+    } else {
+      links.remove("children")
+    }
   }
   Json::object(fields)
 }
@@ -134,6 +147,7 @@ fn rest_wp_comments(
   defer directory_close(content.fd)
   content.lock()
   let articles = rest_all_posts_at(input, content)
+  let child_rows = comment_snapshot_at(input, content).rows
   let result = native_comments_read(
     input,
     content,
@@ -141,7 +155,17 @@ fn rest_wp_comments(
     id,
     selected,
     projection=Some(row => {
-      rest_wp_comment_value(row, articles, base, embed, edit~)
+      rest_wp_comment_value(
+        row,
+        articles,
+        base,
+        embed,
+        edit~,
+        children=child_rows.any(child => {
+          child.comment.parent == Some(row.comment.id) &&
+          comment_public(child, child_rows)
+        }),
+      )
     }),
     wp_order=true,
   )
