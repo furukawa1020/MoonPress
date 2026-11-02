@@ -157,6 +157,9 @@ fn rest_embed_allowed(
   if article && rel == "replies" {
     return true
   }
+  if comment && rel == "up" {
+    return true
+  }
   ignore(comment)
   ignore(link)
   false
