@@ -174,6 +174,8 @@ fn rest_embed_fetch(
   principal : AccessPrincipal?,
   state : RestEmbedState,
 ) -> Json raise {
+  if state.cache.get(href) is Some(data) { return data }
+  if state.cache.length() >= 256 { raise InvalidInput("Embed fetch count limit") }
   let (path, query) = match rest_embed_local(href, base) {
     Some(target) => target
     _ => raise InvalidInput("Nonlocal embed route")
@@ -198,6 +200,9 @@ fn rest_embed_fetch(
   }
   let response = rest_route(input, path, query, base, principal)
   let data = response.value
-  ignore(state)
+  let size = @utf8.encode(data.stringify()).length()
+  if state.bytes + size > 8388608 { raise InvalidInput("Embed byte limit") }
+  state.bytes += size
+  state.cache[href] = data
   data
 }
