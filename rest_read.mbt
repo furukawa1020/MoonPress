@@ -79,7 +79,7 @@ fn rest_target(target : String) -> (String, Map[String, String]) raise {
             "include", "exclude", "author", "author_exclude", "post", "slug", "status",
             "search_columns", "_fields", "subtype", "parent", "parent_exclude", "categories",
             "tags", "categories_exclude", "tags_exclude", "mime_type", "media_type",
-            "has_published_posts", "capabilities", "roles",
+            "_embed", "has_published_posts", "capabilities", "roles",
           ].contains(name) ||
           !suffix.has_suffix("]") {
           raise InvalidInput("Unsupported array query")
@@ -313,10 +313,20 @@ fn rest_route(
         "/wp/v2/types/page": route,
       }),
       "moonpress": {
+        "embedding": {
+          "relations": [
+            "author", "wp:term", "replies", "up", "in-reply-to", "children",
+          ].to_json(),
+          "context": "embed".to_json(),
+          "read_only": true.to_json(),
+          "max_depth": (1).to_json(),
+          "max_subrequests": (256).to_json(),
+          "max_bytes": (8388608).to_json(),
+        },
         "read_only": false.to_json(),
         "contexts": ["view", "embed", "edit"].to_json(),
         "unsupported": [
-          "force-delete", "taxonomy-writes", "embeds", "xml-rpc", "php-plugins",
+          "force-delete", "taxonomy-writes", "xml-rpc", "php-plugins",
         ].to_json(),
       },
     })
