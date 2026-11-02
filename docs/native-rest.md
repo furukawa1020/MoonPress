@@ -25,8 +25,8 @@ GET and HEAD are supported for reads. Collection parameters are `context=view|em
 (1–4096), `per_page` (1–100), comma-separated `slug`, `order=asc|desc`, and
 `orderby=date|id|title|slug|include|author|include_slugs`. Responses include `X-WP-Total` and `X-WP-TotalPages`.
 Unknown/duplicate parameters are rejected. Detail accepts `context=view|embed` or authorized `context=edit`.
-Trailing collection slashes are accepted. `_embed`, taxonomies,
-authentication cookies, cross-origin CORS, XML-RPC, permanent deletion and remote trash restoration are not implemented. No unknown parameters are silently treated as effective.
+Trailing collection slashes are accepted. [Related-resource embedding](rest-embedding.md)
+is available for reads; taxonomy writes, authentication cookies, cross-origin CORS, XML-RPC, permanent deletion and remote trash restoration are not implemented. No unknown parameters are silently treated as effective.
 
 Post objects contain `id`, `date`, `date_gmt`, `slug`, `status`, `type`, `link`,
 rendered `title`, rendered `content`/`excerpt` with `protected=false`, and
@@ -603,8 +603,9 @@ filters continue to apply. Public term details may be absent for terms returned
 in an authorized draft's edit representation.
 
 Term self/collection/about/post relationship links and post `wp:term` links
-support traversal. These links do not advertise embedding because `_embed` is
-not implemented. Universal search accepts `type=term` and
+support traversal. Post `wp:term` links advertise `embeddable=true`; `_embed=wp:term`
+returns category/tag slots in that order. See [embedding limits and contexts](rest-embedding.md).
+Universal search accepts `type=term` and
 `subtype=category|post_tag|any`, bounded ID selection, search and pagination.
 As in the core term search handler, each result has id/title/url/type, with
 `type=category|post_tag` and no `subtype`; the request selector remains
