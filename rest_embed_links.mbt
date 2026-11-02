@@ -160,6 +160,9 @@ fn rest_embed_allowed(
   if comment && rel == "up" {
     return true
   }
+  if comment && rel == "in-reply-to" {
+    return true
+  }
   ignore(comment)
   ignore(link)
   false
