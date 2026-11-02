@@ -62,7 +62,13 @@ fn rest_target(target : String) -> (String, Map[String, String]) raise {
       let (key, value) = match pair.split_once("=") {
         Some((key, value)) =>
           (admin_decode(key.to_owned()), admin_decode(value.to_owned()))
-        None => raise InvalidInput("Expected query key=value")
+        None => {
+          let name = admin_decode(pair.to_owned())
+          if name != "_embed" {
+            raise InvalidInput("Expected query key=value")
+          }
+          (name, "")
+        }
       }
       if key.contains("[") {
         let (name, suffix) = match key.split_once("[") {

@@ -82,6 +82,8 @@ fn rest_client(
   let mut keyed = false
   let mut envelope = false
   let mut allowed : String? = None
+  let mut embed_selection : Array[String]? = None
+  let mut embed_credentials : String? = None
   let result = try {
     let (request, body) = admin_read_request(
       client,
@@ -105,6 +107,13 @@ fn rest_client(
     page_target = request.target
     page_base = base
     let (path, query) = rest_target(request.target)
+    if query.contains("_embed") &&
+      (!read || !path.has_prefix("/wp-json/wp/v2/")) {
+      return rest_response(rest_error(400, "moonpress_embed_read_only"), head)
+    }
+    embed_selection = rest_embed_relations(query.get("_embed"))
+    query.remove("_embed")
+    embed_credentials = request.authorization
     keyed = rest_metadata_collection(path)
     envelope = query.contains("_envelope")
     query.remove("_envelope")
@@ -225,6 +234,11 @@ fn rest_client(
     }
   } catch {
     _ => rest_error(400, "moonpress_request_rejected")
+  }
+  let result = if read && embed_selection is Some(selectors) {
+    rest_embed_response(input, result, selectors, page_base, embed_credentials)
+  } else {
+    result
   }
   let result = if result.code >= 200 &&
     result.code < 300 &&
