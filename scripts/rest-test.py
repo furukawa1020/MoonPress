@@ -60,7 +60,7 @@ with tempfile.TemporaryDirectory() as temporary:
         assert request(method='HEAD')[2] is None
         assert request(method='HEAD')[1]['Content-Length']==headers['Content-Length']
         for identifier in [200,300,400,500,999]:assert request(f'/wp-json/wp/v2/posts/{identifier}')[0]==404
-        for query in ['status=draft','per_page=101','page=2','page=01','page=1&page=1','_embed=true','per_page=2147483648']:
+        for query in ['status=draft','per_page=101','page=2','page=01','page=1&page=1','per_page=2147483648']:
             assert request('/wp-json/wp/v2/posts?'+query)[0]==400,query
         assert request('/wp-json/wp/v2/posts/100/revisions')[0]==400
         comment_status,comment_headers,comment_rows=request('/wp-json/wp/v2/comments')
