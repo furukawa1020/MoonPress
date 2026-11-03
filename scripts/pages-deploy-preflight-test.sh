@@ -45,10 +45,10 @@ for PAGES_TEST_MODE in missing wrong-source remote-error remote-timeout; do
   fi
   test ! -e "$PAGES_TEST_MUTATED"
   case "$PAGES_TEST_MODE" in
-    missing) rg -q 'Enable Settings > Pages' "$work/log" ;;
-    wrong-source) rg -q 'Pages source must be gh-pages' "$work/log" ;;
-    remote-error) rg -q 'Could not inspect the gh-pages branch .*128' "$work/log" ;;
-    remote-timeout) rg -q 'Could not inspect the gh-pages branch .*124' "$work/log" ;;
+    missing) grep -Eq 'Enable Settings > Pages' "$work/log" ;;
+    wrong-source) grep -Eq 'Pages source must be gh-pages' "$work/log" ;;
+    remote-error) grep -Eq 'Could not inspect the gh-pages branch .*128' "$work/log" ;;
+    remote-timeout) grep -Eq 'Could not inspect the gh-pages branch .*124' "$work/log" ;;
   esac
 done
 echo 'Pages preflight rejects invalid settings and failed branch lookups before publication.'
