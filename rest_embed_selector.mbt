@@ -3,7 +3,8 @@ fn rest_embed_relations(value : String?) -> Array[String]? raise {
   match value {
     None => None
     Some(value) => {
-      if value.length() > 1024 || value.any(c => c.is_control()) {
+      if value.length() > 1024 ||
+        value.any(c => c.is_control() && !c.is_whitespace()) {
         raise InvalidInput("Embed selector limit")
       }
       if ["", "true", "1", "0"].contains(value) {
