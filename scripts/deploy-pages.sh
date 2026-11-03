@@ -25,10 +25,16 @@ repository_work="$work/repository"
 mkdir "$repository_work"
 repo="https://github.com/$GITHUB_REPOSITORY.git"
 git -C "$repository_work" init -q
-if git -C "$repository_work" ls-remote --exit-code "$repo" refs/heads/gh-pages >/dev/null 2>&1; then
+if git -C "$repository_work" ls-remote --exit-code "$repo" refs/heads/gh-pages >/dev/null; then
   git -C "$repository_work" fetch --depth=1 "$repo" gh-pages
   git -C "$repository_work" checkout --detach FETCH_HEAD
   git -C "$repository_work" rm -rf --ignore-unmatch .
+else
+  lookup_status=$?
+  if [[ "$lookup_status" != 2 ]]; then
+    echo "::error::Could not inspect the gh-pages branch (exit $lookup_status)." >&2
+    exit "$lookup_status"
+  fi
 fi
 cp -a "$work/bundle/." "$repository_work/"
 git -C "$repository_work" add .
