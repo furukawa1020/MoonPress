@@ -4,6 +4,8 @@ ROOT='moonpress-linux-x86_64'
 try:
     with tarfile.open(sys.argv[1],'r:gz') as archive:
         for member in archive:
+            if not member.isfile() and not member.isdir():
+                raise ValueError('Archive contains a link or special file.')
             name=member.name.rstrip('/')
             parts=name.split('/')
             if not name or name.startswith('/') or any(part in ('','.','..') for part in parts) or parts[0]!=ROOT:
