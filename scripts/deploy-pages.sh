@@ -50,21 +50,7 @@ if ! git -C "$repository_work" diff --cached --quiet || ! git -C "$repository_wo
 fi
 # Workflow-token pushes do not automatically trigger a Pages build.
 gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds" > "$work/build.json"
-for attempt in $(seq 1 30); do
-  gh api "repos/$GITHUB_REPOSITORY/pages/builds/latest" > "$work/status.json"
-  state="$(jq -r .status "$work/status.json")"
-  deployed="$(jq -r .commit "$work/status.json")"
-  expected="$(git -C "$repository_work" rev-parse HEAD)"
-  if [[ "$deployed" == "$expected" && "$state" == built ]]; then
-    timeout 600 bash "$(dirname "$0")/verify-pages.sh" "$work/bundle" "$url" 600
-    echo "Published: $url"
-    exit 0
-  fi
-  if [[ "$deployed" == "$expected" && "$state" == errored ]]; then
-    jq .error "$work/status.json" >&2
-    exit 1
-  fi
-  sleep 5
-done
-echo '::error::Pages deployment timed out; inspect Pages build status.'
-exit 1
+expected="$(git -C "$repository_work" rev-parse HEAD)"
+bash "$(dirname "$0")/wait-pages-build.sh" "$GITHUB_REPOSITORY" "$expected"
+timeout 600 bash "$(dirname "$0")/verify-pages.sh" "$work/bundle" "$url" 600
+echo "Published: $url"
