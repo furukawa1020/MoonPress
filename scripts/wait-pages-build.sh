@@ -14,6 +14,11 @@ deadline=$((SECONDS + budget))
 while (( SECONDS < deadline )); do
   remaining=$((deadline - SECONDS))
   if timeout "$remaining" gh api "repos/$repository/pages/builds/latest" > "$work/status.json"; then
+    if ! jq -e 'type == "object" and (.commit | type == "string") and
+      (.status == "queued" or .status == "building" or .status == "built" or .status == "errored")' "$work/status.json" >/dev/null; then
+      echo 'Invalid Pages build response.' >&2
+      exit 1
+    fi
     state="$(jq -r .status "$work/status.json")"
     deployed="$(jq -r .commit "$work/status.json")"
     if [[ "$deployed" == "$expected" && "$state" == built ]]; then exit 0; fi
