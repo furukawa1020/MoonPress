@@ -16,8 +16,8 @@ budget=$((10#$budget))
 deadline=$((SECONDS + budget))
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-python3 "$(dirname "$0")/pages-bundle.py" "$bundle" > "$work/inventory.json"
-mapfile -d '' files < <(find "$bundle" -maxdepth 1 -type f -print0 | sort -z)
+python3 "$(dirname "$0")/pages-bundle.py" "$bundle" "$work/expected" > "$work/inventory.json"
+mapfile -d '' files < <(find "$work/expected" -maxdepth 1 -type f -print0 | sort -z)
 test "${#files[@]}" -gt 0
 nonce="$(date +%s)-$$"
 attempt=0
@@ -43,6 +43,11 @@ while true; do
     fi
   done
   if [[ "$complete" == true ]]; then
+    python3 "$(dirname "$0")/pages-bundle.py" "$bundle" > "$work/current.json"
+    if ! cmp -s "$work/inventory.json" "$work/current.json"; then
+      echo 'Expected public bundle changed during verification.' >&2
+      exit 1
+    fi
     printf 'Verified %s public artifacts at %s\n' "${#files[@]}" "$url"
     exit 0
   fi
