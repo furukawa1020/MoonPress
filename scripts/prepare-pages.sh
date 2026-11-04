@@ -6,12 +6,16 @@ cli="$root/_build/native/release/build/cmd/main/main.exe"
 source_dir="$(realpath "${1:?source output required}")"
 destination="${2:?new destination required}"
 test ! -e "$destination"
+if [[ -e "$source_dir/.moonpress-preview" || -L "$source_dir/.moonpress-preview" ]]; then
+  echo 'Preview output cannot be published. Build production output first.' >&2
+  exit 1
+fi
 "$cli" audit "$source_dir" --json >/dev/null
 manifest="$(mktemp)"
 trap 'rm -f "$manifest"' EXIT
 cp -- "$source_dir/.moonpress.json" "$manifest"
 # Validate names independently before shell path construction.
-jq -e '(.artifacts | type == "array") and all(.artifacts[]; (.name | type == "string") and (.name | length > 0) and (.name | explode | all(. > 31 and . != 127 and . != 47 and . != 92)) and (.name != "." and .name != "..") and (.digest | test("^[0-9a-f]{64}$")))' "$manifest" >/dev/null
+jq -e '(.artifacts | type == "array") and all(.artifacts[]; (.name | type == "string") and (.name | length > 0) and (.name | explode | all(. > 31 and . != 127 and . != 47 and . != 92)) and (.name != "." and .name != "..") and ((.name | startswith(".") | not) or .name == ".nojekyll") and (.digest | test("^[0-9a-f]{64}$")))' "$manifest" >/dev/null
 mkdir "$destination"
 complete=false
 trap 'rm -f "$manifest"; if [[ "$complete" != true ]]; then rm -rf -- "$destination"; fi' EXIT
