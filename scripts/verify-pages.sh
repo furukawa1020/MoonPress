@@ -8,7 +8,7 @@ if [[ "$url" == *'?'* || "$url" == *'#'* ]]; then
   echo 'Public base URL must not contain a query or fragment.' >&2
   exit 2
 fi
-case "$url" in http://*|https://*) ;; *) echo 'Expected HTTP(S) base URL' >&2; exit 1 ;; esac
+python3 "$(dirname "$0")/pages-url.py" "$url"
 if [[ ! "$budget" =~ ^[0-9]{1,3}$ ]] || ((10#$budget > 600)); then
   echo 'Verification budget must be 0..600 seconds' >&2; exit 2
 fi
