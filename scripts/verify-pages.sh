@@ -16,6 +16,7 @@ budget=$((10#$budget))
 deadline=$((SECONDS + budget))
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
+python3 "$(dirname "$0")/pages-bundle.py" "$bundle" > "$work/inventory.json"
 mapfile -d '' files < <(find "$bundle" -maxdepth 1 -type f -print0 | sort -z)
 test "${#files[@]}" -gt 0
 nonce="$(date +%s)-$$"
