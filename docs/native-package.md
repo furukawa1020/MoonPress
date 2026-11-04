@@ -52,3 +52,12 @@ The installation gate sets `MOONPRESS_EXPECT_REVISION` to the full workflow SHA:
 before executing the candidate, BUILD.txt must contain exactly that revision and
 one `source_tree=clean` entry. This checks consistency with the selected build;
 it does not authenticate a maliciously replaced archive or provide signing.
+
+## Archive validation during installation checks
+
+`release-smoke.sh` validates the exact archive and executable checksum targets
+before use. It inspects archive paths before extraction and accepts only regular
+files and directories beneath `moonpress-linux-x86_64`. Duplicate paths, links,
+special files, more than 1,024 entries, files larger than 64 MiB, or an expanded
+stream exceeding 256 MiB are rejected. These checks also run on the downloaded
+candidate before the packaged browser journey.
