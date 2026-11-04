@@ -4,7 +4,8 @@ set -euo pipefail
 package="$(realpath "${1:?package directory required}")"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-(cd "$package" && sha256sum --check SHA256SUMS)
+python3 "$(dirname "$0")/check-release-checksum.py" "$package/SHA256SUMS" moonpress-linux-x86_64.tar.gz
+(cd "$package" && sha256sum --check --strict SHA256SUMS)
 tar -xzf "$package/moonpress-linux-x86_64.tar.gz" -C "$work"
 bundle="$work/moonpress-linux-x86_64"
 (cd "$bundle" && sha256sum --check EXECUTABLE.sha256)
