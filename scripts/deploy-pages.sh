@@ -47,10 +47,11 @@ git -C "$repository_work" add .
 if ! git -C "$repository_work" diff --cached --quiet || ! git -C "$repository_work" rev-parse HEAD >/dev/null 2>&1; then
   git -C "$repository_work" -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Deploy MoonPress from $GITHUB_SHA"
   git -C "$repository_work" -c credential.helper='!gh auth git-credential' push "$repo" HEAD:refs/heads/gh-pages
+  # Workflow-token pushes do not automatically trigger a Pages build.
+  gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds" > "$work/build.json"
+  expected="$(git -C "$repository_work" rev-parse HEAD)"
+  bash "$(dirname "$0")/wait-pages-build.sh" "$GITHUB_REPOSITORY" "$expected" 300
 fi
-# Workflow-token pushes do not automatically trigger a Pages build.
-gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds" > "$work/build.json"
-expected="$(git -C "$repository_work" rev-parse HEAD)"
-bash "$(dirname "$0")/wait-pages-build.sh" "$GITHUB_REPOSITORY" "$expected" 300
+# An unchanged branch still requires full public-byte verification below.
 timeout 600 bash "$(dirname "$0")/verify-pages.sh" "$work/bundle" "$url" 600
 echo "Published: $url"
