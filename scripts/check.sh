@@ -584,3 +584,5 @@ python3 scripts/pages-u20-16-test.py
 python3 scripts/pages-u20-17-test.py
 
 python3 scripts/pages-u20-18-test.py
+
+python3 scripts/pages-u20-19-test.py
