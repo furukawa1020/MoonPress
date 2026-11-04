@@ -73,3 +73,20 @@ API and stopped at the explicit setup gate. Enable Pages using the one-time
 setting above before claiming a public deployment. A remote branch push and a
 passing native CI run do not close that gate. Real-browser visual, keyboard and
 download verification also remains outstanding.
+
+## Production output preflight
+
+Preview builds now contain a compiler-owned `.moonpress-preview` marker.
+`prepare-pages.sh` refuses that output. Rebuild without `--include-drafts` to
+remove the marker and unpublished pages before publishing.
+
+Use `bash scripts/prepare-pages.sh dist bundle site` to check that `dist` still
+matches the current production plan for `site`. This source argument also
+protects against preview outputs created before the marker was introduced.
+`deploy-pages.sh dist site` performs the same source check before publication.
+
+The public verifier compares an immutable local snapshot with every remote
+artifact, then checks that the original bundle still matches the snapshot.
+Its base URL must be an HTTP(S) URL without embedded credentials, query, or
+fragment. The expected bundle must contain a nonempty `index.html` and regular
+flat public files. Internal metadata and linked or nested entries are refused.
