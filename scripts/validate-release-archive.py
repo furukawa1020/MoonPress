@@ -1,0 +1,12 @@
+"""Inspect candidate members before extracting a downloaded release archive."""
+import sys,tarfile
+ROOT='moonpress-linux-x86_64'
+try:
+    with tarfile.open(sys.argv[1],'r:gz') as archive:
+        for member in archive:
+            name=member.name.rstrip('/')
+            parts=name.split('/')
+            if not name or name.startswith('/') or any(part in ('','.','..') for part in parts) or parts[0]!=ROOT:
+                raise ValueError('Archive entry is outside the expected root.')
+except (OSError,ValueError,tarfile.TarError,IndexError) as error:
+    raise SystemExit(str(error))

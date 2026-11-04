@@ -6,7 +6,8 @@ work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 python3 "$(dirname "$0")/check-release-checksum.py" "$package/SHA256SUMS" moonpress-linux-x86_64.tar.gz
 (cd "$package" && sha256sum --check --strict SHA256SUMS)
-tar -xzf "$package/moonpress-linux-x86_64.tar.gz" -C "$work"
+python3 "$(dirname "$0")/validate-release-archive.py" "$package/moonpress-linux-x86_64.tar.gz"
+tar --no-same-owner --no-same-permissions -xzf "$package/moonpress-linux-x86_64.tar.gz" -C "$work"
 bundle="$work/moonpress-linux-x86_64"
 python3 "$(dirname "$0")/check-release-checksum.py" "$bundle/EXECUTABLE.sha256" moonpress
 (cd "$bundle" && sha256sum --check --strict EXECUTABLE.sha256)
