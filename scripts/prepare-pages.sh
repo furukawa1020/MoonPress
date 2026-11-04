@@ -6,6 +6,15 @@ cli="$root/_build/native/release/build/cmd/main/main.exe"
 source_dir="$(realpath "${1:?source output required}")"
 destination="${2:?new destination required}"
 test ! -e "$destination"
+validate_production() {
+  if [[ $# == 1 && -n "$1" ]]; then
+    "$cli" review "$1" "$source_dir" --json | jq -e '
+      .include_drafts == false and .report.manifest_changed == false and
+      .report.plan.summary.written == 0 and .report.plan.summary.deleted == 0
+    ' >/dev/null
+  fi
+}
+validate_production "${3:-}"
 if [[ -e "$source_dir/.moonpress-preview" || -L "$source_dir/.moonpress-preview" ]]; then
   echo 'Preview output cannot be published. Build production output first.' >&2
   exit 1
@@ -30,4 +39,5 @@ test -f "$destination/.nojekyll"
 test ! -e "$destination/.moonpress.json"
 cmp -s -- "$manifest" "$source_dir/.moonpress.json"
 "$cli" audit "$source_dir" --json >/dev/null
+validate_production "${3:-}"
 complete=true

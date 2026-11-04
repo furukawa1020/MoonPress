@@ -552,3 +552,5 @@ python3 scripts/rest-c9-safety-test.py
 python3 scripts/pages-preview-marker-test.py
 
 python3 scripts/pages-u20-02-test.py
+
+python3 scripts/pages-u20-03-test.py
