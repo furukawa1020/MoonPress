@@ -51,6 +51,6 @@ fi
 # Workflow-token pushes do not automatically trigger a Pages build.
 gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds" > "$work/build.json"
 expected="$(git -C "$repository_work" rev-parse HEAD)"
-bash "$(dirname "$0")/wait-pages-build.sh" "$GITHUB_REPOSITORY" "$expected"
+bash "$(dirname "$0")/wait-pages-build.sh" "$GITHUB_REPOSITORY" "$expected" 300
 timeout 600 bash "$(dirname "$0")/verify-pages.sh" "$work/bundle" "$url" 600
 echo "Published: $url"
