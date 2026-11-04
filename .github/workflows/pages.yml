@@ -34,4 +34,4 @@ jobs:
       - name: Publish generated files and request Pages build
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash scripts/deploy-pages.sh dist
+        run: bash scripts/deploy-pages.sh dist site

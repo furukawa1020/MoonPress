@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+if (( $# > 2 )); then
+  echo 'Usage: deploy-pages.sh <output-directory> [source-directory]' >&2
+  exit 2
+fi
 : "${GITHUB_REPOSITORY:?Run inside GitHub Actions}"
 : "${GITHUB_SHA:?Missing source revision}"
 : "${GH_TOKEN:?Missing scoped workflow token}"
@@ -20,7 +24,7 @@ if ! jq -e '.source.branch == "gh-pages" and .source.path == "/"' "$work/pages.j
   echo '::error::Pages source must be gh-pages / (root).'
   exit 1
 fi
-bash "$(dirname "$0")/prepare-pages.sh" "$source_dir" "$work/bundle"
+bash "$(dirname "$0")/prepare-pages.sh" "$source_dir" "$work/bundle" "${2:-site}"
 repository_work="$work/repository"
 mkdir "$repository_work"
 repo="https://github.com/$GITHUB_REPOSITORY.git"
