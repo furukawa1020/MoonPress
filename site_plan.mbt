@@ -561,6 +561,24 @@ fn plan_site(
       ),
     )
   }
+  if include_drafts {
+    route_info.push({
+      name: ".moonpress-preview",
+      kind: "marker",
+      source: None,
+      target: None,
+    })
+    pending.push(
+      plan_artifact(
+        ".moonpress-preview",
+        [],
+        previous,
+        output,
+        () => b"MoonPress preview output: may contain unpublished content.\n",
+        log,
+      ),
+    )
+  }
   let current : Map[String, Bool] = Map([])
   let artifacts : Array[Artifact] = []
   let mut written = 0

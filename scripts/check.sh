@@ -548,3 +548,5 @@ python3 scripts/rest-c9-18-test.py
 python3 scripts/rest-c9-19-test.py
 
 python3 scripts/rest-c9-safety-test.py
+
+python3 scripts/pages-preview-marker-test.py
