@@ -562,6 +562,12 @@ fn plan_site(
     )
   }
   if include_drafts {
+    route_info.push({
+      name: ".moonpress-preview",
+      kind: "marker",
+      source: None,
+      target: None,
+    })
     pending.push(
       plan_artifact(
         ".moonpress-preview",
