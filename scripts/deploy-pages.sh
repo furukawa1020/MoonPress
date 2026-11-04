@@ -24,6 +24,8 @@ if ! jq -e '.source.branch == "gh-pages" and .source.path == "/"' "$work/pages.j
   echo '::error::Pages source must be gh-pages / (root).'
   exit 1
 fi
+url="$(jq -er '.html_url | select(type == "string")' "$work/pages.json")"
+python3 "$(dirname "$0")/pages-url.py" "$url"
 bash "$(dirname "$0")/prepare-pages.sh" "$source_dir" "$work/bundle" "${2:-site}"
 repository_work="$work/repository"
 mkdir "$repository_work"
@@ -54,7 +56,6 @@ for attempt in $(seq 1 30); do
   deployed="$(jq -r .commit "$work/status.json")"
   expected="$(git -C "$repository_work" rev-parse HEAD)"
   if [[ "$deployed" == "$expected" && "$state" == built ]]; then
-    url="$(jq -r .html_url "$work/pages.json")"
     timeout 600 bash "$(dirname "$0")/verify-pages.sh" "$work/bundle" "$url" 600
     echo "Published: $url"
     exit 0

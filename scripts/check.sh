@@ -556,3 +556,5 @@ python3 scripts/pages-u20-02-test.py
 python3 scripts/pages-u20-03-test.py
 
 python3 scripts/pages-u20-04-test.py
+
+python3 scripts/pages-u20-05-test.py

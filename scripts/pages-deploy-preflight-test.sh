@@ -13,7 +13,7 @@ if [[ "$*" == 'api repos/example/moonpress/pages' ]]; then
   if [[ "$PAGES_TEST_MODE" == wrong-source ]]; then
     printf '%s\n' '{"source":{"branch":"main","path":"/"}}'
   else
-    printf '%s\n' '{"source":{"branch":"gh-pages","path":"/"}}'
+    printf '%s\n' '{"source":{"branch":"gh-pages","path":"/"},"html_url":"https://example.test/"}'
   fi
 else
   touch "$PAGES_TEST_MUTATED"
