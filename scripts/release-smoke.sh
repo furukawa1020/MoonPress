@@ -8,7 +8,8 @@ python3 "$(dirname "$0")/check-release-checksum.py" "$package/SHA256SUMS" moonpr
 (cd "$package" && sha256sum --check --strict SHA256SUMS)
 tar -xzf "$package/moonpress-linux-x86_64.tar.gz" -C "$work"
 bundle="$work/moonpress-linux-x86_64"
-(cd "$bundle" && sha256sum --check EXECUTABLE.sha256)
+python3 "$(dirname "$0")/check-release-checksum.py" "$bundle/EXECUTABLE.sha256" moonpress
+(cd "$bundle" && sha256sum --check --strict EXECUTABLE.sha256)
 if [[ -n "${MOONPRESS_EXPECT_REVISION:-}" ]]; then
   bash "$(dirname "$0")/verify-package-provenance.sh" "$bundle" "$MOONPRESS_EXPECT_REVISION"
 fi
