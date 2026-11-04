@@ -9,6 +9,9 @@ try:
         raise ValueError('Expected a nonempty public bundle.')
     if any(entry.is_symlink() or not entry.is_file() for entry in entries):
         raise ValueError('Public bundle entries must be regular files.')
+    index=root/'index.html'
+    if not index.is_file() or index.stat().st_size==0:
+        raise ValueError('Public bundle requires a nonempty index.html.')
     print(json.dumps([entry.name for entry in entries]))
 except (OSError,ValueError,IndexError) as error:
     raise SystemExit(str(error))
