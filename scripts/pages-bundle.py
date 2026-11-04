@@ -12,6 +12,8 @@ try:
     index=root/'index.html'
     if not index.is_file() or index.stat().st_size==0:
         raise ValueError('Public bundle requires a nonempty index.html.')
+    if any(entry.name.startswith('.') and entry.name!='.nojekyll' for entry in entries):
+        raise ValueError('Internal files must not appear in the public bundle.')
     print(json.dumps([entry.name for entry in entries]))
 except (OSError,ValueError,IndexError) as error:
     raise SystemExit(str(error))
