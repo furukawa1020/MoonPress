@@ -1,5 +1,5 @@
 ---
-{"title":"1. 記事を書く","layout":"room-write.html","listed":false}
+{"title":"1. 記事を書く","listed":false}
 ---
 # 1. 記事を書く
 

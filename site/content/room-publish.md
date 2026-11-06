@@ -1,5 +1,5 @@
 ---
-{"title":"4. ZIPを取得して公開する","layout":"room-publish.html","listed":false}
+{"title":"4. ZIPを取得して公開する","listed":false}
 ---
 # 4. ZIPを取得して公開する
 

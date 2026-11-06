@@ -1,5 +1,5 @@
 ---
-{"title":"3. 公開用ファイルを生成する","layout":"room-build.html","listed":false}
+{"title":"3. 公開用ファイルを生成する","listed":false}
 ---
 # 3. 公開用ファイルを生成する
 
