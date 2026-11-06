@@ -189,7 +189,7 @@ fn admin_room(
       )
     Building =>
       (
-        "<p><!--mp:ja-->ここで、書いたものをサイトにしていこう。まずは、変わるファイルを確かめます。確認した計画と実際の入力が違えば、MoonBitが書き込みを止めます。<!--mp:en-->Turn your writing into a site. First, inspect the files that will change. If the reviewed plan no longer matches current input, MoonBit stops the build.<!--mp:end--></p>" +
+        "<p><!--mp:ja-->公開用の変更計画を開き、書き込みと削除の対象を確認します。記事や設定が変わった場合は計画を開き直してください。<!--mp:en-->Open the production plan and review the writes and deletions. Review a new plan if articles or settings change.<!--mp:end--></p>" +
         room_production_state(input, token, false) +
         admin_production_plan_form(token, japanese=true) +
         "<p><!--mp:ja-->表示された変更計画を読んで、「確認した公開用ファイルを生成」を選んでください。更新のないページは書き換えません。<!--mp:en-->Read the plan, then choose Build production files. Unchanged pages are not rewritten.<!--mp:end--></p>",
@@ -198,9 +198,9 @@ fn admin_room(
       )
     Departure =>
       (
-        "<p><!--mp:ja-->できたサイトを、みんなに見てもらおう。生成物が最新なら、下に公開用ZIPの持ち出しボタンが現れます。<!--mp:en-->Get your site ready for the world. If production files are current, the ZIP download appears below.<!--mp:end--></p>" +
+        "<p><!--mp:ja-->生成物が最新なら「公開用ZIPをダウンロード」が表示されます。表示されない場合は、公開用ビルドで変更計画を確認して生成してください。<!--mp:en-->Download production ZIP appears when generated files are current. If it is missing, review and run a production build.<!--mp:end--></p>" +
         room_production_state(input, token, true) +
-        "<ol><li><!--mp:ja-->ZIPを展開し、ホストへアップロードするか、設定済みのGitHub Actionsで配信します。<!--mp:en-->Extract the ZIP and upload the files to your host, or use your configured GitHub Actions workflow.<!--mp:end--></li><li><!--mp:ja-->ホストのデプロイ成功を確認します。<!--mp:en-->Check that your host reports a successful deployment.<!--mp:end--></li><li><!--mp:ja-->公開URLを開き、記事・画像・CSSと削除したページを確認します。<!--mp:en-->Open the public URL and check articles, images, CSS and removed pages.<!--mp:end--></li></ol><p class=\"notice\"><!--mp:ja-->ホスティング：未確認。この部屋に入っただけでは公開完了になりません。ローカル管理画面はホストの認証情報を持ちません。<!--mp:en-->Hosting: unverified. Entering this room does not publish your site. This local editor has no hosting credentials.<!--mp:end--></p><div class=\"room-actions\"><a href=\"/publish\"><!--mp:ja-->▶ 公開先設定と持ち出しの詳細<!--mp:en-->▶ Publishing settings and export details<!--mp:end--></a><a href=\"https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md\"><!--mp:ja-->▶ GitHub Pagesへの道順<!--mp:en-->▶ Directions to GitHub Pages<!--mp:end--></a></div>",
+        "<ol><li><!--mp:ja-->ZIPを展開し、ホストへアップロードするか、設定済みのGitHub Actionsで配信します。<!--mp:en-->Extract the ZIP and upload the files to your host, or use your configured GitHub Actions workflow.<!--mp:end--></li><li><!--mp:ja-->ホストのデプロイ成功を確認します。<!--mp:en-->Check that your host reports a successful deployment.<!--mp:end--></li><li><!--mp:ja-->公開URLを開き、記事・画像・CSSと削除したページを確認します。<!--mp:en-->Open the public URL and check articles, images, CSS and removed pages.<!--mp:end--></li></ol><p class=\"notice\"><!--mp:ja-->ホスティング：未確認。アップロード後に公開URLを開き、表示を確認してください。<!--mp:en-->Hosting: unverified. Open the public URL after uploading and check the result.<!--mp:end--></p><div class=\"room-actions\"><a href=\"/publish\"><!--mp:ja-->公開先の設定を確認する<!--mp:en-->Check hosting settings<!--mp:end--></a><a href=\"https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md\"><!--mp:ja-->GitHub Pagesへの公開手順<!--mp:en-->GitHub Pages publishing guide<!--mp:end--></a></div>",
         Some(Building),
         None,
       )
