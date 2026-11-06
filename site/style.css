@@ -1,6 +1,7 @@
+@font-face { font-family: MoonPixel; src: url(dotgothic16.woff) format("woff"); font-display: swap; unicode-range: U+3000-30FF,U+3400-9FFF,U+FF00-FFEF; }
 :root{color-scheme:dark;--ink:#eee7d5;--bg:#080f24;--gold:#f4d39a;--link:#b9dddc}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.75 system-ui,sans-serif}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.75 "Noto Sans CJK JP","Yu Gothic","Hiragino Sans",MoonPixel,system-ui,sans-serif}
 a{color:var(--link);text-underline-offset:6px}a:hover{color:var(--gold)}a:focus-visible{outline:3px solid var(--gold);outline-offset:5px}
 header,main,footer{width:min(1160px,calc(100% - 40px));margin:auto}
 header{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:8px 0}
