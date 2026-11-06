@@ -37,7 +37,7 @@ printf '%s\n' '---' '{"draft":true}' '---' '# Private draft' > "$tmp/site/conten
 test "$(get /rooms)" = 200
 grep -Fq '保存した下書きをプレビューする' "$tmp/page"
 test "$(get /rooms/preview)" = 200
-grep -Fq 'プレビュー：まだ生成していません' "$tmp/page"
+grep -Fq 'プレビューは未生成です' "$tmp/page"
 test ! -e "$tmp/site/.moonpress-preview"
 "$cli" build "$tmp/site" "$tmp/site/.moonpress-preview" --include-drafts >/dev/null
 test "$(get /rooms/preview)" = 200
