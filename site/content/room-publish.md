@@ -1,14 +1,16 @@
 ---
-{"title":"05 おひろめる〜む","layout":"room-publish.html","listed":false}
+{"title":"4. ZIPを取得して公開する","layout":"room-publish.html","listed":false}
 ---
-# 05 おひろめる〜む
+# 4. ZIPを取得して公開する
 
-できたサイトを、みんなにおひろめ。
+管理画面の「公開用ZIP」で「公開用ZIPをダウンロード」を押します。ボタンは生成物が最新のときに表示されます。ボタンがなければ変更計画を確認して生成し直します。
 
-最新の生成物をZIPで持ち出し、ホスティングへ。GitHub Pagesを設定すれば、リポジトリの更新から配信できます。ホストの成功と公開URLを確認して、はじめて公開完了です。
+1. ダウンロードしたZIPを展開します。
+2. 展開したHTML・CSS・画像を、使っているホストへアップロードします。前回公開したページを削除した場合は、ホスト側でも削除します。
+3. ホストが配信成功を報告したら、公開URLを開いて記事・画像・CSSを確認します。
 
-[▶ GitHub Pagesへの道順](https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md)
+[GitHub Pagesに公開する手順](https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md)
 
-このガイドは操作体験の説明です。ローカル管理画面からホストへ直接アップロードする機能は、まだ接続していません。
+[前へ：公開用ファイルを生成する](room-build.html)
 
-[◀ まえのおへやへ](room-build.html) · [はじまりにもどる](index.html)
+[インストール・使い方](guide.html)
