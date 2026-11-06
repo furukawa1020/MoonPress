@@ -18,3 +18,13 @@ main{padding:12px 0 70px}h1,h2,h3{font-weight:650;line-height:1.35}h1{font-size:
 .map { padding: 1rem 0; border-block: 1px solid #455169; }
 .home-illustration { margin: 2rem 0 0; max-width: 40rem; }
 .home-illustration img { display: block; width: 100%; height: auto; }
+
+main { min-width: 0; }
+main pre { max-width: 46rem; padding: .9rem 1rem; }
+main pre code { overflow-wrap: normal; white-space: pre; }
+header nav a, .map a { padding-block: .4rem; }
+@media (max-width: 40rem) {
+  header, main, footer { width: calc(100% - 2rem); }
+  .home-stage { padding-top: .75rem; }
+  .map { display: grid; gap: .2rem; }
+}
