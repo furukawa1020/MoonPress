@@ -1,5 +1,5 @@
 ---
-{"title":"2. プレビューする","layout":"room-preview.html","listed":false}
+{"title":"2. プレビューする","listed":false}
 ---
 # 2. プレビューする
 
