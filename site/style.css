@@ -5,7 +5,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.9 MoonPixel,mono
 a{color:var(--link);text-underline-offset:6px}a:hover{color:var(--gold)}a:focus-visible{outline:3px solid var(--gold);outline-offset:5px}
 header,main,footer{width:min(1160px,calc(100% - 40px));margin:auto}
 header{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:8px 0}
-.brand{display:block;width:300px;max-width:55%;flex-shrink:0}.brand img{display:block;width:100%;height:auto}
+.brand { font-size: 1.25rem; font-weight: 700; color: var(--gold); }
 nav{display:flex;gap:12px 24px;flex-wrap:wrap;font-size:15px}
 main{padding:12px 0 70px}h1,h2,h3{font-weight:400;line-height:1.5}h1{font-size:clamp(32px,5vw,56px);color:var(--gold);margin:0 0 20px}h2{font-size:26px;margin-top:36px}p{max-width:760px}
 .room-stage{height:380px;overflow:hidden;position:relative;margin:0 -20px 35px;mask-image:linear-gradient(#000 80%,transparent)}
@@ -13,7 +13,7 @@ main{padding:12px 0 70px}h1,h2,h3{font-weight:400;line-height:1.5}h1{font-size:c
 .room-stage.writing img{left:-5%;top:-65%}.room-stage.preview img{left:-35%;top:-62%}.room-stage.binding img{left:-60%;top:-60%}.room-stage.departure img{left:-60%;top:-5%}
 .room-copy{max-width:780px;padding:0 0 0 24px;border-left:1px solid #485268}.room-copy p{margin:22px 0}.room-copy a{display:inline-block;padding:6px 0}
 .skip{position:absolute;left:-9999px}.skip:focus{left:12px;top:12px;background:var(--bg);padding:10px;z-index:3}pre{padding:20px 0;overflow:auto;border-block:1px solid #455169}code{font:15px/1.8 monospace}main a,code{overflow-wrap:anywhere}footer{font-size:13px;border-top:1px solid #455169;padding:22px 0;display:flex;gap:20px;justify-content:space-between;flex-wrap:wrap}.toc{font-size:15px;margin-bottom:30px}.toc ol{padding-left:20px}table{border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #455169}
-@media(max-width:600px){header{align-items:flex-start;flex-direction:column;gap:0;padding-bottom:18px}.brand{width:240px;max-width:100%}body{font-size:16px}.room-stage{height:250px}.room-stage img{width:210%;top:-35%}.room-stage.writing img{left:0;top:-60%}.room-stage.preview img{left:-65%;top:-60%}.room-stage.binding img{left:-110%;top:-55%}.room-stage.departure img{left:-110%;top:0}.room-copy{padding-left:16px}.map{gap:8px 18px}}
+@media(max-width:600px){header{align-items:flex-start;flex-direction:column;gap:0;padding-bottom:18px}body{font-size:16px}.room-stage{height:250px}.room-stage img{width:210%;top:-35%}.room-stage.writing img{left:0;top:-60%}.room-stage.preview img{left:-65%;top:-60%}.room-stage.binding img{left:-110%;top:-55%}.room-stage.departure img{left:-110%;top:0}.room-copy{padding-left:16px}.map{gap:8px 18px}}
 /* Frame the room itself, independent of the viewport's height. */
 .room-stage img{width:200%;top:50%;transform:translateY(-65%)}
 .room-stage.writing img{left:0;top:50%}.room-stage.preview img{left:-50%;top:50%}.room-stage.binding img{left:-100%;top:50%}.room-stage.departure img{left:-100%;top:50%;transform:translateY(-22%)}
