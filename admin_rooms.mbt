@@ -205,16 +205,6 @@ fn admin_room(
         None,
       )
   }
-  let scene = match room {
-    Entrance => "entrance"
-    Writing => "writing"
-    Preview => "preview"
-    Building => "building"
-    Departure => "departure"
-  }
-  let vista = "<div class=\"room-window " +
-    scene +
-    "\" aria-hidden=\"true\"></div>"
   let doors = StringBuilder()
   doors.write_string(
     "<nav class=\"room-doors\" aria-label=\"Step navigation\">",
@@ -243,7 +233,6 @@ fn admin_room(
   admin_page(
     room_title(room),
     room_map(room) +
-    vista +
     status +
     admin_post_problems(inventory.problems) +
     "<section class=\"room-dialogue\">" +
