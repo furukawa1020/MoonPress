@@ -105,7 +105,7 @@ fn room_preview_state(input : String) -> String {
     let review = review_build_plan(input, output, include_drafts=true)
     let summary = review.plan.summary
     if review.previous_manifest_digest is None {
-      "<p class=\"notice\"><!--mp:ja-->プレビュー：まだ生成していません。下のボタンでつくってください。<!--mp:en-->Preview: not built yet. Create it using the button below.<!--mp:end--></p>"
+      "<p class=\"notice\"><!--mp:ja-->プレビューは未生成です。「プレビューをつくる」を押してください。<!--mp:en-->Preview: not built yet. Create it using the button below.<!--mp:end--></p>"
     } else if !review.manifest_changed &&
       summary.written == 0 &&
       summary.deleted == 0 {
@@ -174,13 +174,13 @@ fn admin_room(
       )
     Writing =>
       (
-        "<p><!--mp:ja-->まずは、すきなことをひとつ書いてみよう。保存した記事と画像は、あなたのPCに残ります。<!--mp:en-->Write about something you like. Saved articles and images stay on your computer.<!--mp:end--></p><div class=\"room-actions\"><a href=\"/#new-draft\"><!--mp:ja-->▶ 新しい下書きをつくる<!--mp:en-->▶ Create a new draft<!--mp:end--></a><a href=\"/\"><!--mp:ja-->▶ 記事をひらく<!--mp:en-->▶ Open an article<!--mp:end--></a><a href=\"/media\"><!--mp:ja-->▶ 画像の道具箱をひらく<!--mp:en-->▶ Open the image toolbox<!--mp:end--></a></div><p><!--mp:ja-->書けたら保存して、つぎのおへやへ。保存していない文章はプレビューに反映されません。<!--mp:en-->Save your writing before entering the next room. Unsaved edits will not appear in previews.<!--mp:end--></p>",
+        "<p><!--mp:ja-->新しい下書きを作るか、既存の記事を開いて編集します。本文を入力したら保存してください。<!--mp:en-->Create a draft or open an existing article. Save the body after editing.<!--mp:end--></p><div class=\"room-actions\"><a href=\"/#new-draft\"><!--mp:ja-->新しい下書きをつくる<!--mp:en-->Create a new draft<!--mp:end--></a><a href=\"/\"><!--mp:ja-->記事一覧を開く<!--mp:en-->Open the article list<!--mp:end--></a><a href=\"/media\"><!--mp:ja-->画像とファイルを開く<!--mp:en-->Open media<!--mp:end--></a></div><p><!--mp:ja-->保存したら「プレビュー」へ進みます。編集画面で保存し直すたびに、プレビューも作り直してください。<!--mp:en-->Continue to Preview after saving. Rebuild the preview after subsequent saves.<!--mp:end--></p>",
         Some(Entrance),
         Some(Preview),
       )
     Preview =>
       (
-        "<p><!--mp:ja-->できあがりを見てみよう。保存した下書きもプレビューに含まれます。下のボタンで生成し、上の「生成したプレビューを開く」 を開いて確認してください。<!--mp:en-->See how your site will look. Saved drafts are included. Create a preview below, then choose Open built preview above.<!--mp:end--></p>" +
+        "<p><!--mp:ja-->「プレビューをつくる」で保存済みの記事と下書きからサイトを生成し、「生成したプレビューを開く」で表示を確認します。<!--mp:en-->Choose Build full preview files to generate a site from saved articles and drafts, then choose Open built preview to inspect it.<!--mp:end--></p>" +
         room_preview_state(input) +
         admin_build_form(token, japanese=true) +
         "<p><!--mp:ja-->よければ <!--mp:en-->When you are happy with it, <!--mp:end--><a href=\"/?state=draft\"><!--mp:ja-->下書きをひらき<!--mp:en-->open a draft<!--mp:end--></a><!--mp:ja-->、「公開対象にする」を選びます。下書きのままの記事は公開用ビルドから除外されます。<!--mp:en--> and choose Set ready for build. Draft articles stay out of production builds.<!--mp:end--></p>",
