@@ -25,7 +25,7 @@ get() { curl --max-time 10 -sS -H "Accept-Language: ja" -D "$tmp/headers" -o "$t
 for room in '' /write /preview /build /publish; do
   test "$(get "/rooms$room")" = 200
   grep -q 'aria-current="step"' "$tmp/page"
-  grep -q 'もちもの' "$tmp/page"
+  grep -q '保存済み記事：' "$tmp/page"
   if grep -Eq '<script|onclick=|javascript:' "$tmp/page"; then exit 1; fi
 done
 grep -q 'ホスティング：未確認' "$tmp/page"
@@ -84,7 +84,11 @@ cmp "$tmp/page" ui-assets/rooms.webp
 test "$(curl --max-time 10 -sS -o "$tmp/page" -w '%{http_code}' -H "Origin: $origin" --data 'token=bad' "$origin/rooms/build")" = 400
 "$cli" build "$tmp/site" "$tmp/site/.moonpress-build" >/dev/null
 test "$(get /rooms)" = 200
-grep -Fq '最新の公開用ファイルをもちだす' "$tmp/page"
+grep -Fq '保存した下書きをプレビューする' "$tmp/page"
+mv "$tmp/site/content/draft.md" "$tmp/draft.md"
+"$cli" build "$tmp/site" "$tmp/site/.moonpress-build" >/dev/null
+test "$(get /rooms)" = 200
+grep -Fq '公開用ZIPを取得する' "$tmp/page"
 printf '%s\n' '---' '{bad json}' '---' > "$tmp/site/content/broken.md"
 test "$(get /rooms)" = 200
 grep -Fq 'まず、要修復の記事を確認する' "$tmp/page"
