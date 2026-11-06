@@ -33,29 +33,31 @@ fn room_path(room : PublishingRoom) -> String {
 ///|
 fn room_title(room : PublishingRoom) -> String {
   match room {
-    Entrance => "01 はじまりのおへや"
-    Writing => "02 かきかきる〜む"
-    Preview => "03 ぷれびゅ〜る〜む"
-    Building => "04 こんぱいら〜る〜む"
-    Departure => "05 おひろめる〜む"
+    Entrance => "はじめに"
+    Writing => "1. 記事を書く"
+    Preview => "2. プレビュー"
+    Building => "3. 公開用ビルド"
+    Departure => "4. 公開用ZIP"
   }
 }
 
 ///|
 fn room_title_en(room : PublishingRoom) -> String {
   match room {
-    Entrance => "01 The beginning room"
-    Writing => "02 The writing room"
-    Preview => "03 The preview room"
-    Building => "04 The compiler room"
-    Departure => "05 The sharing room"
+    Entrance => "Start here"
+    Writing => "1. Write"
+    Preview => "2. Preview"
+    Building => "3. Production build"
+    Departure => "4. Export ZIP"
   }
 }
 
 ///|
 fn room_map(current : PublishingRoom) -> String {
   let out = StringBuilder()
-  out.write_string("<nav class=\"room-map\" aria-label=\"Publishing map\"><ol>")
+  out.write_string(
+    "<nav class=\"room-map\" aria-label=\"Publishing steps\"><ol>",
+  )
   for room in [Entrance, Writing, Preview, Building, Departure] {
     out.write_string("<li><a href=\"" + room_path(room) + "\"")
     if room_path(room) == room_path(current) {
@@ -214,25 +216,27 @@ fn admin_room(
     scene +
     "\" aria-hidden=\"true\"></div>"
   let doors = StringBuilder()
-  doors.write_string("<nav class=\"room-doors\" aria-label=\"Room doors\">")
+  doors.write_string(
+    "<nav class=\"room-doors\" aria-label=\"Step navigation\">",
+  )
   if back is Some(previous) {
     doors.write_string(
       "<a href=\"" +
       room_path(previous) +
-      "\"><!--mp:ja-->◀ まえのおへやへ<!--mp:en-->◀ Previous room<!--mp:end--></a>",
+      "\"><!--mp:ja-->前の手順<!--mp:en-->Previous step<!--mp:end--></a>",
     )
   }
   if next is Some(following) {
     doors.write_string(
       "<a href=\"" +
       room_path(following) +
-      "\"><!--mp:ja-->▶ つぎのおへやへ：<!--mp:en-->▶ Next room: <!--mp:end-->" +
+      "\"><!--mp:ja-->次の手順：<!--mp:en-->Next step: <!--mp:end-->" +
       admin_i18n(room_title(following), room_title_en(following)) +
       "</a>",
     )
   } else {
     doors.write_string(
-      "<a href=\"/rooms\"><!--mp:ja-->はじまりにもどる<!--mp:en-->Back to the beginning<!--mp:end--></a>",
+      "<a href=\"/rooms\"><!--mp:ja-->はじめに戻る<!--mp:en-->Back to start<!--mp:end--></a>",
     )
   }
   doors.write_string("</nav>")
