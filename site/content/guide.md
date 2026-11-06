@@ -1,16 +1,18 @@
-# 冒険のはじめ方
+# インストールと使い方
 
-## 道具をそろえる
+## Linux版を入手する
 
-いまのMoonPressはLinux x86_64向けのプレビュー版です。ソースから作る場合は、Git・Bash・Cコンパイラと検証済みMoonBitツールチェーンを使います。
+[GitHubの配布一覧](https://github.com/furukawa1020/MoonPress/releases)を開き、公開済みのプレビュー版から `moonpress-linux-x86_64.tar.gz` と `SHA256SUMS` を同じフォルダに保存します。Ubuntu 22.04と24.04で検証しています。配布版はMoonBitのインストールなしで起動できます。
+
+ダウンロード先のフォルダで実行します。照合結果が `OK` になってから展開してください。
 
 ```sh
-git clone https://github.com/furukawa1020/MoonPress.git
-cd MoonPress
-bash scripts/setup.sh
-export PATH="$HOME/.moon/bin:$PATH"
-moon build --target native --release
+sha256sum --check --strict SHA256SUMS
+tar -xzf moonpress-linux-x86_64.tar.gz
+cd moonpress-linux-x86_64
 ```
+
+[ソースからビルドする手順](https://github.com/furukawa1020/MoonPress#quick-start)
 
 ## 自分の工房をひらく
 
