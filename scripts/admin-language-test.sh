@@ -25,7 +25,7 @@ for language in en ja; do
   grep -Fq "Content-Language: $language" "$tmp/headers"
   grep -Fq 'Vary: Accept-Language, Cookie' "$tmp/headers"
   ! grep -Fq '<!--mp:' "$tmp/page"
-  if [[ "$language" = en ]]; then grep -Fq '01 The beginning room' "$tmp/page"; ! grep -Fq 'もちもの' "$tmp/page"; else grep -Fq '01 はじまりのおへや' "$tmp/page"; fi
+  if [[ "$language" = en ]]; then grep -Fq 'Start here' "$tmp/page"; ! grep -Fq 'もちもの' "$tmp/page"; else grep -Fq 'はじめに' "$tmp/page"; fi
   for path in /rooms/write /rooms/preview /rooms/build /rooms/publish /authoring-recovery /edit?name=index.md; do
     test "$(request -H "Accept-Language: $language" "$origin$path")" = 200
     grep -Fq "<html lang=\"$language\">" "$tmp/page"
