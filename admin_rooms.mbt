@@ -132,10 +132,10 @@ fn room_next_step(input : String, inventory : PostInventory) -> String {
   } else {
     try {
       let report = inspect_release_readiness(input)
-      if report.current {
-        "<a href=\"/rooms/publish\"><!--mp:ja-->▶ 最新の公開用ファイルをもちだす<!--mp:en-->▶ Take your current production files with you<!--mp:end--></a>"
-      } else if report.drafts > 0 {
-        "<a href=\"/rooms/preview\"><!--mp:ja-->▶ 保存した下書きをプレビューする<!--mp:en-->▶ Preview saved drafts<!--mp:end--></a>"
+      if report.drafts > 0 {
+        "<a href=\"/rooms/preview\"><!--mp:ja-->保存した下書きをプレビューする<!--mp:en-->Preview saved drafts<!--mp:end--></a>"
+      } else if report.current {
+        "<a href=\"/rooms/publish\"><!--mp:ja-->公開用ZIPを取得する<!--mp:en-->Download the production ZIP<!--mp:end--></a>"
       } else {
         "<a href=\"/rooms/build\"><!--mp:ja-->▶ 公開対象の変更計画を確認する<!--mp:en-->▶ Review production changes<!--mp:end--></a>"
       }
@@ -144,9 +144,9 @@ fn room_next_step(input : String, inventory : PostInventory) -> String {
         "<a href=\"/rooms/build\"><!--mp:ja-->▶ ビルドの状態と修復の案内を確認する<!--mp:en-->▶ Inspect build status and recovery guidance<!--mp:end--></a>"
     }
   }
-  "<h2><!--mp:ja-->いまのつづきから<!--mp:en-->Pick up where you left off<!--mp:end--></h2><p>" +
+  "<h2><!--mp:ja-->次の操作<!--mp:en-->Next action<!--mp:end--></h2><p>" +
   suggestion +
-  "</p><p><!--mp:ja-->保存済みの状態に合わせた道案内です。下書きを公開するかは自分で選べます。<!--mp:en-->This suggestion uses saved files. You choose which drafts become public.<!--mp:end--><a href=\"/?state=draft\"><!--mp:ja-->下書きを見直す<!--mp:en-->Review drafts<!--mp:end--></a> · <a href=\"/rooms/write\"><!--mp:ja-->新しく書く<!--mp:en-->Write something new<!--mp:end--></a></p>"
+  "</p><p><!--mp:ja-->下書きは、記事ごとに公開対象へ切り替えられます。 <!--mp:en-->You can mark individual drafts ready for production. <!--mp:end--><a href=\"/?state=draft\"><!--mp:ja-->下書きを見直す<!--mp:en-->Review drafts<!--mp:end--></a> · <a href=\"/rooms/write\"><!--mp:ja-->新しく書く<!--mp:en-->Write something new<!--mp:end--></a></p>"
 }
 
 ///|
@@ -163,11 +163,11 @@ fn admin_room(
     }
   }
   let ready = inventory.posts.length() - drafts
-  let status = "<p class=\"room-status\"><!--mp:ja-->もちもの：公開対象 \{ready} / 下書き \{drafts} / 要修復 \{inventory.problems.length()}<!--mp:en-->Inventory: ready \{ready} / drafts \{drafts} / needing repair \{inventory.problems.length()}<!--mp:end--><br><!--mp:ja-->保存済みファイルから確認した状態です。訪問回数を達成度にはしません。<!--mp:en-->These counts describe saved files. Visiting a room does not complete a task.<!--mp:end--></p>"
+  let status = "<p class=\"room-status\"><!--mp:ja-->保存済み記事：公開対象 \{ready} / 下書き \{drafts} / 要修復 \{inventory.problems.length()}<!--mp:en-->Saved articles: ready \{ready} / drafts \{drafts} / needing repair \{inventory.problems.length()}<!--mp:end--></p>"
   let (body, back, next) = match room {
     Entrance =>
       (
-        "<p><!--mp:ja-->ようこそ、MoonPressのおへやへ。ひとつずつ扉をあけて、あなたのサイトをつくっていこう。<!--mp:en-->Welcome to the MoonPress rooms. Open each door and bring your site to life.<!--mp:end--></p><p><!--mp:ja-->操作はリンクとフォームだけ。MoonBitのネイティブコンパイラが、保存・検証・差分ビルドを担当します。<!--mp:en-->Links and forms are all you need. The native MoonBit compiler saves, validates and incrementally builds your site.<!--mp:end--></p>" +
+        "<p><!--mp:ja-->記事を保存し、プレビューで確認してから、公開用ファイルを生成します。<!--mp:en-->Save an article, check the preview, then build the production files.<!--mp:end--></p><p><!--mp:ja-->操作はリンクとフォームだけ。MoonBitのネイティブコンパイラが、保存・検証・差分ビルドを担当します。<!--mp:en-->Links and forms are all you need. The native MoonBit compiler saves, validates and incrementally builds your site.<!--mp:end--></p>" +
         room_next_step(input, inventory),
         None,
         Some(Writing),
