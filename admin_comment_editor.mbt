@@ -12,7 +12,7 @@ fn admin_comment_editor(row : CommentRow, token : String) -> String {
   out.write_string(admin_hidden("revision", row.revision))
 
   out.write_string(
-    "<label><!--mp:ja-->本文<!--mp:en-->Comment text<!--mp:end--><textarea name=\"content\" required maxlength=\"8192\">",
+    "<label><!--mp:ja-->本文<!--mp:en-->Comment text<!--mp:end--><textarea name=\"content\" required maxlength=\"8192\">\n",
   )
   out.write_string(escape_html(row.comment.content))
   out.write_string(
