@@ -146,7 +146,7 @@ fn admin_comments(
 
   out.write_string(admin_table_start("Comments"))
   out.write_string(
-    "<thead><tr><th>ID</th><th>Post</th><th>Author</th><th>Status</th><th>Text</th><th>Parent</th></tr></thead><tbody>",
+    "<thead><tr><th>ID</th><th>Post</th><th>Author</th><th>Status</th><th>Text</th><th>Parent</th><th>Created (UTC)</th></tr></thead><tbody>",
   )
   for i = start; i < rows.length() && i < start + size; i = i + 1 {
     let c = rows[i].comment
@@ -162,7 +162,9 @@ fn admin_comments(
       "</td><td>" +
       admin_comment_parent(c) +
       "</td>" +
-      "" +
+      "<td>" +
+      admin_comment_time(c) +
+      "</td>" +
       "</tr>",
     )
   }

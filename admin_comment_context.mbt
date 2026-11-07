@@ -28,3 +28,9 @@ fn admin_comment_post(id : Int, articles : Array[RestPost]) -> String {
   id.to_string() +
   ")"
 }
+
+///|
+fn admin_comment_time(comment : NativeComment) -> String raise {
+  let utc = rest_now_utc(instant=comment.created) + "Z"
+  "<time datetime=\"" + utc + "\">" + utc + "</time>"
+}

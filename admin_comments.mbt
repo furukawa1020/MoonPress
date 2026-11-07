@@ -34,6 +34,9 @@ fn admin_comment_item(
       "<p>" +
       admin_comment_post(c.post, articles) +
       "</p>" +
+      "<p>" +
+      admin_comment_time(c) +
+      "</p>" +
       "<p>Parent: " +
       admin_comment_parent(c) +
       " · <a href=\"/comments?status=any&amp;parent=\{c.id}\">Replies</a></p>" +
