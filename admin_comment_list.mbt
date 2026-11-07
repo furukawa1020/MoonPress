@@ -90,7 +90,7 @@ fn admin_comments(
       "<a href=\"" +
       admin_comment_url(query, Map([("status", filter), ("page", "1")])) +
       "\"" +
-      "" +
+      (if filter == status { " aria-current=\"page\"" } else { "" }) +
       ">" +
       filter +
       " (\{count})</a> · ",
