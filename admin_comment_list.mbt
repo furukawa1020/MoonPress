@@ -77,7 +77,7 @@ fn admin_comments(
     Some(value) => value
     None => raise InvalidInput("Comment page out of range")
   }
-
+  let articles = admin_comment_posts(input)
   let out = StringBuilder()
   out.write_string(
     "<p><!--mp:ja-->ローカル管理者用のコメント一覧です。未承認の本文は公開しません。<!--mp:en-->Local operator comment inventory. Pending text remains unpublished.<!--mp:end--></p><p class=\"comment-filters\">",
@@ -152,7 +152,7 @@ fn admin_comments(
     let c = rows[i].comment
     out.write_string(
       "<tr><td><a href=\"/comment?id=\{c.id}\">\{c.id}</a></td><td>" +
-      c.post.to_string() +
+      admin_comment_post(c.post, articles) +
       "</td><td>" +
       escape_html(c.author_name) +
       "</td><td>" +

@@ -19,6 +19,7 @@ fn admin_comment_item(
   }
   let row = state.rows[id - 1]
   let c = row.comment
+  let articles = admin_comment_posts(input)
   (
     200,
     admin_page(
@@ -30,6 +31,9 @@ fn admin_comment_item(
       "</p><pre>" +
       escape_html(c.content) +
       "</pre>" +
+      "<p>" +
+      admin_comment_post(c.post, articles) +
+      "</p>" +
       "<p>Parent: " +
       admin_comment_parent(c) +
       " · <a href=\"/comments?status=any&amp;parent=\{c.id}\">Replies</a></p>" +
