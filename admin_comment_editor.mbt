@@ -24,7 +24,21 @@ fn admin_comment_editor(row : CommentRow, token : String) -> String {
   out.write_string(
     "</textarea></label><p><!--mp:ja-->本文はUTF-8で8192バイトまで保存できます。<!--mp:en-->Comment text is limited to 8192 UTF-8 bytes.<!--mp:end--></p>",
   )
-
+  out.write_string(
+    "<label><!--mp:ja-->承認状態<!--mp:en-->Moderation status<!--mp:end--><select name=\"status\">",
+  )
+  for status in ["hold", "approved", "spam"] {
+    out.write_string(
+      "<option value=\"" +
+      status +
+      "\"" +
+      (if row.comment.status == status { " selected" } else { "" }) +
+      ">" +
+      status +
+      "</option>",
+    )
+  }
+  out.write_string("</select></label>")
   out.write_string(
     "<button><!--mp:ja-->コメントを保存<!--mp:en-->Save comment<!--mp:end--></button></form>",
   )
@@ -50,7 +64,7 @@ fn admin_comment_edit_action(
   token : String,
   fields : Map[String, String],
 ) -> (Int, String) raise {
-  let allowed = ["token", "id", "revision", "content", "author_name"]
+  let allowed = ["token", "id", "revision", "content", "author_name", "status"]
   if fields.length() != allowed.length() ||
     fields.keys().any(key => !allowed.contains(key)) {
     raise InvalidInput("Invalid comment edit fields")
@@ -59,6 +73,7 @@ fn admin_comment_edit_action(
   let updates : Map[String, Json] = Map([
     ("content", admin_field(fields, "content").to_json()),
     ("author_name", admin_field(fields, "author_name").to_json()),
+    ("status", admin_field(fields, "status").to_json()),
   ])
   let result = operator_comment_edit(
     input,
