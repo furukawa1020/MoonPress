@@ -30,11 +30,11 @@ fn admin_comments(
 ) -> String raise {
   let query = raw_query.copy()
   for key, _ in query {
-    if !["status", "page", "search", "parent", "post"].contains(key) {
+    if !["status", "page", "search", "parent", "post", "author"].contains(key) {
       raise InvalidInput("Invalid comment query")
     }
   }
-  for key in ["post"] {
+  for key in ["post", "author"] {
     if query.get(key) == Some("") {
       query.remove(key)
     }
@@ -47,12 +47,16 @@ fn admin_comments(
     .get("parent")
     .map(value => rest_nonnegative(value, 2147483647))
   let post = query.get("post").map(value => rest_positive(value, 2147483647))
+  let author = query
+    .get("author")
+    .map(value => rest_positive(value, 2147483647))
 
   let search = native_query_text(query.get("search").unwrap_or(""))
   let state = comment_snapshot(input)
   let scoped = state.rows.filter(row => {
     (parent is None || row.comment.parent.unwrap_or(0) == parent.unwrap()) &&
     (post is None || row.comment.post == post.unwrap()) &&
+    (author is None || row.comment.author == author.unwrap()) &&
     (row.comment.content + "\n" + row.comment.author_name)
     .to_lower()
     .contains(search)
@@ -99,6 +103,11 @@ fn admin_comments(
   out.write_string(
     "<label><!--mp:ja-->記事ID<!--mp:en-->Article ID<!--mp:end--><input type=\"number\" name=\"post\" min=\"1\" max=\"2147483647\" value=\"" +
     escape_html(query.get("post").unwrap_or("")) +
+    "\"></label>",
+  )
+  out.write_string(
+    "<label><!--mp:ja-->投稿者ID<!--mp:en-->Author ID<!--mp:end--><input type=\"number\" name=\"author\" min=\"1\" max=\"2147483647\" value=\"" +
+    escape_html(query.get("author").unwrap_or("")) +
     "\"></label>",
   )
 
