@@ -300,6 +300,9 @@ fn admin_route(
   if request.target == "/comment-display" {
     return admin_comment_display_save(input, token, fields)
   }
+  if request.target == "/comment-edit" {
+    return admin_comment_edit_action(input, token, fields)
+  }
   if request.target == "/comment-status" {
     return admin_comment_action(input, token, fields)
   }
