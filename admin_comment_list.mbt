@@ -153,7 +153,11 @@ fn admin_comments(
   out.write_string(
     "<p role=\"status\"><!--mp:ja-->\{rows.length()}件中 \{shown_start}〜\{shown_end}件 · \{current_page} / \{page_count}ページ<!--mp:en-->Showing \{shown_start}–\{shown_end} of \{rows.length()} comments · Page \{current_page} of \{page_count}<!--mp:end--></p>",
   )
-
+  if rows.is_empty() {
+    out.write_string(
+      "<p><!--mp:ja-->条件に合うコメントがありません。<!--mp:en-->No comments match these filters.<!--mp:end--> <a href=\"/comments?status=any\"><!--mp:ja-->すべてのコメントを表示<!--mp:en-->Show all comments<!--mp:end--></a></p>",
+    )
+  }
   out.write_string(admin_table_start("Comments"))
   out.write_string(
     "<thead><tr><th>ID</th><th>Post</th><th>Author</th><th>Status</th><th>Text</th><th>Parent</th><th>Created (UTC)</th><th>Replies</th></tr></thead><tbody>",
