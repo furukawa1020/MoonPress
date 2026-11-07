@@ -83,7 +83,7 @@ fn admin_comments(
     "<p><!--mp:ja-->ローカル管理者用のコメント一覧です。未承認の本文は公開しません。<!--mp:en-->Local operator comment inventory. Pending text remains unpublished.<!--mp:end--></p><p class=\"comment-filters\">",
   )
   for filter in ["hold", "approved", "spam", "trash", "any"] {
-    let count = state.rows
+    let count = scoped
       .filter(row => filter == "any" || row.comment.status == filter)
       .length()
     out.write_string(
