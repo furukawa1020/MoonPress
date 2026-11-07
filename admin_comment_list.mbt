@@ -88,14 +88,7 @@ fn admin_comments(
       .length()
     out.write_string(
       "<a href=\"" +
-      admin_comment_url(
-        if parent is Some(value) {
-          Map([("parent", value.to_string())])
-        } else {
-          Map([])
-        },
-        Map([("status", filter)]),
-      ) +
+      admin_comment_url(query, Map([("status", filter), ("page", "1")])) +
       "\"" +
       "" +
       ">" +
