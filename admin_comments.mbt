@@ -119,6 +119,7 @@ fn admin_comment_item(
       "<p>Parent: " +
       admin_comment_parent(c) +
       " · <a href=\"/comments?status=any&amp;parent=\{c.id}\">Replies</a></p>" +
+      admin_comment_editor(row, token) +
       admin_comment_actions(row, token) +
       "<p>Revision: <code>" +
       row.revision +

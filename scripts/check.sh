@@ -590,3 +590,5 @@ python3 scripts/pages-u20-19-test.py
 python3 scripts/pages-u20-20-test.py
 
 python3 scripts/pages-unchanged-deploy-test.py
+
+python3 scripts/admin-comment-editor-test.py 1
