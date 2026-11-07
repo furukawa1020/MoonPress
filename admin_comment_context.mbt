@@ -34,3 +34,23 @@ fn admin_comment_time(comment : NativeComment) -> String raise {
   let utc = rest_now_utc(instant=comment.created) + "Z"
   "<time datetime=\"" + utc + "\">" + utc + "</time>"
 }
+
+///|
+fn admin_comment_root(
+  comment : NativeComment,
+  rows : Array[CommentRow],
+) -> String {
+  let mut root = comment.id
+  let mut parent = comment.parent
+  while parent is Some(id) {
+    root = id
+    parent = rows[id - 1].comment.parent
+  }
+  "<a href=\"/comment?id=" +
+  root.to_string() +
+  "\">" +
+  admin_i18n("スレッドの先頭", "Thread root") +
+  " (" +
+  root.to_string() +
+  ")</a>"
+}
