@@ -20,7 +20,7 @@ with NativeSite() as site:
     assert code == 201
     route = '/wp-json/moonpress/v1/comments'
     code, _, row = site.request(route, 'POST', {
-        'post': post['id'], 'content': '<script>Original</script>',
+        'post': post['id'], 'content': '\n\n<script>Original</script>',
         'author_name': 'Reader',
     }, 'subscriber')
     assert code == 201
@@ -31,6 +31,7 @@ with NativeSite() as site:
         assert code == 200
         form = re.search(r'<form method="post"(?: class="comment-editor")? action="/comment-edit">(.*?)</form>', page, re.S)[1]
         assert '&lt;script&gt;Original&lt;/script&gt;' in form
+        assert 'maxlength="8192">\n\n\n&lt;script&gt;' in form
         fields = dict(re.findall(r'name="(token|id|revision)" value="([^"]*)"', form))
         fields['content'] = 'Edited\r\nsecond line'
         if stage >= 2:
@@ -60,13 +61,13 @@ with NativeSite() as site:
             assert changed['status'] == 'approved'
         saved = snapshot(site.site)
         assert len(saved) == len(original) + 1
-        stale_text = '</textarea><script>Keep my draft</script>'
+        stale_text = '\n\n</textarea><script>Keep my draft</script>'
         code, failure = operator.request('/comment-edit', 'POST', {**fields, 'content': stale_text})
         assert code == 412 and saved == snapshot(site.site)
         if stage >= 4:
             assert html.escape(stale_text, quote=True) in failure
             assert '<script>' not in failure and 'action="/comment-edit"' not in failure
-            assert 'textarea readonly' in failure
+            assert '<textarea readonly>\n\n\n&lt;/textarea&gt;' in failure
         current = {**fields, 'revision': headers['ETag'].strip('"')}
         assert operator.request('/comment-edit', 'POST', current)[0] == 200
         assert saved == snapshot(site.site)

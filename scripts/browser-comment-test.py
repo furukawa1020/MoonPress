@@ -8,7 +8,7 @@ assert helpers['CHROME'] and driver_path,'Chrome and ChromeDriver are required'
 with NativeSite() as site,tempfile.TemporaryDirectory() as temporary:
     _,_,post=site.request('/wp-json/wp/v2/posts','POST',{'title':'Browser moderation','slug':'browser-moderation','status':'publish'},'author')
     route='/wp-json/moonpress/v1/comments'
-    _,_,row=site.request(route,'POST',{'post':post['id'],'content':'<script>literal text</script>','author_name':'Reader'},'subscriber')
+    _,_,row=site.request(route,'POST',{'post':post['id'],'content':'\n\n<script>literal text</script>','author_name':'Reader'},'subscriber')
     with Operator(site.site) as operator:
         driver_port=helpers['port_pair']();browser=None;tmp=pathlib.Path(temporary);download=tmp/'downloads';download.mkdir()
         driver=subprocess.Popen([driver_path,f'--port={driver_port}','--allowed-ips=127.0.0.1'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
@@ -20,6 +20,14 @@ with NativeSite() as site,tempfile.TemporaryDirectory() as temporary:
             assert browser.call('POST','/elements',{'using':'css selector','value':'script'})==[]
             browser.click('a[href="/comment?id='+str(row['id'])+'"]')
             browser.expect_text('Inspect comment')
+            initial_editor=browser.element('form[action="/comment-edit"] textarea[name="content"]')
+            assert browser.call('GET',f'/element/{initial_editor}/property/value')=='\n\n<script>literal text</script>'
+            before_tag=site.request(route+'/'+str(row['id'])+'?context=edit',role='editor')[1]['ETag']
+            before_events=len(list((site.site/'.moonpress-comments').glob('*.json')))
+            browser.click('form[action="/comment-edit"] button')
+            browser.expect_text('Comment saved.')
+            assert site.request(route+'/'+str(row['id'])+'?context=edit',role='editor')[1]['ETag']==before_tag
+            assert len(list((site.site/'.moonpress-comments').glob('*.json')))==before_events
             browser.fill('form[action="/comment-edit"] textarea[name="content"]', 'Edited through the browser.')
             browser.fill('form[action="/comment-edit"] input[name="author_name"]', 'Browser reader')
             browser.click('form[action="/comment-edit"] button')
