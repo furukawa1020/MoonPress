@@ -85,8 +85,13 @@ fn admin_comment_edit_action(
     return (
       result.code,
       admin_page(
-        "Comment not saved",
-        "<p>Reload the current comment before retrying.</p><p><a href=\"/comment?id=\{id}\">Inspect current comment</a></p>",
+        "コメントを保存できませんでした",
+        "<p><!--mp:ja-->入力した内容を下に残しています。現在のコメントを開いて内容を確認し、必要な文章をコピーしてから保存し直してください。<!--mp:en-->Your submitted text is retained below. Open the current comment, compare it and copy the text you want to keep before saving again.<!--mp:end--></p><label><!--mp:ja-->入力した表示名<!--mp:en-->Submitted author name<!--mp:end--><input readonly value=\"" +
+        escape_html(fields.get("author_name").unwrap_or("")) +
+        "\"></label><label><!--mp:ja-->入力した本文<!--mp:en-->Submitted comment text<!--mp:end--><textarea readonly>\n" +
+        escape_html(admin_field(fields, "content")) +
+        "</textarea></label><p><a href=\"/comment?id=\{id}\"><!--mp:ja-->現在のコメントを確認する<!--mp:en-->Inspect current comment<!--mp:end--></a></p>",
+        title_en="Comment not saved",
       ),
     )
   }
