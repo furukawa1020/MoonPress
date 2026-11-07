@@ -30,7 +30,9 @@ fn admin_comments(
 ) -> String raise {
   let query = raw_query.copy()
   for key, _ in query {
-    if !["status", "page", "search", "parent", "post", "author"].contains(key) {
+    if !["status", "page", "search", "parent", "post", "author", "order"].contains(
+        key,
+      ) {
       raise InvalidInput("Invalid comment query")
     }
   }
@@ -50,6 +52,10 @@ fn admin_comments(
   let author = query
     .get("author")
     .map(value => rest_positive(value, 2147483647))
+  let order = query.get("order").unwrap_or("asc")
+  if !["asc", "desc"].contains(order) {
+    raise InvalidInput("Invalid comment order")
+  }
 
   let search = native_query_text(query.get("search").unwrap_or(""))
   let state = comment_snapshot(input)
@@ -64,7 +70,9 @@ fn admin_comments(
   let rows = scoped.filter(row => {
     status == "any" || row.comment.status == status
   })
-
+  if order == "desc" {
+    rows.sort_by(fn(a, b) { b.comment.id.compare(a.comment.id) })
+  }
   let (start, size, pages) = match rest_page_bounds(rows.length(), query) {
     Some(value) => value
     None => raise InvalidInput("Comment page out of range")
@@ -110,6 +118,26 @@ fn admin_comments(
     escape_html(query.get("author").unwrap_or("")) +
     "\"></label>",
   )
+  out.write_string(
+    "<label><!--mp:ja-->並び順<!--mp:en-->Order<!--mp:end--><select name=\"order\">",
+  )
+  for value in ["asc", "desc"] {
+    let label = if value == "asc" {
+      admin_i18n("古い順", "Oldest first")
+    } else {
+      admin_i18n("新しい順", "Newest first")
+    }
+    out.write_string(
+      "<option value=\"" +
+      value +
+      "\"" +
+      (if order == value { " selected" } else { "" }) +
+      ">" +
+      label +
+      "</option>",
+    )
+  }
+  out.write_string("</select></label>")
 
   out.write_string(
     "<label><!--mp:ja-->コメントを探す<!--mp:en-->Search comments<!--mp:end--><input name=\"search\" maxlength=\"256\" value=\"" +
