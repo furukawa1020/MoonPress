@@ -18,7 +18,7 @@ fn admin_comment_editor(row : CommentRow, token : String) -> String {
     "\"></label><p><!--mp:ja-->表示名はUTF-8で80バイトまでです。<!--mp:en-->Public names are limited to 80 UTF-8 bytes.<!--mp:end--></p>",
   )
   out.write_string(
-    "<label><!--mp:ja-->本文<!--mp:en-->Comment text<!--mp:end--><textarea name=\"content\" required maxlength=\"8192\">",
+    "<label><!--mp:ja-->本文<!--mp:en-->Comment text<!--mp:end--><textarea name=\"content\" required maxlength=\"8192\">\n",
   )
   out.write_string(escape_html(row.comment.content))
   out.write_string(
@@ -88,7 +88,7 @@ fn admin_comment_edit_action(
         "コメントを保存できませんでした",
         "<p><!--mp:ja-->入力した内容を下に残しています。現在のコメントを開いて内容を確認し、必要な文章をコピーしてから保存し直してください。<!--mp:en-->Your submitted text is retained below. Open the current comment, compare it and copy the text you want to keep before saving again.<!--mp:end--></p><label><!--mp:ja-->入力した表示名<!--mp:en-->Submitted author name<!--mp:end--><input readonly value=\"" +
         escape_html(fields.get("author_name").unwrap_or("")) +
-        "\"></label><label><!--mp:ja-->入力した本文<!--mp:en-->Submitted comment text<!--mp:end--><textarea readonly>" +
+        "\"></label><label><!--mp:ja-->入力した本文<!--mp:en-->Submitted comment text<!--mp:end--><textarea readonly>\n" +
         escape_html(admin_field(fields, "content")) +
         "</textarea></label><p><a href=\"/comment?id=\{id}\"><!--mp:ja-->現在のコメントを確認する<!--mp:en-->Inspect current comment<!--mp:end--></a></p>",
         title_en="Comment not saved",
