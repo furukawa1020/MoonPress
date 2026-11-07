@@ -24,8 +24,12 @@ fn admin_comment_item(
     200,
     admin_page(
       "コメントの確認",
-      "<p>ID: \{c.id} · Post: \{c.post} · Status: " +
-      c.status +
+      "<p>ID: \{c.id} · " +
+      admin_i18n("記事", "Post") +
+      ": \{c.post} · " +
+      admin_i18n("状態", "Status") +
+      ": " +
+      admin_comment_status(c.status) +
       "</p><p>" +
       escape_html(c.author_name) +
       "</p><pre>" +
@@ -37,7 +41,9 @@ fn admin_comment_item(
       "<p>" +
       admin_comment_time(c) +
       "</p>" +
-      "<p>Parent: " +
+      "<p>" +
+      admin_i18n("親コメント", "Parent") +
+      ": " +
       admin_comment_parent(c) +
       " · <a href=\"/comments?status=any&amp;parent=\{c.id}\">Replies</a></p>" +
       "<p>" +

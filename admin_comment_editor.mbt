@@ -34,7 +34,7 @@ fn admin_comment_editor(row : CommentRow, token : String) -> String {
       "\"" +
       (if row.comment.status == status { " selected" } else { "" }) +
       ">" +
-      status +
+      admin_comment_status(status) +
       "</option>",
     )
   }

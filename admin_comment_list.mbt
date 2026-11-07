@@ -92,7 +92,7 @@ fn admin_comments(
       "\"" +
       (if filter == status { " aria-current=\"page\"" } else { "" }) +
       ">" +
-      filter +
+      admin_comment_status(filter) +
       " (\{count})</a> · ",
     )
   }
@@ -160,7 +160,7 @@ fn admin_comments(
   }
   out.write_string(admin_table_start("Comments"))
   out.write_string(
-    "<thead><tr><th>ID</th><th>Post</th><th>Author</th><th>Status</th><th>Text</th><th>Parent</th><th>Created (UTC)</th><th>Replies</th></tr></thead><tbody>",
+    "<thead><tr><th><!--mp:ja-->ID<!--mp:en-->ID<!--mp:end--></th><th><!--mp:ja-->記事<!--mp:en-->Post<!--mp:end--></th><th><!--mp:ja-->表示名<!--mp:en-->Author<!--mp:end--></th><th><!--mp:ja-->状態<!--mp:en-->Status<!--mp:end--></th><th><!--mp:ja-->本文<!--mp:en-->Text<!--mp:end--></th><th><!--mp:ja-->親コメント<!--mp:en-->Parent<!--mp:end--></th><th><!--mp:ja-->作成日時 (UTC)<!--mp:en-->Created (UTC)<!--mp:end--></th><th><!--mp:ja-->直接の返信<!--mp:en-->Replies<!--mp:end--></th></tr></thead><tbody>",
   )
   for i = start; i < rows.length() && i < start + size; i = i + 1 {
     let c = rows[i].comment
@@ -170,7 +170,7 @@ fn admin_comments(
       "</td><td>" +
       escape_html(c.author_name) +
       "</td><td>" +
-      c.status +
+      admin_comment_status(c.status) +
       "</td><td>" +
       escape_html(c.content) +
       "</td><td>" +
