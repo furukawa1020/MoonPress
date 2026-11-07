@@ -7,6 +7,9 @@ Browser=helpers['Browser'];wait=helpers['wait_until'];http=helpers['HTTP'];drive
 assert helpers['CHROME'] and driver_path,'Chrome and ChromeDriver are required'
 with NativeSite() as site,tempfile.TemporaryDirectory() as temporary:
     _,_,post=site.request('/wp-json/wp/v2/posts','POST',{'title':'Browser moderation','slug':'browser-moderation','status':'publish'},'author')
+    # The shared REST fixture removes starter pages; the layout still links home.
+    for title,slug in [('Home','index'),('Guide','guide')]:
+        assert site.request('/wp-json/wp/v2/posts','POST',{'title':title,'slug':slug,'status':'publish'},'author')[0]==201
     route='/wp-json/moonpress/v1/comments'
     _,_,row=site.request(route,'POST',{'post':post['id'],'content':'\n\n<script>literal text</script>','author_name':'Reader'},'subscriber')
     with Operator(site.site) as operator:
