@@ -173,6 +173,9 @@ fn admin_comments(
       admin_comment_post(c.post, articles) +
       "</td><td>" +
       escape_html(c.author_name) +
+      " (" +
+      c.author.to_string() +
+      ")" +
       "</td><td>" +
       admin_comment_status(c.status) +
       "</td><td>" +

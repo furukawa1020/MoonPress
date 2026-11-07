@@ -30,6 +30,10 @@ fn admin_comment_item(
       admin_i18n("状態", "Status") +
       ": " +
       admin_comment_status(c.status) +
+      " · " +
+      admin_i18n("投稿者ID", "Author ID") +
+      ": " +
+      c.author.to_string() +
       "</p>" +
       admin_comment_editor(row, token) +
       (if c.status == "trash" {
