@@ -1,6 +1,6 @@
 """Private disposable native REST fixture shared by HTTP regression scripts."""
-import base64,http.client,json,pathlib,socket,subprocess,tempfile,time
-CLI=pathlib.Path('_build/native/release/build/cmd/main/main.exe').resolve()
+import base64,http.client,json,os,pathlib,socket,subprocess,tempfile,time
+CLI=pathlib.Path(os.environ.get('MOONPRESS_BROWSER_CLI', '_build/native/release/build/cmd/main/main.exe')).resolve()
 def run(*args,ok=True):
     result=subprocess.run([CLI,*map(str,args),'--json'],capture_output=True,text=True)
     assert (result.returncode==0)==ok,result.stderr

@@ -28,4 +28,5 @@ printf 'Archive install/build/recovery smoke passed: %s / %s\n' "$(uname -m)" "$
 
 if [[ "${MOONPRESS_VERIFY_BROWSER:-0}" = 1 ]]; then
   MOONPRESS_BROWSER_CLI="$cli" python3 "$(dirname "$0")/browser-test.py"
+  MOONPRESS_BROWSER_CLI="$cli" python3 "$(dirname "$0")/browser-comment-test.py"
 fi

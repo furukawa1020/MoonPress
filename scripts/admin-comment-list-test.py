@@ -116,5 +116,8 @@ with NativeSite() as site:
         if stage >= 20:
             page = operator.request('/comment?id=' + str(root['id']))[1]
             assert 'href="/rooms/build"' in page and 'href="/rooms/publish"' in page
+            assert page.index('action="/comment-edit"') < page.index('Thread root')
+            assert '<details>' in get()
+            assert 'Reader ('+str(site.ids['subscriber'])+')' in get()
     assert before == {p.name: p.read_bytes() for p in (site.site / '.moonpress-comments').iterdir()}
 print('Operator inventory: scoped filtering, ordering, pagination, context, threads, language and read-only navigation passed.')

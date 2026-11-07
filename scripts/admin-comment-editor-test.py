@@ -29,7 +29,7 @@ with NativeSite() as site:
         original = snapshot(site.site)
         code, page = operator.request('/comment?id=' + str(row['id']))
         assert code == 200
-        form = re.search(r'<form method="post" action="/comment-edit">(.*?)</form>', page, re.S)[1]
+        form = re.search(r'<form method="post"(?: class="comment-editor")? action="/comment-edit">(.*?)</form>', page, re.S)[1]
         assert '&lt;script&gt;Original&lt;/script&gt;' in form
         assert 'maxlength="8192">\n\n\n&lt;script&gt;' in form
         fields = dict(re.findall(r'name="(token|id|revision)" value="([^"]*)"', form))
