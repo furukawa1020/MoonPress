@@ -30,11 +30,17 @@ fn admin_comment_item(
       admin_i18n("状態", "Status") +
       ": " +
       admin_comment_status(c.status) +
-      "</p><p>" +
-      escape_html(c.author_name) +
-      "</p><pre>" +
-      escape_html(c.content) +
-      "</pre>" +
+      "</p>" +
+      admin_comment_editor(row, token) +
+      (if c.status == "trash" {
+        "<p>" +
+        escape_html(c.author_name) +
+        "</p><pre>" +
+        escape_html(c.content) +
+        "</pre>"
+      } else {
+        ""
+      }) +
       "<p>" +
       admin_comment_post(c.post, articles) +
       "</p>" +
@@ -52,7 +58,11 @@ fn admin_comment_item(
       "<p>" +
       admin_comment_replies(c, state.rows) +
       "</p>" +
-      admin_comment_editor(row, token) +
+      "<p><!--mp:ja-->承認済みコメントを記事に表示するには、サイト設定でコメント表示を有効にして、公開用ビルドを行います。生成したファイルを公開先へ配置してください。<!--mp:en-->To show approved comments in articles, enable comment display in Site settings, review a production build and upload the generated files to your host.<!--mp:end--> <a href=\"/rooms/build\">" +
+      admin_i18n("公開用ビルド", "Production build") +
+      "</a> · <a href=\"/rooms/publish\">" +
+      admin_i18n("公開用ZIP", "Production ZIP") +
+      "</a></p>" +
       admin_comment_actions(row, token) +
       "<p>Revision: <code>" +
       row.revision +

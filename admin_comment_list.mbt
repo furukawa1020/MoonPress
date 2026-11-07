@@ -96,7 +96,9 @@ fn admin_comments(
       " (\{count})</a> · ",
     )
   }
-  out.write_string("</p><form method=\"get\" action=\"/comments\">")
+  out.write_string(
+    "</p><details><summary><!--mp:ja-->絞り込み・並び順<!--mp:en-->Filters and sorting<!--mp:end--></summary><form method=\"get\" action=\"/comments\">",
+  )
   out.write_string(admin_hidden("status", status))
   if parent is Some(value) {
     out.write_string(admin_hidden("parent", value.to_string()))
@@ -139,10 +141,10 @@ fn admin_comments(
   out.write_string(
     "<label><!--mp:ja-->コメントを探す<!--mp:en-->Search comments<!--mp:end--><input name=\"search\" maxlength=\"256\" value=\"" +
     escape_html(query.get("search").unwrap_or("")) +
-    "\"></label><button><!--mp:ja-->探す<!--mp:en-->Search<!--mp:end--></button></form>",
+    "\"></label><button><!--mp:ja-->探す<!--mp:en-->Search<!--mp:end--></button></form></details>",
   )
   out.write_string(
-    "<form method=\"get\" action=\"/comment\"><label><!--mp:ja-->コメントIDを開く<!--mp:en-->Open comment ID<!--mp:end--><input type=\"number\" name=\"id\" required min=\"1\" max=\"2147483647\"></label><button><!--mp:ja-->開く<!--mp:en-->Open<!--mp:end--></button></form>",
+    "<details><summary><!--mp:ja-->コメントIDから開く<!--mp:en-->Open by comment ID<!--mp:end--></summary><form method=\"get\" action=\"/comment\"><label><!--mp:ja-->コメントIDを開く<!--mp:en-->Open comment ID<!--mp:end--><input type=\"number\" name=\"id\" required min=\"1\" max=\"2147483647\"></label><button><!--mp:ja-->開く<!--mp:en-->Open<!--mp:end--></button></form></details>",
   )
   let shown_end = if start + size > rows.length() {
     rows.length()

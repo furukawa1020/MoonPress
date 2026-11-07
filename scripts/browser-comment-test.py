@@ -1,12 +1,12 @@
 """Real no-JavaScript operator moderation journey, reusing W3C WebDriver helpers."""
-import json,pathlib,runpy,subprocess,tempfile
+import json,pathlib,runpy,subprocess,tempfile,zipfile
 from rest_fixture import NativeSite
 from operator_fixture import Operator
 helpers=runpy.run_path('scripts/browser-test.py',run_name='browser_helpers')
 Browser=helpers['Browser'];wait=helpers['wait_until'];http=helpers['HTTP'];driver_path=helpers['DRIVER']
 assert helpers['CHROME'] and driver_path,'Chrome and ChromeDriver are required'
 with NativeSite() as site,tempfile.TemporaryDirectory() as temporary:
-    _,_,post=site.request('/wp-json/wp/v2/posts','POST',{'title':'Browser moderation','status':'publish'},'author')
+    _,_,post=site.request('/wp-json/wp/v2/posts','POST',{'title':'Browser moderation','slug':'browser-moderation','status':'publish'},'author')
     route='/wp-json/moonpress/v1/comments'
     _,_,row=site.request(route,'POST',{'post':post['id'],'content':'<script>literal text</script>','author_name':'Reader'},'subscriber')
     with Operator(site.site) as operator:
@@ -20,6 +20,16 @@ with NativeSite() as site,tempfile.TemporaryDirectory() as temporary:
             assert browser.call('POST','/elements',{'using':'css selector','value':'script'})==[]
             browser.click('a[href="/comment?id='+str(row['id'])+'"]')
             browser.expect_text('Inspect comment')
+            browser.fill('form[action="/comment-edit"] textarea[name="content"]', 'Edited through the browser.')
+            browser.fill('form[action="/comment-edit"] input[name="author_name"]', 'Browser reader')
+            browser.click('form[action="/comment-edit"] button')
+            browser.expect_text('Comment saved.')
+            browser.go(f'http://127.0.0.1:{operator.port}/comment?id='+str(row['id']))
+            editor=browser.element('form[action="/comment-edit"] textarea[name="content"]')
+            assert browser.call('GET',f'/element/{editor}/property/value')=='Edited through the browser.'
+            edited=site.request(route+'/'+str(row['id'])+'?context=edit',role='editor')[2]
+            assert edited['content']['raw']=='Edited through the browser.' and edited['author_name']=='Browser reader'
+            browser.screenshot('comments-edited')
             browser.click('button[value="approved"]');browser.expect_text('Status: approved')
             assert len(site.request(route)[2])==1
             browser.click('button[value="trash"]');browser.expect_text('Status: trash')
@@ -31,6 +41,20 @@ with NativeSite() as site,tempfile.TemporaryDirectory() as temporary:
             browser.click('form[action="/comment-display"] button[value="true"]')
             browser.expect_text('Comments in article pages: enabled')
             assert json.loads((site.site/'site.json').read_text())['comments'] is True
+            browser.go(f'http://127.0.0.1:{operator.port}/comment?id='+str(row['id']))
+            browser.click('button[value="approved"]')
+            browser.go(f'http://127.0.0.1:{operator.port}/rooms/build')
+            browser.click('form[action="/plan-production"] button')
+            browser.click('form[action="/build-production"] button')
+            browser.expect_text('Production files built')
+            article=site.site/'.moonpress-build/browser-moderation.html'
+            assert 'Edited through the browser.' in article.read_text() and 'Browser reader' in article.read_text()
+            browser.go(f'http://127.0.0.1:{operator.port}/rooms/publish')
+            browser.click('form[action="/export-production"] button')
+            archive=download/'moonpress-site.zip'
+            wait(lambda:archive.exists() and not list(download.glob('*.crdownload')))
+            with zipfile.ZipFile(archive) as zipped:
+                assert zipped.read('browser-moderation.html')==article.read_bytes()
             print('Real Chrome comment journey passed: escaped literal text, no script, approval, trash and hold-only restoration with JavaScript disabled.')
         finally:
             if browser:browser.quit()

@@ -5,7 +5,7 @@ fn admin_comment_editor(row : CommentRow, token : String) -> String {
   }
   let out = StringBuilder()
   out.write_string(
-    "<h2><!--mp:ja-->コメントを編集<!--mp:en-->Edit comment<!--mp:end--></h2><form method=\"post\" action=\"/comment-edit\">",
+    "<h2><!--mp:ja-->コメントを編集<!--mp:en-->Edit comment<!--mp:end--></h2><form method=\"post\" class=\"comment-editor\" action=\"/comment-edit\">",
   )
   out.write_string(admin_hidden("token", token))
   out.write_string(admin_hidden("id", row.comment.id.to_string()))
