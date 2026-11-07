@@ -141,7 +141,9 @@ fn admin_comments(
     escape_html(query.get("search").unwrap_or("")) +
     "\"></label><button><!--mp:ja-->探す<!--mp:en-->Search<!--mp:end--></button></form>",
   )
-
+  out.write_string(
+    "<form method=\"get\" action=\"/comment\"><label><!--mp:ja-->コメントIDを開く<!--mp:en-->Open comment ID<!--mp:end--><input type=\"number\" name=\"id\" required min=\"1\" max=\"2147483647\"></label><button><!--mp:ja-->開く<!--mp:en-->Open<!--mp:end--></button></form>",
+  )
   let shown_end = if start + size > rows.length() {
     rows.length()
   } else {
