@@ -43,6 +43,9 @@ fn admin_comment_item(
       "<p>" +
       admin_comment_root(c, state.rows) +
       "</p>" +
+      "<p>" +
+      admin_comment_replies(c, state.rows) +
+      "</p>" +
       admin_comment_editor(row, token) +
       admin_comment_actions(row, token) +
       "<p>Revision: <code>" +
