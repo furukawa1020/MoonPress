@@ -54,3 +54,21 @@ fn admin_comment_root(
   root.to_string() +
   ")</a>"
 }
+
+///|
+fn admin_comment_replies(
+  comment : NativeComment,
+  rows : Array[CommentRow],
+) -> String {
+  let count = rows
+    .filter(row => row.comment.parent == Some(comment.id))
+    .length()
+  "<a href=\"/comments?status=any&amp;parent=" +
+  comment.id.to_string() +
+  "\">" +
+  count.to_string() +
+  admin_i18n(
+    "件の直接の返信（全状態）", " direct replies (all statuses)",
+  ) +
+  "</a>"
+}
