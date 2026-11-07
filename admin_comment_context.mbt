@@ -72,3 +72,15 @@ fn admin_comment_replies(
   ) +
   "</a>"
 }
+
+///|
+fn admin_comment_status(status : String) -> String {
+  match status {
+    "hold" => admin_i18n("保留", "hold")
+    "approved" => admin_i18n("承認済み", "approved")
+    "spam" => admin_i18n("スパム", "spam")
+    "trash" => admin_i18n("ゴミ箱", "trash")
+    "any" => admin_i18n("すべて", "any")
+    _ => escape_html(status)
+  }
+}
