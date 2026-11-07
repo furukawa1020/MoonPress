@@ -142,7 +142,17 @@ fn admin_comments(
     "\"></label><button><!--mp:ja-->探す<!--mp:en-->Search<!--mp:end--></button></form>",
   )
 
-  out.write_string("<p>\{rows.length()} comments</p>")
+  let shown_end = if start + size > rows.length() {
+    rows.length()
+  } else {
+    start + size
+  }
+  let shown_start = if rows.is_empty() { 0 } else { start + 1 }
+  let page_count = if pages == 0 { 1 } else { pages }
+  let current_page = rest_positive(query.get("page").unwrap_or("1"), 4096)
+  out.write_string(
+    "<p role=\"status\"><!--mp:ja-->\{rows.length()}件中 \{shown_start}〜\{shown_end}件 · \{current_page} / \{page_count}ページ<!--mp:en-->Showing \{shown_start}–\{shown_end} of \{rows.length()} comments · Page \{current_page} of \{page_count}<!--mp:end--></p>",
+  )
 
   out.write_string(admin_table_start("Comments"))
   out.write_string(
