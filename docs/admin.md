@@ -347,3 +347,9 @@ The same versioned forms can trash a comment and restore it to hold. Trash never
 The Site settings page has a single **Show approved comments / Hide comments** button with settings-version protection. It changes source configuration; build and publish the reviewed result to update the public site. Comment inventory and inspection URLs are preserved when switching administration language. The browser CI covers the complete no-JavaScript moderation and display-setting journey.
 
 Comment inspection shows its parent and a Replies link. The inventory accepts a bounded parent filter, including parent=0 for roots; parent filtering survives search and page navigation. These links do not change moderation state.
+
+## 記事を探して編集する
+
+管理画面の「記事」で「絞り込み・並び順」を開きます。タイトル・ファイル名・タグの検索、タグの完全一致、日付範囲、日付の有無、掲載状態を組み合わせて探せます。並び順と表示件数を選び、前後ページへ移動しても検索条件を保ちます。日付順では日付のない記事を末尾に表示します。ここでの日付は記事の日付で、更新日時ではありません。
+
+一覧のタイトルから編集し、保存してからプレビューを確認します。「履歴」は保存済みの記事の復元、「参照関係」はURL変更前の確認に使います。編集や一覧の表示だけではデプロイしません。公開対象を確認し、公開用ビルド・ZIP取得を行って公開先へ配置します。
