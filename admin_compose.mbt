@@ -243,10 +243,44 @@ fn compose_action(
         400,
         admin_page(
           "保存できませんでした",
-          notice,
+          notice + compose_recovery_copy(fields),
           title_en="Could not save post",
         ),
       )
     }
   }
+}
+
+///|
+fn compose_recovery_copy(fields : Map[String, String]) -> String {
+  let out = StringBuilder()
+  out.write_string(
+    "<p>" +
+    admin_i18n(
+      "保存できませんでした。入力を下に残しています。文章を保管してから現在の記事を開き直してください。",
+      "Not saved. Your submitted values are retained below. Copy your work before reopening the current article.",
+    ) +
+    "</p>",
+  )
+  for key in compose_keys() {
+    if key != "token" && key != "intent" {
+      if fields.get(key) is Some(value) {
+        out.write_string(
+          "<label>" +
+          escape_html(key) +
+          "<textarea readonly>\n" +
+          escape_html(value) +
+          "</textarea></label>",
+        )
+      }
+    }
+  }
+  out.write_string(
+    "<p><a href=\"/compose?name=" +
+    url_component(fields.get("name").unwrap_or("")) +
+    "\">" +
+    admin_i18n("現在の記事を開く", "Open current article") +
+    "</a></p>",
+  )
+  out.to_string()
 }

@@ -75,6 +75,15 @@ with NativeSite() as site:
         if stage>=9:assert data['kind']=='page'
         if stage>=10:assert data['publish_at']=='2099-12-01T09:00:00Z'
         fresh=values(get());before=article.read_bytes();tag=digest();send(fresh);assert article.read_bytes()==before and digest()==tag and len(list((site.site/'.moonpress-history').glob('*.json')))==1
+        recovery_fields={**fresh,'title':'Recovered <title>','body':'\n\nRecovered snapshot body'}
+        good=article.read_bytes();article.write_bytes(good+b'\nExternal writer\n');external=article.read_bytes()
+        page=send(recovery_fields,400)
+        assert 'Recovered &lt;title&gt;' in page and 'Recovered snapshot body' in page and fresh['version'] in page
+        assert article.read_bytes()==external
+        article.write_text('---\n{bad}\n---\nBroken')
+        broken=article.read_bytes();page=send(recovery_fields,400)
+        assert 'Recovered &lt;title&gt;' in page and 'Recovered snapshot body' in page and fresh['version'] in page and article.read_bytes()==broken
+        article.write_bytes(good)
         invalid=[]
         if stage>=3:invalid += [{'date':'2026-02-30'}]
         if stage>=5:invalid += [{'categories':'\n'.join(str(i) for i in range(65))}]
