@@ -45,7 +45,7 @@ fn admin_post_scope(
     raise InvalidInput("Invalid post sort")
   }
   let tag = fields.get("tag").unwrap_or("")
-  if @utf8.encode(tag).length() > 96 || tag.any(c => c.is_control()) {
+  if @utf8.encode(tag).length() > 96 {
     raise InvalidInput("Invalid tag filter")
   }
   let visibility = fields.get("visibility").unwrap_or("all")
