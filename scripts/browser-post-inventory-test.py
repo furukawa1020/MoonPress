@@ -27,7 +27,7 @@ with NativeSite() as site,tempfile.TemporaryDirectory() as temporary:
             current=browser.call('GET','/url');params=urllib.parse.parse_qs(urllib.parse.urlsplit(current).query)
             assert params['tag']==['Browser'] and params['sort']==['date_desc'] and params['per_page']==['1'] and params['page']==['2']
             browser.go(current);browser.expect_text('Browser B')
-            browser.click('details summary')
+            browser.click('main details summary')
             browser.fill('input[name="q"]','Browser B')
             browser.click('form[method="get"] button')
             browser.expect_text('Showing 1 of 1 matching posts')
