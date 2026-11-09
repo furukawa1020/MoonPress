@@ -59,6 +59,9 @@ fn admin_posts(
     "<th>" +
     admin_post_text("タグ", "Tags") +
     "</th>" +
+    "<th>" +
+    admin_post_text("記事の日付", "Article date") +
+    "</th>" +
     "</tr></thead><tbody>",
   )
   for index = start; index < end; index = index + 1 {
@@ -87,6 +90,12 @@ fn admin_posts(
         "</a>"
       })
       .join(" · ") +
+      "</td>" +
+      "<td>" +
+      (match post.date {
+        Some(date) => "<time datetime=\"" + date + "\">" + date + "</time>"
+        None => admin_post_text("日付なし", "Undated")
+      }) +
       "</td>" +
       "</tr>",
     )
