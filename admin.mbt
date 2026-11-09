@@ -107,7 +107,10 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
           let (code, html) = admin_dispatch(input, request, body, token)
           let html = admin_preview_navigation(html, preview_port).replace_all(
             old="<main id=",
-            new=admin_language_navigation(request.target) + "<main id=",
+            new=admin_language_navigation(
+                compose_language_target(request.target, body),
+              ) +
+              "<main id=",
           )
           admin_response(code, html, language~)
         }
