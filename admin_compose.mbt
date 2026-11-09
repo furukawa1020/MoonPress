@@ -2,7 +2,7 @@
 fn compose_keys() -> Array[String] {
   [
     "token", "name", "version", "title", "body", "intent", "description", "date",
-    "tags", "categories", "slug", "listed", "layout", "kind",
+    "tags", "categories", "slug", "listed", "layout", "kind", "publish_at",
   ]
 }
 
@@ -33,6 +33,7 @@ fn compose_values(
     },
     "layout": document.layout.unwrap_or(""),
     "kind": document.kind,
+    "publish_at": document.publish_at.unwrap_or(""),
   }
 }
 
@@ -97,6 +98,18 @@ fn compose_source(
   }
   if kind != document.kind {
     metadata["kind"] = kind.to_json()
+    changed = true
+  }
+  let schedule = admin_field(fields, "publish_at")
+  if !schedule.is_empty() {
+    publication_timestamp(schedule) |> ignore
+  }
+  if schedule != document.publish_at.unwrap_or("") {
+    if schedule.is_empty() {
+      metadata.remove("publish_at")
+    } else {
+      metadata["publish_at"] = schedule.to_json()
+    }
     changed = true
   }
   if changed {
@@ -289,6 +302,24 @@ fn compose_form(
         ("page", admin_i18n("固定ページ", "Page")),
       ],
     ),
+  )
+  out.write_string(
+    compose_text_field(
+      "publish_at",
+      admin_i18n(
+        "公開予約（UTC・空欄で解除）", "Schedule (UTC; blank to remove)",
+      ),
+      values.get("publish_at").unwrap_or(""),
+      "2",
+    ),
+  )
+  out.write_string(
+    "<p>" +
+    admin_i18n(
+      "予約時刻には再ビルドと配信が必要です。自動配信は行いません。",
+      "A build and deployment at the scheduled time is required; no automatic scheduler runs here.",
+    ) +
+    "</p>",
   )
   out.write_string(
     "<p>" +
