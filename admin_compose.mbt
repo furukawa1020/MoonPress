@@ -44,7 +44,7 @@ fn compose_validate(fields : Map[String, String]) -> Unit raise {
     fields.keys().any(key => !keys.contains(key)) {
     raise InvalidInput("Invalid article editor fields")
   }
-  if !["save", "draft"].contains(admin_field(fields, "intent")) {
+  if !["save", "draft", "ready"].contains(admin_field(fields, "intent")) {
     raise InvalidInput("Invalid article editor action")
   }
 }
@@ -113,7 +113,13 @@ fn compose_source(
     changed = true
   }
   let intent = admin_field(fields, "intent")
-  let draft = if intent == "draft" { true } else { document.draft }
+  let draft = if intent == "draft" {
+    true
+  } else if intent == "ready" {
+    false
+  } else {
+    document.draft
+  }
   if draft != document.draft {
     metadata["draft"] = draft.to_json()
     changed = true
@@ -206,6 +212,11 @@ fn compose_form(
   out.write_string(
     "<button name=\"intent\" value=\"draft\">" +
     admin_i18n("下書き保存", "Save as draft") +
+    "</button> ",
+  )
+  out.write_string(
+    "<button name=\"intent\" value=\"ready\">" +
+    admin_i18n("公開の確認へ", "Save and review publication") +
     "</button> ",
   )
   out.write_string(
@@ -408,7 +419,11 @@ fn compose_action(
       admin_i18n("保存しました。", "Post saved.") +
       "</p>"
     let extra = ""
-
+    let extra = if intent == "ready" {
+      admin_production_plan_form(token, japanese=true)
+    } else {
+      extra
+    }
     (200, compose_page(input, name, token, Map([]), notice, extra))
   } catch {
     error => {
