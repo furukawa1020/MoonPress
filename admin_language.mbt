@@ -160,10 +160,10 @@ fn admin_language_target(target : String) -> String {
   let path = target.split("?").map(p => p.to_owned()).to_array()[0]
   if [
       "/", "/rooms", "/rooms/write", "/rooms/preview", "/rooms/build", "/rooms/publish",
-      "/workflow", "/edit", "/media", "/media-replace", "/media-remove", "/references",
-      "/reference-outputs", "/history", "/trash", "/trash-item", "/trash-post", "/revision-diff",
-      "/revision", "/comments", "/comment", "/site-settings", "/recovery", "/authoring-recovery",
-      "/publish",
+      "/workflow", "/compose", "/edit", "/media", "/media-replace", "/media-remove",
+      "/references", "/reference-outputs", "/history", "/trash", "/trash-item", "/trash-post",
+      "/revision-diff", "/revision", "/comments", "/comment", "/site-settings", "/recovery",
+      "/authoring-recovery", "/publish",
     ].contains(path) {
     target
   } else {
@@ -256,5 +256,20 @@ fn admin_title_ja(title : String) -> String {
       } else {
         title
       }
+  }
+}
+
+///|
+fn compose_language_target(target : String, body : Bytes) -> String {
+  if target != "/compose-save" {
+    return target
+  }
+  try {
+    let fields = admin_form(decode_text(body, "article language navigation"))
+    let name = admin_field(fields, "name")
+    require_post_name(name)
+    "/compose?name=" + url_component(name)
+  } catch {
+    _ => "/"
   }
 }
