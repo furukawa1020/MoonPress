@@ -1,4 +1,9 @@
 ///|
+fn post_form_text(text : String) -> String {
+  text.replace_all(old="\r\n", new="\n").replace_all(old="\r", new="\n")
+}
+
+///|
 pub(all) struct PostFields {
   title : String
   description : String
@@ -35,13 +40,13 @@ fn source_with_fields(
   edit : PostFields,
 ) -> String raise {
   let previous = post_fields(source, name)
-  let body = edit.body.replace_all(old="\r\n", new="\n")
-  let tags = edit.tags.replace_all(old="\r\n", new="\n")
-  if edit.title == previous.title &&
-    edit.description == previous.description &&
+  let body = post_form_text(edit.body)
+  let tags = post_form_text(edit.tags)
+  if post_form_text(edit.title) == post_form_text(previous.title) &&
+    post_form_text(edit.description) == post_form_text(previous.description) &&
     edit.date == previous.date &&
-    body == previous.body &&
-    tags == previous.tags {
+    body == post_form_text(previous.body) &&
+    tags == post_form_text(previous.tags) {
     return source
   }
   let (metadata, _) = document_parts(source, name)
@@ -50,15 +55,22 @@ fn source_with_fields(
     _ => raise InvalidInput("Frontmatter must be an object")
   }
   for
-    (key, value) in [
-      ("title", edit.title),
-      ("description", edit.description),
-      ("date", edit.date),
+    (key, value, old) in [
+      ("title", edit.title, previous.title),
+      ("description", edit.description, previous.description),
+      ("date", edit.date, previous.date),
     ] {
-    if value.is_empty() {
-      fields.remove(key)
+    let unchanged = if key == "date" {
+      value == old
     } else {
-      fields[key] = value.to_json()
+      post_form_text(value) == post_form_text(old)
+    }
+    if !unchanged {
+      if value.is_empty() {
+        fields.remove(key)
+      } else {
+        fields[key] = value.to_json()
+      }
     }
   }
   let values : Array[String] = []
@@ -68,7 +80,7 @@ fn source_with_fields(
       values.push(tag)
     }
   }
-  if tags != previous.tags {
+  if tags != post_form_text(previous.tags) {
     fields["tags"] = values.to_json()
   }
   let result = "---\n" + metadata.stringify() + "\n---\n" + body
