@@ -44,6 +44,7 @@ fn admin_posts(
     "<p class=\"notice\"><a href=\"/workflow\">Start here: write, preview, review and publish</a></p>",
   )
   out.write_string(admin_post_states(scope, fields))
+  out.write_string(admin_post_kinds(scope, fields))
   out.write_string(admin_post_filters(fields))
   out.write_string(
     "<p>Showing \{end - start} of \{matches.length()} matching posts (\{inventory.posts.length()} valid total). Page \{page} of \{pages}.</p>",
