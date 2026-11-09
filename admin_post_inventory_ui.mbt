@@ -86,6 +86,10 @@ fn admin_post_filters(fields : Map[String, String]) -> String {
         ("date_asc", admin_post_text("日付の古い順", "Oldest date first")),
         ("title", admin_post_text("タイトル順", "Title A\u2013Z")),
         ("title_desc", admin_post_text("タイトル逆順", "Title Z\u2013A")),
+        (
+          "source_desc",
+          admin_post_text("ファイル名逆順", "Reverse filename order"),
+        ),
       ],
       fields,
       "source",
