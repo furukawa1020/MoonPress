@@ -1,7 +1,6 @@
 ///|
 fn admin_post_text(ja : String, en : String) -> String {
-  ignore(ja)
-  en
+  admin_i18n(ja, en)
 }
 
 ///|
@@ -37,7 +36,7 @@ fn admin_post_select(
 fn admin_post_filters(fields : Map[String, String]) -> String {
   let out = StringBuilder()
   out.write_string(
-    "" +
+    "<details><summary><!--mp:ja-->\u7d5e\u308a\u8fbc\u307f\u30fb\u4e26\u3073\u9806<!--mp:en-->Filters and sorting<!--mp:end--></summary>" +
     "<form method=\"get\" action=\"/\"><label>" +
     admin_post_text(
       "タイトル・ファイル名・タグを検索", "Search titles, filenames and tags",
@@ -169,7 +168,7 @@ fn admin_post_filters(fields : Map[String, String]) -> String {
     "</button> <a href=\"/\">" +
     admin_post_text("条件を解除", "Clear filters") +
     "</a></form>" +
-    "",
+    "</details>",
   )
   out.to_string()
 }

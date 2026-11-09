@@ -41,13 +41,13 @@ fn admin_posts(
   let (start, end, pages) = admin_post_window(matches.length(), fields)
   let out = StringBuilder()
   out.write_string(
-    "<p class=\"notice\"><a href=\"/workflow\">Start here: write, preview, review and publish</a></p>",
+    "<p class=\"notice\"><a href=\"/workflow\"><!--mp:ja-->執筆・確認・公開までの手順<!--mp:en-->Start here: write, preview, review and publish<!--mp:end--></a></p>",
   )
   out.write_string(admin_post_states(scope, fields))
   out.write_string(admin_post_kinds(scope, fields))
   out.write_string(admin_post_filters(fields))
   out.write_string(
-    "<p>Showing \{end - start} of \{matches.length()} matching posts (\{inventory.posts.length()} valid total). Page \{page} of \{pages}.</p>",
+    "<p><!--mp:ja-->全\{inventory.posts.length()}件のうち条件に合う\{matches.length()}件中\{end - start}件を表示。\{page} / \{pages}ページ。<!--mp:en-->Showing \{end - start} of \{matches.length()} matching posts (\{inventory.posts.length()} valid total). Page \{page} of \{pages}.<!--mp:end--></p>",
   )
   out.write_string(
     "<p role=\"status\">" +
@@ -76,9 +76,9 @@ fn admin_posts(
     )
   }
   out.write_string(
-    "<p>Ready posts enter normal builds. Changes here do not deploy your site.</p>" +
+    "<p><!--mp:ja-->公開対象の記事が通常のビルドに入ります。ここでの変更だけではサイトをデプロイしません。<!--mp:en-->Ready posts enter normal builds. Changes here do not deploy your site.<!--mp:end--></p>" +
     admin_table_start("Posts inventory") +
-    "<thead><tr><th><!--mp:ja-->タイトル<!--mp:en-->Title<!--mp:end--></th><th>State</th><th><!--mp:ja-->ソース<!--mp:en-->Source<!--mp:end--></th>" +
+    "<thead><tr><th><!--mp:ja-->タイトル<!--mp:en-->Title<!--mp:end--></th><th><!--mp:ja-->状態<!--mp:en-->State<!--mp:end--></th><th><!--mp:ja-->ソース<!--mp:en-->Source<!--mp:end--></th>" +
     "<th>" +
     admin_post_text("タグ", "Tags") +
     "</th>" +
@@ -102,10 +102,22 @@ fn admin_posts(
       "\">" +
       escape_html(post.title) +
       "</a></td><td>" +
-      escape_html(post.kind) +
+      (if post.kind == "page" {
+        admin_post_text("固定ページ", "page")
+      } else {
+        admin_post_text("記事", "post")
+      }) +
       " · " +
-      (if post.draft { "Draft" } else { "Ready" }) +
-      (if post.listed { "" } else { " · unlisted" }) +
+      (if post.draft {
+        admin_post_text("下書き", "Draft")
+      } else {
+        admin_post_text("公開対象", "Ready")
+      }) +
+      (if post.listed {
+        ""
+      } else {
+        " · " + admin_post_text("一覧非掲載", "unlisted")
+      }) +
       "</td><td>" +
       escape_html(name) +
       "</td>" +
@@ -150,7 +162,7 @@ fn admin_posts(
     admin_post_problems(inventory.problems) +
     "<h2 id=\"new-draft\"><!--mp:ja-->新しい下書き<!--mp:en-->New draft<!--mp:end--></h2><form method=\"post\" action=\"/new\">" +
     admin_hidden("token", token) +
-    "<label><!--mp:ja-->タイトル<!--mp:en-->Title<!--mp:end--><input name=\"title\" required></label><label>File stem (for example, first-post)<input name=\"slug\" required></label><button><!--mp:ja-->下書きをつくる<!--mp:en-->Create draft<!--mp:end--></button></form>",
+    "<label><!--mp:ja-->タイトル<!--mp:en-->Title<!--mp:end--><input name=\"title\" required></label><label><!--mp:ja-->ファイル名（例：first-post）<!--mp:en-->File stem (for example, first-post)<!--mp:end--><input name=\"slug\" required></label><button><!--mp:ja-->下書きをつくる<!--mp:en-->Create draft<!--mp:end--></button></form>",
   )
   admin_page(
     "Posts",
