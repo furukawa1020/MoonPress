@@ -130,6 +130,13 @@ fn admin_post_filters(fields : Map[String, String]) -> String {
     "\"></label>",
   )
   out.write_string(
+    "<label>" +
+    admin_post_text("この日以前", "On or before") +
+    "<input type=\"date\" name=\"before\"  value=\"" +
+    escape_html(fields.get("before").unwrap_or("")) +
+    "\"></label>",
+  )
+  out.write_string(
     "<button>" +
     admin_post_text("記事を探す", "Search posts") +
     "</button> <a href=\"/\">" +
