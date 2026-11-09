@@ -238,3 +238,38 @@ fn admin_post_states(
   out.write_string("</nav>")
   out.to_string()
 }
+
+///|
+fn admin_post_kinds(
+  scope : Array[PostSummary],
+  fields : Map[String, String],
+) -> String raise {
+  let selected = filter_posts(scope, "", fields.get("state").unwrap_or("all"))
+  let out = StringBuilder()
+  out.write_string("<nav aria-label=\"Post types\">")
+  for
+    (value, label) in [
+      ("all", admin_post_text("記事と固定ページ", "Posts and pages")),
+      ("post", admin_post_text("記事", "Posts")),
+      ("page", admin_post_text("固定ページ", "Pages")),
+    ] {
+    let count = filter_post_kind(selected, value).length()
+    out.write_string(
+      "<a href=\"" +
+      admin_post_url(fields, Map([("kind", value), ("page", "1")])) +
+      "\"" +
+      (if fields.get("kind").unwrap_or("all") == value {
+        " aria-current=\"page\""
+      } else {
+        ""
+      }) +
+      ">" +
+      label +
+      " (" +
+      count.to_string() +
+      ")</a> ",
+    )
+  }
+  out.write_string("</nav>")
+  out.to_string()
+}
