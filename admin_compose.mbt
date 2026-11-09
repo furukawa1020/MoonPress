@@ -2,7 +2,7 @@
 fn compose_keys() -> Array[String] {
   [
     "token", "name", "version", "title", "body", "intent", "description", "date",
-    "tags", "categories", "slug", "listed",
+    "tags", "categories", "slug", "listed", "layout",
   ]
 }
 
@@ -31,6 +31,7 @@ fn compose_values(
     } else {
       "no"
     },
+    "layout": document.layout.unwrap_or(""),
   }
 }
 
@@ -70,7 +71,7 @@ fn compose_source(
   result = source_with_settings(result, name, {
     slug: admin_field(fields, "slug"),
     listed: listed == "yes",
-    layout: document.layout.unwrap_or(""),
+    layout: admin_field(fields, "layout"),
   })
   let document = parse_document(result, name)
   let (json, body) = document_parts(result, name)
@@ -252,6 +253,16 @@ fn compose_form(
           ),
         ),
       ],
+    ),
+  )
+  out.write_string(
+    compose_text_field(
+      "layout",
+      admin_i18n(
+        "テンプレート（空欄なら標準）", "Layout (blank: default)",
+      ),
+      values.get("layout").unwrap_or(""),
+      "2",
     ),
   )
   out.write_string(
