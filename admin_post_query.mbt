@@ -8,7 +8,10 @@ fn admin_post_url(
     selected[key] = value
   }
   let parts : Array[String] = []
-  for key in ["q", "state", "page", "kind", "sort", "per_page", "tag"] {
+  for
+    key in [
+      "q", "state", "page", "kind", "sort", "per_page", "tag", "visibility",
+    ] {
     if selected.get(key) is Some(value) {
       parts.push(key + "=" + url_component(value))
     }
@@ -26,7 +29,9 @@ fn admin_post_scope(
   fields : Map[String, String],
 ) -> Array[PostSummary] raise {
   for key, _ in fields {
-    if !["q", "state", "page", "kind", "sort", "per_page", "tag"].contains(key) {
+    if !["q", "state", "page", "kind", "sort", "per_page", "tag", "visibility"].contains(
+        key,
+      ) {
       raise InvalidInput("Unknown post query field: " + key)
     }
   }
@@ -41,6 +46,10 @@ fn admin_post_scope(
   if @utf8.encode(tag).length() > 96 {
     raise InvalidInput("Invalid tag filter")
   }
+  let visibility = fields.get("visibility").unwrap_or("all")
+  if !["all", "listed", "unlisted"].contains(visibility) {
+    raise InvalidInput("Invalid listing filter")
+  }
   let matches = posts.filter(post => {
     (
       query.is_empty() ||
@@ -48,7 +57,8 @@ fn admin_post_scope(
       post.source.to_lower().contains(query) ||
       post.tags.any(tag => tag.to_lower().contains(query))
     ) &&
-    (tag.is_empty() || post.tags.contains(tag))
+    (tag.is_empty() || post.tags.contains(tag)) &&
+    (visibility == "all" || post.listed == (visibility == "listed"))
   })
   matches.sort_by(fn(a, b) {
     let primary = match sort {
