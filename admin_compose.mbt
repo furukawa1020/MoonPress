@@ -44,7 +44,7 @@ fn compose_validate(fields : Map[String, String]) -> Unit raise {
     fields.keys().any(key => !keys.contains(key)) {
     raise InvalidInput("Invalid article editor fields")
   }
-  if !["save"].contains(admin_field(fields, "intent")) {
+  if !["save", "draft"].contains(admin_field(fields, "intent")) {
     raise InvalidInput("Invalid article editor action")
   }
 }
@@ -105,6 +105,12 @@ fn compose_source(
     } else {
       metadata["publish_at"] = schedule.to_json()
     }
+    changed = true
+  }
+  let intent = admin_field(fields, "intent")
+  let draft = if intent == "draft" { true } else { document.draft }
+  if draft != document.draft {
+    metadata["draft"] = draft.to_json()
     changed = true
   }
   if changed {
@@ -190,6 +196,11 @@ fn compose_form(
   out.write_string(
     "<button name=\"intent\" value=\"save\">" +
     admin_i18n("変更を保存", "Save changes") +
+    "</button> ",
+  )
+  out.write_string(
+    "<button name=\"intent\" value=\"draft\">" +
+    admin_i18n("下書き保存", "Save as draft") +
     "</button> ",
   )
   out.write_string(
