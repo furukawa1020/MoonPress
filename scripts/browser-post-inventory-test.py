@@ -18,6 +18,11 @@ with NativeSite() as site,tempfile.TemporaryDirectory() as temporary:
             browser=Browser(driver_port,download,tmp/'profile');base=f'http://127.0.0.1:{operator.port}'
             browser.go(base+'/?tag=Browser&sort=date_desc&per_page=1')
             browser.expect_text('Browser C');assert 'Browser B' not in browser.text('tbody')
+            browser.call('POST','/window/rect',{'width':390,'height':844})
+            rect=browser.call('GET','/element/'+browser.element('tbody tr')+'/rect')
+            assert rect['y'] < browser.call('GET','/window/rect')['height']
+            browser.screenshot('article-inventory-mobile')
+            browser.call('POST','/window/rect',{'width':1280,'height':900})
             browser.click('a[rel="next"]');browser.expect_text('Browser B')
             current=browser.call('GET','/url');params=urllib.parse.parse_qs(urllib.parse.urlsplit(current).query)
             assert params['tag']==['Browser'] and params['sort']==['date_desc'] and params['per_page']==['1'] and params['page']==['2']
