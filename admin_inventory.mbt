@@ -62,6 +62,9 @@ fn admin_posts(
     "<th>" +
     admin_post_text("記事の日付", "Article date") +
     "</th>" +
+    "<th>" +
+    admin_post_text("生成する出力名", "Planned output") +
+    "</th>" +
     "</tr></thead><tbody>",
   )
   for index = start; index < end; index = index + 1 {
@@ -97,6 +100,9 @@ fn admin_posts(
         None => admin_post_text("日付なし", "Undated")
       }) +
       "</td>" +
+      "<td><code>" +
+      escape_html(post.output) +
+      "</code></td>" +
       "</tr>",
     )
   }
