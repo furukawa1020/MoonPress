@@ -96,6 +96,13 @@ fn admin_post_filters(fields : Map[String, String]) -> String {
     ),
   )
   out.write_string(
+    "<label>" +
+    admin_post_text("表示件数", "Items per page") +
+    "<input type=\"number\" name=\"per_page\" min=\"1\" max=\"100\" required value=\"" +
+    escape_html(fields.get("per_page").unwrap_or("20")) +
+    "\"></label>",
+  )
+  out.write_string(
     "<button>" +
     admin_post_text("記事を探す", "Search posts") +
     "</button> <a href=\"/\">" +
