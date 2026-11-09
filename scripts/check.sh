@@ -597,4 +597,4 @@ python3 scripts/admin-comment-list-test.py 20
 
 python3 scripts/admin-post-inventory-test.py 20
 
-python3 scripts/admin-compose-test.py 10
+python3 scripts/admin-compose-test.py 11
