@@ -123,6 +123,13 @@ fn admin_post_filters(fields : Map[String, String]) -> String {
     ),
   )
   out.write_string(
+    "<label>" +
+    admin_post_text("この日以降", "On or after") +
+    "<input type=\"date\" name=\"after\"  value=\"" +
+    escape_html(fields.get("after").unwrap_or("")) +
+    "\"></label>",
+  )
+  out.write_string(
     "<button>" +
     admin_post_text("記事を探す", "Search posts") +
     "</button> <a href=\"/\">" +
