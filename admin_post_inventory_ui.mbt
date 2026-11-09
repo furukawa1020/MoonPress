@@ -137,6 +137,19 @@ fn admin_post_filters(fields : Map[String, String]) -> String {
     "\"></label>",
   )
   out.write_string(
+    admin_post_select(
+      "dated",
+      admin_post_text("日付の有無", "Date presence"),
+      [
+        ("all", admin_post_text("すべて", "All")),
+        ("dated", admin_post_text("日付あり", "Dated")),
+        ("undated", admin_post_text("日付なし", "Undated")),
+      ],
+      fields,
+      "all",
+    ),
+  )
+  out.write_string(
     "<button>" +
     admin_post_text("記事を探す", "Search posts") +
     "</button> <a href=\"/\">" +

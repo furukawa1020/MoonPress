@@ -11,7 +11,7 @@ fn admin_post_url(
   for
     key in [
       "q", "state", "page", "kind", "sort", "per_page", "tag", "visibility", "after",
-      "before",
+      "before", "dated",
     ] {
     if selected.get(key) is Some(value) {
       parts.push(key + "=" + url_component(value))
@@ -32,7 +32,7 @@ fn admin_post_scope(
   for key, _ in fields {
     if ![
         "q", "state", "page", "kind", "sort", "per_page", "tag", "visibility", "after",
-        "before",
+        "before", "dated",
       ].contains(key) {
       raise InvalidInput("Unknown post query field: " + key)
     }
@@ -63,6 +63,10 @@ fn admin_post_scope(
   if !after.is_empty() && !before.is_empty() && after > before {
     raise InvalidInput("Date range is reversed")
   }
+  let dated = fields.get("dated").unwrap_or("all")
+  if !["all", "dated", "undated"].contains(dated) {
+    raise InvalidInput("Invalid date presence filter")
+  }
   let matches = posts.filter(post => {
     (
       query.is_empty() ||
@@ -73,7 +77,8 @@ fn admin_post_scope(
     (tag.is_empty() || post.tags.contains(tag)) &&
     (visibility == "all" || post.listed == (visibility == "listed")) &&
     (after.is_empty() || (post.date is Some(date) && date >= after)) &&
-    (before.is_empty() || (post.date is Some(date) && date <= before))
+    (before.is_empty() || (post.date is Some(date) && date <= before)) &&
+    (dated == "all" || (post.date is Some(_)) == (dated == "dated"))
   })
   matches.sort_by(fn(a, b) {
     let primary = match sort {
