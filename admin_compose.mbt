@@ -84,7 +84,12 @@ fn compose_source(
     _ => raise InvalidInput("Invalid article metadata")
   }
   let mut changed = false
-  let categories = normalized_categories(admin_field(fields, "categories"))
+  let categories = if post_form_text(admin_field(fields, "categories")) ==
+    post_form_text(document.categories.join("\n")) {
+    document.categories
+  } else {
+    normalized_categories(admin_field(fields, "categories"))
+  }
   if categories != document.categories {
     metadata["categories"] = categories.to_json()
     changed = true
