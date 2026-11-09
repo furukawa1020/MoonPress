@@ -2,7 +2,7 @@
 fn compose_keys() -> Array[String] {
   [
     "token", "name", "version", "title", "body", "intent", "description", "date",
-    "tags", "categories",
+    "tags", "categories", "slug",
   ]
 }
 
@@ -25,6 +25,7 @@ fn compose_values(
     "date": edit.date,
     "tags": edit.tags,
     "categories": document.categories.join("\n"),
+    "slug": document.slug.unwrap_or(""),
   }
 }
 
@@ -55,7 +56,14 @@ fn compose_source(
     date: admin_field(fields, "date"),
     tags: admin_field(fields, "tags"),
   })
+  let document = parse_document(result, name)
+  ignore(document)
 
+  result = source_with_settings(result, name, {
+    slug: admin_field(fields, "slug"),
+    listed: document.listed,
+    layout: document.layout.unwrap_or(""),
+  })
   let document = parse_document(result, name)
   let (json, body) = document_parts(result, name)
   let metadata = match json {
@@ -209,6 +217,16 @@ fn compose_form(
         "カテゴリ（1行にひとつ）", "Categories (one per line)",
       ),
       values.get("categories").unwrap_or(""),
+      "2",
+    ),
+  )
+  out.write_string(
+    compose_text_field(
+      "slug",
+      admin_i18n(
+        "URLの末尾（空欄ならファイル名）", "URL stem (blank: filename)",
+      ),
+      values.get("slug").unwrap_or(""),
       "2",
     ),
   )
