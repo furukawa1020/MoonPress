@@ -44,7 +44,9 @@ fn compose_validate(fields : Map[String, String]) -> Unit raise {
     fields.keys().any(key => !keys.contains(key)) {
     raise InvalidInput("Invalid article editor fields")
   }
-  if !["save", "draft", "ready"].contains(admin_field(fields, "intent")) {
+  if !["save", "draft", "ready", "preview"].contains(
+      admin_field(fields, "intent"),
+    ) {
     raise InvalidInput("Invalid article editor action")
   }
 }
@@ -212,6 +214,11 @@ fn compose_form(
   out.write_string(
     "<button name=\"intent\" value=\"draft\">" +
     admin_i18n("下書き保存", "Save as draft") +
+    "</button> ",
+  )
+  out.write_string(
+    "<button name=\"intent\" value=\"preview\">" +
+    admin_i18n("未保存の本文を確認", "Preview unsaved text") +
     "</button> ",
   )
   out.write_string(
@@ -413,7 +420,19 @@ fn compose_action(
     let source = compose_source(snapshot, name, fields)
     let intent = admin_field(fields, "intent")
     ignore(intent)
-
+    if intent == "preview" {
+      return (
+        200,
+        compose_page(
+          input,
+          name,
+          token,
+          fields,
+          "",
+          admin_body_preview(parse_document(source, name).body),
+        ),
+      )
+    }
     let _ = save_post(input, name, snapshot.digest, source)
     let notice = "<p role=\"status\">" +
       admin_i18n("保存しました。", "Post saved.") +
