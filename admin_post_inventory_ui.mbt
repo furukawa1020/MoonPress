@@ -150,6 +150,20 @@ fn admin_post_filters(fields : Map[String, String]) -> String {
     ),
   )
   out.write_string(
+    admin_post_select(
+      "scope",
+      admin_post_text("検索対象", "Search in"),
+      [
+        ("all", admin_post_text("すべて", "All")),
+        ("title", admin_post_text("タイトル", "Title")),
+        ("source", admin_post_text("ファイル名", "Filename")),
+        ("tags", admin_post_text("タグ", "Tags")),
+      ],
+      fields,
+      "all",
+    ),
+  )
+  out.write_string(
     "<button>" +
     admin_post_text("記事を探す", "Search posts") +
     "</button> <a href=\"/\">" +

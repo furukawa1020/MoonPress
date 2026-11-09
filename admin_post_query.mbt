@@ -11,7 +11,7 @@ fn admin_post_url(
   for
     key in [
       "q", "state", "page", "kind", "sort", "per_page", "tag", "visibility", "after",
-      "before", "dated",
+      "before", "dated", "scope",
     ] {
     if selected.get(key) is Some(value) {
       parts.push(key + "=" + url_component(value))
@@ -32,7 +32,7 @@ fn admin_post_scope(
   for key, _ in fields {
     if ![
         "q", "state", "page", "kind", "sort", "per_page", "tag", "visibility", "after",
-        "before", "dated",
+        "before", "dated", "scope",
       ].contains(key) {
       raise InvalidInput("Unknown post query field: " + key)
     }
@@ -67,12 +67,25 @@ fn admin_post_scope(
   if !["all", "dated", "undated"].contains(dated) {
     raise InvalidInput("Invalid date presence filter")
   }
+  let scope = fields.get("scope").unwrap_or("all")
+  if !["all", "title", "source", "tags"].contains(scope) {
+    raise InvalidInput("Invalid search scope")
+  }
   let matches = posts.filter(post => {
     (
       query.is_empty() ||
-      post.title.to_lower().contains(query) ||
-      post.source.to_lower().contains(query) ||
-      post.tags.any(tag => tag.to_lower().contains(query))
+      (
+        (scope == "all" || scope == "title") &&
+        post.title.to_lower().contains(query)
+      ) ||
+      (
+        (scope == "all" || scope == "source") &&
+        post.source.to_lower().contains(query)
+      ) ||
+      (
+        (scope == "all" || scope == "tags") &&
+        post.tags.any(tag => tag.to_lower().contains(query))
+      )
     ) &&
     (tag.is_empty() || post.tags.contains(tag)) &&
     (visibility == "all" || post.listed == (visibility == "listed")) &&
