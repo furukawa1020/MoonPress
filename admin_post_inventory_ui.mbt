@@ -202,3 +202,39 @@ fn admin_post_pages(
   out.write_string("</nav>")
   out.to_string()
 }
+
+///|
+fn admin_post_states(
+  scope : Array[PostSummary],
+  fields : Map[String, String],
+) -> String raise {
+  let selected = filter_post_kind(scope, fields.get("kind").unwrap_or("all"))
+  let out = StringBuilder()
+  out.write_string("<nav aria-label=\"Post states\">")
+  for
+    (value, label) in [
+      ("all", admin_post_text("すべて", "All posts")),
+      ("draft", admin_post_text("下書き", "Drafts")),
+      ("ready", admin_post_text("公開対象", "Ready")),
+      ("unlisted", admin_post_text("一覧非掲載", "Unlisted")),
+    ] {
+    let count = filter_posts(selected, "", value).length()
+    out.write_string(
+      "<a href=\"" +
+      admin_post_url(fields, Map([("state", value), ("page", "1")])) +
+      "\"" +
+      (if fields.get("state").unwrap_or("all") == value {
+        " aria-current=\"page\""
+      } else {
+        ""
+      }) +
+      ">" +
+      label +
+      " (" +
+      count.to_string() +
+      ")</a> ",
+    )
+  }
+  out.write_string("</nav>")
+  out.to_string()
+}
