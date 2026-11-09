@@ -595,4 +595,4 @@ python3 scripts/admin-comment-editor-test.py 4
 
 python3 scripts/admin-comment-list-test.py 20
 
-python3 scripts/admin-post-inventory-test.py 19
+python3 scripts/admin-post-inventory-test.py 20

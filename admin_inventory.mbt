@@ -41,16 +41,16 @@ fn admin_posts(
   let (start, end, pages) = admin_post_window(matches.length(), fields)
   let out = StringBuilder()
   out.write_string(
-    "<p class=\"notice\"><a href=\"/workflow\"><!--mp:ja-->執筆・確認・公開までの手順<!--mp:en-->Start here: write, preview, review and publish<!--mp:end--></a></p>",
+    "<p class=\"post-start\"><a href=\"/workflow\"><!--mp:ja-->執筆・確認・公開までの手順<!--mp:en-->Start here: write, preview, review and publish<!--mp:end--></a></p>",
   )
   out.write_string(admin_post_states(scope, fields))
   out.write_string(admin_post_kinds(scope, fields))
   out.write_string(admin_post_filters(fields))
   out.write_string(
-    "<p><!--mp:ja-->全\{inventory.posts.length()}件のうち条件に合う\{matches.length()}件中\{end - start}件を表示。\{page} / \{pages}ページ。<!--mp:en-->Showing \{end - start} of \{matches.length()} matching posts (\{inventory.posts.length()} valid total). Page \{page} of \{pages}.<!--mp:end--></p>",
+    "<p class=\"post-count\"><!--mp:ja-->全\{inventory.posts.length()}件のうち条件に合う\{matches.length()}件中\{end - start}件を表示。\{page} / \{pages}ページ。<!--mp:en-->Showing \{end - start} of \{matches.length()} matching posts (\{inventory.posts.length()} valid total). Page \{page} of \{pages}.<!--mp:end--></p>",
   )
   out.write_string(
-    "<p role=\"status\">" +
+    "<p class=\"post-range\" role=\"status\">" +
     admin_post_text("表示範囲", "Range") +
     ": " +
     (if matches.is_empty() { "0" } else { (start + 1).to_string() }) +
@@ -58,7 +58,7 @@ fn admin_posts(
     end.to_string() +
     " / " +
     matches.length().to_string() +
-    "</p><p><a href=\"#new-draft\">" +
+    "</p><p class=\"post-new\"><a href=\"#new-draft\">" +
     admin_post_text("新しい下書きを作る", "Create a new draft") +
     "</a></p>",
   )
@@ -76,7 +76,7 @@ fn admin_posts(
     )
   }
   out.write_string(
-    "<p><!--mp:ja-->公開対象の記事が通常のビルドに入ります。ここでの変更だけではサイトをデプロイしません。<!--mp:en-->Ready posts enter normal builds. Changes here do not deploy your site.<!--mp:end--></p>" +
+    "<p class=\"post-guidance\"><!--mp:ja-->公開対象の記事が通常のビルドに入ります。ここでの変更だけではサイトをデプロイしません。<!--mp:en-->Ready posts enter normal builds. Changes here do not deploy your site.<!--mp:end--></p>" +
     admin_table_start("Posts inventory") +
     "<thead><tr><th><!--mp:ja-->タイトル<!--mp:en-->Title<!--mp:end--></th><th><!--mp:ja-->状態<!--mp:en-->State<!--mp:end--></th><th><!--mp:ja-->ソース<!--mp:en-->Source<!--mp:end--></th>" +
     "<th>" +
@@ -166,6 +166,7 @@ fn admin_posts(
   )
   admin_page(
     "Posts",
+    "<style>.post-start{margin:.4rem 0}.post-count,.post-guidance{font-size:.875rem;margin:.4rem 0}.post-range,.post-new{display:inline-block;font-size:.875rem;margin:.25rem 1rem .25rem 0}nav[aria-label=\"Post states\"],nav[aria-label=\"Post types\"]{padding:.35rem 0;font-size:.875rem;gap:.25rem .7rem}</style>" +
     out.to_string() +
     admin_check_form(token) +
     admin_build_form(token) +
