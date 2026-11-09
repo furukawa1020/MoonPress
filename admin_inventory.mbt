@@ -55,7 +55,11 @@ fn admin_posts(
   out.write_string(
     "<p>Ready posts enter normal builds. Changes here do not deploy your site.</p>" +
     admin_table_start("Posts inventory") +
-    "<thead><tr><th><!--mp:ja-->タイトル<!--mp:en-->Title<!--mp:end--></th><th>State</th><th><!--mp:ja-->ソース<!--mp:en-->Source<!--mp:end--></th></tr></thead><tbody>",
+    "<thead><tr><th><!--mp:ja-->タイトル<!--mp:en-->Title<!--mp:end--></th><th>State</th><th><!--mp:ja-->ソース<!--mp:en-->Source<!--mp:end--></th>" +
+    "<th>" +
+    admin_post_text("タグ", "Tags") +
+    "</th>" +
+    "</tr></thead><tbody>",
   )
   for index = start; index < end; index = index + 1 {
     let post = matches[index]
@@ -72,7 +76,19 @@ fn admin_posts(
       (if post.listed { "" } else { " · unlisted" }) +
       "</td><td>" +
       escape_html(name) +
-      "</td></tr>",
+      "</td>" +
+      "<td>" +
+      post.tags
+      .map(tag => {
+        "<a href=\"" +
+        admin_post_url(fields, Map([("tag", tag), ("page", "1")])) +
+        "\">" +
+        escape_html(tag) +
+        "</a>"
+      })
+      .join(" · ") +
+      "</td>" +
+      "</tr>",
     )
   }
   out.write_string(
