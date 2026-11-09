@@ -2,7 +2,7 @@
 fn compose_keys() -> Array[String] {
   [
     "token", "name", "version", "title", "body", "intent", "description", "date",
-    "tags", "categories", "slug",
+    "tags", "categories", "slug", "listed",
   ]
 }
 
@@ -26,6 +26,11 @@ fn compose_values(
     "tags": edit.tags,
     "categories": document.categories.join("\n"),
     "slug": document.slug.unwrap_or(""),
+    "listed": if document.listed {
+      "yes"
+    } else {
+      "no"
+    },
   }
 }
 
@@ -58,10 +63,13 @@ fn compose_source(
   })
   let document = parse_document(result, name)
   ignore(document)
-
+  let listed = admin_field(fields, "listed")
+  if !["yes", "no"].contains(listed) {
+    raise InvalidInput("Invalid listing")
+  }
   result = source_with_settings(result, name, {
     slug: admin_field(fields, "slug"),
-    listed: document.listed,
+    listed: listed == "yes",
     layout: document.layout.unwrap_or(""),
   })
   let document = parse_document(result, name)
@@ -233,6 +241,22 @@ fn compose_form(
       ),
       values.get("slug").unwrap_or(""),
       "2",
+    ),
+  )
+  out.write_string(
+    compose_select(
+      "listed",
+      admin_i18n("一覧への掲載", "Listing"),
+      values.get("listed").unwrap_or(""),
+      [
+        ("yes", admin_i18n("一覧に掲載", "Listed")),
+        (
+          "no",
+          admin_i18n(
+            "一覧非掲載（URLは公開）", "Unlisted (URL remains public)",
+          ),
+        ),
+      ],
     ),
   )
   out.write_string(
