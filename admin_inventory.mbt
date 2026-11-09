@@ -112,6 +112,11 @@ fn admin_posts(
       "\">" +
       admin_post_text("履歴", "History") +
       "</a>" +
+      " · <a href=\"/references?name=" +
+      url_component(name) +
+      "\">" +
+      admin_post_text("参照関係", "References") +
+      "</a>" +
       "</td>" +
       "</tr>",
     )
