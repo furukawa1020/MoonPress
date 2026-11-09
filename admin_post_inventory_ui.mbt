@@ -110,6 +110,19 @@ fn admin_post_filters(fields : Map[String, String]) -> String {
     "\"></label>",
   )
   out.write_string(
+    admin_post_select(
+      "visibility",
+      admin_post_text("掲載", "Listing"),
+      [
+        ("all", admin_post_text("すべて", "All")),
+        ("listed", admin_post_text("一覧掲載", "Listed")),
+        ("unlisted", admin_post_text("一覧非掲載", "Unlisted")),
+      ],
+      fields,
+      "all",
+    ),
+  )
+  out.write_string(
     "<button>" +
     admin_post_text("記事を探す", "Search posts") +
     "</button> <a href=\"/\">" +
