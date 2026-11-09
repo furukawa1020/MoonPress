@@ -65,6 +65,9 @@ fn admin_posts(
     "<th>" +
     admin_post_text("生成する出力名", "Planned output") +
     "</th>" +
+    "<th>" +
+    admin_post_text("確認", "Inspect") +
+    "</th>" +
     "</tr></thead><tbody>",
   )
   for index = start; index < end; index = index + 1 {
@@ -103,6 +106,13 @@ fn admin_posts(
       "<td><code>" +
       escape_html(post.output) +
       "</code></td>" +
+      "<td>" +
+      "<a href=\"/history?name=" +
+      url_component(name) +
+      "\">" +
+      admin_post_text("履歴", "History") +
+      "</a>" +
+      "</td>" +
       "</tr>",
     )
   }
