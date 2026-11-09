@@ -49,7 +49,7 @@ fn compose_validate(fields : Map[String, String]) -> Unit raise {
     fields.keys().any(key => !keys.contains(key)) {
     raise InvalidInput("Invalid article editor fields")
   }
-  if !["save", "draft", "ready", "preview", "block", "media"].contains(
+  if !["save", "draft", "ready", "preview", "block", "media", "preview_saved"].contains(
       admin_field(fields, "intent"),
     ) {
     raise InvalidInput("Invalid article editor action")
@@ -219,6 +219,11 @@ fn compose_form(
   out.write_string(
     "<button name=\"intent\" value=\"preview\">" +
     admin_i18n("未保存の本文を確認", "Preview unsaved text") +
+    "</button> ",
+  )
+  out.write_string(
+    "<button name=\"intent\" value=\"preview_saved\">" +
+    admin_i18n("保存してプレビュー", "Save and build preview") +
     "</button> ",
   )
   out.write_string(
@@ -545,6 +550,34 @@ fn compose_action(
     let extra = ""
     let extra = if intent == "ready" {
       admin_production_plan_form(token, japanese=true)
+    } else {
+      extra
+    }
+    let extra = if intent == "preview_saved" {
+      try {
+        compile_site(
+          input,
+          input.trim_end(chars="/").to_owned() + "/.moonpress-preview",
+          include_drafts=true,
+        )
+        |> ignore
+        "<p role=\"status\">" +
+        admin_i18n(
+          "保存してプレビューを生成しました。上の「生成したプレビューを開く」で確認できます。",
+          "Saved and built themed preview. Use Open built preview above.",
+        ) +
+        "</p>"
+      } catch {
+        error =>
+          "<p role=\"alert\">" +
+          admin_i18n(
+            "記事は保存しましたが、プレビューを生成できませんでした。",
+            "Article saved, but preview generation failed.",
+          ) +
+          " " +
+          escape_html(error.to_string()) +
+          "</p>"
+      }
     } else {
       extra
     }
