@@ -2,7 +2,7 @@
 fn compose_keys() -> Array[String] {
   [
     "token", "name", "version", "title", "body", "intent", "description", "date",
-    "tags",
+    "tags", "categories",
   ]
 }
 
@@ -24,6 +24,7 @@ fn compose_values(
     "description": edit.description,
     "date": edit.date,
     "tags": edit.tags,
+    "categories": document.categories.join("\n"),
   }
 }
 
@@ -47,7 +48,7 @@ fn compose_source(
 ) -> String raise {
   let previous = post_fields(snapshot.content, name)
   ignore(previous)
-  let result = source_with_fields(snapshot.content, name, {
+  let mut result = source_with_fields(snapshot.content, name, {
     title: admin_field(fields, "title"),
     body: admin_field(fields, "body"),
     description: admin_field(fields, "description"),
@@ -55,6 +56,22 @@ fn compose_source(
     tags: admin_field(fields, "tags"),
   })
 
+  let document = parse_document(result, name)
+  let (json, body) = document_parts(result, name)
+  let metadata = match json {
+    Object(fields) => fields
+    _ => raise InvalidInput("Invalid article metadata")
+  }
+  let mut changed = false
+  let categories = normalized_categories(admin_field(fields, "categories"))
+  if categories != document.categories {
+    metadata["categories"] = categories.to_json()
+    changed = true
+  }
+  if changed {
+    result = "---\n" + json.stringify() + "\n---\n" + body
+  }
+  parse_document(result, name) |> ignore
   result
 }
 
@@ -182,6 +199,16 @@ fn compose_form(
       "tags",
       admin_i18n("タグ（1行にひとつ）", "Tags (one per line)"),
       values.get("tags").unwrap_or(""),
+      "2",
+    ),
+  )
+  out.write_string(
+    compose_text_field(
+      "categories",
+      admin_i18n(
+        "カテゴリ（1行にひとつ）", "Categories (one per line)",
+      ),
+      values.get("categories").unwrap_or(""),
       "2",
     ),
   )
