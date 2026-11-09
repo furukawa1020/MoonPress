@@ -45,6 +45,8 @@ with NativeSite() as site,tempfile.TemporaryDirectory() as temporary:
             browser.click('button[name="intent"][value="preview"]');browser.expect_text('Unsaved body preview');assert 'Added heading' in browser.text('article')
             browser.click('button[name="intent"][value="draft"]');browser.expect_text('Post saved.')
             saved=(site.site/'content/composer-journey.md').read_text();meta=json.loads(saved.split('---\n',2)[1]);assert meta['draft'] and meta['categories']==['Writing'] and meta['description']=='Composer excerpt'
+            browser.click('nav[aria-label="Language"] a[lang="ja"]');browser.expect_text('投稿を編集');assert '/compose?name=composer-journey.md' in browser.call('GET','/url')
+            browser.click('nav[aria-label="Language"] a[lang="en"]');browser.expect_text('Edit post')
             browser.call('POST','/window/rect',{'width':390,'height':844});browser.screenshot('composer-mobile');rect=browser.call('GET','/element/'+browser.element('textarea[name="body"]')+'/rect');assert rect['x']>=0 and rect['x']+rect['width']<=390
             browser.call('POST','/window/rect',{'width':1280,'height':900});browser.click('button[name="intent"][value="preview_saved"]');browser.expect_text('Saved and built themed preview')
             browser.go(f'http://127.0.0.1:{o.port+1}/composer-journey.html');browser.expect_text('Text kept while uploading an image.');wait(lambda:browser.call('GET','/element/'+browser.element('img')+'/property/naturalWidth')==1)
