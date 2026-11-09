@@ -6,12 +6,17 @@ h=runpy.run_path('scripts/browser-test.py',run_name='browser_helpers');Browser=h
 assert h['CHROME'] and driver_path
 with NativeSite() as site,tempfile.TemporaryDirectory() as temporary:
     for name in ['index','guide']:(site.site/'content'/f'{name}.md').write_text('# '+name)
+    imported=site.site/'content/imported.md';imported_meta={'title':'Imported','description':'Line\r\nTwo','tags':['release\r\nnotes'],'categories':['One\r\nCategory'],'draft':True}
+    imported.write_text('---\n'+json.dumps(imported_meta)+'\n---\nBody')
     with Operator(site.site) as o:
         port=h['port_pair']();browser=None;tmp=pathlib.Path(temporary);download=tmp/'downloads';download.mkdir()
         driver=subprocess.Popen([driver_path,f'--port={port}','--allowed-ips=127.0.0.1'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         try:
             wait(lambda:http.open(f'http://127.0.0.1:{port}/status',timeout=1).status==200)
             browser=Browser(port,download,tmp/'profile');base=f'http://127.0.0.1:{o.port}'
+            browser.go(base+'/compose?name=imported.md');browser.fill('textarea[name="body"]','Only body changes.');browser.click('button[name="intent"][value="save"]');browser.expect_text('Post saved.')
+            after=json.loads(imported.read_text().split('---\n',2)[1])
+            for key in ['description','tags','categories']:assert after[key]==imported_meta[key],key
             browser.go(base+'/');browser.fill('form[action="/new"] input[name="title"]','Composer journey');browser.fill('form[action="/new"] input[name="slug"]','composer-journey');browser.click('form[action="/new"] button')
             browser.click('a[href="/compose?name=composer-journey.md"]');browser.expect_text('Edit post')
             assert browser.call('POST','/elements',{'using':'css selector','value':'script'})==[]
