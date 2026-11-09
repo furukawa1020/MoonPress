@@ -37,6 +37,7 @@ jobs:
           python3 scripts/browser-test.py
           python3 scripts/browser-comment-test.py
           python3 scripts/browser-post-inventory-test.py
+          python3 scripts/browser-compose-test.py
       - name: Show browser diagnostics on failure
         if: failure()
         run: |

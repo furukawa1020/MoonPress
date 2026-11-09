@@ -48,10 +48,15 @@ From this directory:
   ./moonpress init my-site
   ./moonpress admin my-site 8080
 
-Open http://127.0.0.1:8080/rooms and keep the terminal open.
-Create/save a draft, upload images from Media, then Build full preview files.
-Choose Open built preview (port 8081). Mark finished articles ready, inspect
-production changes, build the reviewed plan, then open Publish for next steps.
+Open http://127.0.0.1:8080/ and keep the terminal open.
+From Posts, create a draft and choose Continue in editor. Edit the body and
+article settings, then use Save changes or Save as draft. Add content inserts
+headings, lists, quotes or code. Insert image opens the media library; uploads
+open Media in a new tab. Return and Refresh library to keep your unsaved text.
+Preview unsaved text, or Save and build preview with the theme and images.
+Save and review publication saves the article ready for a reviewed build.
+Inspect/build the reviewed plan, then download the production ZIP from Publish.
+Upload the public files to your host separately.
 The browser language chooses Japanese or English. Use the language links to
 override it or return to Auto; save edits before switching.
 Port 8080 and 8081 must both be free. Ctrl-C stops both local listeners.
@@ -64,7 +69,8 @@ Check the actual public URL separately. Local build success is not deployment.
 
 Article history is explicit opt-in. Review revisions before restoring. Trash
 can restore an unoccupied original name; permanent purge is irreversible. Save
-other edits before using the separate type/category forms. Fixed pages stay public
+other edits before using separate forms in the advanced editor. The primary
+editor saves text and article settings together. Fixed pages stay public
 but leave article/tag/category/RSS lists. These actions never rebuild or deploy.
 WordPress roles, comments and plugin compatibility are not implemented.
 

@@ -62,7 +62,7 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
   defer admin_close(preview_server)
   let host = "127.0.0.1:\{port}"
   println(
-    "MoonPress admin: http://" + host + "/rooms (Ctrl-C to stop; no deployment)",
+    "MoonPress admin: http://" + host + "/ (Ctrl-C to stop; no deployment)",
   )
   println(
     "MoonPress preview: http://127.0.0.1:\{preview_port}/ (build preview files first)",

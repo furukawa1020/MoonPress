@@ -13,7 +13,7 @@ for i in range(24):
     rows.append(row)
 def names(page):
     table=re.search(r'<tbody>(.*?)</tbody>',page,re.S)[1]
-    return [urllib.parse.unquote(n) for n in re.findall(r'<tr><td><a href="/edit\?name=([^"]+)"',table)]
+    return [urllib.parse.unquote(n) for n in re.findall(r'<tr><td><a href="/(?:edit|compose)\?name=([^"]+)"',table)]
 def expected(selected,sort='source',size=20,page=1):
     def compare(a,b):
         if sort.startswith('date'):
