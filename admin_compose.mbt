@@ -261,6 +261,9 @@ fn compose_form(
       [
         ("paragraph", admin_i18n("段落", "Paragraph")),
         ("heading", admin_i18n("見出し", "Heading")),
+        ("list", admin_i18n("箇条書き", "List")),
+        ("quote", admin_i18n("引用", "Quote")),
+        ("code", admin_i18n("コード", "Code")),
       ],
     ),
   )
@@ -547,6 +550,14 @@ fn compose_block(kind : String, raw : String) -> String raise {
         raise InvalidInput("Heading must be one line")
       }
       "## " + text
+    }
+    "list" => text.split("\n").map(line => "- " + line.to_owned()).join("\n")
+    "quote" => text.split("\n").map(line => "> " + line.to_owned()).join("\n")
+    "code" => {
+      if text.contains("```") {
+        raise InvalidInput("Code cannot contain a closing fence")
+      }
+      "```\n" + text + "\n```"
     }
     _ => raise InvalidInput("Unsupported content type")
   }
