@@ -49,8 +49,31 @@ fn admin_posts(
   out.write_string(
     "<p>Showing \{end - start} of \{matches.length()} matching posts (\{inventory.posts.length()} valid total). Page \{page} of \{pages}.</p>",
   )
+  out.write_string(
+    "<p role=\"status\">" +
+    admin_post_text("表示範囲", "Range") +
+    ": " +
+    (if matches.is_empty() { "0" } else { (start + 1).to_string() }) +
+    "–" +
+    end.to_string() +
+    " / " +
+    matches.length().to_string() +
+    "</p><p><a href=\"#new-draft\">" +
+    admin_post_text("新しい下書きを作る", "Create a new draft") +
+    "</a></p>",
+  )
   if matches.is_empty() {
-    out.write_string("<p>No matching posts.</p>")
+    out.write_string(
+      "<p>" +
+      admin_post_text(
+        "条件に合う記事がありません。", "No matching posts.",
+      ) +
+      " <a href=\"/\">" +
+      admin_post_text("すべての記事を表示", "Show all posts") +
+      "</a> · <a href=\"#new-draft\">" +
+      admin_post_text("下書きを作る", "Create draft") +
+      "</a></p>",
+    )
   }
   out.write_string(
     "<p>Ready posts enter normal builds. Changes here do not deploy your site.</p>" +
