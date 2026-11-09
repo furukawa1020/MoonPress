@@ -32,7 +32,7 @@ fn admin_post_scope(
   }
   let query = native_query_text(fields.get("q").unwrap_or(""))
   let sort = fields.get("sort").unwrap_or("source")
-  if !["source", "date_desc", "date_asc"].contains(sort) {
+  if !["source", "date_desc", "date_asc", "title", "title_desc"].contains(sort) {
     raise InvalidInput("Invalid post sort")
   }
 
@@ -56,6 +56,8 @@ fn admin_post_scope(
               x.compare(y)
             }
         }
+      "title" => a.title.to_lower().lexical_compare(b.title.to_lower())
+      "title_desc" => b.title.to_lower().lexical_compare(a.title.to_lower())
       _ => 0
     }
     if primary == 0 {
