@@ -444,48 +444,26 @@ fn compose_action(
       let notice = "<p role=\"alert\">" +
         escape_html(error.to_string()) +
         "</p>"
-      (
-        400,
-        admin_page(
-          "保存できませんでした",
-          notice + compose_recovery_copy(fields),
-          title_en="Could not save post",
-        ),
-      )
-    }
-  }
-}
-
-///|
-fn compose_recovery_copy(fields : Map[String, String]) -> String {
-  let out = StringBuilder()
-  out.write_string(
-    "<p>" +
-    admin_i18n(
-      "保存できませんでした。入力を下に残しています。文章を保管してから現在の記事を開き直してください。",
-      "Not saved. Your submitted values are retained below. Copy your work before reopening the current article.",
-    ) +
-    "</p>",
-  )
-  for key in compose_keys() {
-    if key != "token" && key != "intent" {
-      if fields.get(key) is Some(value) {
-        out.write_string(
-          "<label>" +
-          escape_html(key) +
-          "<textarea readonly>\n" +
-          escape_html(value) +
-          "</textarea></label>",
-        )
+      let name = fields.get("name").unwrap_or("")
+      let retained = "<p>" +
+        admin_i18n(
+          "入力した内容と元の版を残しています。競合時は文章を保管してから現在の記事を開き直してください。",
+          "Your inputs and original version are retained. On conflict, copy your text before opening the current article.",
+        ) +
+        " <a href=\"/compose?name=" +
+        url_component(name) +
+        "\">" +
+        admin_i18n("現在の記事を開く", "Open current article") +
+        "</a></p>"
+      let page = compose_page(input, name, token, fields, notice + retained, "") catch {
+        _ =>
+          admin_page(
+            "保存できませんでした",
+            notice + retained + compose_form(input, token, fields),
+            title_en="Could not save post",
+          )
       }
+      (400, page)
     }
   }
-  out.write_string(
-    "<p><a href=\"/compose?name=" +
-    url_component(fields.get("name").unwrap_or("")) +
-    "\">" +
-    admin_i18n("現在の記事を開く", "Open current article") +
-    "</a></p>",
-  )
-  out.to_string()
 }
