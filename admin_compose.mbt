@@ -2,7 +2,7 @@
 fn compose_keys() -> Array[String] {
   [
     "token", "name", "version", "title", "body", "intent", "description", "date",
-    "tags", "categories", "slug", "listed", "layout",
+    "tags", "categories", "slug", "listed", "layout", "kind",
   ]
 }
 
@@ -32,6 +32,7 @@ fn compose_values(
       "no"
     },
     "layout": document.layout.unwrap_or(""),
+    "kind": document.kind,
   }
 }
 
@@ -83,6 +84,14 @@ fn compose_source(
   let categories = normalized_categories(admin_field(fields, "categories"))
   if categories != document.categories {
     metadata["categories"] = categories.to_json()
+    changed = true
+  }
+  let kind = admin_field(fields, "kind")
+  if !["post", "page"].contains(kind) {
+    raise InvalidInput("Invalid article type")
+  }
+  if kind != document.kind {
+    metadata["kind"] = kind.to_json()
     changed = true
   }
   if changed {
@@ -263,6 +272,17 @@ fn compose_form(
       ),
       values.get("layout").unwrap_or(""),
       "2",
+    ),
+  )
+  out.write_string(
+    compose_select(
+      "kind",
+      admin_i18n("種別", "Type"),
+      values.get("kind").unwrap_or(""),
+      [
+        ("post", admin_i18n("投稿", "Post")),
+        ("page", admin_i18n("固定ページ", "Page")),
+      ],
     ),
   )
   out.write_string(
