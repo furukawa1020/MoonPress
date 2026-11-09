@@ -8,7 +8,7 @@ fn admin_post_url(
     selected[key] = value
   }
   let parts : Array[String] = []
-  for key in ["q", "state", "page", "kind", "sort", "per_page"] {
+  for key in ["q", "state", "page", "kind", "sort", "per_page", "tag"] {
     if selected.get(key) is Some(value) {
       parts.push(key + "=" + url_component(value))
     }
@@ -26,7 +26,7 @@ fn admin_post_scope(
   fields : Map[String, String],
 ) -> Array[PostSummary] raise {
   for key, _ in fields {
-    if !["q", "state", "page", "kind", "sort", "per_page"].contains(key) {
+    if !["q", "state", "page", "kind", "sort", "per_page", "tag"].contains(key) {
       raise InvalidInput("Unknown post query field: " + key)
     }
   }
@@ -37,12 +37,18 @@ fn admin_post_scope(
     ) {
     raise InvalidInput("Invalid post sort")
   }
-
+  let tag = fields.get("tag").unwrap_or("")
+  if @utf8.encode(tag).length() > 96 {
+    raise InvalidInput("Invalid tag filter")
+  }
   let matches = posts.filter(post => {
-    query.is_empty() ||
-    post.title.to_lower().contains(query) ||
-    post.source.to_lower().contains(query) ||
-    post.tags.any(tag => tag.to_lower().contains(query))
+    (
+      query.is_empty() ||
+      post.title.to_lower().contains(query) ||
+      post.source.to_lower().contains(query) ||
+      post.tags.any(tag => tag.to_lower().contains(query))
+    ) &&
+    (tag.is_empty() || post.tags.contains(tag))
   })
   matches.sort_by(fn(a, b) {
     let primary = match sort {

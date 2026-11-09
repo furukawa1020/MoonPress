@@ -9,6 +9,7 @@ for i in range(24):
          'kind':'page' if i%7==0 else 'post','draft':i%3==0,'listed':i%5!=0,
          'tags':['月 & "','needle'] if i%2==0 else ['other'],'slug':f'output-{i:02}'}
     if i%4:row['date']=f'2026-01-{i%3+1:02}'
+    if i==0:row['tags']+=['release\tnotes','line\nbreak']
     rows.append(row)
 def names(page):
     table=re.search(r'<tbody>(.*?)</tbody>',page,re.S)[1]
@@ -61,7 +62,9 @@ with NativeSite() as site:
         if stage>=5:
             assert names(get({'tag':'月 & "'}))==expected([r for r in rows if '月 & "' in r['tags']])
             assert names(get({'tag':'月'}))==[] and names(get({'tag':''}))==expected(rows)
-            for tag in ['x'*97,'\n']:assert o.request('/?'+urllib.parse.urlencode({'tag':tag}))[0]==400
+            for tag in ['x'*97]:assert o.request('/?'+urllib.parse.urlencode({'tag':tag}))[0]==400
+            for tag in ['release\tnotes','line\nbreak']:
+                assert names(get({'tag':tag}))==['p00.md']
         if stage>=6:
             assert names(get({'visibility':'unlisted','state':'draft'}))==expected([r for r in rows if not r['listed'] and r['draft']])
             assert o.request('/?visibility=secret')[0]==400
@@ -96,6 +99,7 @@ with NativeSite() as site:
         if stage>=13:
             page=get();table=re.search('<tbody>(.*?)</tbody>',page,re.S)[1]
             assert '月 &amp; &quot;' in table
+            assert 'tag=release%09notes' in table and 'tag=line%0Abreak' in table
             href=html.unescape(re.search(r'href="([^\"]*tag=%E6%9C%88[^\"]*)"',table)[1])
             assert names(o.request(href)[1])==expected([r for r in rows if '月 & "' in r['tags']])
         if stage>=14:assert '<time datetime="2026-01-02">2026-01-02</time>' in get() and 'Undated' in get()

@@ -103,6 +103,13 @@ fn admin_post_filters(fields : Map[String, String]) -> String {
     "\"></label>",
   )
   out.write_string(
+    "<label>" +
+    admin_post_text("タグ（完全一致）", "Exact tag") +
+    "<input type=\"text\" name=\"tag\" maxlength=\"96\" value=\"" +
+    escape_html(fields.get("tag").unwrap_or("")) +
+    "\"></label>",
+  )
+  out.write_string(
     "<button>" +
     admin_post_text("記事を探す", "Search posts") +
     "</button> <a href=\"/\">" +
