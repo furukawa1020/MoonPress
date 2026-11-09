@@ -8,7 +8,7 @@ fn admin_post_url(
     selected[key] = value
   }
   let parts : Array[String] = []
-  for key in ["q", "state", "page", "kind", "sort"] {
+  for key in ["q", "state", "page", "kind", "sort", "per_page"] {
     if selected.get(key) is Some(value) {
       parts.push(key + "=" + url_component(value))
     }
@@ -26,7 +26,7 @@ fn admin_post_scope(
   fields : Map[String, String],
 ) -> Array[PostSummary] raise {
   for key, _ in fields {
-    if !["q", "state", "page", "kind", "sort"].contains(key) {
+    if !["q", "state", "page", "kind", "sort", "per_page"].contains(key) {
       raise InvalidInput("Unknown post query field: " + key)
     }
   }
@@ -78,5 +78,12 @@ fn admin_post_window(
   fields : Map[String, String],
 ) -> (Int, Int, Int) raise {
   let page = admin_page_number(fields.get("page").unwrap_or("1"))
-  admin_page_bounds(total, page)
+  let size = rest_positive(fields.get("per_page").unwrap_or("20"), 100)
+  let pages = if total == 0 { 1 } else { (total - 1) / size + 1 }
+  if page > pages {
+    raise InvalidInput("Page exceeds available pages")
+  }
+  let start = (page - 1) * size
+  let end = if total - start < size { total } else { start + size }
+  (start, end, pages)
 }
