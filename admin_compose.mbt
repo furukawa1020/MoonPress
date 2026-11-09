@@ -1,6 +1,9 @@
 ///|
 fn compose_keys() -> Array[String] {
-  ["token", "name", "version", "title", "body", "intent", "description", "date"]
+  [
+    "token", "name", "version", "title", "body", "intent", "description", "date",
+    "tags",
+  ]
 }
 
 ///|
@@ -20,6 +23,7 @@ fn compose_values(
     "body": edit.body,
     "description": edit.description,
     "date": edit.date,
+    "tags": edit.tags,
   }
 }
 
@@ -48,7 +52,7 @@ fn compose_source(
     body: admin_field(fields, "body"),
     description: admin_field(fields, "description"),
     date: admin_field(fields, "date"),
-    tags: previous.tags,
+    tags: admin_field(fields, "tags"),
   })
 
   result
@@ -170,6 +174,14 @@ fn compose_form(
       "date",
       admin_i18n("記事の日付", "Article date"),
       values.get("date").unwrap_or(""),
+      "2",
+    ),
+  )
+  out.write_string(
+    compose_text_field(
+      "tags",
+      admin_i18n("タグ（1行にひとつ）", "Tags (one per line)"),
+      values.get("tags").unwrap_or(""),
       "2",
     ),
   )
