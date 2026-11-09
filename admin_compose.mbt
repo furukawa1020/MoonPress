@@ -89,7 +89,12 @@ fn compose_source(
     _ => raise InvalidInput("Invalid article metadata")
   }
   let mut changed = false
-  let categories = normalized_categories(admin_field(fields, "categories"))
+  let categories = if post_form_text(admin_field(fields, "categories")) ==
+    post_form_text(document.categories.join("\n")) {
+    document.categories
+  } else {
+    normalized_categories(admin_field(fields, "categories"))
+  }
   if categories != document.categories {
     metadata["categories"] = categories.to_json()
     changed = true
@@ -498,14 +503,14 @@ fn compose_action(
     }
     if intent == "media" {
       let chosen = admin_field(fields, "media")
-      let mut selected : MediaItem? = None
-      for item in list_media(input).items {
-        if item.source == chosen {
-          selected = Some(item)
+      let mut selected : String? = None
+      for image in public_asset_names(input) {
+        if image_asset_name(image) && "public/" + image == chosen {
+          selected = Some(image)
         }
       }
-      let item = match selected {
-        Some(item) if item.image => item
+      let url = match selected {
+        Some(image) => url_component(image)
         _ => raise InvalidInput("Select an existing library image")
       }
       let alt = admin_field(fields, "alt")
@@ -524,7 +529,7 @@ fn compose_action(
         "\n\n![" +
         alt +
         "](" +
-        item.url +
+        url +
         ")\n"
       return (
         200,
@@ -653,9 +658,10 @@ fn compose_media(input : String, fields : Map[String, String]) -> String {
     ("", admin_i18n("画像を選択", "Choose image")),
   ]
   try {
-    for item in list_media(input).items {
-      if item.image {
-        choices.push((item.source, escape_html(item.source)))
+    for image in public_asset_names(input) {
+      if image_asset_name(image) {
+        let source = "public/" + image
+        choices.push((source, escape_html(source)))
       }
     }
   } catch {
