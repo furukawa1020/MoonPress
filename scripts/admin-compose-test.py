@@ -1,5 +1,5 @@
 """Exercise the real native unified editor, including atomic writes and retained inputs."""
-import base64,hashlib,html,json,pathlib,re,sys
+import base64,hashlib,html,json,pathlib,re,socket,sys
 from html.parser import HTMLParser
 from operator_fixture import Operator
 from rest_fixture import NativeSite
@@ -161,6 +161,18 @@ with NativeSite() as site:
         code,page=o.request('/compose-save','POST',imported_fields);assert code==200
         imported_after=json.loads(imported.read_text().split('---\n',2)[1])
         for key in ['title','description','tags','categories']:assert imported_after[key]==imported_meta[key],(key,imported_after)
+        if stage>=20:
+            before=article.read_bytes()
+            for port in [o.port,o.port+1,site.port]:
+                # Chrome may reserve a TCP connection before it has an HTTP request.
+                # An unsolicited timeout response would become the next page.
+                with socket.create_connection(('127.0.0.1',port),timeout=8) as idle:
+                    assert idle.recv(4096)==b'',port
+                with socket.create_connection(('127.0.0.1',port),timeout=8) as partial:
+                    partial.sendall(b'GET ');partial.shutdown(socket.SHUT_WR)
+                    assert b'400 Bad Request' in partial.recv(4096),port
+            assert article.read_bytes()==before
+            assert o.request('/compose?name=article.md')[0]==200
         final=article.read_bytes()
     with Operator(site.site) as restarted:assert 'Edit post' in restarted.request('/compose?name=article.md')[1] and article.read_bytes()==final
 print('Unified editor passed: atomic fields, original revisions, guarded actions, retained errors, no-op and restart, unsaved blocks/media and truthful preview results.')

@@ -115,6 +115,7 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
           admin_response(code, html, language~)
         }
       } catch {
+        IdleConnection => b""
         error =>
           admin_response(
             400,

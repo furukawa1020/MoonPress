@@ -155,6 +155,7 @@ fn preview_client(client : Int, host : String, output : String) -> Bytes {
       if_none_match=request.if_none_match,
     )
   } catch {
+    IdleConnection => b""
     _ =>
       preview_response(
         400,

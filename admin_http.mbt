@@ -1,4 +1,9 @@
 ///|
+suberror AdminIdle {
+  IdleConnection
+}
+
+///|
 extern "C" fn admin_listen(port : Int) -> Int = "moonpress_admin_listen"
 
 ///|
@@ -179,6 +184,9 @@ fn admin_read_request(
   while raw.is_empty() && header_bytes < 16384 {
     received = admin_recv(fd, buffer, 4096)
     if received <= 0 {
+      if header_bytes == 0 {
+        raise IdleConnection
+      }
       raise InvalidInput("Incomplete request or timeout")
     }
     consumed = 0
