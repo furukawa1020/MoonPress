@@ -2,7 +2,8 @@
 fn compose_keys() -> Array[String] {
   [
     "token", "name", "version", "title", "body", "intent", "description", "date",
-    "tags", "categories", "slug", "listed", "layout", "kind", "publish_at",
+    "tags", "categories", "slug", "listed", "layout", "kind", "publish_at", "block_kind",
+    "block_text",
   ]
 }
 
@@ -34,6 +35,8 @@ fn compose_values(
     "layout": document.layout.unwrap_or(""),
     "kind": document.kind,
     "publish_at": document.publish_at.unwrap_or(""),
+    "block_kind": "paragraph",
+    "block_text": "",
   }
 }
 
@@ -44,7 +47,7 @@ fn compose_validate(fields : Map[String, String]) -> Unit raise {
     fields.keys().any(key => !keys.contains(key)) {
     raise InvalidInput("Invalid article editor fields")
   }
-  if !["save", "draft", "ready", "preview"].contains(
+  if !["save", "draft", "ready", "preview", "block"].contains(
       admin_field(fields, "intent"),
     ) {
     raise InvalidInput("Invalid article editor action")
@@ -240,7 +243,35 @@ fn compose_form(
       "18",
     ),
   )
-
+  out.write_string(
+    "<details class=\"compose-tools\"><summary>" +
+    admin_i18n("文章を追加", "Add content") +
+    "</summary>",
+  )
+  out.write_string(
+    compose_select(
+      "block_kind",
+      admin_i18n("種類", "Block type"),
+      values.get("block_kind").unwrap_or("paragraph"),
+      [
+        ("paragraph", admin_i18n("段落", "Paragraph")),
+        ("heading", admin_i18n("見出し", "Heading")),
+      ],
+    ),
+  )
+  out.write_string(
+    compose_text_field(
+      "block_text",
+      admin_i18n("追加する文章", "Content to append"),
+      values.get("block_text").unwrap_or(""),
+      "3",
+    ),
+  )
+  out.write_string(
+    "<button name=\"intent\" value=\"block\">" +
+    admin_i18n("本文へ追加（未保存）", "Append to editor (unsaved)") +
+    "</button></details>",
+  )
   out.write_string(
     "</section><aside aria-label=\"Article settings\"><h2>" +
     admin_i18n("記事設定", "Article settings") +
@@ -428,6 +459,32 @@ fn compose_action(
         ),
       )
     }
+    if intent == "block" {
+      let values = fields.copy()
+      values["body"] = admin_field(fields, "body") +
+        "\n\n" +
+        compose_block(
+          admin_field(fields, "block_kind"),
+          admin_field(fields, "block_text"),
+        ) +
+        "\n"
+      values["block_text"] = ""
+      return (
+        200,
+        compose_page(
+          input,
+          name,
+          token,
+          values,
+          "<p role=\"status\">" +
+          admin_i18n(
+            "本文へ追加しました。まだ保存していません。", "Added to the editor; not saved yet.",
+          ) +
+          "</p>",
+          "",
+        ),
+      )
+    }
     let _ = save_post(input, name, snapshot.digest, source)
     let notice = "<p role=\"status\">" +
       admin_i18n("保存しました。", "Post saved.") +
@@ -465,5 +522,27 @@ fn compose_action(
       }
       (400, page)
     }
+  }
+}
+
+///|
+fn compose_block(kind : String, raw : String) -> String raise {
+  let text = raw.replace_all(old="\r\n", new="\n")
+  if text.trim().is_empty() ||
+    @utf8.encode(text).length() > 8192 ||
+    text.any(c => c.is_control() && c != '\n' && c != '\t') {
+    raise InvalidInput(
+      "Block text must contain 1–8192 UTF-8 bytes without unsupported controls",
+    )
+  }
+  match kind {
+    "paragraph" => text
+    "heading" => {
+      if text.contains("\n") {
+        raise InvalidInput("Heading must be one line")
+      }
+      "## " + text
+    }
+    _ => raise InvalidInput("Unsupported content type")
   }
 }
