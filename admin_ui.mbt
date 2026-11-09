@@ -154,6 +154,16 @@ fn admin_route(
   token : String,
 ) -> (Int, String) raise {
   if request.verb == "GET" {
+    if request.target.has_prefix("/compose?") {
+      let fields = admin_form(request.target[9:].to_owned())
+      if fields.length() != 1 {
+        raise InvalidInput("Invalid article editor query")
+      }
+      return (
+        200,
+        compose_page(input, admin_field(fields, "name"), token, Map([]), "", ""),
+      )
+    }
     if request.target.has_prefix("/comment?") {
       return admin_comment_item(
         input,
@@ -296,6 +306,9 @@ fn admin_route(
   let fields = admin_form(body)
   if admin_field(fields, "token") != token {
     raise InvalidInput("Form token rejected; reload the page")
+  }
+  if request.target == "/compose-save" {
+    return compose_action(input, token, fields)
   }
   if request.target == "/comment-display" {
     return admin_comment_display_save(input, token, fields)
