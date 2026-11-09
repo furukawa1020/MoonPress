@@ -6,7 +6,7 @@ from rest_fixture import NativeSite
 stage=int(sys.argv[1]) if len(sys.argv)>1 else 20
 class Fields(HTMLParser):
     def __init__(self,page):
-        super().__init__(convert_charrefs=True);self.active=False;self.values={};self.text=None;self.select=None;self.option=None;self.feed(page)
+        super().__init__(convert_charrefs=True);self.active=False;self.values={};self.text=None;self.select=None;self.option=None;self.feed(page.replace("\r\n","\n").replace("\r","\n"))
     def handle_starttag(self,tag,attrs):
         a=dict(attrs)
         if tag=='form':self.active=a.get('action')=='/compose-save'
@@ -42,6 +42,7 @@ with NativeSite() as site:
         def send(f,expected=200):
             code,page=o.request('/compose-save','POST',f);assert code==expected,(code,expected,page[-2500:]);return page
         initial=article.read_bytes();page=get();f=values(page)
+        assert 'return=%2Fcompose%3Fname%3Darticle.md' in page
         assert f['body']=='\n\n# Starting\n' and f['version']==digest()
         assert '<textarea name="body"' in page and '>\n\n\n# Starting' in page
         assert article.read_bytes()==initial
@@ -128,9 +129,13 @@ with NativeSite() as site:
             (site.site/'public').mkdir(exist_ok=True)
             png=base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=')
             (site.site/'public/moon.png').write_bytes(png)
+            huge=site.site/'public/large.pdf'
+            with huge.open('wb') as stream:stream.truncate(128*1024*1024)
+            assert 'value="public/moon.png"' in get()
             fresh=values(get());page=send({**fresh,'intent':'media','media':'public/moon.png','alt':'月の画像 & description'})
             added=values(page);assert '![月の画像 & description](moon.png)' in added['body'] and article.read_bytes()==before
             for bad in [{'media':'../secret.png','alt':'desc'},{'media':'public/moon.png','alt':'bad]alt'}]:send({**fresh,'intent':'media',**bad},400)
+            huge.unlink()
             fresh=added
         if stage>=18:
             page=send({**fresh,'intent':'preview_saved','publish_at':''});assert 'Saved and built themed preview' in page
@@ -143,7 +148,19 @@ with NativeSite() as site:
             page=send({**fresh,'intent':'media_refresh','body':'Retain unsaved text during media refresh.'});assert 'public/new.png' in page and values(page)['body']=='Retain unsaved text during media refresh.' and values(page)['version']==fresh['version'];assert article.read_bytes()==before
             assert 'target="_blank"' in page and 'Refresh library' in page
         if stage>=20:
+            page=get();assert 'return=%2Fcompose%3Fname%3Darticle.md' in page
+            page=send(values(page));assert 'return=%2Fcompose%3Fname%3Darticle.md' in page
+            code,ja=o.request('/compose?name=article.md',headers={'Accept-Language':'ja'});assert code==200 and '<h1>投稿を編集</h1>' in ja and '本文（Markdown）' in ja
             assert 'href="/compose?name=article.md"' in o.request('/')[1]
+        imported=site.site/'content/imported.md'
+        imported_meta={'title':'Imported\r\nTitle','description':'Line\r\nTwo','tags':['release\r\nnotes'],'categories':['One\r\nCategory'],'draft':True}
+        imported.write_text('---\n'+json.dumps(imported_meta)+'\n---\nBody')
+        imported_before=imported.read_bytes();code,page=o.request('/compose?name=imported.md');assert code==200
+        imported_fields=values(page);code,page=o.request('/compose-save','POST',imported_fields);assert code==200 and imported.read_bytes()==imported_before
+        imported_fields=values(o.request('/compose?name=imported.md')[1]);imported_fields['body']='Only body changes.'
+        code,page=o.request('/compose-save','POST',imported_fields);assert code==200
+        imported_after=json.loads(imported.read_text().split('---\n',2)[1])
+        for key in ['title','description','tags','categories']:assert imported_after[key]==imported_meta[key],(key,imported_after)
         final=article.read_bytes()
     with Operator(site.site) as restarted:assert 'Edit post' in restarted.request('/compose?name=article.md')[1] and article.read_bytes()==final
 print('Unified editor passed: atomic fields, original revisions, guarded actions, retained errors, no-op and restart, unsaved blocks/media and truthful preview results.')
