@@ -1,6 +1,6 @@
 ///|
 fn compose_keys() -> Array[String] {
-  ["token", "name", "version", "title", "body", "intent"]
+  ["token", "name", "version", "title", "body", "intent", "description"]
 }
 
 ///|
@@ -18,6 +18,7 @@ fn compose_values(
     "version": snapshot.digest,
     "title": edit.title,
     "body": edit.body,
+    "description": edit.description,
   }
 }
 
@@ -44,7 +45,7 @@ fn compose_source(
   let result = source_with_fields(snapshot.content, name, {
     title: admin_field(fields, "title"),
     body: admin_field(fields, "body"),
-    description: previous.description,
+    description: admin_field(fields, "description"),
     date: previous.date,
     tags: previous.tags,
   })
@@ -155,7 +156,14 @@ fn compose_form(
     admin_i18n("記事設定", "Article settings") +
     "</h2>",
   )
-
+  out.write_string(
+    compose_text_field(
+      "description",
+      admin_i18n("抜粋", "Excerpt"),
+      values.get("description").unwrap_or(""),
+      "2",
+    ),
+  )
   out.write_string(
     "<p>" +
     admin_i18n(
