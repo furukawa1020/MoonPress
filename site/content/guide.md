@@ -4,7 +4,7 @@
 
 ホストで MoonPress Web を用意すると、ブラウザだけで投稿・プレビュー・公開まで進められます。管理 URL でログインし、投稿を作って「公開の確認へ」を押します。確認した変更は同じサービスの `/site/` に反映されます。
 
-[MoonPress Web のホスト設定](https://github.com/furukawa1020/MoonPress/blob/main/docs/web-admin.md)
+[Render で MoonPress Web をセットアップ](https://render.com/deploy?repo=https://github.com/furukawa1020/MoonPress) · [ホスト設定と編集手順](https://github.com/furukawa1020/MoonPress/blob/main/docs/web-admin.md)
 
 ## Linux版を入手する
 
