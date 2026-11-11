@@ -232,7 +232,7 @@ fn render_pages_admin(
     repo + "/tree/main/" + pages_admin_source(config, "content"),
     "すべての原稿を開く",
   ) +
-  "</div><p>GitHubの「Run workflow」で種類・タイトル・スラッグを選びます。実行結果のリンクから本文を編集します。</p>" +
+  "</div><p>GitHubの「Run workflow」で本文・画像・分類を入力できます。下書きなら編集へ、公開候補なら実行結果からPRへ進みます。</p>" +
   "<details><summary>下書きから公開する手順</summary><ol><li>作成結果の「編集を開く」から本文を入力します。</li><li>GitHubのPreviewで本文を確認します。公開する版では <code>draft</code> を <code>false</code> にして保存します。</li><li>実行結果のPRリンクを開き、公開差分を確認してマージします。</li></ol><p>公開リポジトリのブランチやPRは閲覧できます。機密の下書きは公開リポジトリに保存しないでください。</p></details></section>" +
   "<section id=\"posts\"><h2>投稿</h2>" +
   pages_admin_table(posts, sources, config, repo) +
@@ -266,7 +266,7 @@ fn render_pages_admin(
   ) +
   pages_admin_link(
     repo + "/actions/workflows/pages-review.yml",
-    "PRの公開差分",
+    "PRの公開差分と記事プレビュー",
   ) +
   pages_admin_link(repo + "/commits/gh-pages/", "公開版の履歴") +
   "</div><p>PRをマージするとPagesのビルドが始まります。公開の結果を開き、成功したら公開サイトを確認してください。</p></section></main></div></body></html>\n"
