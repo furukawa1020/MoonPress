@@ -3,7 +3,7 @@ fn compose_keys() -> Array[String] {
   [
     "token", "name", "version", "title", "body", "intent", "description", "date",
     "tags", "categories", "slug", "listed", "layout", "kind", "publish_at", "block_kind",
-    "block_text",
+    "block_text", "media", "alt",
   ]
 }
 
@@ -37,6 +37,8 @@ fn compose_values(
     "publish_at": document.publish_at.unwrap_or(""),
     "block_kind": "paragraph",
     "block_text": "",
+    "media": "",
+    "alt": "",
   }
 }
 
@@ -47,7 +49,7 @@ fn compose_validate(fields : Map[String, String]) -> Unit raise {
     fields.keys().any(key => !keys.contains(key)) {
     raise InvalidInput("Invalid article editor fields")
   }
-  if !["save", "draft", "ready", "preview", "block"].contains(
+  if !["save", "draft", "ready", "preview", "block", "media"].contains(
       admin_field(fields, "intent"),
     ) {
     raise InvalidInput("Invalid article editor action")
@@ -280,6 +282,7 @@ fn compose_form(
     admin_i18n("本文へ追加（未保存）", "Append to editor (unsaved)") +
     "</button></details>",
   )
+  out.write_string(compose_media(input, values))
   out.write_string(
     "</section><aside aria-label=\"Article settings\"><h2>" +
     admin_i18n("記事設定", "Article settings") +
@@ -493,6 +496,53 @@ fn compose_action(
         ),
       )
     }
+    if intent == "media" {
+      let chosen = admin_field(fields, "media")
+      let mut selected : String? = None
+      for image in public_asset_names(input) {
+        if image_asset_name(image) && "public/" + image == chosen {
+          selected = Some(image)
+        }
+      }
+      let url = match selected {
+        Some(image) => url_component(image)
+        _ => raise InvalidInput("Select an existing library image")
+      }
+      let alt = admin_field(fields, "alt")
+      if alt.trim().is_empty() ||
+        @utf8.encode(alt).length() > 256 ||
+        alt.any(c => c.is_control()) ||
+        alt.contains("[") ||
+        alt.contains("]") ||
+        alt.contains("\\") {
+        raise InvalidInput(
+          "Image description must contain 1–256 UTF-8 bytes without controls, brackets or backslashes",
+        )
+      }
+      let values = fields.copy()
+      values["body"] = admin_field(fields, "body") +
+        "\n\n![" +
+        alt +
+        "](" +
+        url +
+        ")\n"
+      return (
+        200,
+        compose_page(
+          input,
+          name,
+          token,
+          values,
+          "<p role=\"status\">" +
+          admin_i18n(
+            "画像を本文へ追加しました。まだ保存していません。",
+            "Image inserted into editor; not saved yet.",
+          ) +
+          "</p>",
+          "",
+        ),
+      )
+    }
     let _ = save_post(input, name, snapshot.digest, source)
     let notice = "<p role=\"status\">" +
       admin_i18n("保存しました。", "Post saved.") +
@@ -561,4 +611,59 @@ fn compose_block(kind : String, raw : String) -> String raise {
     }
     _ => raise InvalidInput("Unsupported content type")
   }
+}
+
+///|
+fn compose_media(input : String, fields : Map[String, String]) -> String {
+  let out = StringBuilder()
+  out.write_string(
+    "<details class=\"compose-tools\"><summary>" +
+    admin_i18n("画像を挿入", "Insert image") +
+    "</summary>",
+  )
+  let choices : Array[(String, String)] = [
+    ("", admin_i18n("画像を選択", "Choose image")),
+  ]
+  try {
+    for image in public_asset_names(input) {
+      if image_asset_name(image) {
+        let source = "public/" + image
+        choices.push((source, escape_html(source)))
+      }
+    }
+  } catch {
+    _ =>
+      out.write_string(
+        "<p>" +
+        admin_i18n(
+          "画像一覧を読めません。メディア画面を確認してください。",
+          "Library unavailable; inspect Media.",
+        ) +
+        "</p>",
+      )
+  }
+  out.write_string(
+    compose_select(
+      "media",
+      admin_i18n("メディアライブラリ", "Media library"),
+      fields.get("media").unwrap_or(""),
+      choices,
+    ),
+  )
+  out.write_string(
+    compose_text_field(
+      "alt",
+      admin_i18n(
+        "画像の説明（代替テキスト）", "Image description (alt text)",
+      ),
+      fields.get("alt").unwrap_or(""),
+      "2",
+    ),
+  )
+  out.write_string(
+    "<button name=\"intent\" value=\"media\">" +
+    admin_i18n("本文へ挿入（未保存）", "Insert into editor (unsaved)") +
+    "</button></details>",
+  )
+  out.to_string()
 }
