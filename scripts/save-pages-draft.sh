@@ -14,15 +14,21 @@ file="site/content/$DRAFT_SLUG.md"
 git diff --cached --quiet
 [[ -f "$file" && ! -L "$file" ]]
 git add -- "$file"
-git diff --cached --check
 git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Create Pages draft $DRAFT_SLUG"
 git -c credential.helper='!gh auth git-credential' push \
   "--force-with-lease=refs/heads/$branch:" origin "HEAD:refs/heads/$branch"
 
 {
-  printf '## 下書きを作成しました\n\n'
-  printf '1. [編集を開く](https://github.com/%s/edit/%s/%s)\n' "$GITHUB_REPOSITORY" "$branch" "$file"
-  printf '2. 本文を書き、公開する版では `draft` を `false` にして、同じブランチへ保存します。\n'
-  printf '3. [PRを作成する](https://github.com/%s/compare/main...%s?expand=1)\n\n' "$GITHUB_REPOSITORY" "$branch"
+  if [[ ${DRAFT_VISIBILITY:-draft} == ready ]]; then
+    printf '## 公開候補を保存しました\n\n'
+    printf '1. [PRを作成する](https://github.com/%s/compare/main...%s?expand=1)\n' "$GITHUB_REPOSITORY" "$branch"
+    printf '2. PRの確認結果を読んでマージすると公開されます。\n'
+    printf '3. [公開前に本文を修正する](https://github.com/%s/edit/%s/%s)\n\n' "$GITHUB_REPOSITORY" "$branch" "$file"
+  else
+    printf '## 下書きを作成しました\n\n'
+    printf '1. [編集を開く](https://github.com/%s/edit/%s/%s)\n' "$GITHUB_REPOSITORY" "$branch" "$file"
+    printf '2. 本文を書き、公開する版では `draft` を `false` にして、同じブランチへ保存します。\n'
+    printf '3. [PRを作成する](https://github.com/%s/compare/main...%s?expand=1)\n\n' "$GITHUB_REPOSITORY" "$branch"
+  fi
   printf '公開リポジトリの下書きブランチは閲覧できます。\n'
 } >> "$GITHUB_STEP_SUMMARY"

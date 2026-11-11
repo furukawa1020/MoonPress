@@ -19,6 +19,29 @@ on:
       excerpt:
         description: 抜粋（任意・300文字まで）
         type: string
+      body:
+        description: Markdown本文（任意。改行は \n、空行は \n\n）
+        type: string
+      image:
+        description: 先頭に入れる既存画像のファイル名（任意）
+        type: string
+      alt:
+        description: 画像の説明（画像を入れる場合は必須）
+        type: string
+      date:
+        description: 記事の日付（YYYY-MM-DD）
+        type: string
+      tags:
+        description: タグ（カンマ区切り）
+        type: string
+      categories:
+        description: カテゴリ（カンマ区切り）
+        type: string
+      visibility:
+        description: 下書き (draft) または公開候補 (ready。本文が必須)
+        type: choice
+        options: [draft, ready]
+        default: draft
 permissions:
   contents: write
 jobs:
@@ -42,15 +65,25 @@ jobs:
           DRAFT_KIND: ${{ inputs.kind }}
           DRAFT_SLUG: ${{ inputs.slug }}
           DRAFT_EXCERPT: ${{ inputs.excerpt }}
+          DRAFT_BODY: ${{ inputs.body }}
+          DRAFT_IMAGE: ${{ inputs.image }}
+          DRAFT_ALT: ${{ inputs.alt }}
+          DRAFT_DATE: ${{ inputs.date }}
+          DRAFT_TAGS: ${{ inputs.tags }}
+          DRAFT_CATEGORIES: ${{ inputs.categories }}
+          DRAFT_VISIBILITY: ${{ inputs.visibility }}
         run: python3 scripts/create-pages-draft.py site
-      - name: Validate all draft routes
+      - name: Validate draft and production routes
         run: |
           bash scripts/setup.sh
           export PATH="$HOME/.moon/bin:$PATH"
           moon build --target native --release
-          _build/native/release/build/cmd/main/main.exe check site --include-drafts
+          cli=_build/native/release/build/cmd/main/main.exe
+          "$cli" check site --include-drafts
+          "$cli" check site
       - name: Save draft branch and editor links
         env:
           DRAFT_SLUG: ${{ inputs.slug }}
+          DRAFT_VISIBILITY: ${{ inputs.visibility }}
           GH_TOKEN: ${{ github.token }}
         run: bash scripts/save-pages-draft.sh

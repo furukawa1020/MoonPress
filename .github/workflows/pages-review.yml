@@ -32,10 +32,25 @@ jobs:
           bash scripts/prepare-pages.sh "$RUNNER_TEMP/base-output" "$RUNNER_TEMP/base-bundle" "$RUNNER_TEMP/base/site"
           bash scripts/prepare-pages.sh "$RUNNER_TEMP/merge-output" "$RUNNER_TEMP/merge-bundle" site
           python3 scripts/pages-review.py "$RUNNER_TEMP/base-bundle" "$RUNNER_TEMP/merge-bundle" >> "$GITHUB_STEP_SUMMARY"
+      - name: Preview changed articles
+        env:
+          REVISION: ${{ github.sha }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git diff --name-only -z "$BASE" "$REVISION" -- site/content > "$RUNNER_TEMP/changed"
+          if test -s "$RUNNER_TEMP/changed"; then
+            cli=_build/native/release/build/cmd/main/main.exe
+            "$cli" build site "$RUNNER_TEMP/draft-output" --include-drafts
+            "$cli" routes site --include-drafts --json > "$RUNNER_TEMP/draft-routes.json"
+            python3 scripts/pages-preview.py "$RUNNER_TEMP/base-bundle" "$RUNNER_TEMP/merge-bundle" \
+              "$RUNNER_TEMP/draft-output" "$RUNNER_TEMP/draft-routes.json" \
+              "$RUNNER_TEMP/changed" "$RUNNER_TEMP/base/site/site.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Verify Pages management and browser navigation
         run: |
           python3 scripts/pages-admin-test.py
           python3 scripts/pages-edit-test.py
+          python3 scripts/pages-compose-test.py
           if test -f "$RUNNER_TEMP/merge-bundle/manage.html"; then
             python3 scripts/browser-pages-admin-test.py "$RUNNER_TEMP/merge-bundle"
           fi

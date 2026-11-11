@@ -130,4 +130,24 @@ with tempfile.TemporaryDirectory() as temporary:
     assert f'/edit/{branch}/site/content/workflow-test.md' in summary.read_text()
     assert f'/compare/main...{branch}?expand=1' in summary.read_text()
 
+    git('checkout', '--detach', main)
+    assert draft(
+        checkout / 'site', slug='workflow-ready', title='Workflow ready',
+        body='画像付き本文', image='publishing-rooms.webp', alt='月', visibility='ready',
+    ).returncode == 0
+    native('check', checkout / 'site', '--include-drafts')
+    native('check', checkout / 'site')
+    ready_summary = root / 'ready-summary.md'
+    subprocess.run(
+        ['bash', str(Path('scripts/save-pages-draft.sh').resolve())], cwd=checkout, check=True,
+        env={**os.environ, 'GITHUB_REF': 'refs/heads/main', 'GITHUB_RUN_ID': '1234',
+             'GITHUB_RUN_ATTEMPT': '1', 'GITHUB_REPOSITORY': 'example/MoonPress',
+             'GITHUB_STEP_SUMMARY': str(ready_summary), 'DRAFT_SLUG': 'workflow-ready',
+             'DRAFT_VISIBILITY': 'ready'},
+    )
+    ready = git('--git-dir', str(remote), 'show', 'moonpress-draft-workflow-ready-1234-1:site/content/workflow-ready.md')
+    assert '"draft": false' in ready and '画像付き本文' in ready
+    assert git('--git-dir', str(remote), 'rev-parse', 'refs/heads/main') == main
+    assert 'PRを作成する' in ready_summary.read_text()
+
 print('Pages admin: public inventory, safe source links, no unpublished metadata, owned output, draft creation and reviewed publication verified.')
