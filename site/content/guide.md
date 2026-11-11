@@ -1,5 +1,5 @@
 ---
-{"title":"使い方","kind":"page"}
+{"title":"使い方","kind":"page","layout":"workshop.html"}
 ---
 # GitHub Pagesで使う
 

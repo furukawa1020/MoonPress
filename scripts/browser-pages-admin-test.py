@@ -34,6 +34,8 @@ with tempfile.TemporaryDirectory() as directory:
             browser.go(base)
             html = browser.element('html')
             viewport = browser.call('GET', f'/element/{html}/property/clientHeight')
+            body = browser.element('body')
+            assert 'MoonPixel' in browser.call('GET', f'/element/{body}/css/font-family')
             art = browser.element('.home-stage .stage-art')
             assert browser.call('GET', f'/element/{art}/property/naturalWidth') == 1536
             assert browser.call('GET', f'/element/{art}/css/image-rendering') == 'pixelated'
@@ -46,6 +48,11 @@ with tempfile.TemporaryDirectory() as directory:
                 title = browser.element('h1')
                 assert 'MoonPixel' in browser.call('GET', f'/element/{title}/css/font-family')
                 body = browser.element('body')
+                assert 'MoonPixel' in browser.call('GET', f'/element/{body}/css/font-family')
+                if route != 'manage.html':
+                    scene = browser.element('.workshop-scene img')
+                    assert browser.call('GET', f'/element/{scene}/property/naturalWidth') == 1536
+                    assert browser.call('GET', f'/element/{scene}/css/image-rendering') == 'pixelated'
                 assert browser.call('GET', f'/element/{body}/css/background-color') == 'rgba(8, 15, 36, 1)'
                 html = browser.element('html')
                 assert browser.call('GET', f'/element/{html}/property/scrollWidth') <= browser.call('GET', f'/element/{html}/property/clientWidth')

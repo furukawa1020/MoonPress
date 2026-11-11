@@ -1,5 +1,5 @@
 ---
-{"title":"1. 記事を書く","kind":"page"}
+{"title":"1. 記事を書く","kind":"page","layout":"workshop.html"}
 ---
 # 1. 記事を書く
 
