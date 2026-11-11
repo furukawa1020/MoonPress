@@ -29,13 +29,31 @@ with tempfile.TemporaryDirectory() as directory:
         wait(lambda: http.open(base, timeout=1).status == 200)
         wait(lambda: http.open(f'http://127.0.0.1:{driver_port}/status', timeout=1).status == 200)
         browser = helpers['Browser'](driver_port, downloads, root / 'profile')
+        for width, height in ((1280, 900), (390, 780)):
+            browser.call('POST', '/window/rect', {'width': width, 'height': height})
+            browser.go(base)
+            html = browser.element('html')
+            viewport = browser.call('GET', f'/element/{html}/property/clientHeight')
+            art = browser.element('.home-stage .stage-art')
+            assert browser.call('GET', f'/element/{art}/property/naturalWidth') == 1536
+            assert browser.call('GET', f'/element/{art}/css/image-rendering') == 'pixelated'
+            cta = browser.element('.home-stage a[href="manage.html"]')
+            rect = browser.call('GET', f'/element/{cta}/rect')
+            assert rect['y'] + rect['height'] <= viewport
+
+            for route in ('guide.html', 'room-write.html', 'manage.html'):
+                browser.go(base + route)
+                title = browser.element('h1')
+                assert 'MoonPixel' in browser.call('GET', f'/element/{title}/css/font-family')
+                body = browser.element('body')
+                assert browser.call('GET', f'/element/{body}/css/background-color') == 'rgba(8, 15, 36, 1)'
+                html = browser.element('html')
+                assert browser.call('GET', f'/element/{html}/property/scrollWidth') <= browser.call('GET', f'/element/{html}/property/clientWidth')
+
         browser.go(base)
         browser.click('header nav a[href="manage.html"]')
         browser.expect_text('サイト管理')
         assert browser.call('GET', '/url') == base + 'manage.html'
-        browser.call('POST', '/window/rect', {'width': 390, 'height': 850})
-        html = browser.element('html')
-        assert browser.call('GET', f'/element/{html}/property/scrollWidth') <= browser.call('GET', f'/element/{html}/property/clientWidth')
         browser.call('POST', '/actions', {'actions': [
             {'type': 'key', 'id': 'keyboard', 'actions': [{'type': 'keyDown', 'value': '\ue004'}, {'type': 'keyUp', 'value': '\ue004'}]},
         ]})
@@ -53,7 +71,7 @@ with tempfile.TemporaryDirectory() as directory:
         source = browser.element('#pages .source-name code')
         assert browser.call('GET', f'/element/{source}/text') == 'guide.md'
         assert browser.call('POST', '/elements', {'using': 'css selector', 'value': 'script'}) == []
-        print('Chrome Pages dashboard: homepage navigation, keyboard skip link, mobile width, sections and authenticated GitHub editor destination.')
+        print('Chrome Pages: shared pixel theme on desktop and mobile, above-fold management link, keyboard navigation and GitHub editor destinations.')
     finally:
         if browser:
             browser.quit()
