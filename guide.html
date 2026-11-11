@@ -18,6 +18,18 @@
 <li>PRの <strong>Review Pages changes</strong> で、追加、更新、削除される公開ファイルを確認します。</li>
 <li>PRをマージしたら、サイト管理の「Pages公開の結果」を開きます。ビルドが成功したら公開ページを確認します。</li>
 </ul>
+<h2 id="mp-クイック編集・一括変更">クイック編集・一括変更</h2>
+<ol>
+<li>管理画面の一覧で原稿名（例 <code>guide.md</code>）をコピーし、「クイック編集」を開きます。</li>
+<li>「Run workflow」で <code>edit</code> を選び、原稿名と変更する項目を入力します。空欄は現状のままです。抜粋を消すなら消去欄に <code>excerpt</code> と入力します。</li>
+<li>実行後のSummaryからPRを作成します。公開差分を確認してマージします。</li>
+</ol>
+<p>原稿名をカンマで区切ると、分類や公開状態などを最大20件に適用できます。タイトルとURL名は1件ずつ変更します。公開一覧に載らない原稿の名前は「すべての原稿を開く」で確認できます。URL名を変えたときは、公開差分で古いURLへの影響を確認してください。</p>
+<ul>
+<li>**複製**は <code>duplicate</code> を選び、原稿名、新しいタイトル、複製先のURL名を指定します。コピーは下書きになります。</li>
+<li>**復元**は一覧の「履歴」から戻したいコミットの40桁のSHAをコピーし、<code>restore</code> で原稿名とSHAを指定します。</li>
+<li>**公開予約**はUTCで入力します。設定時刻以降に再公開が必要です。一覧非掲載のページはURLから閲覧できます。</li>
+</ul>
 <h2 id="mp-自分のリポジトリで使う">自分のリポジトリで使う</h2>
 <p>このリポジトリの構成を引き継ぎ、<code>site/site.json</code> の <code>base_url</code> と <code>pages_admin.repository</code> を自分のサイトに合わせます。GitHub Pagesを <code>gh-pages</code> ブランチのルートから公開する設定にして、最初の Publish Pages を実行します。編集対象は <code>main</code> の <code>site/</code> です。</p>
 <p><a href="https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md">GitHub Pagesの設定と検証</a></p>
