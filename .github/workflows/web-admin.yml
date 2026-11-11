@@ -1,0 +1,53 @@
+name: Web admin container
+on:
+  pull_request:
+    paths: ["**.mbt", "**.c", "moon.*", "deploy/web/**", "Dockerfile", ".dockerignore", "render.yaml", "scripts/*web*test.py", "scripts/browser-test.py", ".github/workflows/web-admin.yml"]
+  push:
+    branches: [main]
+    paths: ["**.mbt", "**.c", "moon.*", "deploy/web/**", "Dockerfile", ".dockerignore", "render.yaml", "scripts/*web*test.py", "scripts/browser-test.py", ".github/workflows/web-admin.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Fetch exact source without Node actions
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+      - name: Build native service container
+        run: docker build --platform linux/amd64 --tag moonpress-web:test .
+      - name: Verify HTTPS authoring, publication and restart
+        run: |
+          export MOONPRESS_TEST_WEB_ORIGIN=https://127.0.0.1:18080
+          export MOONPRESS_ADMIN_PASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$MOONPRESS_ADMIN_PASSWORD"
+          mkdir "$RUNNER_TEMP/cert"
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=127.0.0.1 \
+            -addext 'subjectAltName=IP:127.0.0.1' \
+            -keyout "$RUNNER_TEMP/cert/key.pem" -out "$RUNNER_TEMP/cert/cert.pem"
+          sudo chown -R 10001:10001 "$RUNNER_TEMP/cert"
+          docker volume create moonpress-web-test
+          cleanup() { docker rm -f moonpress-web-test >/dev/null 2>&1 || true; docker volume rm moonpress-web-test >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+          docker run -d --name moonpress-web-test --publish 127.0.0.1:18080:8080 \
+            --mount type=volume,src=moonpress-web-test,dst=/data \
+            --mount "type=bind,src=$RUNNER_TEMP/cert,dst=/cert,readonly" \
+            --env MOONPRESS_ADMIN_PASSWORD --env "MOONPRESS_WEB_ORIGIN=$MOONPRESS_TEST_WEB_ORIGIN" \
+            --env MOONPRESS_TLS_CERT=/cert/cert.pem --env MOONPRESS_TLS_KEY=/cert/key.pem moonpress-web:test
+          wait_for_health() {
+            curl -fkSs --retry 15 --retry-all-errors --retry-delay 1 --max-time 3 "$MOONPRESS_TEST_WEB_ORIGIN/healthz"
+          }
+          wait_for_health
+          python3 scripts/web-admin-test.py
+          docker restart moonpress-web-test
+          wait_for_health
+          python3 scripts/web-admin-test.py --after-restart
+          python3 scripts/browser-web-test.py

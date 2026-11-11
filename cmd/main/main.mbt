@@ -816,7 +816,10 @@ fn main {
     } else if command == "rest" {
       @lib.serve_wordpress_rest(args[2], port)
     } else if command == "admin" {
-      @lib.serve_admin(args[2], port)
+      match @env.get_env_var("MOONPRESS_WEB_ORIGIN") {
+        Some(origin) => @lib.serve_web_admin(args[2], port, origin)
+        None => @lib.serve_admin(args[2], port)
+      }
     } else if command == "status" {
       let report = @lib.set_post_draft(
         args[2],

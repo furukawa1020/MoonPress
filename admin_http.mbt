@@ -42,7 +42,13 @@ fn admin_headers(
   host : String,
   allow_head? : Bool = false,
   rest? : Bool = false,
+  web_origin? : String = "",
 ) -> AdminRequest raise {
+  let expected_origin = if web_origin.is_empty() {
+    "http://" + host
+  } else {
+    web_origin
+  }
   let lines = raw.split("\r\n").map(s => s.to_owned()).to_array()
   let start = lines[0].split(" ").map(s => s.to_owned()).to_array()
   if start.length() != 3 ||
@@ -92,7 +98,7 @@ fn admin_headers(
     raise InvalidInput("Unsupported request framing")
   }
   if headers.get("origin") is Some(origin) {
-    if origin != "http://" + host {
+    if origin != expected_origin {
       raise InvalidInput("Origin rejected")
     }
   }
@@ -140,7 +146,7 @@ fn admin_headers(
         content_type != "application/json" &&
         content_type != "application/json; charset=utf-8"
       } else {
-        headers.get("origin") != Some("http://" + host) ||
+        headers.get("origin") != Some(expected_origin) ||
         (
           boundary is None &&
           content_type != "application/x-www-form-urlencoded"
@@ -172,6 +178,7 @@ fn admin_read_request(
   host : String,
   allow_head? : Bool = false,
   rest? : Bool = false,
+  web_origin? : String = "",
   on_head? : () -> Unit = fn() { () },
 ) -> (AdminRequest, Bytes) raise {
   let buffer = Bytes::make(4096, 0)
@@ -220,7 +227,7 @@ fn admin_read_request(
   if raw.is_empty() {
     raise InvalidInput("Headers too large (16 KiB limit)")
   }
-  let request = admin_headers(raw, host, allow_head~, rest~)
+  let request = admin_headers(raw, host, allow_head~, rest~, web_origin~)
   let body : FixedArray[Byte] = FixedArray::make(request.length, 0)
   // A socket read may contain both headers and binary body bytes. Copy the
   // suffix exactly; never decode it as text or allocate from unvalidated length.
