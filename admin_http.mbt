@@ -1,5 +1,5 @@
 ///|
-suberror AdminIdle {
+priv suberror AdminIdle {
   IdleConnection
 }
 
