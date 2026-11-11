@@ -240,6 +240,7 @@ fn rest_client(
       }
     }
   } catch {
+    IdleConnection => return b""
     _ => rest_error(400, "moonpress_request_rejected")
   }
   let result = if page_target.has_prefix("/wp-json/wp/v2/") &&

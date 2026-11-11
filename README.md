@@ -27,7 +27,7 @@ moonpress="$PWD/_build/native/release/build/cmd/main/main.exe"
 "$moonpress" admin ../my-site 8080
 ```
 
-Open **http://127.0.0.1:8080/rooms** and keep the terminal open.
+Open **http://127.0.0.1:8080/** and keep the terminal open.
 The guided browser workflow walks through creating and saving a draft,
 building a themed preview, marking it ready, reviewing changes and generating
 production output. **Open built preview** opens the themed site on port 8081;
@@ -306,3 +306,11 @@ and the native `media-removal-plan` / `media-remove` commands. Known references,
 including drafts and selected templates, block removal; stale reviews refuse.
 CSS and external uses require manual checking and explicit acknowledgement.
 There is no undo or implicit rebuild/deployment. See [media removal](docs/media-removal.md).
+
+## 投稿を一画面で編集する
+
+管理画面の「投稿」からタイトルを開くと、本文・抜粋・日付・タグ・カテゴリ・URL・掲載・テンプレート・種別・予約を同じ画面で編集できます。「変更を保存」は本文と設定を一緒に保存します。「下書き保存」は編集内容を保存して下書きへ戻します。競合時は入力と元の版を残します。文章を保管し、現在の記事を開いて比較してください。
+
+「文章を追加」で見出し・段落・リスト・引用・コードを、「画像を挿入」でライブラリの画像を本文へ追加できます。追加だけでは保存しません。画像のアップロードは別タブで開き、戻って「画像一覧を更新」すると未保存の文章を保ったまま選べます。
+
+「未保存の本文を確認」は本文だけの確認、「保存してプレビュー」は保存済みの画像・テーマを含むプレビュー生成です。生成失敗時も保存済みかどうかを表示します。「公開の確認へ」で編集を保存して公開対象にし、変更計画・公開用ビルド・ZIP取得へ進みます。ZIPを配置するまでデプロイにはなりません。予約時刻に自動配信する機能はなく、時刻に合わせた再ビルドと配信が必要です。

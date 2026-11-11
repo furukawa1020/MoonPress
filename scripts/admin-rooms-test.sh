@@ -19,7 +19,7 @@ for attempt in {1..10}; do
   wait "$server" || true; server=''
 done
 test -n "$server"
-grep -Fq "http://127.0.0.1:$port/rooms (Ctrl-C" "$tmp/log"
+grep -Fq "http://127.0.0.1:$port/ (Ctrl-C" "$tmp/log"
 origin="http://127.0.0.1:$port"
 get() { curl --max-time 10 -sS -H "Accept-Language: ja" -D "$tmp/headers" -o "$tmp/page" -w '%{http_code}' "$origin$1"; }
 for room in '' /write /preview /build /publish; do

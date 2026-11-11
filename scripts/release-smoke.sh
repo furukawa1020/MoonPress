@@ -30,4 +30,5 @@ if [[ "${MOONPRESS_VERIFY_BROWSER:-0}" = 1 ]]; then
   MOONPRESS_BROWSER_CLI="$cli" python3 "$(dirname "$0")/browser-test.py"
   MOONPRESS_BROWSER_CLI="$cli" python3 "$(dirname "$0")/browser-comment-test.py"
   MOONPRESS_BROWSER_CLI="$cli" python3 "$(dirname "$0")/browser-post-inventory-test.py"
+  MOONPRESS_BROWSER_CLI="$cli" python3 "$(dirname "$0")/browser-compose-test.py"
 fi

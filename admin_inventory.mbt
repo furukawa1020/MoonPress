@@ -97,7 +97,7 @@ fn admin_posts(
     let post = matches[index]
     let name = post.source[8:].to_owned()
     out.write_string(
-      "<tr><td><a href=\"/edit?name=" +
+      "<tr><td><a href=\"/compose?name=" +
       url_component(name) +
       "\">" +
       escape_html(post.title) +
@@ -151,6 +151,11 @@ fn admin_posts(
       url_component(name) +
       "\">" +
       admin_post_text("参照関係", "References") +
+      "</a>" +
+      " · <a href=\"/edit?name=" +
+      url_component(name) +
+      "\">" +
+      admin_i18n("詳細編集", "Advanced editor") +
       "</a>" +
       "</td>" +
       "</tr>",

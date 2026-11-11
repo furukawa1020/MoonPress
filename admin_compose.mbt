@@ -421,7 +421,7 @@ fn compose_page(
   let document = parse_document(snapshot.content, name)
   admin_page(
     "投稿を編集",
-    "<style>.compose-grid{display:grid;grid-template-columns:minmax(0,1fr) 17rem;gap:2rem}.compose-grid label{margin:.7rem 0}.compose-grid textarea.compose-small{min-height:3.5rem}.compose-grid textarea.compose-body{min-height:27rem}.compose-toolbar{display:flex;flex-wrap:wrap;gap:1rem;border-bottom:1px solid #455169;padding:.5rem 0}.compose-state{font-size:.875rem}.compose-grid aside p{font-size:.875rem}.compose-grid aside h2{font-size:1.1rem}.compose-tools{border-top:1px solid #455169;padding:.5rem 0}@media(max-width:50rem){.compose-grid{display:block}.compose-grid textarea.compose-body{min-height:20rem}.compose-toolbar{gap:.4rem 1rem}.compose-grid aside{border-top:1px solid #455169}}</style><p><a href=\"/\">" +
+    "<style>.compose-grid{display:grid;grid-template-columns:minmax(0,1fr) 17rem;gap:2rem}.compose-grid label{margin:.7rem 0}.compose-grid textarea.compose-small{min-height:3.5rem}.compose-grid textarea.compose-body{min-height:27rem}.compose-toolbar{position:sticky;top:0;z-index:2;background:#080f24;display:flex;flex-wrap:wrap;gap:1rem;border-bottom:1px solid #455169;padding:.5rem 0}.compose-state{font-size:.875rem}.compose-grid aside p{font-size:.875rem}.compose-grid aside h2{font-size:1.1rem}.compose-tools{border-top:1px solid #455169;padding:.5rem 0}@media(max-width:50rem){.compose-grid{display:block}.compose-grid textarea.compose-body{min-height:20rem}.compose-toolbar{gap:.4rem 1rem}.compose-grid aside{border-top:1px solid #455169}}</style><p><a href=\"/\">" +
     admin_i18n("投稿一覧へ", "All posts") +
     "</a> · <a href=\"/history?name=" +
     url_component(name) +
