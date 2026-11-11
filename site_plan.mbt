@@ -359,7 +359,8 @@ fn plan_site(
     target: None,
   })
   pending.push(plan_artifact(".nojekyll", [], previous, output, () => b"", log))
-  for name in public_asset_names(input) {
+  let assets = public_asset_names(input)
+  for name in assets {
     route_info.push({
       name,
       kind: "asset",
@@ -374,6 +375,36 @@ fn plan_site(
         previous,
         output,
         () => bytes,
+        log,
+      ),
+    )
+  }
+  if config.pages_admin is Some(admin) {
+    let source_files : Map[String, String] = Map([])
+    for route in route_info {
+      if route.kind == "page" && route.source is Some(source) {
+        source_files[route.name] = source
+      }
+    }
+    let public_pages = documents.filter(page => {
+      page.document.listed &&
+      !page.document.draft &&
+      publication_due(page.document.publish_at, instant)
+    })
+    let html = render_pages_admin(admin, public_pages, source_files, assets)
+    route_info.push({
+      name: "manage.html",
+      kind: "admin",
+      source: Some("site.json/pages_admin"),
+      target: None,
+    })
+    pending.push(
+      plan_artifact(
+        "manage.html",
+        [{ name: "pages-admin", digest: digest_text(html), }],
+        previous,
+        output,
+        () => @utf8.encode(html),
         log,
       ),
     )
@@ -538,6 +569,7 @@ fn plan_site(
     let source_routes = index_routes(sitemap_routes)
     for route in routes {
       if route.has_suffix(".html") &&
+        !(route == "manage.html" && config.pages_admin is Some(_)) &&
         !redirect_names.contains(route) &&
         !source_routes.contains(url_component(route)) {
         sitemap_routes.push(route)

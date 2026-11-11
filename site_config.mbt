@@ -15,6 +15,7 @@ priv struct SiteConfig {
   tag_index : Bool
   collection_layout : String?
   redirects : Array[Redirect]
+  pages_admin : PagesAdminConfig?
 }
 
 ///|
@@ -31,7 +32,8 @@ fn parse_site_config(source : String) -> SiteConfig raise {
       key != "tag_page_size" &&
       key != "tag_index" &&
       key != "collection_layout" &&
-      key != "redirects" {
+      key != "redirects" &&
+      key != "pages_admin" {
       raise InvalidInput("site.json: unknown key " + key)
     }
   }
@@ -94,6 +96,7 @@ fn parse_site_config(source : String) -> SiteConfig raise {
     tag_index,
     collection_layout,
     redirects,
+    pages_admin: parse_pages_admin(fields.get("pages_admin")),
   }
 }
 
@@ -137,6 +140,7 @@ fn read_site_config(input : String) -> SiteConfig raise {
       tag_index: false,
       collection_layout: None,
       redirects: [],
+      pages_admin: None,
     }
   }
   require_input_kind(path, 1)

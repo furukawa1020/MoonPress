@@ -1,5 +1,5 @@
 ---
-{"title":"4. ZIPを取得して公開する","listed":false}
+{"title":"4. ZIPを取得して公開する","kind":"page"}
 ---
 # 4. ZIPを取得して公開する
 

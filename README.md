@@ -10,9 +10,9 @@ or CI workflow. Experimental; see the [release-readiness roadmap](docs/roadmap.m
 [Actual WordPress comparison and raw evidence](docs/wordpress-benchmark-2026-10-22.md)
 separate dynamic WordPress, cached WordPress HTML and native-generated HTML.
 
-## Browser administration
+## GitHub Pages
 
-MoonPress Web runs the native compiler on a host. Open the HTTPS management URL to sign in, write posts, preview drafts, and publish the reviewed output to `/site/`. [Browser setup and deployment](docs/web-admin.md).
+Open [Site management](https://furukawa1020.github.io/MoonPress/manage.html) to create or edit a post in your browser. Review generated output in a pull request, then merge to publish. [Japanese guide](https://furukawa1020.github.io/MoonPress/guide.html).
 
 ## Quick start
 
