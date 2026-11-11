@@ -1,0 +1,40 @@
+name: Review Pages changes
+on:
+  pull_request:
+    paths: ["site/**", "**.mbt", ".github/workflows/pages-*.yml", "scripts/*pages*.py", "scripts/*pages*.sh"]
+permissions:
+  contents: read
+jobs:
+  pages:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Fetch the proposed merge and base
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION" "$BASE"
+          git checkout --detach "$REVISION"
+          mkdir "$RUNNER_TEMP/base"
+          git archive "$BASE" site | tar -x -C "$RUNNER_TEMP/base"
+      - name: Build and audit both public outputs
+        run: |
+          bash scripts/setup.sh
+          export PATH="$HOME/.moon/bin:$PATH"
+          moon build --target native --release
+          cli=_build/native/release/build/cmd/main/main.exe
+          "$cli" build "$RUNNER_TEMP/base/site" "$RUNNER_TEMP/base-output"
+          "$cli" build site "$RUNNER_TEMP/merge-output"
+          bash scripts/prepare-pages.sh "$RUNNER_TEMP/base-output" "$RUNNER_TEMP/base-bundle" "$RUNNER_TEMP/base/site"
+          bash scripts/prepare-pages.sh "$RUNNER_TEMP/merge-output" "$RUNNER_TEMP/merge-bundle" site
+          python3 scripts/pages-review.py "$RUNNER_TEMP/base-bundle" "$RUNNER_TEMP/merge-bundle" >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify Pages management and browser navigation
+        run: |
+          python3 scripts/pages-admin-test.py
+          if test -f "$RUNNER_TEMP/merge-bundle/manage.html"; then
+            python3 scripts/browser-pages-admin-test.py "$RUNNER_TEMP/merge-bundle"
+          fi

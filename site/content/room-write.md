@@ -1,5 +1,5 @@
 ---
-{"title":"1. 記事を書く","listed":false}
+{"title":"1. 記事を書く","kind":"page"}
 ---
 # 1. 記事を書く
 

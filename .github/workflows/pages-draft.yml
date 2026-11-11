@@ -1,0 +1,56 @@
+name: Create Pages draft
+on:
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: 投稿 (post) または固定ページ (page)
+        type: choice
+        options: [post, page]
+        default: post
+        required: true
+      title:
+        description: タイトル（160文字まで）
+        type: string
+        required: true
+      slug:
+        description: URL名（例 first-post）
+        type: string
+        required: true
+      excerpt:
+        description: 抜粋（任意・300文字まで）
+        type: string
+permissions:
+  contents: write
+jobs:
+  draft:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Fetch selected main revision
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+      - name: Create draft file
+        env:
+          DRAFT_TITLE: ${{ inputs.title }}
+          DRAFT_KIND: ${{ inputs.kind }}
+          DRAFT_SLUG: ${{ inputs.slug }}
+          DRAFT_EXCERPT: ${{ inputs.excerpt }}
+        run: python3 scripts/create-pages-draft.py site
+      - name: Validate all draft routes
+        run: |
+          bash scripts/setup.sh
+          export PATH="$HOME/.moon/bin:$PATH"
+          moon build --target native --release
+          _build/native/release/build/cmd/main/main.exe check site --include-drafts
+      - name: Save draft branch and editor links
+        env:
+          DRAFT_SLUG: ${{ inputs.slug }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/save-pages-draft.sh
