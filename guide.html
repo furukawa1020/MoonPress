@@ -1,65 +1,24 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Markdownで記事を書き、プレビューし、公開用サイトを生成するMoonBit製ツール。"><title>インストールと使い方 · MoonPress</title><link rel="stylesheet" href="style.css"><link rel="alternate" type="application/rss+xml" title="MoonPress" href="rss.xml"><meta property="og:image" content="https://furukawa1020.github.io/MoonPress/moonpress-logo.jpg"><meta name="twitter:card" content="summary_large_image"></head>
-<body><a class="skip" href="#main">本文へ</a><header><a class="brand" href="index.html">MoonPress</a><nav aria-label="メインメニュー"><a href="index.html">ホーム</a><a href="guide.html">インストール・使い方</a><a href="https://github.com/furukawa1020/MoonPress">GitHub ↗</a></nav></header>
-<main id="main" tabindex="-1"><h1 id="mp-インストールと使い方">インストールと使い方</h1>
-<h2 id="mp-moonpress-web">MoonPress Web</h2>
-<p>ホストで MoonPress Web を用意すると、ブラウザだけで投稿・プレビュー・公開まで進められます。管理 URL でログインし、投稿を作って「公開の確認へ」を押します。確認した変更は同じサービスの <code>/site/</code> に反映されます。</p>
-<p><a href="https://render.com/deploy?repo=https://github.com/furukawa1020/MoonPress">Render で MoonPress Web をセットアップ</a> · <a href="https://github.com/furukawa1020/MoonPress/blob/main/docs/web-admin.md">ホスト設定と編集手順</a></p>
-<h2 id="mp-linux版を入手する">Linux版を入手する</h2>
-<p><a href="https://github.com/furukawa1020/MoonPress/releases">GitHubの配布一覧</a>を開き、公開済みのプレビュー版から <code>moonpress-linux-x86_64.tar.gz</code> と <code>SHA256SUMS</code> を同じフォルダに保存します。Ubuntu 22.04と24.04で検証しています。配布版はMoonBitのインストールなしで起動できます。</p>
-<p>ダウンロード先のフォルダで実行します。照合結果が <code>OK</code> になってから展開してください。</p>
-<pre><code class="language-sh">sha256sum --check --strict SHA256SUMS
-tar -xzf moonpress-linux-x86_64.tar.gz
-cd moonpress-linux-x86_64
-</code></pre>
-<p><a href="https://github.com/furukawa1020/MoonPress#quick-start">ソースからビルドする手順</a></p>
-<h2 id="mp-サイトを作り、管理画面を開く">サイトを作り、管理画面を開く</h2>
-<p>展開したフォルダで次の二行を実行します。最初のコマンドは <code>my-site</code> にサンプル記事と設定を作ります。既存サイトを開くときは、そのフォルダを二行目に指定してください。</p>
-<pre><code class="language-sh">./moonpress init my-site
-./moonpress admin my-site 8080
-</code></pre>
-<p>ターミナルを開いたまま、ブラウザで <a href="http://127.0.0.1:8080/">管理画面を開く</a>。終了するときはターミナルで Ctrl+C を押します。</p>
-<p>この公開ガイドは手順を読むためのページです。実際の編集は、起動したPCの管理画面で行います。</p>
-<h2 id="mp-最初の記事を作ってzipを取得する">最初の記事を作ってZIPを取得する</h2>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Markdownで記事を書き、プレビューし、公開用サイトを生成するMoonBit製ツール。"><title>使い方 · MoonPress</title><link rel="stylesheet" href="style.css"><link rel="alternate" type="application/rss+xml" title="MoonPress" href="rss.xml"><meta property="og:image" content="https://furukawa1020.github.io/MoonPress/moonpress-logo.jpg"><meta name="twitter:card" content="summary_large_image"></head>
+<body><a class="skip" href="#main">本文へ</a><header><a class="brand" href="index.html">MoonPress</a><nav aria-label="メインメニュー"><a href="index.html">ホーム</a><a href="manage.html">サイト管理</a><a href="guide.html">使い方</a><a href="https://github.com/furukawa1020/MoonPress">GitHub ↗</a></nav></header>
+<main id="main" tabindex="-1"><h1 id="mp-github-pagesで使う">GitHub Pagesで使う</h1>
+<p><a href="manage.html">サイト管理を開く</a>。投稿、固定ページ、メディア、サイト設定をここから開けます。編集には対象リポジトリの書き込み権限があるGitHubアカウントでログインします。</p>
+<h2 id="mp-新規作成">新規作成</h2>
 <ol>
-<li><a href="room-write.html">記事を書く</a>。管理画面で「新しい下書き」を作り、本文を入力して保存します。</li>
-<li><a href="room-preview.html">プレビューする</a>。「プレビューをつくる」を押し、生成したプレビューを開きます。公開したい記事の編集画面で「公開対象にする」を押します。</li>
-<li><a href="room-build.html">公開用ファイルを生成する</a>。変更計画を確認し、確認した内容で公開用ファイルを生成します。</li>
-<li><a href="room-publish.html">ZIPを取得する</a>。「公開用ZIPをダウンロード」を押し、展開したファイルを公開先にアップロードします。</li>
+<li>サイト管理の「投稿・固定ページを作る」を押します。</li>
+<li>GitHub Actionsで「Run workflow」を開きます。種類、タイトル、URL名、必要なら抜粋を入力して実行します。</li>
+<li>終了した実行のSummaryにある「編集を開く」で本文を書きます。Previewで本文を確認できます。</li>
+<li>下書きを保存する間は <code>&quot;draft&quot;: true</code> のまま作業ブランチに保存します。公開するときは <code>false</code> にして保存し、SummaryからPRを作成します。</li>
 </ol>
-<h2 id="mp-コメントを確認・編集する">コメントを確認・編集する</h2>
-<p>起動した管理画面の「コメント」を開くと、記事ID・投稿者ID・検索語で絞り込めます。コメントのIDを開き、本文・公開表示名・承認状態を確認して保存します。競合が表示された場合は、残された入力を保管して現在のコメントを開き直してください。</p>
-<p>承認済みコメントを記事に表示するには「サイト設定」でコメント表示を有効にし、「公開用ビルド」で変更を確認して生成したファイルを公開先へ配置します。</p>
-<h2 id="mp-うまく進まないとき">うまく進まないとき</h2>
+<p>このプロジェクトのGitHubリポジトリは公開されています。ブランチやPRの内容も閲覧できます。機密の下書きは公開リポジトリに保存しないでください。</p>
+<h2 id="mp-編集、画像、公開">編集、画像、公開</h2>
 <ul>
-<li>管理画面が開かない場合は、ターミナルで起動に成功したか確認します。8080と8081が使用中なら、両方空いている連続したポートを選びます。たとえば <code>./moonpress admin my-site 8090</code> と実行したら、ブラウザでも8090を開きます。</li>
-<li>プレビューに変更が出ない場合は、記事の編集画面で保存してから、プレビューを作り直します。</li>
-<li>ZIPボタンが表示されない場合は、公開用の変更計画を確認して生成し直します。生成後に記事や設定を変更した場合も、同じ手順で作り直してください。</li>
+<li>公開済みのページは、サイト管理の一覧にある「編集」から開きます。GitHubで新しい作業ブランチに保存し、PRを作成します。</li>
+<li>画像は「メディア」の「画像・ファイルを追加」からGitHubにアップロードし、投稿でファイル名を指定します。公開用フォルダに入れた画像は公開対象です。</li>
+<li>PRの <strong>Review Pages changes</strong> で、追加、更新、削除される公開ファイルを確認します。</li>
+<li>PRをマージしたら、サイト管理の「Pages公開の結果」を開きます。ビルドが成功したら公開ページを確認します。</li>
 </ul>
-<h2 id="mp-moonbitが担当すること">MoonBitが担当すること</h2>
-<p>HTMLフォームを受け取り、保存済み記事の検証・依存関係の解析・SHA-256による差分計画・確認済み計画のビルドをネイティブで実行します。ブラウザのJavaScriptやTypeScriptは使いません。</p>
-<p>記事はMarkdown、見た目はHTMLとCSS、画像はファイルとして手元に残ります。生成物もHTML・CSS・画像なので、配信先にMoonBitを入れる必要はありません。</p>
-<p>配布版では、実Chromeで記事作成からZIP出力までを検証しています。</p>
-<p><a href="index.html">入口へ戻る</a></p>
-<h2 id="mp-記事を探して編集する">記事を探して編集する</h2>
-<p>管理画面の「記事」で「絞り込み・並び順」を開きます。タイトル・ファイル名・タグの検索、タグの完全一致、日付範囲、日付の有無、掲載状態を組み合わせて探せます。並び順と表示件数を選び、前後ページへ移動しても検索条件を保ちます。日付順では日付のない記事を末尾に表示します。ここでの日付は記事の日付で、更新日時ではありません。</p>
-<p>一覧のタイトルから編集し、保存してからプレビューを確認します。「履歴」は保存済みの記事の復元、「参照関係」はURL変更前の確認に使います。編集や一覧の表示だけではデプロイしません。公開対象を確認し、公開用ビルド・ZIP取得を行って公開先へ配置します。</p>
-<h2 id="mp-投稿を一画面で編集する">投稿を一画面で編集する</h2>
-<p>管理画面の「投稿」からタイトルを開くと、本文・抜粋・日付・タグ・カテゴリ・URL・掲載・テンプレート・種別・予約を同じ画面で編集できます。「変更を保存」は本文と設定を一緒に保存します。「下書き保存」は編集内容を保存して下書きへ戻します。競合時は入力と元の版を残します。文章を保管し、現在の記事を開いて比較してください。</p>
-<p>「文章を追加」で見出し・段落・リスト・引用・コードを、「画像を挿入」でライブラリの画像を本文へ追加できます。追加だけでは保存しません。画像のアップロードは別タブで開き、戻って「画像一覧を更新」すると未保存の文章を保ったまま選べます。</p>
-<p>「未保存の本文を確認」は本文だけの確認、「保存してプレビュー」は保存済みの画像・テーマを含むプレビュー生成です。生成失敗時も保存済みかどうかを表示します。「公開の確認へ」で編集を保存して公開対象にし、変更計画・公開用ビルド・ZIP取得へ進みます。ZIPを配置するまでデプロイにはなりません。予約時刻に自動配信する機能はなく、時刻に合わせた再ビルドと配信が必要です。</p>
-<table>
-<thead>
-<tr><th scope="col">WordPressでの操作</th><th scope="col">MoonPressでの操作</th></tr>
-</thead>
-<tbody>
-<tr><td>投稿のタイトルを開く</td><td>「投稿」一覧のタイトルを開く</td></tr>
-<tr><td>記事設定を変更して保存</td><td>本文と右側の設定を編集し「変更を保存」</td></tr>
-<tr><td>下書きを保存</td><td>「下書き保存」で本文と設定を同時に保存</td></tr>
-<tr><td>コンテンツを追加</td><td>「文章を追加」で見出し・段落・リスト・引用・コードを追加し保存</td></tr>
-<tr><td>メディアを追加</td><td>「画像を挿入」から選択。新規アップロード後は「画像一覧を更新」</td></tr>
-<tr><td>プレビュー</td><td>未保存本文の確認、または保存してテーマ付きプレビューを生成</td></tr>
-<tr><td>公開</td><td>「公開の確認へ」→変更計画→公開用ビルド→ZIPを公開先へ配置</td></tr>
-</tbody>
-</table>
+<h2 id="mp-自分のリポジトリで使う">自分のリポジトリで使う</h2>
+<p>このリポジトリの構成を引き継ぎ、<code>site/site.json</code> の <code>base_url</code> と <code>pages_admin.repository</code> を自分のサイトに合わせます。GitHub Pagesを <code>gh-pages</code> ブランチのルートから公開する設定にして、最初の Publish Pages を実行します。編集対象は <code>main</code> の <code>site/</code> です。</p>
+<p><a href="https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md">GitHub Pagesの設定と検証</a></p>
 </main><footer><span>MoonBit native · No JavaScript / TypeScript</span><a href="font-license.txt">フォントライセンス</a><a href="https://github.com/furukawa1020/MoonPress/issues">Issue ↗</a></footer></body></html>
