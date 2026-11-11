@@ -41,11 +41,17 @@ with tempfile.TemporaryDirectory() as directory:
         ]})
         active = browser.call('GET', '/element/active')['element-6066-11e4-a52e-4f735466cecf']
         assert browser.call('GET', f'/element/{active}/attribute/href') == '#main'
-        for anchor in ('posts', 'pages', 'media', 'settings', 'publish'):
+        for anchor in ('posts', 'pages', 'quick-edit', 'media', 'settings', 'publish'):
             browser.click(f'nav a[href="#{anchor}"]')
             assert browser.call('GET', '/url').endswith('#' + anchor)
         edit = browser.element('#pages a[href$="/edit/main/site/content/guide.md"]')
         assert browser.call('GET', f'/element/{edit}/attribute/href') == 'https://github.com/furukawa1020/MoonPress/edit/main/site/content/guide.md'
+        quick_edit = browser.element('#pages a[href$="/actions/workflows/pages-edit.yml"]')
+        assert browser.call('GET', f'/element/{quick_edit}/text') == 'クイック編集'
+        history = browser.element('#pages a[href$="/commits/main/site/content/guide.md"]')
+        assert browser.call('GET', f'/element/{history}/text') == '履歴'
+        source = browser.element('#pages .source-name code')
+        assert browser.call('GET', f'/element/{source}/text') == 'guide.md'
         assert browser.call('POST', '/elements', {'using': 'css selector', 'value': 'script'}) == []
         print('Chrome Pages dashboard: homepage navigation, keyboard skip link, mobile width, sections and authenticated GitHub editor destination.')
     finally:

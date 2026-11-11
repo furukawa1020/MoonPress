@@ -153,6 +153,8 @@ fn help_text(command : String) -> String {
         "\n\nPrivate article trash. trash-post removes the live source after durable backup. trash-list/read inspect it; trash-restore creates a private source at an unoccupied original name. trash-purge permanently deletes only the reviewed record with confirm-permanent. No build or deployment is performed."
       } else if command == "post-identity" {
         "\n\nAssign a stable positive REST identity and local author ID with current-source version protection. An assigned identity cannot be renumbered here. REST refuses duplicates or public sources lacking IDs; local source owners remain trusted."
+      } else if command == "pages-patch" {
+        "\n\nApply a Pages metadata patch with current-source version protection."
       } else if command == "post-schedule" ||
         command == "post-kind" ||
         command == "post-categories" {

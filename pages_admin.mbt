@@ -87,19 +87,27 @@ fn pages_admin_table(
   for page in chronological_pages(pages) {
     let document = page.document
     let source = sources[page.output]
+    let path = pages_admin_source(config, source)
+    let name = source.split("/").last().unwrap_or("").to_owned()
     let title = document.title
     let terms = document.categories + document.tags
     out.write_string(
       "<tr><th scope=\"row\">" +
       pages_admin_link(url_component(page.output), title) +
       "<div class=\"row-actions\">" +
+      pages_admin_link(repository + "/edit/main/" + path, "編集") +
+      " · " +
       pages_admin_link(
-        repository + "/edit/main/" + pages_admin_source(config, source),
-        "編集",
+        repository + "/actions/workflows/pages-edit.yml",
+        "クイック編集",
       ) +
       " · " +
+      pages_admin_link(repository + "/commits/main/" + path, "履歴") +
+      " · " +
       pages_admin_link(url_component(page.output), "表示") +
-      " · 公開中" +
+      " · 公開中</div><div class=\"source-name\">原稿名 <code>" +
+      pages_admin_link(repository + "/blob/main/" + path, name) +
+      "</code>" +
       "</div></th><td>" +
       (match document.date {
         Some(date) =>
@@ -158,6 +166,7 @@ fn render_pages_admin(
 ) -> String {
   let repo = "https://github.com/" + config.repository
   let new_workflow = repo + "/actions/workflows/pages-draft.yml"
+  let edit_workflow = repo + "/actions/workflows/pages-edit.yml"
   let settings = repo + "/edit/main/"
   let posts = pages.filter(page => page.document.kind == "post")
   let fixed = pages.filter(page => page.document.kind == "page")
@@ -181,14 +190,14 @@ fn render_pages_admin(
     #|.primary{display:inline-block;background:#07557f;color:white;padding:.42rem .8rem;text-decoration:none}
     #|.primary:hover{background:#173c53}.muted,.row-actions{color:#485966}
     #|table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{text-align:left;vertical-align:top;padding:.6rem .5rem;border-bottom:1px solid #d9dee2;overflow-wrap:anywhere}
-    #|th:first-child{width:54%}th:nth-child(2){width:21%}thead{background:#f0f2f4}.row-actions{font-weight:400;font-size:.87rem;margin-top:.12rem}
+    #|th:first-child{width:54%}th:nth-child(2){width:21%}thead{background:#f0f2f4}.row-actions{font-weight:400;font-size:.87rem;margin-top:.12rem}.source-name{font-size:.8rem;font-weight:400;color:#485966;margin-top:.25rem}
     #|.media{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));padding:0;list-style:none;gap:0 1rem}
     #|.media li{display:flex;align-items:center;gap:.6rem;min-height:3.4rem;border-bottom:1px solid #d9dee2;overflow-wrap:anywhere}
     #|.media img{object-fit:contain;background:#f0f2f4;flex:none}summary{cursor:pointer}
     #|@media(max-width:40rem){.shell{display:block}nav{padding:.65rem 1rem}nav ul{display:flex;flex-wrap:wrap;gap:.05rem .95rem}main{border-inline:0;padding:1.2rem 1rem 3rem}th,td{font-size:.86rem;padding:.45rem .3rem}th:first-child{width:49%}th:nth-child(2){width:24%}}
     #|</style></head><body><a class="skip" href="#main">本文へ移動</a>
     #|<header><strong>MoonPress</strong><a href="index.html">公開サイト</a></header>
-    #|<div class="shell"><nav aria-label="サイト管理"><ul><li><a href="#new">新規作成</a></li><li><a href="#posts">投稿</a></li><li><a href="#pages">固定ページ</a></li><li><a href="#media">メディア</a></li><li><a href="#settings">設定・外観</a></li><li><a href="#publish">公開状況</a></li></ul></nav>
+    #|<div class="shell"><nav aria-label="サイト管理"><ul><li><a href="#new">新規作成</a></li><li><a href="#posts">投稿</a></li><li><a href="#pages">固定ページ</a></li><li><a href="#quick-edit">一括変更</a></li><li><a href="#media">メディア</a></li><li><a href="#settings">設定・外観</a></li><li><a href="#publish">公開状況</a></li></ul></nav>
     #|<main id="main" tabindex="-1"><h1>サイト管理</h1>
     #|<p>一覧に掲載する公開済みの内容を確認し、GitHubにログインして編集できます。</p>
   head +
@@ -207,6 +216,11 @@ fn render_pages_admin(
   pages_admin_table(posts, sources, config, repo) +
   "</section><section id=\"pages\"><h2>固定ページ</h2>" +
   pages_admin_table(fixed, sources, config, repo) +
+  "</section><section id=\"quick-edit\"><h2>クイック編集・一括変更</h2><p>一覧の原稿名をコピーし、GitHubで「Run workflow」を開きます。複数の原稿名をカンマで区切ると、同じ設定を最大20件に適用できます。</p>" +
+  pages_admin_link(
+    edit_workflow, "編集・複製・復元フォームを開く",
+  ) +
+  "<details><summary>入力と公開の手順</summary><ol><li>空欄は現状のままです。抜粋などを消すときは消去欄に項目名を指定します。</li><li>複製するときは新しいタイトルとURL名を入力します。復元するときは一覧の「履歴」から戻したいコミットのSHAをコピーします。</li><li>実行結果のSummaryからPRを作成し、公開差分を確認してマージします。</li></ol><p>一覧非掲載でもURLを知っている人は閲覧できます。公開予約は、設定した時刻以降に再公開が必要です。</p></details>" +
   "</section><section id=\"media\"><h2>メディア</h2>" +
   pages_admin_link(
     repo + "/upload/main/" + pages_admin_source(config, "public"),

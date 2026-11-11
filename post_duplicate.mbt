@@ -19,6 +19,7 @@ fn duplicate_source(
   fields.remove("author")
   fields.remove("slug")
   fields.remove("date")
+  fields.remove("publish_at")
   "---\n" + metadata.stringify() + "\n---\n" + body
 }
 

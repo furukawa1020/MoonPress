@@ -10,6 +10,8 @@ pub fn allowed_href(String) -> Bool
 
 pub fn apply_layout(String, String, String, description? : String, toc? : String, date? : String) -> String
 
+pub fn apply_pages_patch(String, String, String, String) -> SavePostReport raise
+
 pub fn audit_output(String) -> OutputAudit raise
 
 pub fn authenticate_access(String, String, String) -> AccessPrincipal? raise

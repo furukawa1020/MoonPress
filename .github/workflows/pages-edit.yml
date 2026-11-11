@@ -1,0 +1,94 @@
+name: Edit Pages content
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 編集 (edit)・複製 (duplicate)・復元 (restore)
+        type: choice
+        options: [edit, duplicate, restore]
+        default: edit
+        required: true
+      files:
+        description: 原稿名（例 guide.md。複数はカンマ区切り、最大20件）
+        type: string
+        required: true
+      title:
+        description: タイトル（編集は1件のみ。複製では必須）
+        type: string
+      excerpt:
+        description: 抜粋
+        type: string
+      date:
+        description: 記事の日付（YYYY-MM-DD）
+        type: string
+      slug:
+        description: URL名（編集は1件のみ）
+        type: string
+      tags:
+        description: タグ（カンマ区切り）
+        type: string
+      categories:
+        description: カテゴリ（カンマ区切り）
+        type: string
+      layout:
+        description: レイアウト名（例 wide.html）
+        type: string
+      kind:
+        description: 種別（変更なし・投稿・固定ページ）
+        type: choice
+        options: [keep, post, page]
+        default: keep
+      publish_at:
+        description: 公開予約（UTC、例 2027-01-01T09:00:00Z。時刻以降に再公開が必要）
+        type: string
+      listing:
+        description: 一覧への掲載（変更なし・掲載・非掲載）
+        type: choice
+        options: [keep, list, unlist]
+        default: keep
+      visibility:
+        description: 公開状態（変更なし・下書き・公開対象）
+        type: choice
+        options: [keep, draft, ready]
+        default: keep
+      clear:
+        description: 消す項目（excerpt、date、slug、tags、categories、layout、publish_at をカンマ区切り）
+        type: string
+      copy_to:
+        description: 複製先のURL名（複製のみ。例 guide-copy）
+        type: string
+      revision:
+        description: 復元するコミットのSHA（復元のみ。40桁）
+        type: string
+permissions:
+  contents: write
+jobs:
+  edit:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Fetch selected main revision
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+          OPERATION: ${{ inputs.operation }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          if [[ "$OPERATION" == restore ]]; then
+            git fetch origin "$REVISION"
+          else
+            git fetch --depth=1 origin "$REVISION"
+          fi
+          git checkout --detach FETCH_HEAD
+      - name: Build MoonPress
+        run: |
+          bash scripts/setup.sh
+          export PATH="$HOME/.moon/bin:$PATH"
+          moon build --target native --release
+      - name: Validate and save a review branch
+        env:
+          PAGES_EDIT_INPUTS: ${{ toJSON(inputs) }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/pages-edit.py _build/native/release/build/cmd/main/main.exe
