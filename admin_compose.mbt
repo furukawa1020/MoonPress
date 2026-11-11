@@ -49,9 +49,9 @@ fn compose_validate(fields : Map[String, String]) -> Unit raise {
     fields.keys().any(key => !keys.contains(key)) {
     raise InvalidInput("Invalid article editor fields")
   }
-  if !["save", "draft", "ready", "preview", "block", "media", "preview_saved"].contains(
-      admin_field(fields, "intent"),
-    ) {
+  if ![
+      "save", "draft", "ready", "preview", "block", "media", "preview_saved", "media_refresh",
+    ].contains(admin_field(fields, "intent")) {
     raise InvalidInput("Invalid article editor action")
   }
 }
@@ -548,6 +548,24 @@ fn compose_action(
         ),
       )
     }
+    if intent == "media_refresh" {
+      return (
+        200,
+        compose_page(
+          input,
+          name,
+          token,
+          fields,
+          "<p role=\"status\">" +
+          admin_i18n(
+            "画像一覧を更新しました。記事はまだ保存していません。",
+            "Library refreshed; article changes remain unsaved.",
+          ) +
+          "</p>",
+          "",
+        ),
+      )
+    }
     let _ = save_post(input, name, snapshot.digest, source)
     let notice = "<p role=\"status\">" +
       admin_i18n("保存しました。", "Post saved.") +
@@ -696,7 +714,16 @@ fn compose_media(input : String, fields : Map[String, String]) -> String {
   out.write_string(
     "<button name=\"intent\" value=\"media\">" +
     admin_i18n("本文へ挿入（未保存）", "Insert into editor (unsaved)") +
-    "</button></details>",
+    "</button> <a href=\"/media\" target=\"_blank\" rel=\"noopener noreferrer\">" +
+    admin_i18n("画像を追加（別タブ）", "Upload media (new tab)") +
+    "</a> <button name=\"intent\" value=\"media_refresh\">" +
+    admin_i18n("画像一覧を更新", "Refresh library") +
+    "</button><p>" +
+    admin_i18n(
+      "追加後にこの画面へ戻って画像一覧を更新してください。入力した文章は維持されます。",
+      "Return here after uploading and refresh the library. Your entered text is retained.",
+    ) +
+    "</p></details>",
   )
   out.to_string()
 }
