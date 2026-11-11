@@ -11,6 +11,7 @@ fn admin_media(
   input : String,
   token : String,
   fields : Map[String, String],
+  hosted? : Bool = false,
 ) -> String raise {
   for key, _ in fields {
     if key != "q" && key != "kind" && key != "page" {
@@ -83,7 +84,7 @@ fn admin_media(
     out.to_string() +
     admin_media_navigation(query, kind, page, pages) +
     admin_upload_form(token, "") +
-    admin_import_form(token, "", ""),
+    (if hosted { "" } else { admin_import_form(token, "", "") }),
   )
 }
 

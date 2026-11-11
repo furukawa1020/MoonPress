@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: moonpress-web
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    maxShutdownDelaySeconds: 45
+    disk:
+      name: moonpress-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: MOONPRESS_ADMIN_PASSWORD
+        sync: false

@@ -23,9 +23,31 @@ fn admin_publish_report(report : ReleaseReadiness) -> String {
 }
 
 ///|
-fn admin_publish(input : String, token : String) -> (Int, String) {
+fn admin_publish(
+  input : String,
+  token : String,
+  hosted? : Bool = false,
+) -> (Int, String) {
   try {
     let report = inspect_release_readiness(input)
+    if hosted {
+      let state = if report.current {
+        "<p><!--mp:ja-->公開用ファイルは保存済みの公開対象と一致しています。<!--mp:en-->Published files match the saved ready content.<!--mp:end--></p>"
+      } else {
+        "<p><!--mp:ja-->公開する内容を確認し、変更を反映してください。<!--mp:en-->Review the saved changes before publishing them.<!--mp:end--></p>"
+      }
+      return (
+        200,
+        admin_page(
+          "公開",
+          state +
+          "<p><a href=\"/site/\"><!--mp:ja-->公開サイトを開く<!--mp:en-->Open published site<!--mp:end--></a></p>" +
+          admin_production_plan_form(token, japanese=true) +
+          admin_export_form(report, token),
+          title_en="Publish",
+        ),
+      )
+    }
     (
       200,
       admin_page(

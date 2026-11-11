@@ -10,6 +10,10 @@ or CI workflow. Experimental; see the [release-readiness roadmap](docs/roadmap.m
 [Actual WordPress comparison and raw evidence](docs/wordpress-benchmark-2026-10-22.md)
 separate dynamic WordPress, cached WordPress HTML and native-generated HTML.
 
+## Browser administration
+
+MoonPress Web runs the native compiler on a host. Open the HTTPS management URL to sign in, write posts, preview drafts, and publish the reviewed output to `/site/`. [Browser setup and deployment](docs/web-admin.md).
+
 ## Quick start
 
 Prerequisites: Linux x86_64, a C compiler, curl, Git, Bash and standard GNU

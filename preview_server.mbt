@@ -59,6 +59,7 @@ fn preview_response(
   bytes : Bytes,
   head? : Bool = false,
   etag? : String? = None,
+  sandbox? : Bool = false,
 ) -> Bytes {
   let status = if code == 200 {
     "200 OK"
@@ -81,7 +82,9 @@ fn preview_response(
         "ETag: \"" + digest + "\"\r\nCache-Control: private, no-cache\r\n"
       None => "Cache-Control: no-store\r\n"
     }) +
-    "Connection: close\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'\r\n" +
+    "Connection: close\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'" +
+    (if sandbox { "; sandbox" } else { "" }) +
+    "\r\n" +
     (if mime == "application/octet-stream" {
       "Content-Disposition: attachment\r\n"
     } else {
@@ -98,6 +101,8 @@ fn preview_file(
   target : String,
   head? : Bool = false,
   if_none_match? : String? = None,
+  web? : Bool = false,
+  production? : Bool = false,
 ) -> Bytes raise {
   let name = preview_name(target)
   let lock = lock_output(output, shared=true)
@@ -105,6 +110,10 @@ fn preview_file(
   let directory = open_authoring_directory(output)
   defer directory_close(directory.fd)
   let manifest = preview_manifest(directory)
+  if production &&
+    manifest.artifacts.any(artifact => artifact.name == ".moonpress-preview") {
+    raise InvalidInput("Draft preview cannot be served as production")
+  }
   for artifact in manifest.artifacts {
     if artifact.name == name {
       let bytes = directory.read(name)
@@ -126,6 +135,7 @@ fn preview_file(
         bytes,
         head~,
         etag=Some(artifact.digest),
+        sandbox=web && preview_mime(name).has_prefix("text/html"),
       )
     }
   }

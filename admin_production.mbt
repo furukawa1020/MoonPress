@@ -4,7 +4,17 @@ fn admin_production_output(input : String) -> String {
 }
 
 ///|
-fn admin_production_form(token : String, review_id? : String = "") -> String {
+fn admin_production_form(
+  token : String,
+  review_id? : String = "",
+  hosted? : Bool = false,
+) -> String {
+  if hosted && !review_id.is_empty() {
+    return "<form method=\"post\" action=\"/build-production\">" +
+      admin_hidden("token", token) +
+      admin_hidden("review_id", review_id) +
+      "<button><!--mp:ja-->確認した変更を公開<!--mp:en-->Publish reviewed changes<!--mp:end--></button></form>"
+  }
   if review_id.is_empty() {
     return "<p><a href=\"/rooms/build\"><!--mp:ja-->◀ こんぱいら〜る〜む<!--mp:en-->◀ Compiler room<!--mp:end--></a> · <a href=\"/rooms/publish\"><!--mp:ja-->▶ おひろめる〜むへ<!--mp:en-->▶ Enter the sharing room<!--mp:end--></a></p><h2>Production files</h2><p>Inspect production changes first. The inspection page provides the button to build exactly the reviewed plan. <a href=\"/workflow#review\">Review production changes</a>.</p>"
   }
@@ -19,9 +29,17 @@ fn admin_build_production(
   input : String,
   token : String,
   review_id : String,
+  hosted? : Bool = false,
 ) -> String raise {
   let output = admin_production_output(input)
   let report = compile_reviewed_site(input, output, review_id)
+  if hosted {
+    return admin_page(
+      "公開用ファイルを更新しました",
+      "<p role=\"status\"><!--mp:ja-->確認した変更を公開しました。<!--mp:en-->Published the reviewed changes.<!--mp:end--></p><p><a href=\"/site/\"><!--mp:ja-->公開サイトを開く<!--mp:en-->Open published site<!--mp:end--></a> · <a href=\"/\"><!--mp:ja-->投稿一覧へ<!--mp:en-->All posts<!--mp:end--></a></p>",
+      title_en="Published",
+    )
+  }
   admin_page(
     "Production files built",
     "<p>Built saved ready articles; drafts excluded. No deployment performed.</p><p>Pages: \{report.pages}; written: \{report.written}; unchanged: \{report.skipped}; deleted: \{report.deleted}.</p><p>Local output: <code>" +
@@ -69,7 +87,11 @@ fn admin_production_changes(report : BuildReport) -> String {
 }
 
 ///|
-fn admin_plan_production(input : String, token : String) -> String raise {
+fn admin_plan_production(
+  input : String,
+  token : String,
+  hosted? : Bool = false,
+) -> String raise {
   let output = admin_production_output(input)
   let review = review_build_plan(input, output)
   let plan = review.plan
@@ -89,6 +111,6 @@ fn admin_plan_production(input : String, token : String) -> String raise {
     "</p></details>" +
     admin_dependency_review(plan) +
     admin_production_plan_form(token) +
-    admin_production_form(token, review_id=review.review_id),
+    admin_production_form(token, review_id=review.review_id, hosted~),
   )
 }

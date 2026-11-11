@@ -37,6 +37,26 @@ fn admin_response(code : Int, html : String, language? : String = "") -> Bytes {
 
 ///|
 pub fn serve_admin(input : String, port : Int) -> Unit raise {
+  serve_admin_at(input, port, "")
+}
+
+///|
+pub fn serve_web_admin(
+  input : String,
+  port : Int,
+  origin : String,
+) -> Unit raise {
+  validate_web_origin(origin)
+  serve_admin_at(input, port, origin)
+}
+
+///|
+fn serve_admin_at(
+  input : String,
+  port : Int,
+  web_origin : String,
+) -> Unit raise {
+  let hosted = !web_origin.is_empty()
   if port < 1024 || port > 65534 {
     raise InvalidInput("Admin port must be 1024–65534")
   }
@@ -61,12 +81,16 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
   }
   defer admin_close(preview_server)
   let host = "127.0.0.1:\{port}"
-  println(
-    "MoonPress admin: http://" + host + "/ (Ctrl-C to stop; no deployment)",
-  )
-  println(
-    "MoonPress preview: http://127.0.0.1:\{preview_port}/ (build preview files first)",
-  )
+  if hosted {
+    println("MoonPress web backend listening on " + host)
+  } else {
+    println(
+      "MoonPress admin: http://" + host + "/ (Ctrl-C to stop; no deployment)",
+    )
+    println(
+      "MoonPress preview: http://127.0.0.1:\{preview_port}/ (build preview files first)",
+    )
+  }
   admin_flush()
   while true {
     let selected = admin_wait_listener(server, preview_server)
@@ -92,9 +116,24 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
     } else {
       let mut language = ""
       try {
-        let (request, body) = admin_read_request(client, host)
+        let (request, body) = admin_read_request(
+          client,
+          host,
+          allow_head=hosted,
+          web_origin~,
+        )
         language = request.language
-        if request.target.has_prefix("/language/") {
+        if hosted && request.target == "/web-health" && request.verb == "GET" {
+          preview_response(200, "text/plain; charset=utf-8", b"OK\n")
+        } else if hosted &&
+          (
+            request.target.has_prefix("/site/") ||
+            request.target.has_prefix("/preview/")
+          ) {
+          web_output(input, request)
+        } else if request.verb == "HEAD" {
+          preview_response(404, "text/plain; charset=utf-8", b"", head=true)
+        } else if request.target.has_prefix("/language/") {
           admin_language_response(request)
         } else if request.target.has_prefix("/assets/") {
           admin_ui_asset(request)
@@ -104,8 +143,19 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
           request.target.has_prefix("/media-image?") {
           admin_media_image(input, request)
         } else {
-          let (code, html) = admin_dispatch(input, request, body, token)
-          let html = admin_preview_navigation(html, preview_port).replace_all(
+          let (code, html) = admin_dispatch(
+            input,
+            request,
+            body,
+            token,
+            hosted~,
+          )
+          let preview_url = if hosted {
+            "/preview/"
+          } else {
+            "http://127.0.0.1:\{preview_port}/"
+          }
+          let html = admin_preview_navigation(html, preview_url, hosted).replace_all(
             old="<main id=",
             new=admin_language_navigation(
                 compose_language_target(request.target, body),
@@ -140,9 +190,21 @@ pub fn serve_admin(input : String, port : Int) -> Unit raise {
 extern "C" fn admin_wait_listener(admin : Int, preview : Int) -> Int = "moonpress_admin_wait_listener"
 
 ///|
-fn admin_preview_navigation(html : String, port : Int) -> String {
+fn admin_preview_navigation(
+  html : String,
+  preview_url : String,
+  hosted : Bool,
+) -> String {
+  let tail = if hosted {
+    " · <a href=\"/publish\"><!--mp:ja-->公開<!--mp:en-->Publish<!--mp:end--></a> · <a href=\"/site/\" target=\"_blank\" rel=\"noopener noreferrer\"><!--mp:ja-->公開サイト<!--mp:en-->View live site<!--mp:end--></a></nav>"
+  } else {
+    " · Local administration</nav>"
+  }
   html.replace_all(
     old=" · Local administration</nav>",
-    new=" · <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"http://127.0.0.1:\{port}/\"><!--mp:ja-->生成したプレビューを開く<!--mp:en-->Open built preview<!--mp:end--></a> · Local administration</nav>",
+    new=" · <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"" +
+      preview_url +
+      "\"><!--mp:ja-->生成したプレビューを開く<!--mp:en-->Open built preview<!--mp:end--></a>" +
+      tail,
   )
 }

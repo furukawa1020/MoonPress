@@ -216,6 +216,8 @@ pub fn serve_admin(String, Int) -> Unit raise
 
 pub fn serve_preview(String, Int) -> Unit raise
 
+pub fn serve_web_admin(String, Int, String) -> Unit raise
+
 pub fn serve_wordpress_rest(String, Int) -> Unit raise
 
 pub fn set_post_draft(String, String, String, Bool) -> SavePostReport raise

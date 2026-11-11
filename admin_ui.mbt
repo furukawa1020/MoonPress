@@ -152,6 +152,7 @@ fn admin_route(
   request : AdminRequest,
   body : String,
   token : String,
+  hosted? : Bool = false,
 ) -> (Int, String) raise {
   if request.verb == "GET" {
     if request.target.has_prefix("/compose?") {
@@ -240,7 +241,7 @@ fn admin_route(
       return admin_recovery(input)
     }
     if request.target == "/publish" {
-      return admin_publish(input, token)
+      return admin_publish(input, token, hosted~)
     }
     if publishing_room(request.target) is Some(room) {
       return (200, admin_room(input, token, room))
@@ -269,12 +270,17 @@ fn admin_route(
       )
     }
     if request.target == "/media" {
-      return (200, admin_media(input, token, Map([])))
+      return (200, admin_media(input, token, Map([]), hosted~))
     }
     if request.target.has_prefix("/media?") {
       return (
         200,
-        admin_media(input, token, admin_form(request.target[7:].to_owned())),
+        admin_media(
+          input,
+          token,
+          admin_form(request.target[7:].to_owned()),
+          hosted~,
+        ),
       )
     }
     if request.target == "/" {
@@ -353,6 +359,9 @@ fn admin_route(
       )
     }
     if request.target == "/import" {
+      if hosted {
+        raise InvalidInput("Use browser upload to add media in Web mode")
+      }
       if fields.length() != 3 {
         raise InvalidInput("Invalid import fields")
       }
@@ -401,7 +410,7 @@ fn admin_route(
       if fields.length() != 1 {
         raise InvalidInput("Invalid production plan fields")
       }
-      return (200, admin_plan_production(input, token))
+      return (200, admin_plan_production(input, token, hosted~))
     }
     if request.target == "/build-production" {
       if fields.length() != 2 {
@@ -409,7 +418,12 @@ fn admin_route(
       }
       return (
         200,
-        admin_build_production(input, token, admin_field(fields, "review_id")),
+        admin_build_production(
+          input,
+          token,
+          admin_field(fields, "review_id"),
+          hosted~,
+        ),
       )
     }
     if request.target == "/build-preview" {
@@ -591,7 +605,7 @@ fn admin_route(
           fields.get("slug").unwrap_or(""),
           fields.get("title").unwrap_or(""),
         )
-      } else if request.target == "/import" {
+      } else if request.target == "/import" && !hosted {
         admin_import_form(
           token,
           fields.get("source").unwrap_or(""),

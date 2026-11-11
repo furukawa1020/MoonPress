@@ -178,6 +178,7 @@ fn admin_dispatch(
   request : AdminRequest,
   body : Bytes,
   token : String,
+  hosted? : Bool = false,
 ) -> (Int, String) raise {
   if request.boundary is Some(boundary) {
     let replacing = request.target == "/replace-media"
@@ -215,6 +216,6 @@ fn admin_dispatch(
         )
     }
   } else {
-    admin_route(input, request, decode_text(body, "form body"), token)
+    admin_route(input, request, decode_text(body, "form body"), token, hosted~)
   }
 }

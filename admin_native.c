@@ -28,6 +28,12 @@ static int wait_fd(int fd, short events, int64_t until) {
 MOONBIT_FFI_EXPORT int moonpress_admin_listen(int port) {
   int fd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
   if (fd < 0) return -1;
+  // Permit an immediate restart after established connections close.
+  // SO_REUSEADDR does not let a second listener bind an active address.
+  int reuse = 1;
+  if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof reuse)) {
+    close(fd); return -1;
+  }
   struct sockaddr_in addr = {0};
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
