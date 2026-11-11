@@ -1,5 +1,5 @@
 ---
-{"title":"4. ZIPを取得して公開する","kind":"page"}
+{"title":"4. ZIPを取得して公開する","kind":"page","layout":"workshop.html"}
 ---
 # 4. ZIPを取得して公開する
 

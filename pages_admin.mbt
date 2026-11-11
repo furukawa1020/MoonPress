@@ -174,32 +174,54 @@ fn render_pages_admin(
     #|<!doctype html><html lang="ja"><head><meta charset="utf-8">
     #|<meta name="viewport" content="width=device-width, initial-scale=1">
     #|<meta name="robots" content="noindex, nofollow"><title>サイト管理 · MoonPress</title>
-    #|<style>
-    #|:root{color-scheme:light;font:15px/1.65 system-ui,sans-serif;color:#1d252d;background:#f5f6f7}
-    #|*{box-sizing:border-box}body{margin:0}a{color:#07557f;text-underline-offset:.2em}
-    #|a:focus-visible,summary:focus-visible{outline:3px solid #006d9c;outline-offset:4px}
-    #|header{background:#15222d;color:white;padding:.7rem max(1rem,calc((100vw - 72rem)/2));display:flex;align-items:center;gap:1.4rem;flex-wrap:wrap}
-    #|header a{color:white}header strong{font-size:1.05rem}.skip{position:absolute;left:-100vw}
-    #|.skip:focus{left:1rem;top:1rem;z-index:2;padding:.6rem;background:white}
-    #|.shell{display:grid;grid-template-columns:10rem minmax(0,1fr);width:min(72rem,100%);margin:auto}
-    #|nav{padding:1.5rem 1rem}nav ul{padding:0;list-style:none;margin:0}nav li a{display:block;padding:.35rem 0}
-    #|main{background:white;min-width:0;padding:1.6rem 2rem 4rem;border-inline-start:1px solid #c8d0d6}
-    #|h1{font-size:1.9rem;margin:0 0 .55rem;line-height:1.2}h2{font-size:1.3rem;margin:0 0 .65rem}
-    #|p{max-width:52rem;margin:.5rem 0 1rem}section{border-top:1px solid #c8d0d6;margin-top:1.6rem;padding-top:1.15rem}
-    #|.actions{display:flex;gap:.55rem 1rem;align-items:center;flex-wrap:wrap}
-    #|.primary{display:inline-block;background:#07557f;color:white;padding:.42rem .8rem;text-decoration:none}
-    #|.primary:hover{background:#173c53}.muted,.row-actions{color:#485966}
-    #|table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{text-align:left;vertical-align:top;padding:.6rem .5rem;border-bottom:1px solid #d9dee2;overflow-wrap:anywhere}
-    #|th:first-child{width:54%}th:nth-child(2){width:21%}thead{background:#f0f2f4}.row-actions{font-weight:400;font-size:.87rem;margin-top:.12rem}.source-name{font-size:.8rem;font-weight:400;color:#485966;margin-top:.25rem}
-    #|.media{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));padding:0;list-style:none;gap:0 1rem}
-    #|.media li{display:flex;align-items:center;gap:.6rem;min-height:3.4rem;border-bottom:1px solid #d9dee2;overflow-wrap:anywhere}
-    #|.media img{object-fit:contain;background:#f0f2f4;flex:none}summary{cursor:pointer}
-    #|@media(max-width:40rem){.shell{display:block}nav{padding:.65rem 1rem}nav ul{display:flex;flex-wrap:wrap;gap:.05rem .95rem}main{border-inline:0;padding:1.2rem 1rem 3rem}th,td{font-size:.86rem;padding:.45rem .3rem}th:first-child{width:49%}th:nth-child(2){width:24%}}
-    #|</style></head><body><a class="skip" href="#main">本文へ移動</a>
-    #|<header><strong>MoonPress</strong><a href="index.html">公開サイト</a></header>
-    #|<div class="shell"><nav aria-label="サイト管理"><ul><li><a href="#new">新規作成</a></li><li><a href="#posts">投稿</a></li><li><a href="#pages">固定ページ</a></li><li><a href="#quick-edit">一括変更</a></li><li><a href="#media">メディア</a></li><li><a href="#settings">設定・外観</a></li><li><a href="#publish">公開状況</a></li></ul></nav>
-    #|<main id="main" tabindex="-1"><h1>サイト管理</h1>
-    #|<p>一覧に掲載する公開済みの内容を確認し、GitHubにログインして編集できます。</p>
+    #|<link rel="stylesheet" href="style.css"><style>
+    #|.pages-admin{color-scheme:dark;margin:0;background:var(--bg,#080f24);color:var(--ink,#eee7d5);font:15px/1.65 var(--text,system-ui,sans-serif)}
+    #|.pages-admin *{box-sizing:border-box}
+    #|.pages-admin a{color:var(--link,#b9dddc);text-underline-offset:.2em}
+    #|.pages-admin a:hover{color:var(--gold,#f4d39a)}
+    #|.pages-admin a:focus-visible,.pages-admin summary:focus-visible{outline:3px solid var(--gold,#f4d39a);outline-offset:4px}
+    #|.pages-admin .site-header{display:flex;justify-content:space-between;align-items:center;gap:.5rem 1.5rem;flex-wrap:wrap;width:min(72rem,calc(100% - 2rem));margin:auto;padding:.75rem 0;border-block-end:1px solid var(--bronze,#846545)}
+    #|.pages-admin .brand{color:var(--gold,#f4d39a);text-decoration:none;font:1.45rem/1.25 var(--display,system-ui,sans-serif)}
+    #|.pages-admin .skip{position:absolute;left:-100vw}
+    #|.pages-admin .skip:focus{left:1rem;top:1rem;z-index:2;padding:.6rem;background:var(--bg,#080f24)}
+    #|.pages-admin .shell{display:grid;grid-template-columns:10rem minmax(0,1fr);width:min(72rem,calc(100% - 2rem));margin:auto}
+    #|.pages-admin .sidebar{display:block;padding:1.25rem .75rem 1.25rem 0}
+    #|.pages-admin .sidebar ul{padding:0;list-style:none;margin:0}
+    #|.pages-admin .sidebar li a{display:block;padding:.45rem .25rem}
+    #|.pages-admin main{background:var(--panel,#101834);min-width:0;width:auto;margin:0;padding:0 2rem 3.5rem;border-inline-start:1px solid var(--line,#455174)}
+    #|.pages-admin .admin-intro{padding:1.55rem 2rem;margin-inline:-2rem}
+    #|.pages-admin h1,.pages-admin h2{font-family:var(--display,system-ui,sans-serif);font-weight:400;color:var(--gold,#f4d39a)}
+    #|.pages-admin h1{font-size:clamp(1.7rem,4vw,2.25rem);margin:0 0 .45rem;line-height:1.25}
+    #|.pages-admin h2{font-size:1.25rem;margin:0 0 .65rem}
+    #|.pages-admin p{max-width:48rem;margin:.5rem 0 1rem}
+    #|.pages-admin .admin-intro p{max-width:33rem;margin:0;text-shadow:1px 1px 0 var(--bg,#080f24)}
+    #|.pages-admin section{border-block-start:1px solid var(--line,#455174);margin-top:1.4rem;padding-top:1rem}
+    #|.pages-admin section:first-of-type{border:0;margin-top:.5rem}
+    #|.pages-admin .actions{display:flex;gap:.55rem 1rem;align-items:center;flex-wrap:wrap}
+    #|.pages-admin .primary{display:inline-block;background:var(--gold,#f4d39a);color:var(--bg,#080f24);padding:.48rem .82rem;text-decoration:none;box-shadow:3px 3px 0 var(--bronze,#846545);font-family:var(--display,system-ui,sans-serif)}
+    #|.pages-admin .primary:hover{background:var(--ink,#eee7d5);color:var(--bg,#080f24)}
+    #|.pages-admin table{width:100%;border-collapse:collapse;table-layout:fixed}
+    #|.pages-admin th,.pages-admin td{text-align:left;vertical-align:top;padding:.6rem .5rem;border-bottom:1px solid var(--line,#455174);overflow-wrap:anywhere}
+    #|.pages-admin th:first-child{width:54%}.pages-admin th:nth-child(2){width:21%}
+    #|.pages-admin thead{background:var(--bg,#080f24);color:var(--gold,#f4d39a)}
+    #|.pages-admin .row-actions,.pages-admin .source-name{font-weight:400;color:var(--muted,#b6c1db);margin-top:.18rem}
+    #|.pages-admin .row-actions{font-size:.87rem}.pages-admin .source-name{font-size:.8rem}
+    #|.pages-admin .media{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));padding:0;list-style:none;gap:0 1rem;max-width:none}
+    #|.pages-admin .media li{display:flex;align-items:center;gap:.6rem;min-height:3.4rem;margin:0;border-bottom:1px solid var(--line,#455174);overflow-wrap:anywhere}
+    #|.pages-admin .media img{object-fit:contain;background:var(--bg,#080f24);flex:none}
+    #|.pages-admin summary{cursor:pointer}
+    #|@media(max-width:40rem){
+    #|  .pages-admin .shell{display:block;width:100%}.pages-admin .sidebar{padding:.5rem 1rem}
+    #|  .pages-admin .sidebar ul{display:flex;flex-wrap:wrap;gap:.05rem .85rem}
+    #|  .pages-admin main{border-inline:0;padding:0 1rem 3rem}.pages-admin .admin-intro{padding:1.05rem 1rem;margin-inline:-1rem}
+    #|  .pages-admin th,.pages-admin td{font-size:.86rem;padding:.45rem .3rem}
+    #|  .pages-admin th:first-child{width:49%}.pages-admin th:nth-child(2){width:24%}
+    #|}
+    #|</style></head><body class="pages-admin"><a class="skip" href="#main">本文へ移動</a>
+    #|<header class="site-header"><a class="brand" href="index.html"><span class="brand-moon" aria-hidden="true"></span>MoonPress</a><a href="index.html">公開サイト</a></header>
+    #|<div class="shell"><nav class="sidebar" aria-label="サイト管理"><ul><li><a href="#new">新規作成</a></li><li><a href="#posts">投稿</a></li><li><a href="#pages">固定ページ</a></li><li><a href="#quick-edit">一括変更</a></li><li><a href="#media">メディア</a></li><li><a href="#settings">設定・外観</a></li><li><a href="#publish">公開状況</a></li></ul></nav>
+    #|<main id="main" tabindex="-1"><div class="admin-intro"><h1>サイト管理</h1>
+    #|<p>一覧に掲載する公開済みの内容を確認し、GitHubにログインして編集できます。</p></div>
   head +
   "<section id=\"new\"><h2>新規作成</h2><div class=\"actions\"><a class=\"primary\" href=\"" +
   new_workflow +

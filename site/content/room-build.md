@@ -1,5 +1,5 @@
 ---
-{"title":"3. 公開用ファイルを生成する","kind":"page"}
+{"title":"3. 公開用ファイルを生成する","kind":"page","layout":"workshop.html"}
 ---
 # 3. 公開用ファイルを生成する
 

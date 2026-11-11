@@ -1,5 +1,5 @@
 ---
-{"title":"2. プレビューする","kind":"page"}
+{"title":"2. プレビューする","kind":"page","layout":"workshop.html"}
 ---
 # 2. プレビューする
 
