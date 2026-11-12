@@ -221,12 +221,12 @@ with tempfile.TemporaryDirectory() as temp:
                                 cwd=work, capture_output=True)
         assert result.returncode == 1 and not git('status', '--porcelain')
 
-    assert run(45, files='other.md', publish_at='2035-12-01 00:10')
-    assert metadata('other.md')['publish_at'] == '2035-11-30T15:10:00Z'
+    assert run(45, files='entry.md', publish_at='2000-12-01 00:10')
+    assert metadata('entry.md')['publish_at'] == '2000-11-30T15:10:00Z'
     git('branch', '-f', 'main', 'HEAD')
     git('push', '-q', 'origin', 'main')
     main = git('rev-parse', 'HEAD')
-    assert run(46, files='other.md', clear='publish_at')
-    assert 'publish_at' not in metadata('other.md')
+    assert run(46, files='entry.md', clear='publish_at')
+    assert 'publish_at' not in metadata('entry.md')
 
 print('Pages edits: metadata, original bytes, bulk, draft copy, revision restore, trash, untrash, no-op and rejected changes against a real Git remote.')
