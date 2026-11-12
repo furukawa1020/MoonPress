@@ -221,7 +221,7 @@ fn render_pages_admin(
     #|}
     #|</style></head><body class="pages-admin"><a class="skip" href="#main">本文へ移動</a>
     #|<header class="site-header"><a class="brand" href="index.html"><span class="brand-moon" aria-hidden="true"></span>MoonPress</a><a href="index.html">公開サイト</a></header>
-    #|<div class="shell"><nav class="sidebar" aria-label="サイト管理"><ul><li><a href="#new">新規作成</a></li><li><a href="#posts">投稿</a></li><li><a href="#pages">固定ページ</a></li><li><a href="#quick-edit">一括変更</a></li><li><a href="#trash">ゴミ箱</a></li><li><a href="#media">メディア</a></li><li><a href="#settings">設定・外観</a></li><li><a href="#publish">公開状況</a></li></ul></nav>
+    #|<div class="shell"><nav class="sidebar" aria-label="サイト管理"><ul><li><a href="#new">新規作成</a></li><li><a href="#posts">投稿</a></li><li><a href="#pages">固定ページ</a></li><li><a href="#quick-edit">一括変更</a></li><li><a href="#schedule">予約公開</a></li><li><a href="#trash">ゴミ箱</a></li><li><a href="#media">メディア</a></li><li><a href="#settings">設定・外観</a></li><li><a href="#publish">公開状況</a></li></ul></nav>
     #|<main id="main" tabindex="-1"><div class="admin-intro"><h1>サイト管理</h1>
     #|<p>一覧に掲載する公開済みの内容を確認し、GitHubにログインして編集できます。</p></div>
   head +
@@ -244,7 +244,11 @@ fn render_pages_admin(
   pages_admin_link(
     edit_workflow, "編集・複製・復元フォームを開く",
   ) +
-  "<details><summary>入力と公開の手順</summary><ol><li>空欄は現状のままです。抜粋などを消すときは消去欄に項目名を指定します。</li><li>複製するときは新しいタイトルとURL名を入力します。復元するときは一覧の「履歴」から戻したいコミットのSHAをコピーします。</li><li>実行結果のSummaryからPRを作成し、公開差分を確認してマージします。</li></ol><p>一覧非掲載でもURLを知っている人は閲覧できます。公開予約は、設定した時刻以降に再公開が必要です。</p></details>" +
+  "<details><summary>入力と公開の手順</summary><ol><li>空欄は現状のままです。抜粋などを消すときは消去欄に項目名を指定します。</li><li>複製するときは新しいタイトルとURL名を入力します。復元するときは一覧の「履歴」から戻したいコミットのSHAをコピーします。</li><li>実行結果のSummaryからPRを作成し、公開差分を確認してマージします。</li></ol><p>一覧非掲載でもURLを知っている人は閲覧できます。</p></details>" +
+  "</section><section id=\"schedule\"><h2>予約公開</h2><div class=\"actions\">" +
+  pages_admin_link(new_workflow, "投稿・固定ページを予約") +
+  pages_admin_link(edit_workflow, "予約を変更・解除") +
+  "</div><p>日本時間で入力し、PRをマージすると予約が有効になります。公開ジョブが30分ごとに確認します。配信には時間がかかる場合があります。</p>" +
   "</section><section id=\"trash\"><h2>ゴミ箱</h2><div class=\"actions\">" +
   pages_admin_link(
     repo + "/tree/main/" + pages_admin_source(config, "trash"),

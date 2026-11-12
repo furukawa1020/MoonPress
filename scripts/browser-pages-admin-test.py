@@ -66,7 +66,7 @@ with tempfile.TemporaryDirectory() as directory:
         ]})
         active = browser.call('GET', '/element/active')['element-6066-11e4-a52e-4f735466cecf']
         assert browser.call('GET', f'/element/{active}/attribute/href') == '#main'
-        for anchor in ('posts', 'pages', 'quick-edit', 'trash', 'media', 'settings', 'publish'):
+        for anchor in ('posts', 'pages', 'quick-edit', 'schedule', 'trash', 'media', 'settings', 'publish'):
             browser.click(f'nav a[href="#{anchor}"]')
             assert browser.call('GET', '/url').endswith('#' + anchor)
         edit = browser.element('#pages a[href$="/edit/main/site/content/guide.md"]')

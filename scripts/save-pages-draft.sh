@@ -22,7 +22,11 @@ git -c credential.helper='!gh auth git-credential' push \
   if [[ ${DRAFT_VISIBILITY:-draft} == ready ]]; then
     printf '## 公開候補を保存しました\n\n'
     printf '1. [PRを作成する](https://github.com/%s/compare/main...%s?expand=1)\n' "$GITHUB_REPOSITORY" "$branch"
-    printf '2. PRの確認結果を読んでマージすると公開されます。\n'
+    if [[ -n "${DRAFT_PUBLISH_AT:-}" ]]; then
+      printf '2. PRの確認結果を読んでマージすると予約が有効になります。時刻以降の公開ジョブで配信されます。\n'
+    else
+      printf '2. PRの確認結果を読んでマージすると公開されます。\n'
+    fi
     printf '3. [公開前に本文を修正する](https://github.com/%s/edit/%s/%s)\n\n' "$GITHUB_REPOSITORY" "$branch" "$file"
   else
     printf '## 下書きを作成しました\n\n'

@@ -9,6 +9,8 @@ import sys
 import tempfile
 from unicodedata import category
 
+from pages_schedule import publication_input
+
 SITE = Path('site')
 TEXT_FIELDS = {
     'title': 'title', 'excerpt': 'description', 'date': 'date',
@@ -49,6 +51,8 @@ def read_options(fields):
     for field, key in TEXT_FIELDS.items():
         value = fields.get(field, '').strip()
         if value:
+            if field == 'publish_at':
+                value = publication_input(value)
             if field in {'tags', 'categories'}:
                 items = [item.strip() for item in value.split(',')]
                 if not all(items):

@@ -6,6 +6,8 @@ import re
 import sys
 from urllib.parse import quote
 
+from pages_schedule import publication_input
+
 
 def compose_body(raw):
     raw = raw.replace('\r\n', '\n')
@@ -29,7 +31,7 @@ def image_markdown(site, filename, alt):
 
 
 def write_draft(site, slug, title, kind, excerpt, *, body='', image='', alt='',
-                date='', tags='', categories='', visibility='draft'):
+                date='', tags='', categories='', visibility='draft', publish_at=''):
     if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', slug) or len(slug) > 64:
         raise ValueError('Use a slug of at most 64 lowercase letters, digits and hyphens.')
     if not title.strip() or len(title) > 160 or any(not c.isprintable() for c in title):
@@ -45,6 +47,8 @@ def write_draft(site, slug, title, kind, excerpt, *, body='', image='', alt='',
     body = compose_body(body)
     if visibility not in {'draft', 'ready'} or (visibility == 'ready' and not body.strip()):
         raise ValueError('A publication candidate requires a Markdown body.')
+    if publish_at.strip() and visibility != 'ready':
+        raise ValueError('新規作成で予約するには公開候補を選んでください。')
     if alt and not image:
         raise ValueError('Choose an image when entering alt text.')
     if not body.strip():
@@ -53,6 +57,8 @@ def write_draft(site, slug, title, kind, excerpt, *, body='', image='', alt='',
         body = image_markdown(site, image, alt) + '\n\n' + body
 
     metadata = {'title': title.strip(), 'kind': kind, 'draft': visibility == 'draft'}
+    if publish_at.strip():
+        metadata['publish_at'] = publication_input(publish_at)
     if date:
         metadata['date'] = date
     for field, value in [('tags', tags), ('categories', categories)]:
@@ -74,7 +80,7 @@ if __name__ == '__main__':
             Path(sys.argv[1]), os.environ['DRAFT_SLUG'], os.environ['DRAFT_TITLE'],
             os.environ['DRAFT_KIND'], os.environ.get('DRAFT_EXCERPT', ''),
             **{field: os.environ['DRAFT_' + field.upper()]
-               for field in ('body', 'image', 'alt', 'date', 'tags', 'categories', 'visibility')
+               for field in ('body', 'image', 'alt', 'date', 'tags', 'categories', 'visibility', 'publish_at')
                if 'DRAFT_' + field.upper() in os.environ},
         )
     except (OSError, ValueError) as error:
