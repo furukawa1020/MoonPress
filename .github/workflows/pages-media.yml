@@ -1,0 +1,47 @@
+name: Replace Pages image
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 公開中の画像ファイル名
+        type: string
+        required: true
+      version:
+        description: 管理画面に表示された差し替え用 SHA-256
+        type: string
+        required: true
+      upload_branch:
+        description: 候補をアップロードしたブランチ名
+        type: string
+        required: true
+      source:
+        description: site/media-inbox にアップロードした候補のファイル名
+        type: string
+        required: true
+permissions:
+  contents: write
+jobs:
+  replace:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Fetch main revision
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+      - name: Build MoonPress
+        run: |
+          bash scripts/setup.sh
+          export PATH="$HOME/.moon/bin:$PATH"
+          moon build --target native --release
+      - name: Validate and prepare the review branch
+        env:
+          PAGES_MEDIA_INPUTS: ${{ toJSON(inputs) }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/pages-media.py _build/native/release/build/cmd/main/main.exe

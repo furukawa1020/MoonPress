@@ -130,32 +130,54 @@ fn pages_admin_table(
 }
 
 ///|
-fn pages_admin_media(assets : Array[String]) -> String {
+fn pages_admin_media(assets : Array[MediaItem]) -> String {
   if assets.is_empty() {
     return "<p>公開アセットはありません。</p>"
   }
   let out = StringBuilder()
-  out.write_string("<ul class=\"media\">")
-  for asset in assets {
-    let href = url_component(asset)
-    let extension = asset.to_lower()
-    let image = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif"].any(suffix => {
-      extension.has_suffix(suffix)
-    })
+  for images in [true, false] {
+    let group = assets.filter(item => item.image == images)
+    if group.is_empty() {
+      continue
+    }
     out.write_string(
-      "<li>" +
-      (if image {
-        "<img src=\"" +
-        href +
-        "\" alt=\"\" loading=\"lazy\" width=\"56\" height=\"40\">"
+      (if images {
+        "<h3>画像</h3>"
       } else {
-        ""
+        "<h3>その他のファイル</h3>"
       }) +
-      pages_admin_link(href, asset) +
-      "</li>",
+      "<ul class=\"media\">",
     )
+    for item in group {
+      let name = item.source[7:].to_owned()
+      let raster = raster_preview_mime(name) is Some(_)
+      let thumbnail = raster || name.to_lower().has_suffix(".avif")
+      out.write_string(
+        "<li>" +
+        (if thumbnail {
+          "<img src=\"" +
+          item.url +
+          "\" alt=\"\" loading=\"lazy\" width=\"56\" height=\"40\">"
+        } else {
+          ""
+        }) +
+        "<div>" +
+        pages_admin_link(item.url, name) +
+        "<div class=\"source-name\">" +
+        item.bytes.to_string() +
+        " B</div>" +
+        (if raster {
+          "<details><summary>差し替え用 SHA-256</summary><code>" +
+          escape_html(item.digest) +
+          "</code></details>"
+        } else {
+          ""
+        }) +
+        "</div></li>",
+      )
+    }
+    out.write_string("</ul>")
   }
-  out.write_string("</ul>")
   out.to_string()
 }
 
@@ -164,7 +186,7 @@ fn render_pages_admin(
   config : PagesAdminConfig,
   pages : Array[Page],
   sources : Map[String, String],
-  assets : Array[String],
+  assets : Array[MediaItem],
 ) -> String {
   let repo = "https://github.com/" + config.repository
   let new_workflow = repo + "/actions/workflows/pages-draft.yml"
@@ -210,6 +232,7 @@ fn render_pages_admin(
     #|.pages-admin .row-actions{font-size:.87rem}.pages-admin .source-name{font-size:.8rem}
     #|.pages-admin .media{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));padding:0;list-style:none;gap:0 1rem;max-width:none}
     #|.pages-admin .media li{display:flex;align-items:center;gap:.6rem;min-height:3.4rem;margin:0;border-bottom:1px solid var(--line,#455174);overflow-wrap:anywhere}
+    #|.pages-admin .media li>div{min-width:0}.pages-admin .media code{overflow-wrap:anywhere}
     #|.pages-admin .media img{object-fit:contain;background:var(--bg,#080f24);flex:none}
     #|.pages-admin summary{cursor:pointer}
     #|@media(max-width:40rem){
@@ -256,11 +279,20 @@ fn render_pages_admin(
   ) +
   pages_admin_link(edit_workflow, "移動・下書き復元フォーム") +
   "</div><p>原稿名をコピーし、GitHubで <code>trash</code>（移動）または <code>untrash</code>（下書き復元）を選びます。確認欄を選んで実行し、PRの公開差分を確認してからマージします。</p>" +
-  "</section><section id=\"media\"><h2>メディア</h2>" +
+  "</section><section id=\"media\"><h2>メディア</h2><div class=\"actions\">" +
   pages_admin_link(
     repo + "/upload/main/" + pages_admin_source(config, "public"),
     "画像・ファイルを追加",
   ) +
+  pages_admin_link(
+    repo + "/upload/main/" + pages_admin_source(config, "media-inbox"),
+    "差し替え候補をアップロード",
+  ) +
+  pages_admin_link(
+    repo + "/actions/workflows/pages-media.yml",
+    "画像を差し替える",
+  ) +
+  "</div><p>候補を新しいブランチへアップロードし、対象画像のファイル名と SHA-256 を使って差し替えます。</p>" +
   pages_admin_media(assets) +
   "</section><section id=\"settings\"><h2>設定・外観</h2><div class=\"actions\">" +
   pages_admin_link(

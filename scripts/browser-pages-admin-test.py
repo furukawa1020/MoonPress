@@ -77,6 +77,14 @@ with tempfile.TemporaryDirectory() as directory:
         assert browser.call('GET', f'/element/{history}/text') == '履歴'
         source = browser.element('#pages .source-name code')
         assert browser.call('GET', f'/element/{source}/text') == 'guide.md'
+        browser.click('nav a[href="#media"]')
+        browser.click('#media details summary')
+        digest = browser.element('#media details[open] code')
+        assert len(browser.call('GET', f'/element/{digest}/text')) == 64
+        replacement = browser.element('#media a[href$="/actions/workflows/pages-media.yml"]')
+        assert browser.call('GET', f'/element/{replacement}/text') == '画像を差し替える'
+        html = browser.element('html')
+        assert browser.call('GET', f'/element/{html}/property/scrollWidth') <= browser.call('GET', f'/element/{html}/property/clientWidth')
         assert browser.call('POST', '/elements', {'using': 'css selector', 'value': 'script'}) == []
         print('Chrome Pages: shared pixel theme on desktop and mobile, above-fold management link, keyboard navigation and GitHub editor destinations.')
     finally:

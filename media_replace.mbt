@@ -131,3 +131,27 @@ fn verify_media_stage(
       )
   }
 }
+
+///|
+pub fn replace_raster_from_file(
+  input : String,
+  name : String,
+  expected : String,
+  replacement : String,
+) -> ReplaceMediaReport raise {
+  let mime = match raster_preview_mime(name) {
+    Some(mime) => mime
+    None =>
+      raise InvalidInput("Replacement supports PNG, JPEG, GIF and WebP only")
+  }
+  require_input_kind(replacement, 1)
+  let bytes = read_opened_file(
+    open_file(replacement, 0),
+    replacement,
+    max_bytes=8388608,
+  )
+  if !media_preview_signature(mime, bytes) {
+    raise InvalidInput("Image signature does not match destination filename")
+  }
+  replace_media(input, name, expected, bytes)
+}
