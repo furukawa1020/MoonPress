@@ -30,6 +30,14 @@
 <li>**復元**は一覧の「履歴」から戻したいコミットの40桁のSHAをコピーし、<code>restore</code> で原稿名とSHAを指定します。</li>
 <li>**公開予約**はUTCで入力します。設定時刻以降に再公開が必要です。一覧非掲載のページはURLから閲覧できます。</li>
 </ul>
+<h2 id="mp-ゴミ箱と下書き復元">ゴミ箱と下書き復元</h2>
+<ol>
+<li><a href="manage.html">管理画面</a>で「ゴミ箱」を開き、移動・下書き復元フォームへ進みます。</li>
+<li><code>trash</code>（ゴミ箱へ移す）か <code>untrash</code>（下書きへ戻す）を選びます。原稿名は一覧または「ゴミ箱の原稿を見る」で確認します。カンマ区切りで最大20件を指定できます。</li>
+<li>確認欄を選んで実行し、SummaryからPRを作成します。サイト内に残るリンクが壊れる場合は、先にリンクを修正します。</li>
+<li>PRの公開差分を確認してマージします。戻した記事は下書きに入り、クイック編集フォームに同じ原稿名を指定すると、公開対象にできます。</li>
+</ol>
+<p>ゴミ箱の原稿は公開サイトの生成対象から外れます。公開リポジトリでは保管した原稿や過去の履歴を閲覧できます。</p>
 <h2 id="mp-自分のリポジトリで使う">自分のリポジトリで使う</h2>
 <p>このリポジトリの構成を引き継ぎ、<code>site/site.json</code> の <code>base_url</code> と <code>pages_admin.repository</code> を自分のサイトに合わせます。GitHub Pagesを <code>gh-pages</code> ブランチのルートから公開する設定にして、最初の Publish Pages を実行します。編集対象は <code>main</code> の <code>site/</code> です。</p>
 <p><a href="https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md">GitHub Pagesの設定と検証</a></p>
