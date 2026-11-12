@@ -31,7 +31,10 @@ fn post_names(input : String) -> Array[String] raise {
 }
 
 ///|
-fn summarize_post(input : String, name : String) -> PostSummary? raise {
+fn inspect_post_document(
+  input : String,
+  name : String,
+) -> (Document, String)? raise {
   let source = "content/" + name
   require_input_kind(input + "/" + source, 1)
   if !name.has_suffix(".md") {
@@ -47,8 +50,16 @@ fn summarize_post(input : String, name : String) -> PostSummary? raise {
   if !safe_output_name(output) {
     raise InvalidInput("Invalid output filename: " + output)
   }
+  Some((document, output))
+}
+
+///|
+fn summarize_post(input : String, name : String) -> PostSummary? raise {
+  guard inspect_post_document(input, name) is Some((document, output)) else {
+    return None
+  }
   Some({
-    source,
+    source: "content/" + name,
     output,
     title: document.title,
     kind: document.kind,

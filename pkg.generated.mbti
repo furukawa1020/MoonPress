@@ -126,6 +126,8 @@ pub fn normalize_base_url(String) -> String raise
 
 pub fn page_title(String, String) -> String
 
+pub fn pages_inventory(String) -> Array[PagesInventoryRow] raise
+
 pub fn parse_document(String, String, filename? : String) -> Document raise
 
 pub fn parse_manifest(String) -> Manifest raise
@@ -499,6 +501,19 @@ pub(all) struct Page {
   output : String
   document : Document
 }
+
+pub(all) struct PagesInventoryRow {
+  source : String
+  output : String
+  title : String
+  kind : String
+  status : String
+  date : String?
+  publish_at : String?
+  categories : Array[String]
+  tags : Array[String]
+} derive(ToJson)
+pub fn PagesInventoryRow::to_json(Self) -> Json
 
 pub(all) struct PlannedOutput {
   name : String

@@ -56,6 +56,7 @@ fn is_command(value : String) -> Bool {
   value == "save" ||
   value == "duplicate" ||
   value == "new" ||
+  value == "pages-inventory" ||
   value == "posts" ||
   value == "init" ||
   value == "build" ||
@@ -123,6 +124,8 @@ fn usage(command : String) -> String {
     "duplicate" =>
       "Usage: moonpress duplicate <site-directory> <filename.md> <expected-digest> <new-stem> <new-title> [--json]"
     "new" => "Usage: moonpress new <site-directory> <slug> <title> [--json]"
+    "pages-inventory" =>
+      "Usage: moonpress pages-inventory <site-directory> --json"
     "posts" => "Usage: moonpress posts <site-directory> [--json]"
     "init" => "Usage: moonpress init <site-directory> [--json]"
     "recovery-plan" =>
@@ -224,6 +227,8 @@ fn help_text(command : String) -> String {
       "Copy a saved valid article into a new draft with a source version check.\nRetain body/tags/layout/listing; clear old slug/date. Never overwrite or deploy."
     "new" =>
       "Create content/<slug>.md as a draft with the supplied title.\nThe site/content directory must exist; existing targets are never overwritten.\nEdit the generated Markdown, then build a separate preview with --include-drafts."
+    "pages-inventory" =>
+      "Read metadata for Pages administration, including drafts. Handle this report privately."
     "posts" =>
       "List all Markdown posts, including drafts and unlisted pages.\nRead metadata only; no layout, output or deployment validation is performed.\nNo files are written. Draft status is not a record of deployment."
     "init" =>
@@ -258,7 +263,10 @@ fn help_text(command : String) -> String {
       usage(command) +
       "\n\n--json prints a schema-1 report. No --include-drafts option.\nExit status: 0 healthy, 1 findings or validation/I/O failure, 2 incorrect arguments.\nFindings exit 1 with the complete report on stdout; operation errors use stderr with empty stdout."
   }
-  if command == "admin" || command == "preview" || command == "rest" {
+  if command == "admin" ||
+    command == "preview" ||
+    command == "rest" ||
+    command == "pages-inventory" {
     return description + "\n\n" + usage(command)
   }
   if command == "authoring-stage" ||
@@ -357,6 +365,7 @@ fn main {
     command == "init" ||
     command == "media-refs" ||
     command == "media" ||
+    command == "pages-inventory" ||
     command == "posts" {
     3
   } else {
@@ -407,6 +416,7 @@ fn main {
         command != "import" &&
         command != "media-refs" &&
         command != "media" &&
+        command != "pages-inventory" &&
         command != "posts" &&
         command != "duplicate" &&
         command != "new" &&
@@ -422,6 +432,9 @@ fn main {
         command != "rest" => json = true
       _ => valid = false
     }
+  }
+  if command == "pages-inventory" && !json {
+    valid = false
   }
   if command == "trash-purge" &&
     args.length() >= 6 &&
@@ -953,6 +966,9 @@ fn main {
           "Media: \{report.items.length()} (extension classification only; no files written)",
         )
       }
+    } else if command == "pages-inventory" {
+      let posts = @lib.pages_inventory(args[2])
+      print_report(command, true, posts.to_json())
     } else if command == "posts" {
       let report = @lib.list_posts(args[2])
       if json {

@@ -191,6 +191,7 @@ fn render_pages_admin(
   let repo = "https://github.com/" + config.repository
   let new_workflow = repo + "/actions/workflows/pages-draft.yml"
   let edit_workflow = repo + "/actions/workflows/pages-edit.yml"
+  let inventory_workflow = repo + "/actions/workflows/pages-inventory.yml"
   let settings = repo + "/edit/main/"
   let posts = pages.filter(page => page.document.kind == "post")
   let fixed = pages.filter(page => page.document.kind == "page")
@@ -244,7 +245,7 @@ fn render_pages_admin(
     #|}
     #|</style></head><body class="pages-admin"><a class="skip" href="#main">本文へ移動</a>
     #|<header class="site-header"><a class="brand" href="index.html"><span class="brand-moon" aria-hidden="true"></span>MoonPress</a><a href="index.html">公開サイト</a></header>
-    #|<div class="shell"><nav class="sidebar" aria-label="サイト管理"><ul><li><a href="#new">新規作成</a></li><li><a href="#posts">投稿</a></li><li><a href="#pages">固定ページ</a></li><li><a href="#quick-edit">一括変更</a></li><li><a href="#schedule">予約公開</a></li><li><a href="#trash">ゴミ箱</a></li><li><a href="#media">メディア</a></li><li><a href="#settings">設定・外観</a></li><li><a href="#publish">公開状況</a></li></ul></nav>
+    #|<div class="shell"><nav class="sidebar" aria-label="サイト管理"><ul><li><a href="#new">新規作成</a></li><li><a href="#inventory">投稿一覧</a></li><li><a href="#posts">投稿</a></li><li><a href="#pages">固定ページ</a></li><li><a href="#quick-edit">一括変更</a></li><li><a href="#schedule">予約公開</a></li><li><a href="#trash">ゴミ箱</a></li><li><a href="#media">メディア</a></li><li><a href="#settings">設定・外観</a></li><li><a href="#publish">公開状況</a></li></ul></nav>
     #|<main id="main" tabindex="-1"><div class="admin-intro"><h1>サイト管理</h1>
     #|<p>一覧に掲載する公開済みの内容を確認し、GitHubにログインして編集できます。</p></div>
   head +
@@ -259,6 +260,11 @@ fn render_pages_admin(
   ) +
   "</div><p>GitHubの「Run workflow」で本文・画像・分類を入力できます。下書きなら編集へ、公開候補なら実行結果からPRへ進みます。</p>" +
   "<details><summary>下書きから公開する手順</summary><ol><li>作成結果の「編集を開く」から本文を入力します。</li><li>GitHubのPreviewで本文を確認します。公開する版では <code>draft</code> を <code>false</code> にして保存します。</li><li>実行結果のPRリンクを開き、公開差分を確認してマージします。</li></ol><p>公開リポジトリのブランチやPRは閲覧できます。機密の下書きは公開リポジトリに保存しないでください。</p></details></section>" +
+  "<section id=\"inventory\"><h2>投稿一覧</h2><div class=\"actions\"><a class=\"primary\" href=\"" +
+  inventory_workflow +
+  "\">投稿・固定ページを検索</a>" +
+  pages_admin_link("guide.html#mp-投稿一覧を検索", "一覧の使い方") +
+  "</div><p>GitHubの「Run workflow」でタイトル、分類、公開状態を絞り込み、実行結果から編集や履歴を開きます。</p><p>このリポジトリのサマリーは公開されます。下書き・予約・一覧非掲載の情報を含めるときは、共有する内容を確認してください。</p></section>" +
   "<section id=\"posts\"><h2>投稿</h2>" +
   pages_admin_table(posts, sources, config, repo) +
   "</section><section id=\"pages\"><h2>固定ページ</h2>" +
