@@ -66,9 +66,16 @@ with tempfile.TemporaryDirectory() as directory:
         ]})
         active = browser.call('GET', '/element/active')['element-6066-11e4-a52e-4f735466cecf']
         assert browser.call('GET', f'/element/{active}/attribute/href') == '#main'
-        for anchor in ('posts', 'pages', 'quick-edit', 'schedule', 'trash', 'media', 'settings', 'publish'):
+        for anchor in ('inventory', 'posts', 'pages', 'quick-edit', 'schedule', 'trash', 'media', 'settings', 'publish'):
             browser.click(f'nav a[href="#{anchor}"]')
             assert browser.call('GET', '/url').endswith('#' + anchor)
+        inventory = browser.element('#inventory a[href$="/actions/workflows/pages-inventory.yml"]')
+        assert browser.call('GET', f'/element/{inventory}/text') == '投稿・固定ページを検索'
+        browser.click('#inventory a[href^="guide.html#"]')
+        assert browser.call('GET', '/url').startswith(base + 'guide.html#mp-')
+        browser.element('h2[id="mp-投稿一覧を検索"]')
+        browser.expect_text('投稿一覧を検索')
+        browser.go(base + 'manage.html')
         edit = browser.element('#pages a[href$="/edit/main/site/content/guide.md"]')
         assert browser.call('GET', f'/element/{edit}/attribute/href') == 'https://github.com/furukawa1020/MoonPress/edit/main/site/content/guide.md'
         quick_edit = browser.element('#pages a[href$="/actions/workflows/pages-edit.yml"]')

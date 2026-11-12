@@ -53,6 +53,7 @@ jobs:
           python3 scripts/pages-compose-test.py
           python3 scripts/pages-schedule-test.py
           python3 scripts/pages-media-test.py
+          python3 scripts/pages-inventory-test.py
           if test -f "$RUNNER_TEMP/merge-bundle/manage.html"; then
             python3 scripts/browser-pages-admin-test.py "$RUNNER_TEMP/merge-bundle"
           fi

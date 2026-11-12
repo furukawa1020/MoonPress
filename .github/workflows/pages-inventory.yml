@@ -1,0 +1,65 @@
+name: List Pages content
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/pages-inventory.yml", "scripts/pages-inventory.py"]
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: 種類（すべて / 投稿 / 固定ページ）
+        type: choice
+        options: [all, post, page]
+        default: all
+      status:
+        description: 状態（すべて / 公開対象・掲載 / 一覧非掲載 / 下書き / 予約済み）
+        type: choice
+        options: [all, published, unlisted, draft, scheduled]
+        default: all
+      query:
+        description: タイトルまたは原稿パス（部分一致）
+        type: string
+      tag:
+        description: タグ名（完全一致）
+        type: string
+      category:
+        description: カテゴリー名（完全一致）
+        type: string
+      order:
+        description: 並べ替え（日付の新しい順 / 古い順 / タイトル順）
+        type: choice
+        options: [newest, oldest, title]
+        default: newest
+      page:
+        description: 結果のページ番号（1ページ50件）
+        type: string
+        default: '1'
+      share_unlisted_and_drafts:
+        description: サマリーの閲覧者に一覧非掲載・下書き・予約の情報を共有する（公開リポジトリでは誰でも閲覧可能）
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  inventory:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Fetch exact main revision
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+      - name: Build MoonPress
+        run: |
+          bash scripts/setup.sh
+          export PATH="$HOME/.moon/bin:$PATH"
+          moon build --target native --release
+      - name: Summarize content metadata
+        env:
+          PAGES_INVENTORY_INPUTS: ${{ github.event_name == 'workflow_dispatch' && toJSON(inputs) || '{}' }}
+        run: python3 scripts/pages-inventory.py _build/native/release/build/cmd/main/main.exe site
