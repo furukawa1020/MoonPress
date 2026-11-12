@@ -9,7 +9,7 @@ fn is_revision_command(command : String) -> Bool {
   [
     "post-identity", "wxr-inspect", "wxr-import", "wxr-export", "post-schedule",
     "post-categories", "post-kind", "history-enable", "history", "checkpoint", "revision",
-    "restore-revision", "compare-revision", "pages-patch",
+    "restore-revision", "compare-revision", "pages-patch", "pages-media-replace",
   ].contains(command)
 }
 
@@ -24,7 +24,11 @@ fn revision_required(command : String) -> Int {
   match command {
     "wxr-inspect" => 3
     "post-identity" | "wxr-import" => 7
-    "post-schedule" | "post-categories" | "post-kind" | "pages-patch" => 6
+    "post-schedule"
+    | "post-categories"
+    | "post-kind"
+    | "pages-patch"
+    | "pages-media-replace" => 6
     "history-enable" => 3
     "checkpoint" | "compare-revision" => 5
     "restore-revision" => 6
@@ -53,6 +57,8 @@ fn revision_usage(command : String) -> String {
       " <article.md> <expected-digest> <newline-separated-categories> [--json]"
     "post-kind" => " <article.md> <expected-digest> <post|page> [--json]"
     "pages-patch" => " <article.md> <expected-digest> <patch.json> [--json]"
+    "pages-media-replace" =>
+      " <asset-name> <expected-digest> <replacement-file> [--json]"
     "history-enable" => " [--json]"
     "history" => " <article.md> [--json]"
     "checkpoint" => " <article.md> <expected-digest> [--json]"
@@ -90,6 +96,8 @@ fn revision_run(args : Array[String]) -> Json raise {
       @lib.save_post_kind(args[2], args[3], args[4], args[5]).to_json()
     "pages-patch" =>
       @lib.apply_pages_patch(args[2], args[3], args[4], args[5]).to_json()
+    "pages-media-replace" =>
+      @lib.replace_raster_from_file(args[2], args[3], args[4], args[5]).to_json()
     "history-enable" => @lib.enable_post_history(args[2]).to_json()
     "history" => @lib.list_post_revisions(args[2], args[3]).to_json()
     "checkpoint" => @lib.checkpoint_post(args[2], args[3], args[4]).to_json()

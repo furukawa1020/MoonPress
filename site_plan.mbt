@@ -360,6 +360,7 @@ fn plan_site(
   })
   pending.push(plan_artifact(".nojekyll", [], previous, output, () => b"", log))
   let assets = public_asset_names(input)
+  let media : Array[MediaItem] = []
   for name in assets {
     route_info.push({
       name,
@@ -368,10 +369,14 @@ fn plan_site(
       target: None,
     })
     let bytes = read_bytes(input + "/public/" + name)
+    let item = media_item(name, bytes)
+    if config.pages_admin is Some(_) {
+      media.push(item)
+    }
     pending.push(
       plan_artifact(
         name,
-        [{ name: "public/" + name, digest: digest_bytes(bytes), }],
+        [{ name: item.source, digest: item.digest, }],
         previous,
         output,
         () => bytes,
@@ -391,7 +396,7 @@ fn plan_site(
       !page.document.draft &&
       publication_due(page.document.publish_at, instant)
     })
-    let html = render_pages_admin(admin, public_pages, source_files, assets)
+    let html = render_pages_admin(admin, public_pages, source_files, media)
     route_info.push({
       name: "manage.html",
       kind: "admin",
