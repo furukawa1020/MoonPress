@@ -45,6 +45,14 @@
 <li>PRの公開差分を確認してマージします。戻した記事は下書きに入り、クイック編集フォームに同じ原稿名を指定すると、公開対象にできます。</li>
 </ol>
 <p>ゴミ箱の原稿は公開サイトの生成対象から外れます。公開リポジトリでは保管した原稿や過去の履歴を閲覧できます。</p>
+<h2 id="mp-公開画像を同じurlで差し替える">公開画像を同じURLで差し替える</h2>
+<ol>
+<li>サイト管理の「メディア」で公開画像を探し、ファイル名と「差し替え用 SHA-256」を控えます。</li>
+<li>「差し替え候補をアップロード」で候補を <code>site/media-inbox</code> に追加し、**新しいブランチ**にコミットします。アップロード用ブランチは候補を置く場所です。</li>
+<li>「画像を差し替える」を開き、GitHub Actionsのブランチ選択は <code>main</code> にします。フォームに対象名、SHA-256、アップロード先のブランチ名、候補のファイル名を入力します。</li>
+<li>実行結果のSummaryから差し替えのPRを作ります。公開差分を確認してマージすると、記事が参照していた同じURLから新しい画像が表示されます。</li>
+</ol>
+<p>PNG・JPEG・GIF・WebPに対応します。候補は公開画像と同じ形式で8 MiB以下にします。公開リポジトリのアップロード用ブランチは閲覧できます。</p>
 <h2 id="mp-自分のリポジトリで使う">自分のリポジトリで使う</h2>
 <p>このリポジトリの構成を引き継ぎ、<code>site/site.json</code> の <code>base_url</code> と <code>pages_admin.repository</code> を自分のサイトに合わせます。GitHub Pagesを <code>gh-pages</code> ブランチのルートから公開する設定にして、最初の Publish Pages を実行します。編集対象は <code>main</code> の <code>site/</code> です。</p>
 <p><a href="https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md">GitHub Pagesの設定と検証</a></p>
