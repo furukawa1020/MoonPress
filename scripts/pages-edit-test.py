@@ -39,6 +39,13 @@ with tempfile.TemporaryDirectory() as temp:
     source = content / 'entry.md'
     source.write_bytes(legacy)
     (content / 'other.md').write_text('# Other\n', encoding='utf-8')
+    (content / 'fixed.md').write_text('---\n{"kind":"page"}\n---\n# Fixed\n', encoding='utf-8')
+    (site / 'site.json').write_text(json.dumps({
+        **json.loads((site / 'site.json').read_text()),
+        'base_url': 'https://example.test/',
+        'feed': {'title': 'Site', 'description': 'Test'},
+        'pages_admin': {'repository': 'example/MoonPress', 'directory': 'site'},
+    }), encoding='utf-8')
     (content / 'scheduled.md').write_text(
         '---\n{"title":"Scheduled","draft":true,"publish_at":"2035-12-01T00:00:00Z"}\n---\n# Later\n',
         encoding='utf-8',
@@ -152,6 +159,60 @@ with tempfile.TemporaryDirectory() as temp:
     assert not (root / 'drafted' / 'other.html').exists()
     reset()
 
+    originals = {name: (content / name).read_bytes() for name in ('other.md', 'fixed.md', 'scheduled.md')}
+    trash = site / 'trash'
+    for number, fields in enumerate([
+        {'files': 'other.md'},
+        {'files': 'other.md,missing.md', 'confirm_trash': True},
+        {'files': '../other.md', 'confirm_trash': True},
+        {'files': 'entry.md', 'confirm_trash': True},  # Still linked by index.
+        {'files': 'other.md', 'confirm_trash': True, 'title': 'Ambiguous'},
+    ], start=30):
+        assert not run(number, operation='trash', reject=True, **fields)
+        reset()
+
+    assert run(40, operation='trash', files='other.md,fixed.md,scheduled.md', confirm_trash=True)
+    for name, data in originals.items():
+        assert (trash / name).read_bytes() == data and not (content / name).exists()
+    command(work, CLI, 'build', 'site', root / 'trashed')
+    for name in ('other.html', 'fixed.html', 'scheduled.html'):
+        assert not (root / 'trashed' / name).exists()
+        for page in ('rss.xml', 'sitemap.xml', 'manage.html'):
+            assert name not in (root / 'trashed' / page).read_text()
+    assert not (root / 'trashed' / 'trash').exists()
+    review = command(ROOT, sys.executable, ROOT / 'scripts/pages-review.py', root / 'production', root / 'trashed').decode()
+    removed = review.split('### 削除', 1)[1]
+    assert 'other.html' in removed and 'fixed.html' in removed
+    assert 'ゴミ箱への移動' in (root / 'summary').read_text()
+
+    # Simulate approval before starting restoration from the new main.
+    git('branch', '-f', 'main', 'HEAD')
+    git('push', '-q', 'origin', 'main')
+    main = git('rev-parse', 'HEAD')
+    assert run(41, operation='untrash', files='other.md,fixed.md,scheduled.md', confirm_trash=True)
+    for name, data in originals.items():
+        assert metadata(name)['draft'] is True
+        assert not (trash / name).exists()
+        assert (content / name).read_bytes().endswith(data.splitlines(keepends=True)[-1])
+    command(work, CLI, 'build', 'site', root / 'restored')
+    command(work, CLI, 'build', 'site', root / 'restored-preview', '--include-drafts')
+    assert not (root / 'restored' / 'other.html').exists()
+    assert (root / 'restored-preview' / 'other.html').exists()
+    assert '下書きへの復元' in (root / 'summary').read_text()
+    reset()
+
+    # Keep this collision/symlink fixture detached from remote main.
+    (content / 'other.md').write_text('# Replacement\n')
+    git('add', 'site')
+    git('commit', '-qm', 'Add a colliding source')
+    for number, operation in [(42, 'trash'), (43, 'untrash')]:
+        assert not run(number, operation=operation, files='other.md', confirm_trash=True, reject=True)
+    (trash / 'alias.md').symlink_to('other.md')
+    git('add', 'site')
+    git('commit', '-qm', 'Add an unsafe trash source')
+    assert not run(44, operation='untrash', files='alias.md', confirm_trash=True, reject=True)
+    reset()
+
     patch = root / 'patch.json'
     patch.write_text('{"body":"unexpected"}')
     digest = json.loads(command(work, CLI, 'read', 'site', 'entry.md', '--json'))['report']['digest']
@@ -160,4 +221,4 @@ with tempfile.TemporaryDirectory() as temp:
                                 cwd=work, capture_output=True)
         assert result.returncode == 1 and not git('status', '--porcelain')
 
-print('Pages edits: metadata, original bytes, bulk, draft copy, restore, no-op and rejected changes against a real Git remote.')
+print('Pages edits: metadata, original bytes, bulk, draft copy, revision restore, trash, untrash, no-op and rejected changes against a real Git remote.')

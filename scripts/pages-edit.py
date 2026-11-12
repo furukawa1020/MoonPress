@@ -16,6 +16,7 @@ TEXT_FIELDS = {
     'layout': 'layout', 'publish_at': 'publish_at',
 }
 CLEARABLE = TEXT_FIELDS.keys() - {'title'}
+TRASH_OPERATIONS = {'trash', 'untrash'}
 
 
 def filename(name):
@@ -39,9 +40,9 @@ def read_options(fields):
         raise ValueError('原稿は重複なしで最大20件まで指定できます。')
 
     operation = fields['operation']
-    if operation not in {'edit', 'duplicate', 'restore'}:
+    if operation not in {'edit', 'duplicate', 'restore'} | TRASH_OPERATIONS:
         raise ValueError('操作を選んでください。')
-    if operation != 'edit' and len(names) != 1:
+    if operation in {'duplicate', 'restore'} and len(names) != 1:
         raise ValueError('複製と復元の対象は1件です。')
 
     patch = {}
@@ -76,7 +77,12 @@ def read_options(fields):
 
     stem = fields.get('copy_to', '').strip()
     revision = fields.get('revision', '').strip()
-    if operation == 'duplicate':
+    if operation in TRASH_OPERATIONS:
+        if fields.get('confirm_trash') is not True:
+            raise ValueError('ゴミ箱操作の確認欄を選んでください。')
+        if patch or stem or revision:
+            raise ValueError('ゴミ箱操作では原稿名と確認欄だけを指定してください。')
+    elif operation == 'duplicate':
         if (not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', stem)
                 or len(stem) > 64 or patch.keys() != {'title'} or revision):
             raise ValueError('複製には新しいタイトルと複製先のURL名だけを指定してください。')
@@ -89,11 +95,38 @@ def read_options(fields):
     return names, operation, patch, stem, revision
 
 
-def prepare(cli, fields):
-    names, operation, patch, stem, revision = read_options(fields)
-    if git('status', '--porcelain', stdout=subprocess.PIPE).stdout:
-        raise ValueError('編集を始める前に、作業ディレクトリをクリーンにしてください。')
+def relocate(cli, names, operation):
+    content, trash = SITE / 'content', SITE / 'trash'
+    if SITE.is_symlink() or content.is_symlink() or not content.is_dir():
+        raise ValueError('正規の原稿フォルダを使用してください。')
+    if trash.is_symlink() or (trash.exists() and not trash.is_dir()):
+        raise ValueError('ゴミ箱フォルダを確認してください。')
 
+    from_dir, to_dir = (content, trash) if operation == 'trash' else (trash, content)
+    moves = [(from_dir / name, to_dir / name) for name in names]
+    for source, target in moves:
+        if source.is_symlink() or not source.is_file():
+            raise ValueError(f'原稿が見つからないか、安全に操作できません: {source}')
+        if target.exists() or target.is_symlink():
+            raise ValueError(f'同名の原稿があります: {target}')
+        git('ls-files', '--error-unmatch', '--', str(source), stdout=subprocess.DEVNULL)
+        if operation == 'trash':
+            subprocess.check_output([cli, 'read', SITE, source.name, '--json'])
+
+    to_dir.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory() as temp:
+        patch = Path(temp) / 'draft.json'
+        patch.write_text('{"draft":true}', encoding='utf-8')
+        for source, target in moves:
+            source.rename(target)
+            if operation == 'untrash':
+                result = json.loads(subprocess.check_output([cli, 'read', SITE, target.name, '--json']))
+                digest = result['report']['digest']
+                subprocess.check_output([cli, 'pages-patch', SITE, target.name, digest, patch, '--json'])
+    return [path for move in moves for path in move]
+
+
+def prepare_edit(cli, names, operation, patch, stem, revision):
     def native(*args):
         return subprocess.check_output([cli, *args])
 
@@ -126,12 +159,25 @@ def prepare(cli, fields):
         else:
             return []
 
-    git('add', '--', *map(str, sources.values()))
-    changed = git('diff', '--cached', '--name-only', '-z', stdout=subprocess.PIPE).stdout
+    return list(sources.values())
+
+
+def prepare(cli, fields):
+    names, operation, patch, stem, revision = read_options(fields)
+    if git('status', '--porcelain', stdout=subprocess.PIPE).stdout:
+        raise ValueError('編集を始める前に、作業ディレクトリをクリーンにしてください。')
+    if operation in TRASH_OPERATIONS:
+        paths = relocate(cli, names, operation)
+    else:
+        paths = prepare_edit(cli, names, operation, patch, stem, revision)
+    if not paths:
+        return []
+    git('add', '-A', '--', *map(str, paths))
+    changed = git('diff', '--cached', '--name-only', '--no-renames', '-z', stdout=subprocess.PIPE).stdout
     if not changed:
         return []
-    native('check', SITE, '--include-drafts')
-    native('check', SITE)
+    subprocess.check_output([cli, 'check', SITE, '--include-drafts'])
+    subprocess.check_output([cli, 'check', SITE])
     return changed.decode().rstrip('\0').split('\0')
 
 
@@ -164,8 +210,12 @@ def publish(cli, fields, context):
             f'--force-with-lease={ref}:', 'origin', f'HEAD:{ref}',
         )
         paths = escape('\n'.join(changed))
+        title = {
+            'trash': 'ゴミ箱への移動を作業ブランチに保存しました',
+            'untrash': '下書きへの復元を作業ブランチに保存しました',
+        }.get(fields['operation'], '作業ブランチに保存しました')
         summary.write(
-            f'## 作業ブランチに保存しました\n\n<pre>{paths}</pre>\n\n'
+            f'## {title}\n\n<pre>{paths}</pre>\n\n'
             f'[PRを作成する](https://github.com/{repo}/compare/main...{branch}?expand=1)\n\n'
             'PRの公開差分を確認し、マージしてからPagesの公開結果を確認してください。\n'
         )

@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       operation:
-        description: 編集 (edit)・複製 (duplicate)・復元 (restore)
+        description: 編集 (edit)・複製 (duplicate)・版の復元 (restore)・ゴミ箱 (trash / untrash)
         type: choice
-        options: [edit, duplicate, restore]
+        options: [edit, duplicate, restore, trash, untrash]
         default: edit
         required: true
       files:
@@ -60,6 +60,10 @@ on:
       revision:
         description: 復元するコミットのSHA（復元のみ。40桁）
         type: string
+      confirm_trash:
+        description: 指定原稿をゴミ箱へ移動するか、ゴミ箱から下書きへ戻すことを確認
+        type: boolean
+        default: false
 permissions:
   contents: write
 jobs:
