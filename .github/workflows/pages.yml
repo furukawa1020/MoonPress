@@ -3,14 +3,17 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '7,37 * * * *'
 permissions:
   contents: write
   pages: write
 concurrency:
   group: pages
-  cancel-in-progress: true
+  queue: max
 jobs:
   publish:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -23,15 +26,41 @@ jobs:
           git remote add origin "https://github.com/$REPOSITORY.git"
           git fetch --depth=1 origin "$REVISION"
           git checkout --detach FETCH_HEAD
+      - name: Check for due publications
+        id: due
+        if: github.event_name == 'schedule'
+        run: |
+          due="$(python3 scripts/pages_schedule.py site)"
+          echo "publish=$due" >> "$GITHUB_OUTPUT"
+          if [[ "$due" == false ]]; then
+            echo '公開時刻に達した予約原稿はありません。' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Set up MoonBit
+        if: github.event_name != 'schedule' || steps.due.outputs.publish == 'true'
         run: |
           bash scripts/setup.sh
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
       - name: Verify native compiler
+        if: github.event_name != 'schedule'
         run: bash scripts/check.sh
+      - name: Build native compiler for scheduled publication
+        if: github.event_name == 'schedule' && steps.due.outputs.publish == 'true'
+        run: moon build --target native --release
       - name: Compile own website
+        if: github.event_name != 'schedule' || steps.due.outputs.publish == 'true'
         run: _build/native/release/build/cmd/main/main.exe build site dist
       - name: Publish generated files and request Pages build
+        if: github.event_name != 'schedule' || steps.due.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash scripts/deploy-pages.sh dist site
+        run: |
+          current="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [[ -z "$current" ]]; then
+            echo '公開対象の main を確認できません。' >&2
+            exit 1
+          fi
+          if [[ "$current" != "$GITHUB_SHA" ]]; then
+            echo 'main が更新されたため、このリビジョンの公開を見送りました。' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          bash scripts/deploy-pages.sh dist site

@@ -39,7 +39,7 @@ on:
         options: [keep, post, page]
         default: keep
       publish_at:
-        description: 公開予約（UTC、例 2027-01-01T09:00:00Z。時刻以降に再公開が必要）
+        description: 公開予約（日本時間 2027-01-01 09:00 または UTC 2027-01-01T00:00:00Z）
         type: string
       listing:
         description: 一覧への掲載（変更なし・掲載・非掲載）

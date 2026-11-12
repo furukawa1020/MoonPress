@@ -37,6 +37,9 @@ on:
       categories:
         description: カテゴリ（カンマ区切り）
         type: string
+      publish_at:
+        description: 予約日時（例 2027-01-01 09:00 JST。入力は 2027-01-01 09:00）
+        type: string
       visibility:
         description: 下書き (draft) または公開候補 (ready。本文が必須)
         type: choice
@@ -71,6 +74,7 @@ jobs:
           DRAFT_DATE: ${{ inputs.date }}
           DRAFT_TAGS: ${{ inputs.tags }}
           DRAFT_CATEGORIES: ${{ inputs.categories }}
+          DRAFT_PUBLISH_AT: ${{ inputs.publish_at }}
           DRAFT_VISIBILITY: ${{ inputs.visibility }}
         run: python3 scripts/create-pages-draft.py site
       - name: Validate draft and production routes
@@ -84,6 +88,7 @@ jobs:
       - name: Save draft branch and editor links
         env:
           DRAFT_SLUG: ${{ inputs.slug }}
+          DRAFT_PUBLISH_AT: ${{ inputs.publish_at }}
           DRAFT_VISIBILITY: ${{ inputs.visibility }}
           GH_TOKEN: ${{ github.token }}
         run: bash scripts/save-pages-draft.sh
