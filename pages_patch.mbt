@@ -14,6 +14,27 @@ fn pages_patch_original_body(source : String) -> String {
 }
 
 ///|
+fn pages_patch_taxonomy(
+  snapshot : PostSnapshot,
+  name : String,
+  key : String,
+  items : Array[Json],
+) -> String raise {
+  let (metadata, _) = document_parts(snapshot.content, name)
+  let fields = match metadata {
+    Object(fields) => fields
+    _ => raise InvalidInput("Invalid article metadata")
+  }
+  fields[key] = items.to_json()
+  let source = "---\n" +
+    metadata.stringify() +
+    "\n---\n" +
+    pages_patch_original_body(snapshot.content)
+  parse_document(source, name) |> ignore
+  source
+}
+
+///|
 pub fn apply_pages_patch(
   input : String,
   name : String,
@@ -27,6 +48,23 @@ pub fn apply_pages_patch(
   }
   let snapshot = read_post(input, name)
   require_post_version(snapshot, expected)
+  // Taxonomy operations supply a single typed field. Preserve even existing
+  // terms that cannot be represented in the editor's line-separated fields.
+  for key in ["tags", "categories"] {
+    if patch.get(key) is Some(Array(items)) {
+      if patch.length() != 1 {
+        raise InvalidInput(
+          "A Pages taxonomy change must contain just one field",
+        )
+      }
+      return save_post(
+        input,
+        name,
+        expected,
+        pages_patch_taxonomy(snapshot, name, key, items),
+      )
+    }
+  }
   let values = compose_values(snapshot, "", name)
   values["intent"] = "save"
   for key, value in patch {

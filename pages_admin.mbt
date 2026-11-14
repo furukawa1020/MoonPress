@@ -182,6 +182,64 @@ fn pages_admin_media(assets : Array[MediaItem]) -> String {
 }
 
 ///|
+fn pages_admin_terms(
+  label : String,
+  terms : Array[TagSummary],
+  filename : (String) -> String,
+) -> String {
+  let out = StringBuilder()
+  out.write_string("<h3>" + label + "</h3>")
+  if terms.is_empty() {
+    out.write_string("<p>使用中の項目はありません。</p>")
+  } else {
+    out.write_string("<ul class=\"classification\">")
+    for term in terms {
+      out.write_string(
+        "<li>" +
+        pages_admin_link(filename(term.name), term.name) +
+        " <span>(\{term.count} 件)</span></li>",
+      )
+    }
+    out.write_string("</ul>")
+  }
+  out.to_string()
+}
+
+///|
+fn pages_admin_taxonomy(pages : Array[Page], repo : String) -> String {
+  let categories : Map[String, Int] = Map([])
+  let tags : Map[String, Int] = Map([])
+  for page in pages {
+    if page.document.kind == "post" {
+      for name in page.document.categories {
+        categories[name] = categories.get(name).unwrap_or(0) + 1
+      }
+      for name in page.document.tags {
+        tags[name] = tags.get(name).unwrap_or(0) + 1
+      }
+    }
+  }
+  let categories : Array[TagSummary] = categories
+    .to_array()
+    .map(pair => { name: pair.0, count: pair.1, })
+  let tags : Array[TagSummary] = tags
+    .to_array()
+    .map(pair => { name: pair.0, count: pair.1, })
+  categories.sort_by((a, b) => a.name.compare(b.name))
+  tags.sort_by((a, b) => a.name.compare(b.name))
+  "<section id=\"taxonomy\"><h2>カテゴリー・タグ</h2><div class=\"actions\">" +
+  pages_admin_link(
+    repo + "/actions/workflows/pages-taxonomy.yml",
+    "カテゴリー・タグを変更",
+  ) +
+  pages_admin_link("guide.html#mp-分類を管理", "分類の操作ガイド") +
+  "</div><p>一覧に掲載する公開投稿で使われている分類と、その投稿数です。</p>" +
+  pages_admin_terms("カテゴリー", categories, category_filename) +
+  pages_admin_terms("タグ", tags, tag_filename) +
+  "</section>"
+}
+
+///|
 fn render_pages_admin(
   config : PagesAdminConfig,
   pages : Array[Page],
@@ -236,6 +294,8 @@ fn render_pages_admin(
     #|.pages-admin .media li>div{min-width:0}.pages-admin .media code{overflow-wrap:anywhere}
     #|.pages-admin .media img{object-fit:contain;background:var(--bg,#080f24);flex:none}
     #|.pages-admin summary{cursor:pointer}
+    #|.pages-admin .classification{columns:2;column-width:12rem;padding-inline-start:1.35rem}
+    #|.pages-admin .classification li{break-inside:avoid;overflow-wrap:anywhere}
     #|@media(max-width:40rem){
     #|  .pages-admin .shell{display:block;width:100%}.pages-admin .sidebar{padding:.5rem 1rem}
     #|  .pages-admin .sidebar ul{display:flex;flex-wrap:wrap;gap:.05rem .85rem}
@@ -245,7 +305,7 @@ fn render_pages_admin(
     #|}
     #|</style></head><body class="pages-admin"><a class="skip" href="#main">本文へ移動</a>
     #|<header class="site-header"><a class="brand" href="index.html"><span class="brand-moon" aria-hidden="true"></span>MoonPress</a><a href="index.html">公開サイト</a></header>
-    #|<div class="shell"><nav class="sidebar" aria-label="サイト管理"><ul><li><a href="#new">新規作成</a></li><li><a href="#inventory">投稿一覧</a></li><li><a href="#posts">投稿</a></li><li><a href="#pages">固定ページ</a></li><li><a href="#quick-edit">一括変更</a></li><li><a href="#schedule">予約公開</a></li><li><a href="#trash">ゴミ箱</a></li><li><a href="#media">メディア</a></li><li><a href="#settings">設定・外観</a></li><li><a href="#publish">公開状況</a></li></ul></nav>
+    #|<div class="shell"><nav class="sidebar" aria-label="サイト管理"><ul><li><a href="#new">新規作成</a></li><li><a href="#inventory">投稿一覧</a></li><li><a href="#posts">投稿</a></li><li><a href="#pages">固定ページ</a></li><li><a href="#quick-edit">一括変更</a></li><li><a href="#schedule">予約公開</a></li><li><a href="#trash">ゴミ箱</a></li><li><a href="#taxonomy">分類</a></li><li><a href="#media">メディア</a></li><li><a href="#settings">設定・外観</a></li><li><a href="#publish">公開状況</a></li></ul></nav>
     #|<main id="main" tabindex="-1"><div class="admin-intro"><h1>サイト管理</h1>
     #|<p>一覧に掲載する公開済みの内容を確認し、GitHubにログインして編集できます。</p></div>
   head +
@@ -284,8 +344,9 @@ fn render_pages_admin(
     "ゴミ箱の原稿を見る",
   ) +
   pages_admin_link(edit_workflow, "移動・下書き復元フォーム") +
-  "</div><p>原稿名をコピーし、GitHubで <code>trash</code>（移動）または <code>untrash</code>（下書き復元）を選びます。確認欄を選んで実行し、PRの公開差分を確認してからマージします。</p>" +
-  "</section><section id=\"media\"><h2>メディア</h2><div class=\"actions\">" +
+  "</div><p>原稿名をコピーし、GitHubで <code>trash</code>（移動）または <code>untrash</code>（下書き復元）を選びます。確認欄を選んで実行し、PRの公開差分を確認してからマージします。</p></section>" +
+  pages_admin_taxonomy(pages, repo) +
+  "<section id=\"media\"><h2>メディア</h2><div class=\"actions\">" +
   pages_admin_link(
     repo + "/upload/main/" + pages_admin_source(config, "public"),
     "画像・ファイルを追加",

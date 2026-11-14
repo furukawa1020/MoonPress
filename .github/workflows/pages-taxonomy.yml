@@ -1,0 +1,64 @@
+name: Organize Pages categories and tags
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/pages-taxonomy.yml"]
+  workflow_dispatch:
+    inputs:
+      taxonomy:
+        description: 分類（カテゴリー / タグ）
+        type: choice
+        options: [categories, tags]
+        default: categories
+      operation:
+        description: 操作（追加 / 削除 / 改名 / 統合）
+        type: choice
+        options: [add, remove, rename, merge]
+        default: add
+      terms:
+        description: 分類名（完全一致、複数はカンマ区切り）
+        type: string
+        required: true
+      destination:
+        description: 改名・統合の変更先（1つ）
+        type: string
+      files:
+        description: 追加・削除の対象原稿名（例 article.md。カンマ区切り）
+        type: string
+      confirm_site:
+        description: 全原稿への変更を確認（下書き・予約・固定ページも対象）
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  taxonomy:
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Fetch exact main revision
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+      - name: Build MoonPress
+        run: |
+          bash scripts/setup.sh
+          export PATH="$HOME/.moon/bin:$PATH"
+          moon build --target native --release
+      - name: Test reviewed taxonomy operations
+        if: github.event_name == 'push'
+        run: python3 scripts/pages-taxonomy-test.py
+      - name: Validate and save a review branch
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          PAGES_EDIT_INPUTS: ${{ toJSON(inputs) }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/pages-edit.py _build/native/release/build/cmd/main/main.exe --taxonomy

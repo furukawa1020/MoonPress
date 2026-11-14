@@ -38,10 +38,11 @@ with tempfile.TemporaryDirectory() as temporary:
     config_path = site / 'site.json'
     config = json.loads(config_path.read_text())
     document(site, '古い記事', {'title': 'Old <img onerror=test>', 'date': '2026-01-01', 'slug': 'old-url', 'categories': ['Research'], 'tags': ['日記']})
-    document(site, 'fresh', {'title': 'Latest public post', 'date': '2026-02-01'})
-    document(site, 'unlisted', {'title': 'Unlisted title', 'listed': False})
-    document(site, 'future', {'title': 'Hidden scheduled', 'publish_at': '9999-12-31T00:00:00Z'})
-    document(site, '固定', {'title': 'Fixed page title', 'kind': 'page'})
+    document(site, 'fresh', {'title': 'Latest public post', 'date': '2026-02-01', 'categories': ['Research'], 'tags': ['日記']})
+    document(site, 'unlisted', {'title': 'Unlisted title', 'listed': False, 'tags': ['HIDDEN_UNLISTED']})
+    document(site, 'future', {'title': 'Hidden scheduled', 'publish_at': '9999-12-31T00:00:00Z', 'tags': ['HIDDEN_FUTURE']})
+    document(site, '固定', {'title': 'Fixed page title', 'kind': 'page', 'tags': ['HIDDEN_FIXED']})
+    document(site, 'private-taxonomy', {'title': 'Private', 'draft': True, 'tags': ['HIDDEN_DRAFT']})
 
     attempt = draft(site, slug='from-form', title='見出し " & <', kind='page', excerpt='説明')
     assert attempt.returncode == 0, attempt.stderr
@@ -66,6 +67,13 @@ with tempfile.TemporaryDirectory() as temporary:
     assert 'actions/workflows/pages-draft.yml' in page and 'actions/workflows/pages-review.yml' in page
     assert 'edit/main/site/site.json' in page and 'edit/main/site/style.css' in page
     assert all(word not in page for word in ('Unlisted title', 'Hidden scheduled', '見出し', 'from-form.md'))
+    terms = page.split('<section id="taxonomy">', 1)[1].split('</section>', 1)[0]
+    assert 'actions/workflows/pages-taxonomy.yml' in terms
+    for name, target in [('Research', 'category-' + b'Research'.hex() + '.html'),
+                         ('日記', 'tag-' + '日記'.encode().hex() + '.html')]:
+        assert f'href="{target}">{name}</a> <span>(2 件)</span>' in terms
+        assert (output / target).is_file()
+    assert 'HIDDEN_' not in terms
     assert 'manage.html' not in (output / 'sitemap.xml').read_text()
     assert any(row['name'] == 'manage.html' for row in json.loads((output / '.moonpress.json').read_text())['artifacts'])
     native('build', site, root / 'preview', '--include-drafts')

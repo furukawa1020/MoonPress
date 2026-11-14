@@ -66,7 +66,7 @@ with tempfile.TemporaryDirectory() as directory:
         ]})
         active = browser.call('GET', '/element/active')['element-6066-11e4-a52e-4f735466cecf']
         assert browser.call('GET', f'/element/{active}/attribute/href') == '#main'
-        for anchor in ('inventory', 'posts', 'pages', 'quick-edit', 'schedule', 'trash', 'media', 'settings', 'publish'):
+        for anchor in ('inventory', 'posts', 'pages', 'quick-edit', 'schedule', 'trash', 'taxonomy', 'media', 'settings', 'publish'):
             browser.click(f'nav a[href="#{anchor}"]')
             assert browser.call('GET', '/url').endswith('#' + anchor)
         inventory = browser.element('#inventory a[href$="/actions/workflows/pages-inventory.yml"]')
@@ -84,6 +84,12 @@ with tempfile.TemporaryDirectory() as directory:
         assert browser.call('GET', f'/element/{history}/text') == '履歴'
         source = browser.element('#pages .source-name code')
         assert browser.call('GET', f'/element/{source}/text') == 'guide.md'
+        workflow = browser.element('#taxonomy a[href$="/actions/workflows/pages-taxonomy.yml"]')
+        assert browser.call('GET', f'/element/{workflow}/text') == 'カテゴリー・タグを変更'
+        browser.click('#taxonomy a[href^="guide.html#"]')
+        assert browser.call('GET', '/url').startswith(base + 'guide.html#mp-')
+        browser.element('h2[id="mp-分類を管理"]')
+        browser.go(base + 'manage.html')
         browser.click('nav a[href="#media"]')
         browser.click('#media details summary')
         digest = browser.element('#media details[open] code')

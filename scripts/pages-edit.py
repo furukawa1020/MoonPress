@@ -10,6 +10,7 @@ import tempfile
 from unicodedata import category
 
 from pages_schedule import publication_input
+from pages_taxonomy import prepare as prepare_taxonomy
 
 SITE = Path('site')
 TEXT_FIELDS = {
@@ -166,14 +167,17 @@ def prepare_edit(cli, names, operation, patch, stem, revision):
     return list(sources.values())
 
 
-def prepare(cli, fields):
-    names, operation, patch, stem, revision = read_options(fields)
+def prepare(cli, fields, taxonomy=False):
     if git('status', '--porcelain', stdout=subprocess.PIPE).stdout:
         raise ValueError('編集を始める前に、作業ディレクトリをクリーンにしてください。')
-    if operation in TRASH_OPERATIONS:
-        paths = relocate(cli, names, operation)
+    if taxonomy:
+        paths = prepare_taxonomy(cli, SITE, fields, git, filename)
     else:
-        paths = prepare_edit(cli, names, operation, patch, stem, revision)
+        names, operation, patch, stem, revision = read_options(fields)
+        if operation in TRASH_OPERATIONS:
+            paths = relocate(cli, names, operation)
+        else:
+            paths = prepare_edit(cli, names, operation, patch, stem, revision)
     if not paths:
         return []
     git('add', '-A', '--', *map(str, paths))
@@ -185,7 +189,7 @@ def prepare(cli, fields):
     return changed.decode().rstrip('\0').split('\0')
 
 
-def publish(cli, fields, context):
+def publish(cli, fields, context, taxonomy=False):
     if context['GITHUB_REF'] != 'refs/heads/main':
         raise ValueError('Run workflow のブランチに main を選んでください。')
     repo = context['GITHUB_REPOSITORY']
@@ -196,7 +200,7 @@ def publish(cli, fields, context):
             or not re.fullmatch(r'[0-9]+', attempt)):
         raise ValueError('GitHub Actions の実行情報を確認できません。')
 
-    changed = prepare(cli, fields)
+    changed = prepare(cli, fields, taxonomy)
     with Path(context['GITHUB_STEP_SUMMARY']).open('a', encoding='utf-8') as summary:
         if not changed:
             summary.write('## 変更なし\n\n作業ブランチは作成されませんでした。\n')
@@ -213,13 +217,17 @@ def publish(cli, fields, context):
             '-c', 'credential.helper=!gh auth git-credential', 'push',
             f'--force-with-lease={ref}:', 'origin', f'HEAD:{ref}',
         )
-        paths = escape('\n'.join(changed))
+        if taxonomy:
+            details = f'変更した原稿 {len(changed)} 件。'
+        else:
+            paths = escape('\n'.join(changed))
+            details = f'<pre>{paths}</pre>'
         title = {
             'trash': 'ゴミ箱への移動を作業ブランチに保存しました',
             'untrash': '下書きへの復元を作業ブランチに保存しました',
         }.get(fields['operation'], '作業ブランチに保存しました')
         summary.write(
-            f'## {title}\n\n<pre>{paths}</pre>\n\n'
+            f'## {title}\n\n{details}\n\n'
             f'[PRを作成する](https://github.com/{repo}/compare/main...{branch}?expand=1)\n\n'
             'PRの公開差分を確認し、マージしてからPagesの公開結果を確認してください。\n'
         )
@@ -227,6 +235,11 @@ def publish(cli, fields, context):
 
 if __name__ == '__main__':
     try:
-        publish(sys.argv[1], json.loads(os.environ['PAGES_EDIT_INPUTS']), os.environ)
-    except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as error:
+        publish(sys.argv[1], json.loads(os.environ['PAGES_EDIT_INPUTS']), os.environ,
+                taxonomy=sys.argv[2:] == ['--taxonomy'])
+    except subprocess.CalledProcessError as error:
+        if sys.argv[2:] == ['--taxonomy']:
+            sys.exit('分類の検証に失敗しました。原稿・分類名・公開リンクを確認してください。')
+        sys.exit(str(error))
+    except (OSError, ValueError, KeyError) as error:
         sys.exit(str(error))
