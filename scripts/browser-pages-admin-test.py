@@ -97,6 +97,11 @@ with tempfile.TemporaryDirectory() as directory:
         browser.click('#menu a[href^="guide.html#"]')
         browser.element('h2[id="mp-メニューを編集"]')
         browser.go(base + 'manage.html')
+        redirect_editor = browser.element('#redirects a[href$="/actions/workflows/pages-redirects.yml"]')
+        assert browser.call('GET', f'/element/{redirect_editor}/text') == 'URL転送を編集'
+        browser.click('#redirects a[href^="guide.html#"]')
+        browser.element('h2[id="mp-url転送とurl名の変更"]')
+        browser.go(base + 'manage.html')
         browser.click('nav a[href="#media"]')
         browser.click('#media details summary')
         digest = browser.element('#media details[open] code')

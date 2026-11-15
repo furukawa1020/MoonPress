@@ -10,6 +10,7 @@ import tempfile
 from unicodedata import category
 
 from pages_menu import prepare as prepare_menu
+from pages_redirects import prepare as prepare_redirects, prepare_move
 from pages_schedule import publication_input
 from pages_taxonomy import prepare as prepare_taxonomy
 
@@ -171,16 +172,25 @@ def prepare_edit(cli, names, operation, patch, stem, revision):
 def prepare(cli, fields, mode):
     if git('status', '--porcelain', stdout=subprocess.PIPE).stdout:
         raise ValueError('編集を始める前に、作業ディレクトリをクリーンにしてください。')
-    if mode == "--menu":
+    if mode == "--redirects":
+        paths = prepare_redirects(cli, SITE, fields, git)
+    elif mode == "--menu":
         paths = prepare_menu(cli, SITE, fields, git)
     elif mode == "--taxonomy":
         paths = prepare_taxonomy(cli, SITE, fields, git, filename)
     else:
         names, operation, patch, stem, revision = read_options(fields)
+        alias_paths = []
+        if fields.get('keep_old_url') is True:
+            if operation != 'edit' or len(names) != 1 or 'slug' not in patch:
+                raise ValueError('旧URLを残すには、1件の原稿と新しいURL名かURL名の消去を指定してください。')
+            if patch.get('draft') is True:
+                raise ValueError('旧URLを残す場合は公開対象のまま編集してください。')
+            alias_paths = prepare_move(cli, SITE, names[0], patch, git)
         if operation in TRASH_OPERATIONS:
             paths = relocate(cli, names, operation)
         else:
-            paths = prepare_edit(cli, names, operation, patch, stem, revision)
+            paths = prepare_edit(cli, names, operation, patch, stem, revision) + alias_paths
     if not paths:
         return []
     git('add', '-A', '--', *map(str, paths))
@@ -244,6 +254,8 @@ if __name__ == '__main__':
     except subprocess.CalledProcessError as error:
         if mode == '--taxonomy':
             sys.exit('分類の検証に失敗しました。原稿・分類名・公開リンクを確認してください。')
+        if mode == '--redirects':
+            sys.exit('転送を保存できませんでした。上に表示された検証結果とURLを確認してください。')
         if mode == '--menu':
             sys.exit('メニューを保存できませんでした。リンク先と上に表示された検証結果を確認してください。')
         sys.exit(str(error))

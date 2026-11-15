@@ -402,6 +402,7 @@ fn plan_site(
       source_files,
       media,
       config.menu,
+      config.redirects,
     )
     route_info.push({
       name: "manage.html",

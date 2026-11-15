@@ -277,12 +277,52 @@ fn pages_admin_menu(repo : String, menu : Array[SiteMenuItem]) -> String {
 }
 
 ///|
+fn pages_admin_redirects(repo : String, redirects : Array[Redirect]) -> String {
+  let out = StringBuilder()
+  out.write_string(
+    "<div id=\"redirects\"><h3>URL転送</h3><div class=\"actions\">",
+  )
+  out.write_string(
+    pages_admin_link(
+      repo + "/actions/workflows/pages-redirects.yml",
+      "URL転送を編集",
+    ),
+  )
+  out.write_string(
+    pages_admin_link(
+      "guide.html#mp-url転送とurl名の変更", "URL転送の操作ガイド",
+    ),
+  )
+  out.write_string("</div>")
+  if redirects.is_empty() {
+    out.write_string("<p>登録済みの転送はありません。</p>")
+  } else {
+    out.write_string(
+      "<table><thead><tr><th scope=\"col\">元のURL</th><th scope=\"col\">設定した転送先</th></tr></thead><tbody>",
+    )
+    for redirect in redirects {
+      out.write_string(
+        "<tr><th scope=\"row\">" +
+        pages_admin_link(url_component(redirect.name), redirect.name) +
+        "</th><td>" +
+        pages_admin_link(url_component(redirect.target), redirect.target) +
+        "</td></tr>",
+      )
+    }
+    out.write_string("</tbody></table>")
+  }
+  out.write_string("</div>")
+  out.to_string()
+}
+
+///|
 fn render_pages_admin(
   config : PagesAdminConfig,
   pages : Array[Page],
   sources : Map[String, String],
   assets : Array[MediaItem],
   menu : Array[SiteMenuItem],
+  redirects : Array[Redirect],
 ) -> String {
   let repo = "https://github.com/" + config.repository
   let new_workflow = repo + "/actions/workflows/pages-draft.yml"
@@ -412,6 +452,7 @@ fn render_pages_admin(
   ) +
   "</div>" +
   pages_admin_menu(repo, menu) +
+  pages_admin_redirects(repo, redirects) +
   "</section><section id=\"publish\"><h2>公開状況</h2><div class=\"actions\">" +
   pages_admin_link(
     repo + "/actions/workflows/pages.yml",

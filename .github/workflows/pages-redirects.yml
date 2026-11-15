@@ -1,0 +1,52 @@
+name: Edit Pages redirects
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/pages-redirects.yml"]
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 操作（追加 / 転送先変更 / 削除）
+        type: choice
+        options: [add, update, remove]
+        default: add
+      source:
+        description: 元の公開URLのファイル名（例 old.html）
+        type: string
+        required: true
+      target:
+        description: 転送先のファイル名（例 guide.html、削除時は空欄）
+        type: string
+permissions:
+  contents: read
+jobs:
+  redirects:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Fetch exact main revision
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+      - name: Build MoonPress
+        run: |
+          bash scripts/setup.sh
+          export PATH="$HOME/.moon/bin:$PATH"
+          moon build --target native --release
+      - name: Test redirects and permalink changes
+        if: github.event_name == 'push'
+        run: python3 scripts/pages-redirects-test.py
+      - name: Validate and save a review branch
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          PAGES_EDIT_INPUTS: ${{ toJSON(inputs) }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/pages-edit.py _build/native/release/build/cmd/main/main.exe --redirects
