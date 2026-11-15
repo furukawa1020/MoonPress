@@ -4,6 +4,12 @@
     "title": "MoonPress",
     "description": "MoonPress project articles and guides"
   },
+  "menu": [
+    {"label": "ホーム", "url": "index.html"},
+    {"label": "サイト管理", "url": "manage.html"},
+    {"label": "使い方", "url": "guide.html"},
+    {"label": "GitHub ↗", "url": "https://github.com/furukawa1020/MoonPress"}
+  ],
   "pages_admin": {
     "repository": "furukawa1020/MoonPress",
     "directory": "site"

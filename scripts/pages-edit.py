@@ -9,6 +9,7 @@ import sys
 import tempfile
 from unicodedata import category
 
+from pages_menu import prepare as prepare_menu
 from pages_schedule import publication_input
 from pages_taxonomy import prepare as prepare_taxonomy
 
@@ -167,10 +168,12 @@ def prepare_edit(cli, names, operation, patch, stem, revision):
     return list(sources.values())
 
 
-def prepare(cli, fields, taxonomy=False):
+def prepare(cli, fields, mode):
     if git('status', '--porcelain', stdout=subprocess.PIPE).stdout:
         raise ValueError('編集を始める前に、作業ディレクトリをクリーンにしてください。')
-    if taxonomy:
+    if mode == "--menu":
+        paths = prepare_menu(cli, SITE, fields, git)
+    elif mode == "--taxonomy":
         paths = prepare_taxonomy(cli, SITE, fields, git, filename)
     else:
         names, operation, patch, stem, revision = read_options(fields)
@@ -189,7 +192,7 @@ def prepare(cli, fields, taxonomy=False):
     return changed.decode().rstrip('\0').split('\0')
 
 
-def publish(cli, fields, context, taxonomy=False):
+def publish(cli, fields, context, mode=""):
     if context['GITHUB_REF'] != 'refs/heads/main':
         raise ValueError('Run workflow のブランチに main を選んでください。')
     repo = context['GITHUB_REPOSITORY']
@@ -200,7 +203,7 @@ def publish(cli, fields, context, taxonomy=False):
             or not re.fullmatch(r'[0-9]+', attempt)):
         raise ValueError('GitHub Actions の実行情報を確認できません。')
 
-    changed = prepare(cli, fields, taxonomy)
+    changed = prepare(cli, fields, mode)
     with Path(context['GITHUB_STEP_SUMMARY']).open('a', encoding='utf-8') as summary:
         if not changed:
             summary.write('## 変更なし\n\n作業ブランチは作成されませんでした。\n')
@@ -211,13 +214,14 @@ def publish(cli, fields, context, taxonomy=False):
         git(
             '-c', 'user.name=github-actions[bot]',
             '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com',
-            'commit', '-m', 'Prepare Pages content changes',
+            'commit', '-m', ('Prepare Pages navigation changes' if mode == '--menu'
+                             else 'Prepare Pages content changes'),
         )
         git(
             '-c', 'credential.helper=!gh auth git-credential', 'push',
             f'--force-with-lease={ref}:', 'origin', f'HEAD:{ref}',
         )
-        if taxonomy:
+        if mode == "--taxonomy":
             details = f'変更した原稿 {len(changed)} 件。'
         else:
             paths = escape('\n'.join(changed))
@@ -234,12 +238,14 @@ def publish(cli, fields, context, taxonomy=False):
 
 
 if __name__ == '__main__':
+    mode = sys.argv[2] if len(sys.argv) == 3 else ''
     try:
-        publish(sys.argv[1], json.loads(os.environ['PAGES_EDIT_INPUTS']), os.environ,
-                taxonomy=sys.argv[2:] == ['--taxonomy'])
+        publish(sys.argv[1], json.loads(os.environ['PAGES_EDIT_INPUTS']), os.environ, mode)
     except subprocess.CalledProcessError as error:
-        if sys.argv[2:] == ['--taxonomy']:
+        if mode == '--taxonomy':
             sys.exit('分類の検証に失敗しました。原稿・分類名・公開リンクを確認してください。')
+        if mode == '--menu':
+            sys.exit('メニューを保存できませんでした。リンク先と上に表示された検証結果を確認してください。')
         sys.exit(str(error))
     except (OSError, ValueError, KeyError) as error:
         sys.exit(str(error))

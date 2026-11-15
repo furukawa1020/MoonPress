@@ -1,0 +1,58 @@
+name: Edit Pages navigation
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/pages-menu.yml"]
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 操作（追加 / 変更 / 削除 / 移動）
+        type: choice
+        options: [add, edit, remove, move]
+        default: add
+      url:
+        description: リンク先（追加するリンク、または現在のメニューに表示されているリンク）
+        type: string
+        required: true
+      label:
+        description: 表示名（追加または変更）
+        type: string
+      new_url:
+        description: 新しいリンク先（変更でリンク先を変える場合）
+        type: string
+      position:
+        description: 移動・追加の位置（先頭は1、追加時に空欄なら末尾）
+        type: string
+permissions:
+  contents: read
+jobs:
+  menu:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Fetch exact main revision
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+      - name: Build MoonPress
+        run: |
+          bash scripts/setup.sh
+          export PATH="$HOME/.moon/bin:$PATH"
+          moon build --target native --release
+      - name: Test navigation editing
+        if: github.event_name == 'push'
+        run: python3 scripts/pages-menu-test.py
+      - name: Validate and save a review branch
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          PAGES_EDIT_INPUTS: ${{ toJSON(inputs) }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/pages-edit.py _build/native/release/build/cmd/main/main.exe --menu

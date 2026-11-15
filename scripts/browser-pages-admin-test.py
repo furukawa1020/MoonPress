@@ -90,6 +90,13 @@ with tempfile.TemporaryDirectory() as directory:
         assert browser.call('GET', '/url').startswith(base + 'guide.html#mp-')
         browser.element('h2[id="mp-分類を管理"]')
         browser.go(base + 'manage.html')
+        editor = browser.element('#menu a[href$="/actions/workflows/pages-menu.yml"]')
+        assert browser.call('GET', f'/element/{editor}/text') == 'メニューを編集'
+        current = browser.element('#menu ol li:first-child code')
+        assert browser.call('GET', f'/element/{current}/text') == 'index.html'
+        browser.click('#menu a[href^="guide.html#"]')
+        browser.element('h2[id="mp-メニューを編集"]')
+        browser.go(base + 'manage.html')
         browser.click('nav a[href="#media"]')
         browser.click('#media details summary')
         digest = browser.element('#media details[open] code')
