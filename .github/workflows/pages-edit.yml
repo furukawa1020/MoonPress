@@ -24,6 +24,10 @@ on:
       slug:
         description: URL名（編集は1件のみ）
         type: string
+      keep_old_url:
+        description: URL名の変更・消去時に、公開済みの旧URLから転送する
+        type: boolean
+        default: false
       tags:
         description: タグ（カンマ区切り）
         type: string
