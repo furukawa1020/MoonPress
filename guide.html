@@ -76,6 +76,21 @@
 <li>実行結果のSummaryから差し替えのPRを作ります。公開差分を確認してマージすると、記事が参照していた同じURLから新しい画像が表示されます。</li>
 </ol>
 <p>PNG・JPEG・GIF・WebPに対応します。候補は公開画像と同じ形式で8 MiB以下にします。公開リポジトリのアップロード用ブランチは閲覧できます。</p>
+<h2 id="mp-メニューを編集">メニューを編集</h2>
+<p><a href="manage.html#menu">サイト管理の「ナビゲーションメニュー」</a>で、現在の表示順・名前・リンク先を確認できます。「メニューを編集」を開き、GitHub Actionsの「Run workflow」で <code>main</code> を選びます。</p>
+<table>
+<thead>
+<tr><th scope="col">操作</th><th scope="col">入力するもの</th></tr>
+</thead>
+<tbody>
+<tr><td><code>add</code>（追加）</td><td>リンク先と表示名。位置を空欄にすると末尾に追加します。</td></tr>
+<tr><td><code>edit</code>（変更）</td><td>現在のリンク先と、変更後の表示名またはリンク先。空欄の項目は保持します。</td></tr>
+<tr><td><code>remove</code>（削除）</td><td>現在のリンク先。</td></tr>
+<tr><td><code>move</code>（移動）</td><td>現在のリンク先と、移動後の位置。先頭は1です。</td></tr>
+</tbody>
+</table>
+<p>サイト内はファイル名（例 <code>guide.html</code>）、外部サイトは <code>https://</code> のURLを指定します。最大12項目です。処理後にSummaryからPRを作成し、公開差分を確認します。マージとPagesの公開が済んだら、トップ・記事・固定ページで表示を確認できます。</p>
+<p>独自のレイアウトでは、ヘッダーに <code>{{menu}}</code> を置くと同じメニューを表示します。</p>
 <h2 id="mp-自分のリポジトリで使う">自分のリポジトリで使う</h2>
 <p>このリポジトリの構成を引き継ぎ、<code>site/site.json</code> の <code>base_url</code> と <code>pages_admin.repository</code> を自分のサイトに合わせます。GitHub Pagesを <code>gh-pages</code> ブランチのルートから公開する設定にして、最初の Publish Pages を実行します。編集対象は <code>main</code> の <code>site/</code> です。</p>
 <p><a href="https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md">GitHub Pagesの設定と検証</a></p>
