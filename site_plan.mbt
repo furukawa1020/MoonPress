@@ -28,7 +28,7 @@ fn plan_site(
   let comments = if config.comments { comment_snapshot(input).rows } else { [] }
   let comment_ids : Map[Int, Bool] = Map([])
   let base_url = config.base_url
-  let layouts = load_layouts(input)
+  let layouts = load_layouts(input, render_site_menu(config.menu))
   let collection_template = select_layout(
     layouts,
     input,
@@ -396,7 +396,13 @@ fn plan_site(
       !page.document.draft &&
       publication_due(page.document.publish_at, instant)
     })
-    let html = render_pages_admin(admin, public_pages, source_files, media)
+    let html = render_pages_admin(
+      admin,
+      public_pages,
+      source_files,
+      media,
+      config.menu,
+    )
     route_info.push({
       name: "manage.html",
       kind: "admin",
@@ -476,6 +482,12 @@ fn plan_site(
     routes.push("sitemap.xml")
   }
   let route_lookup = index_routes(routes)
+  for item in config.menu {
+    if !site_menu_external(item.url) &&
+      !route_lookup.contains(url_component(item.url)) {
+      raise InvalidInput("site.json: menu link has no output: " + item.url)
+    }
+  }
   for route in routes {
     let key = url_component(route)
     if route.has_suffix(".html") && !heading_targets.contains(key) {

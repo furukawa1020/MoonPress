@@ -240,11 +240,49 @@ fn pages_admin_taxonomy(pages : Array[Page], repo : String) -> String {
 }
 
 ///|
+fn pages_admin_menu(repo : String, menu : Array[SiteMenuItem]) -> String {
+  let out = StringBuilder()
+  out.write_string(
+    "<div id=\"menu\"><h3>ナビゲーションメニュー</h3><div class=\"actions\">",
+  )
+  out.write_string(
+    pages_admin_link(
+      repo + "/actions/workflows/pages-menu.yml",
+      "メニューを編集",
+    ),
+  )
+  out.write_string(
+    pages_admin_link(
+      "guide.html#mp-メニューを編集", "メニューの操作ガイド",
+    ),
+  )
+  out.write_string("</div>")
+  if menu.is_empty() {
+    out.write_string("<p>メニュー項目はありません。</p>")
+  } else {
+    out.write_string("<ol class=\"menu-items\">")
+    for item in menu {
+      out.write_string(
+        "<li>" +
+        pages_admin_link(site_menu_href(item.url), item.label) +
+        " <code>" +
+        escape_html(item.url) +
+        "</code></li>",
+      )
+    }
+    out.write_string("</ol>")
+  }
+  out.write_string("</div>")
+  out.to_string()
+}
+
+///|
 fn render_pages_admin(
   config : PagesAdminConfig,
   pages : Array[Page],
   sources : Map[String, String],
   assets : Array[MediaItem],
+  menu : Array[SiteMenuItem],
 ) -> String {
   let repo = "https://github.com/" + config.repository
   let new_workflow = repo + "/actions/workflows/pages-draft.yml"
@@ -294,6 +332,7 @@ fn render_pages_admin(
     #|.pages-admin .media li>div{min-width:0}.pages-admin .media code{overflow-wrap:anywhere}
     #|.pages-admin .media img{object-fit:contain;background:var(--bg,#080f24);flex:none}
     #|.pages-admin summary{cursor:pointer}
+    #|.pages-admin .menu-items{overflow-wrap:anywhere}
     #|.pages-admin .classification{columns:2;column-width:12rem;padding-inline-start:1.35rem}
     #|.pages-admin .classification li{break-inside:avoid;overflow-wrap:anywhere}
     #|@media(max-width:40rem){
@@ -371,7 +410,9 @@ fn render_pages_admin(
     settings + pages_admin_source(config, "layout.html"),
     "レイアウト",
   ) +
-  "</div></section><section id=\"publish\"><h2>公開状況</h2><div class=\"actions\">" +
+  "</div>" +
+  pages_admin_menu(repo, menu) +
+  "</section><section id=\"publish\"><h2>公開状況</h2><div class=\"actions\">" +
   pages_admin_link(
     repo + "/actions/workflows/pages.yml",
     "Pages公開の結果",

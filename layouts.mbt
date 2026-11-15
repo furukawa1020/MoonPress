@@ -12,6 +12,7 @@ priv struct LayoutCatalog {
   default : LayoutTemplate
   named : Map[String, LayoutTemplate]
   used : Array[LayoutTemplate]
+  menu : String
 }
 
 ///|
@@ -24,10 +25,14 @@ fn valid_layout_name(name : String) -> Bool {
 }
 
 ///|
-fn read_layout(input : String, source : String) -> LayoutTemplate raise {
+fn read_layout(
+  input : String,
+  source : String,
+  menu : String,
+) -> LayoutTemplate raise {
   let path = input + "/" + source
   require_input_kind(path, 1)
-  let content = read_text(path)
+  let content = read_text(path).replace_all(old="{{menu}}", new=menu)
   if !content.contains("{{content}}") {
     raise InvalidInput(source + " must contain {{content}}")
   }
@@ -38,12 +43,12 @@ fn read_layout(input : String, source : String) -> LayoutTemplate raise {
 }
 
 ///|
-fn load_layouts(input : String) -> LayoutCatalog raise {
+fn load_layouts(input : String, menu : String) -> LayoutCatalog raise {
   if path_kind(input + "/layouts") != 0 {
     require_input_kind(input + "/layouts", 2)
   }
-  let default = read_layout(input, "layout.html")
-  { default, named: Map([]), used: [default], }
+  let default = read_layout(input, "layout.html", menu)
+  { default, named: Map([]), used: [default], menu, }
 }
 
 ///|
@@ -63,7 +68,7 @@ fn select_layout(
         return template
       }
       require_input_kind(input + "/layouts", 2)
-      let template = read_layout(input, "layouts/" + name)
+      let template = read_layout(input, "layouts/" + name, catalog.menu)
       catalog.named[name] = template
       catalog.used.push(template)
       template
