@@ -91,6 +91,21 @@
 </table>
 <p>サイト内はファイル名（例 <code>guide.html</code>）、外部サイトは <code>https://</code> のURLを指定します。最大12項目です。処理後にSummaryからPRを作成し、公開差分を確認します。マージとPagesの公開が済んだら、トップ・記事・固定ページで表示を確認できます。</p>
 <p>独自のレイアウトでは、ヘッダーに <code>{{menu}}</code> を置くと同じメニューを表示します。</p>
+<h2 id="mp-url転送とurl名の変更">URL転送とURL名の変更</h2>
+<p>投稿・固定ページのURL名を変更するときは、クイック編集で原稿1件と新しいURL名を指定し、「公開済みの旧URLから転送する」を選びます。URL名を消去して原稿名に戻すときも選べます。実行後のSummaryからPRを作成すると、原稿と転送設定を同時に確認できます。</p>
+<p><a href="manage.html#redirects">サイト管理の「URL転送」</a>では登録済みの元URLと転送先を確認できます。「URL転送を編集」を開き、Run workflowで <code>main</code> を選びます。</p>
+<table>
+<thead>
+<tr><th scope="col">操作</th><th scope="col">指定する項目</th></tr>
+</thead>
+<tbody>
+<tr><td><code>add</code>（追加）</td><td>元のファイル名と転送先</td></tr>
+<tr><td><code>update</code>（転送先変更）</td><td>登録済みの元のファイル名と新しい転送先</td></tr>
+<tr><td><code>remove</code>（削除）</td><td>登録済みの元のファイル名</td></tr>
+</tbody>
+</table>
+<p>ファイル名は <code>old.html</code> や <code>guide.html</code> の形式で指定します。公開前のチェックで、存在しない転送先、循環、公開ページとの衝突を検出します。公開差分を確認してPRをマージし、Pagesの公開後に元のURLを開いて確認します。</p>
+<p>GitHub Pagesには元のURLで転送用HTMLを配信します。このページを開くとブラウザーが最新の公開先へ移動します。</p>
 <h2 id="mp-自分のリポジトリで使う">自分のリポジトリで使う</h2>
 <p>このリポジトリの構成を引き継ぎ、<code>site/site.json</code> の <code>base_url</code> と <code>pages_admin.repository</code> を自分のサイトに合わせます。GitHub Pagesを <code>gh-pages</code> ブランチのルートから公開する設定にして、最初の Publish Pages を実行します。編集対象は <code>main</code> の <code>site/</code> です。</p>
 <p><a href="https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md">GitHub Pagesの設定と検証</a></p>
