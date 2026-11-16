@@ -1,0 +1,68 @@
+name: Edit Pages reading settings
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/pages-reading.yml"]
+  workflow_dispatch:
+    inputs:
+      page_size:
+        description: 投稿一覧の1ページ（1〜1000、分割なしは all）
+        type: string
+      tag_page_size:
+        description: タグ・カテゴリーの1ページ（1〜1000、分割なしは all）
+        type: string
+      collection_layout:
+        description: 一覧の既存レイアウト（例 workshop.html、標準は default）
+        type: string
+      tag_index:
+        description: タグ索引
+        type: choice
+        options: [keep, enable, disable]
+        default: keep
+      rss:
+        description: RSSの配信
+        type: choice
+        options: [keep, enable, disable]
+        default: keep
+      rss_title:
+        description: RSSのタイトル（初回有効化に必要）
+        type: string
+      rss_description:
+        description: RSSの説明文（初回有効化に必要）
+        type: string
+      rss_limit:
+        description: RSSの最大配信件数（1〜1000、上限なしは all）
+        type: string
+permissions:
+  contents: read
+jobs:
+  reading:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Fetch exact main revision
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+        run: |
+          git init .
+          git remote add origin "https://github.com/$REPOSITORY.git"
+          git fetch --depth=1 origin "$REVISION"
+          git checkout --detach FETCH_HEAD
+      - name: Build MoonPress
+        run: |
+          bash scripts/setup.sh
+          export PATH="$HOME/.moon/bin:$PATH"
+          moon build --target native --release
+      - name: Test archive and RSS settings
+        if: github.event_name == 'push'
+        run: python3 scripts/pages-reading-test.py
+      - name: Validate and save a review branch
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          PAGES_EDIT_INPUTS: ${{ toJSON(inputs) }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/pages-edit.py _build/native/release/build/cmd/main/main.exe --reading

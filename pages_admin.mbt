@@ -316,13 +316,70 @@ fn pages_admin_redirects(repo : String, redirects : Array[Redirect]) -> String {
 }
 
 ///|
+fn pages_admin_reading(repo : String, site : SiteConfig) -> String {
+  let per_page = (size : Int?) => {
+    match size {
+      Some(count) => count.to_string() + " 件"
+      None => "分割なし"
+    }
+  }
+  let rows = [
+    ("投稿一覧の1ページ", per_page(site.page_size)),
+    ("分類アーカイブの1ページ", per_page(site.tag_page_size)),
+    ("一覧のレイアウト", site.collection_layout.unwrap_or("標準")),
+    ("タグ索引", if site.tag_index { "公開中" } else { "無効" }),
+  ]
+  let out = StringBuilder()
+  out.write_string(
+    "<div id=\"reading\"><h3>表示設定</h3><div class=\"actions\">",
+  )
+  out.write_string(
+    pages_admin_link(
+      repo + "/actions/workflows/pages-reading.yml",
+      "表示設定を変更",
+    ),
+  )
+  out.write_string(
+    pages_admin_link(
+      "guide.html#mp-表示設定を変更", "表示設定の操作ガイド",
+    ),
+  )
+  out.write_string("</div><dl>")
+  for (label, value) in rows {
+    out.write_string(
+      "<dt>" + label + "</dt><dd>" + escape_html(value) + "</dd>",
+    )
+  }
+  out.write_string("<dt>RSS</dt>")
+  match site.feed {
+    None => out.write_string("<dd>無効</dd>")
+    Some(feed) => {
+      let count = match feed.limit {
+        None => "上限なし"
+        Some(limit) => limit.to_string() + " 件まで"
+      }
+      out.write_string(
+        "<dd>" +
+        pages_admin_link("rss.xml", feed.title) +
+        " · " +
+        count +
+        "<br>" +
+        escape_html(feed.description) +
+        "</dd>",
+      )
+    }
+  }
+  out.write_string("</dl></div>")
+  out.to_string()
+}
+
+///|
 fn render_pages_admin(
   config : PagesAdminConfig,
   pages : Array[Page],
   sources : Map[String, String],
   assets : Array[MediaItem],
-  menu : Array[SiteMenuItem],
-  redirects : Array[Redirect],
+  site : SiteConfig,
 ) -> String {
   let repo = "https://github.com/" + config.repository
   let new_workflow = repo + "/actions/workflows/pages-draft.yml"
@@ -372,7 +429,9 @@ fn render_pages_admin(
     #|.pages-admin .media li>div{min-width:0}.pages-admin .media code{overflow-wrap:anywhere}
     #|.pages-admin .media img{object-fit:contain;background:var(--bg,#080f24);flex:none}
     #|.pages-admin summary{cursor:pointer}
-    #|.pages-admin .menu-items{overflow-wrap:anywhere}
+    #|.pages-admin .menu-items,.pages-admin #reading dd{overflow-wrap:anywhere}
+    #|.pages-admin #reading dl{display:grid;grid-template-columns:minmax(8rem,14rem) 1fr;gap:.35rem 1rem}
+    #|.pages-admin #reading dd{margin:0}
     #|.pages-admin .classification{columns:2;column-width:12rem;padding-inline-start:1.35rem}
     #|.pages-admin .classification li{break-inside:avoid;overflow-wrap:anywhere}
     #|@media(max-width:40rem){
@@ -451,8 +510,9 @@ fn render_pages_admin(
     "レイアウト",
   ) +
   "</div>" +
-  pages_admin_menu(repo, menu) +
-  pages_admin_redirects(repo, redirects) +
+  pages_admin_reading(repo, site) +
+  pages_admin_menu(repo, site.menu) +
+  pages_admin_redirects(repo, site.redirects) +
   "</section><section id=\"publish\"><h2>公開状況</h2><div class=\"actions\">" +
   pages_admin_link(
     repo + "/actions/workflows/pages.yml",

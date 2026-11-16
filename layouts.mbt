@@ -13,6 +13,7 @@ priv struct LayoutCatalog {
   named : Map[String, LayoutTemplate]
   used : Array[LayoutTemplate]
   menu : String
+  rss_link : String
 }
 
 ///|
@@ -29,10 +30,13 @@ fn read_layout(
   input : String,
   source : String,
   menu : String,
+  rss_link : String,
 ) -> LayoutTemplate raise {
   let path = input + "/" + source
   require_input_kind(path, 1)
-  let content = read_text(path).replace_all(old="{{menu}}", new=menu)
+  let content = read_text(path)
+    .replace_all(old="{{menu}}", new=menu)
+    .replace_all(old="{{rss_link}}", new=rss_link)
   if !content.contains("{{content}}") {
     raise InvalidInput(source + " must contain {{content}}")
   }
@@ -43,12 +47,23 @@ fn read_layout(
 }
 
 ///|
-fn load_layouts(input : String, menu : String) -> LayoutCatalog raise {
+fn load_layouts(
+  input : String,
+  menu : String,
+  feed : FeedConfig?,
+) -> LayoutCatalog raise {
   if path_kind(input + "/layouts") != 0 {
     require_input_kind(input + "/layouts", 2)
   }
-  let default = read_layout(input, "layout.html", menu)
-  { default, named: Map([]), used: [default], menu, }
+  let rss_link = match feed {
+    None => ""
+    Some(feed) =>
+      "<link rel=\"alternate\" type=\"application/rss+xml\" title=\"" +
+      escape_html(feed.title).replace_all(old="{", new="&#123;") +
+      "\" href=\"rss.xml\">"
+  }
+  let default = read_layout(input, "layout.html", menu, rss_link)
+  { default, named: Map([]), used: [default], menu, rss_link, }
 }
 
 ///|
@@ -68,7 +83,12 @@ fn select_layout(
         return template
       }
       require_input_kind(input + "/layouts", 2)
-      let template = read_layout(input, "layouts/" + name, catalog.menu)
+      let template = read_layout(
+        input,
+        "layouts/" + name,
+        catalog.menu,
+        catalog.rss_link,
+      )
       catalog.named[name] = template
       catalog.used.push(template)
       template
