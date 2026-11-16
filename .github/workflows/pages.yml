@@ -4,7 +4,7 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: '7,37 * * * *'
+    - cron: '4/5 * * * *'
 permissions:
   contents: write
   pages: write
@@ -26,6 +26,11 @@ jobs:
           git remote add origin "https://github.com/$REPOSITORY.git"
           git fetch --depth=1 origin "$REVISION"
           git checkout --detach FETCH_HEAD
+      - name: Check for signed article submissions
+        id: inbox
+        if: github.repository == 'furukawa1020/MoonPress'
+        run: |
+          echo "pending=$(python3 scripts/pages-publisher.py prepare site "$RUNNER_TEMP/pages-incoming.json")" >> "$GITHUB_OUTPUT"
       - name: Check for due publications
         id: due
         if: github.event_name == 'schedule'
@@ -36,7 +41,7 @@ jobs:
             echo '公開時刻に達した予約原稿はありません。' >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Set up MoonBit
-        if: github.event_name != 'schedule' || steps.due.outputs.publish == 'true'
+        if: github.event_name != 'schedule' || steps.due.outputs.publish == 'true' || steps.inbox.outputs.pending == 'true'
         run: |
           bash scripts/setup.sh
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
@@ -44,13 +49,25 @@ jobs:
         if: github.event_name != 'schedule'
         run: bash scripts/check.sh
       - name: Build native compiler for scheduled publication
-        if: github.event_name == 'schedule' && steps.due.outputs.publish == 'true'
+        if: github.event_name == 'schedule' && (steps.due.outputs.publish == 'true' || steps.inbox.outputs.pending == 'true')
         run: moon build --target native --release
+      - name: Import and commit validated articles
+        if: steps.inbox.outputs.pending == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/pages-publisher.py import site "$RUNNER_TEMP/pages-incoming.json" --cli _build/native/release/build/cmd/main/main.exe
+          git add -- site/content site/public
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Publish reviewed MoonPress article submissions"
+          git -c credential.helper='!gh auth git-credential' push origin HEAD:refs/heads/main
       - name: Compile own website
-        if: github.event_name != 'schedule' || steps.due.outputs.publish == 'true'
+        if: github.event_name != 'schedule' || steps.due.outputs.publish == 'true' || steps.inbox.outputs.pending == 'true'
         run: _build/native/release/build/cmd/main/main.exe build site dist
       - name: Publish generated files and request Pages build
-        if: github.event_name != 'schedule' || steps.due.outputs.publish == 'true'
+        if: github.event_name != 'schedule' || steps.due.outputs.publish == 'true' || steps.inbox.outputs.pending == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -59,8 +76,9 @@ jobs:
             echo '公開対象の main を確認できません。' >&2
             exit 1
           fi
-          if [[ "$current" != "$GITHUB_SHA" ]]; then
+          built="$(git rev-parse HEAD)"
+          if [[ "$current" != "$built" ]]; then
             echo 'main が更新されたため、このリビジョンの公開を見送りました。' >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          bash scripts/deploy-pages.sh dist site
+          GITHUB_SHA="$built" bash scripts/deploy-pages.sh dist site

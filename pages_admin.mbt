@@ -488,7 +488,7 @@ fn render_pages_admin(
   "</section><section id=\"schedule\"><h2>予約公開</h2><div class=\"actions\">" +
   pages_admin_link(new_workflow, "投稿・固定ページを予約") +
   pages_admin_link(edit_workflow, "予約を変更・解除") +
-  "</div><p>日本時間で入力し、PRをマージすると予約が有効になります。公開ジョブが30分ごとに確認します。配信には時間がかかる場合があります。</p>" +
+  "</div><p>日本時間で入力し、PRをマージすると予約が有効になります。公開ジョブが定期的に確認します。配信には時間がかかる場合があります。</p>" +
   "</section><section id=\"trash\"><h2>ゴミ箱</h2><div class=\"actions\">" +
   pages_admin_link(
     repo + "/tree/main/" + pages_admin_source(config, "trash"),
