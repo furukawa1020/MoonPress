@@ -19,6 +19,10 @@ with tempfile.TemporaryDirectory() as directory:
     work.mkdir()
     site = work / 'site'
     shutil.copytree(ROOT / 'site', site)
+    # Use the tracked layout and settings without inheriting live submissions.
+    (site / 'public' / 'publication-status.json').unlink(missing_ok=True)
+    for published in (site / 'content').glob('published-*.md'):
+        published.unlink()
     config = site / 'site.json'
     summary = root / 'summary'
     original = json.loads(config.read_bytes())

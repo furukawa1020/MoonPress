@@ -31,6 +31,10 @@ with tempfile.TemporaryDirectory() as temp:
 
     site = directory / 'site'
     shutil.copytree(ROOT / 'site', site)
+    # Use the tracked layout and settings without inheriting live submissions.
+    (site / 'public' / 'publication-status.json').unlink(missing_ok=True)
+    for published in (site / 'content').glob('published-*.md'):
+        published.unlink()
     first = article(1, '公開記事')
     malformed = article(2, 'forged')
     malformed['payload'] = malformed['payload'].replace('太字', '変更')
