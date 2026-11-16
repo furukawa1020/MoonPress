@@ -1,9 +1,10 @@
 # MoonPress development contract
 
 ## Product
-A small static-site compiler written in MoonBit. No TypeScript, JavaScript,
-Node.js, npm, frontend framework, or generated JS in our sources, application,
-or workflow steps. Toolchain distributions may contain unused backends;
+A small static-site compiler written in MoonBit. No TypeScript, Node.js, npm,
+frontend framework, or generated JS. The GitHub Pages document editor in
+`site/editor/` uses browser JavaScript for editing and local storage. Keep
+JavaScript scoped to the editor and its browser tests. Toolchain distributions may contain unused backends;
 compile and test only with `--target native`. Shell is allowed for setup/CI.
 Do not use Node-based GitHub Actions; use shell and GitHub APIs.
 

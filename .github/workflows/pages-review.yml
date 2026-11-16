@@ -60,4 +60,7 @@ jobs:
           python3 scripts/pages-reading-test.py
           if test -f "$RUNNER_TEMP/merge-bundle/manage.html"; then
             python3 scripts/browser-pages-admin-test.py "$RUNNER_TEMP/merge-bundle"
+            if test -f "$RUNNER_TEMP/merge-bundle/write.html"; then
+              python3 scripts/browser-pages-writer-test.py "$RUNNER_TEMP/merge-bundle"
+            fi
           fi

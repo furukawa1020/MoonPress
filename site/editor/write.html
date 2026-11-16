@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>記事を書く · MoonPress</title>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="write.css">
+<script type="module" src="write.js"></script>
+</head><body class="writer">
+<header class="writer-top">
+  <a href="manage.html">← サイト管理</a>
+  <span id="draft-status" role="status">新しい原稿</span>
+  <div><button id="new" type="button">新規</button><button id="open" type="button">下書き</button><button id="preview-button" type="button" aria-pressed="false">プレビュー</button><button id="share-button" class="accent" type="button">共有リンク</button></div>
+</header>
+<noscript><p>編集画面を使うにはブラウザーでスクリプトを有効にしてください。</p></noscript>
+<main id="workspace" hidden>
+  <div class="writer-toolbar" role="group" aria-label="文字の書式">
+    <label class="visually-hidden" for="paragraph">段落の種類</label>
+    <select id="paragraph"><option value="p">本文</option><option value="h2">見出し 1</option><option value="h3">見出し 2</option><option value="blockquote">引用</option></select>
+    <button type="button" data-command="bold" aria-label="太字" aria-pressed="false"><b>B</b></button>
+    <button type="button" data-command="italic" aria-label="斜体" aria-pressed="false"><i>I</i></button>
+    <button type="button" data-command="insertUnorderedList" aria-label="箇条書き" aria-pressed="false">• リスト</button>
+    <button type="button" data-command="insertOrderedList" aria-label="番号付きリスト" aria-pressed="false">1. リスト</button>
+    <button type="button" id="insert-link">リンク</button>
+    <button type="button" data-command="undo" aria-label="元に戻す">↶</button>
+    <button type="button" data-command="redo" aria-label="やり直す">↷</button>
+  </div>
+  <section class="writer-paper" aria-label="原稿">
+    <label class="visually-hidden" for="title">タイトル</label>
+    <input id="title" placeholder="タイトルを入力" maxlength="120" autocomplete="off">
+    <div id="body" contenteditable="true" role="textbox" aria-label="本文" aria-multiline="true" data-placeholder="ここに本文を書く"></div>
+  </section>
+  <article id="preview" class="writer-paper" aria-label="プレビュー" hidden><h1 id="preview-title"></h1><div id="preview-body"></div></article>
+  <details class="writer-options"><summary>記事の設定</summary>
+    <label>種類 <select id="kind"><option value="post">投稿</option><option value="page">固定ページ</option></select></label>
+    <label>URL名 <input id="slug" maxlength="64" autocomplete="off" placeholder="省略時はタイトルから作成"></label>
+    <button id="download" type="button">Markdownを書き出す</button>
+    <button id="export" type="button">HTMLを書き出す</button>
+  </details>
+</main>
+<dialog id="link-dialog"><form id="link-form">
+  <h2>リンクを挿入</h2><label>公開URL <input id="link-url" type="url" placeholder="https://…" required></label>
+  <p id="link-error" role="alert"></p><div class="dialog-buttons"><button type="button" data-close="link-dialog">閉じる</button><button class="accent">挿入</button></div>
+</form></dialog>
+<dialog id="draft-dialog"><h2>このブラウザーの下書き</h2><div id="draft-list"></div>
+<div class="dialog-buttons"><button type="button" data-close="draft-dialog">閉じる</button></div></dialog>
+<dialog id="share-dialog"><h2>記事をリンクで共有</h2>
+<p>リンクを知っている人は記事を読めます。本文はリンク自体に入り、サイトの投稿一覧には追加されません。</p>
+<p id="share-error" role="status"></p>
+<label id="share-field">共有URL <input id="share-url" readonly></label>
+<div class="dialog-buttons"><button type="button" data-close="share-dialog">閉じる</button><button id="copy" class="accent" type="button">コピー</button></div></dialog>
+<section id="reader" class="writer-paper" hidden><h1 id="reader-title"></h1><div id="reader-body"></div></section>
+<p id="reader-error" role="alert" hidden></p>
+</body></html>

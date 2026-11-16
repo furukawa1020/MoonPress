@@ -1,0 +1,32 @@
+.writer{margin:0;background:#080f24;color:#eee7d5;font:16px/1.5 var(--text,system-ui,sans-serif)}
+.writer *{box-sizing:border-box}.writer [hidden]{display:none!important}
+.writer button,.writer input,.writer select{font:inherit;color:inherit}
+.writer button,.writer input,.writer select,.writer dialog{border:1px solid #846545;border-radius:0;background:#101834}
+.writer button,.writer select{padding:.33rem .62rem}.writer input{padding:.4rem}
+.writer button{cursor:pointer}.writer button[aria-pressed=true]{background:#62502f}.writer button:disabled{opacity:.55;cursor:wait}
+.writer button.accent{background:#f4d39a;color:#080f24}
+.writer a{color:#b9dddc}.writer :focus-visible{outline:2px solid #f4d39a;outline-offset:3px}
+.writer-top,.writer-toolbar{display:flex;align-items:center;gap:.4rem .65rem;flex-wrap:wrap;padding:.55rem max(1rem,calc((100% - 64rem)/2));border-bottom:1px solid #846545;background:#101834}
+.writer-top>div{display:flex;gap:.4rem}.writer-top>span{margin-inline:auto;font-size:.85rem;color:#b6c1db}
+.writer-toolbar{position:sticky;top:0;z-index:1}
+.writer-paper,.writer-options{width:min(53rem,calc(100% - 2rem));margin:1rem auto}
+.writer-paper{min-height:58vh;padding:clamp(1rem,5vw,3rem);background:#f7eed8;color:#251d24;border:1px solid #ae885c;box-shadow:5px 5px 0 #322849;font:1.05rem/1.75 system-ui,sans-serif;overflow-wrap:anywhere}
+#title,#preview-title{width:100%;font-size:clamp(1.5rem,5vw,2.6rem);font-weight:700;line-height:1.25;margin:0 0 1rem}
+#title{background:transparent;border:none;border-bottom:1px solid #ad957b;color:inherit;padding:0 0 .45rem}
+#body{min-height:38vh;outline:none}
+#body:empty::before{content:attr(data-placeholder);color:#6c5b55;pointer-events:none}
+.writer-paper h2,.writer-paper h3{line-height:1.35;margin:.8em 0 .3em}
+.writer-paper p{margin:.3em 0 .8em}.writer-paper a{color:#493878}
+.writer-paper blockquote{border-inline-start:3px solid #846545;padding-inline-start:1rem;margin-inline:0}
+.writer-options{padding:0 0 1.5rem}.writer-options summary{cursor:pointer;margin-bottom:.55rem}
+.writer-options label{display:inline-block;margin:.25rem .65rem .25rem 0}
+.writer dialog{color:#eee7d5;width:min(33rem,calc(100% - 2rem));padding:1.25rem}
+.writer dialog::backdrop{background:#000b}
+.writer dialog input{width:100%;margin:.35rem 0 .65rem}
+.dialog-buttons{display:flex;justify-content:flex-end;gap:.65rem}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(max-width:38rem){.writer-top{justify-content:space-between}.writer-top>span{margin:0}.writer-top>div{width:100%;justify-content:flex-end}.writer-toolbar{padding:.45rem .65rem}.writer-paper{min-height:54vh}}
+.writer .draft-row{display:flex;align-items:center;gap:.5rem;justify-content:space-between;padding:.3rem 0}
+.writer .draft-row button:first-child{flex:1;text-align:start;overflow-wrap:anywhere}
+.writer.reader .writer-top button,.writer.reader #draft-status{display:none}
+#reader-error{margin:1rem;text-align:center}

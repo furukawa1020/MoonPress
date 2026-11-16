@@ -380,6 +380,7 @@ fn render_pages_admin(
   sources : Map[String, String],
   assets : Array[MediaItem],
   site : SiteConfig,
+  writer : Bool,
 ) -> String {
   let repo = "https://github.com/" + config.repository
   let new_workflow = repo + "/actions/workflows/pages-draft.yml"
@@ -447,16 +448,28 @@ fn render_pages_admin(
     #|<main id="main" tabindex="-1"><div class="admin-intro"><h1>サイト管理</h1>
     #|<p>一覧に掲載する公開済みの内容を確認し、GitHubにログインして編集できます。</p></div>
   head +
-  "<section id=\"new\"><h2>新規作成</h2><div class=\"actions\"><a class=\"primary\" href=\"" +
-  new_workflow +
-  "\">投稿・固定ページを作る</a>" +
+  "<section id=\"new\"><h2>新規作成</h2><div class=\"actions\">" +
+  (if writer {
+    "<a class=\"primary\" href=\"write.html\">投稿・固定ページを作る</a>" +
+    pages_admin_link(new_workflow, "リポジトリから原稿を作る")
+  } else {
+    "<a class=\"primary\" href=\"" +
+    new_workflow +
+    "\">投稿・固定ページを作る</a>"
+  }) +
   pages_admin_link(repo + "/pulls", "編集中のPRを開く") +
   " · " +
   pages_admin_link(
     repo + "/tree/main/" + pages_admin_source(config, "content"),
     "すべての原稿を開く",
   ) +
-  "</div><p>GitHubの「Run workflow」で本文・画像・分類を入力できます。下書きなら編集へ、公開候補なら実行結果からPRへ進みます。</p>" +
+  "</div>" +
+  (if writer {
+    "<p>編集画面でそのまま文章を書き、下書き保存、プレビュー、リンク共有、HTML・Markdownの書き出しができます。</p>"
+  } else {
+    ""
+  }) +
+  "<p>リポジトリへ原稿を追加する場合は、GitHubの「Run workflow」で本文・画像・分類を入力します。</p>" +
   "<details><summary>下書きから公開する手順</summary><ol><li>作成結果の「編集を開く」から本文を入力します。</li><li>GitHubのPreviewで本文を確認します。公開する版では <code>draft</code> を <code>false</code> にして保存します。</li><li>実行結果のPRリンクを開き、公開差分を確認してマージします。</li></ol><p>公開リポジトリのブランチやPRは閲覧できます。機密の下書きは公開リポジトリに保存しないでください。</p></details></section>" +
   "<section id=\"inventory\"><h2>投稿一覧</h2><div class=\"actions\"><a class=\"primary\" href=\"" +
   inventory_workflow +
