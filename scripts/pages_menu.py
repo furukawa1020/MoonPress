@@ -1,10 +1,8 @@
 """Prepare a reviewed change to the configured public navigation."""
 
-import json
-from pathlib import Path
 import re
-import subprocess
-import tempfile
+
+from pages_settings import update_settings
 
 
 def updated_menu(menu, fields):
@@ -53,22 +51,12 @@ def index_for(position, limit):
 
 
 def prepare(cli, site, fields, git):
-    path = site / 'site.json'
-    git('ls-files', '--error-unmatch', '--', str(path), stdout=subprocess.DEVNULL)
-    snapshot = json.loads(subprocess.check_output(
-        [cli, 'settings-read', site, '--json'],
-    ))['report']
-    settings = json.loads(snapshot['content'])
-    original = settings.get('menu', [])
-    menu = updated_menu(list(original), fields)
-    if menu == original:
-        return []
+    def edit(settings):
+        original = settings.get('menu', [])
+        menu = updated_menu(list(original), fields)
+        if menu == original:
+            return False
+        settings['menu'] = menu
+        return True
 
-    settings['menu'] = menu
-    with tempfile.TemporaryDirectory() as temp:
-        replacement = Path(temp) / 'site.json'
-        replacement.write_text(json.dumps(settings, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-        subprocess.check_output([
-            cli, 'settings-save', site, snapshot['digest'], replacement, '--json',
-        ])
-    return [path]
+    return update_settings(cli, site, git, edit)

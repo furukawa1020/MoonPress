@@ -102,6 +102,13 @@ with tempfile.TemporaryDirectory() as directory:
         browser.click('#redirects a[href^="guide.html#"]')
         browser.element('h2[id="mp-url転送とurl名の変更"]')
         browser.go(base + 'manage.html')
+        reading = browser.element('#reading a[href$="/actions/workflows/pages-reading.yml"]')
+        assert browser.call('GET', f'/element/{reading}/text') == '表示設定を変更'
+        rss = browser.element('#reading a[href="rss.xml"]')
+        assert browser.call('GET', f'/element/{rss}/text') == 'MoonPress'
+        browser.click('#reading a[href^="guide.html#"]')
+        browser.element('h2[id="mp-表示設定を変更"]')
+        browser.go(base + 'manage.html')
         browser.click('nav a[href="#media"]')
         browser.click('#media details summary')
         digest = browser.element('#media details[open] code')

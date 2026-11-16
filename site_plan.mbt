@@ -28,7 +28,7 @@ fn plan_site(
   let comments = if config.comments { comment_snapshot(input).rows } else { [] }
   let comment_ids : Map[Int, Bool] = Map([])
   let base_url = config.base_url
-  let layouts = load_layouts(input, render_site_menu(config.menu))
+  let layouts = load_layouts(input, render_site_menu(config.menu), config.feed)
   let collection_template = select_layout(
     layouts,
     input,
@@ -397,12 +397,7 @@ fn plan_site(
       publication_due(page.document.publish_at, instant)
     })
     let html = render_pages_admin(
-      admin,
-      public_pages,
-      source_files,
-      media,
-      config.menu,
-      config.redirects,
+      admin, public_pages, source_files, media, config,
     )
     route_info.push({
       name: "manage.html",

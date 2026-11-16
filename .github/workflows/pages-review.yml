@@ -57,6 +57,7 @@ jobs:
           python3 scripts/pages-taxonomy-test.py
           python3 scripts/pages-menu-test.py
           python3 scripts/pages-redirects-test.py
+          python3 scripts/pages-reading-test.py
           if test -f "$RUNNER_TEMP/merge-bundle/manage.html"; then
             python3 scripts/browser-pages-admin-test.py "$RUNNER_TEMP/merge-bundle"
           fi
