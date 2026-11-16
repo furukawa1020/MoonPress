@@ -9,9 +9,10 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 import unicodedata
 from urllib.error import HTTPError
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,10 +39,19 @@ def receipt(site):
 
 
 def get_remote(url):
-    with urlopen(url, timeout=10) as response:
-        if response.geturl() != url:
-            raise ValueError('Publication endpoint redirected')
-        return read_json(response)
+    request = Request(url, headers={
+        'User-Agent': 'MoonPress-Pages/1', 'Accept': 'application/json',
+    })
+    for attempt in range(3):
+        try:
+            with urlopen(request, timeout=8) as response:
+                if response.geturl() != url:
+                    raise ValueError('Publication endpoint redirected')
+                return read_json(response)
+        except OSError as error:
+            if attempt == 2 or (isinstance(error, HTTPError) and error.code == 404):
+                raise
+            time.sleep(attempt + 1)
 
 
 def read_item(item, cursor, key):
