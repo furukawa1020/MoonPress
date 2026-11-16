@@ -98,3 +98,25 @@ artifact, then checks that the original bundle still matches the snapshot.
 Its base URL must be an HTTP(S) URL without embedded credentials, query, or
 fragment. The expected bundle must contain a nonempty `index.html` and regular
 flat public files. Internal metadata and linked or nested entries are refused.
+
+## Browser submissions on the MoonPress project site
+
+The Pages editor opens the owner-private MoonPress publishing service for
+confirmation. The service signs a submitted document and writes it to a queue.
+Readers can access the signed submissions because they are ready for publication.
+Editing and previewing do not send documents to the queue. The browser and GitHub
+Actions do not contain the service signing key.
+
+The Pages workflow fetches up to six records per run. It checks every signature
+against `deploy/pages/publisher-public.pem` before making changes. Each accepted
+record becomes one tracked Markdown document and one stable HTML route. A failing
+document is discarded while the rejected status remains visible in the receipt.
+A submission cannot overwrite an authored page or a previous submission at the
+same route. `publication-status.json` is generated with the public bundle and
+lets the editor distinguish a queued submission from a live build.
+
+Only the MoonPress project repository enables the queue import. The authenticated
+publishing service and queue are independently deployed from their own source
+repositories. Changing the signing key requires updating the service secret and
+both public-key consumers together. Drain the queue first so pending signatures
+remain verifiable.

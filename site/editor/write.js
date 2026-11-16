@@ -312,6 +312,27 @@ async function readShared(encoded) {
   }
 }
 
+function publishDocument() {
+  const record = snapshot();
+  if (!record.title || !editor.textContent.trim()) {
+    status("公開するタイトルと本文を入力してください。");
+    return;
+  }
+  const body = markdown(parse(record.body));
+  if (new TextEncoder().encode(body).length > 16000) {
+    status("公開できる本文はUTF-8で16,000バイトまでです。");
+    return;
+  }
+  if (!save()) return;
+  const document = {title: record.title, slug: filename(record.slug || record.title),
+    kind: record.kind, markdown: body};
+  const bytes = new TextEncoder().encode(JSON.stringify(document));
+  const encoded = btoa(String.fromCharCode(...bytes)).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+  const url = "https://moonpress-publisher.f-kotaro-0530.chatgpt.site/#draft=" + encoded;
+  window.open(url, "_blank", "noopener,noreferrer");
+  status("公開先の確認画面を開きました。");
+}
+
 function startEditor() {
   $("workspace").hidden = false;
   try {
@@ -366,6 +387,11 @@ function startEditor() {
   $("open").onclick = openDrafts;
   $("preview-button").onclick = () => setPreview(!previewing);
   $("share-button").onclick = share;
+  if (location.origin === "https://furukawa1020.github.io" &&
+      location.pathname === "/MoonPress/write.html") {
+    $("publish-button").hidden = false;
+    $("publish-button").onclick = publishDocument;
+  }
   $("copy").onclick = async () => {
     $("share-url").select();
     try {
