@@ -25,9 +25,12 @@ expect_failure 1 build site "$tmp/unmanaged"
 expect_failure 1 build "$tmp/missing" "$tmp/absent"
 test ! -e "$tmp/absent"
 expect_failure 2 bogus
-if grep -REin --include='*.html' --include='*.css' '<script|javascript:|on(click|load|error)=' "$tmp/first"; then
+if grep -REin --include='*.html' --include='*.css' --exclude='write.html' '<script|javascript:|on(click|load|error)=' "$tmp/first"; then
   echo 'ERROR: executable JavaScript in generated sample' >&2; exit 1
 fi
+grep -Fx '<script type="module" src="write.js"></script>' "$tmp/first/write.html"
+test "$(grep -Eic '<script|javascript:|on(click|load|error)=' "$tmp/first/write.html")" -eq 1
+test -s "$tmp/first/write.js"
 printf 'Native binary bytes: '
 wc -c < "$cli"
-echo 'Smoke tests passed: deterministic output, error handling, no JS in sample.'
+echo 'Smoke tests passed: deterministic output, error handling, script confined to the opt-in document editor.'

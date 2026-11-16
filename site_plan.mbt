@@ -384,6 +384,32 @@ fn plan_site(
       ),
     )
   }
+  let writer = path_kind(input + "/editor") != 0
+  if writer {
+    require_input_kind(input + "/editor", 2)
+    for name in ["write.html", "write.css", "write.js"] {
+      let source = "editor/" + name
+      let path = input + "/" + source
+      require_input_kind(path, 1)
+      let bytes = read_bytes(path)
+      pending.push(
+        plan_artifact(
+          name,
+          [{ name: source, digest: digest_bytes(bytes), }],
+          previous,
+          output,
+          () => bytes,
+          log,
+        ),
+      )
+      route_info.push({
+        name,
+        kind: "editor",
+        source: Some(source),
+        target: None,
+      })
+    }
+  }
   if config.pages_admin is Some(admin) {
     let source_files : Map[String, String] = Map([])
     for route in route_info {
@@ -397,7 +423,7 @@ fn plan_site(
       publication_due(page.document.publish_at, instant)
     })
     let html = render_pages_admin(
-      admin, public_pages, source_files, media, config,
+      admin, public_pages, source_files, media, config, writer,
     )
     route_info.push({
       name: "manage.html",
@@ -584,6 +610,7 @@ fn plan_site(
       if route.has_suffix(".html") &&
         !(route == "manage.html" && config.pages_admin is Some(_)) &&
         !redirect_names.contains(route) &&
+        !(writer && route == "write.html") &&
         !source_routes.contains(url_component(route)) {
         sitemap_routes.push(route)
       }

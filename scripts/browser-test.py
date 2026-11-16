@@ -46,10 +46,10 @@ def wait_until(predicate, seconds=20):
     raise RuntimeError(f'Timed out: {last}')
 
 class Browser:
-    def __init__(self, port, download, profile, accept_insecure_certs=False):
+    def __init__(self, port, download, profile, accept_insecure_certs=False, javascript=False):
         self.base = f'http://127.0.0.1:{port}'
         self.session = None
-        options = {'binary': CHROME, 'args': ['--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--no-proxy-server', '--window-size=1280,900', f'--user-data-dir={profile}'], 'prefs': {'intl.accept_languages': 'en-US,en', 'profile.managed_default_content_settings.javascript': 2, 'download.default_directory': str(download), 'download.prompt_for_download': False, 'download.directory_upgrade': True}}
+        options = {'binary': CHROME, 'args': ['--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--no-proxy-server', '--window-size=1280,900', f'--user-data-dir={profile}'], 'prefs': {'intl.accept_languages': 'en-US,en', 'profile.managed_default_content_settings.javascript': 1 if javascript else 2, 'download.default_directory': str(download), 'download.prompt_for_download': False, 'download.directory_upgrade': True}}
         result = self.call('POST', '/session', {'capabilities': {'alwaysMatch': {'browserName': 'chrome', 'acceptInsecureCerts': accept_insecure_certs, 'goog:chromeOptions': options}}})
         self.session = result['sessionId']
         self.capabilities = result['capabilities']
