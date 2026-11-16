@@ -5,12 +5,14 @@
 <p><a href="manage.html">サイト管理を開く</a>。投稿、固定ページ、メディア、サイト設定をここから開けます。編集には対象リポジトリの書き込み権限があるGitHubアカウントでログインします。</p>
 <h2 id="mp-新規作成">新規作成</h2>
 <ol>
-<li>サイト管理の「投稿・固定ページを作る」を押します。</li>
-<li>GitHub Actionsで「Run workflow」を開きます。種類、タイトル、URL名を入力します。本文、抜粋、既存画像、日付、タグ、カテゴリも入力できます。</li>
-<li>本文の改行は <code>\n</code>、段落の区切りは <code>\n\n</code> と入力します。文字として <code>\n</code> を表示するには <code>\\n</code> と入力します。本文はUTF-8で16,000バイトまでです。長文は作成後の「編集を開く」で入力できます。</li>
-<li>下書きとして続ける場合は <code>draft</code> を選びます。公開候補として確認する場合は本文を入れて <code>ready</code> を選び、実行結果のSummaryからPRを作成します。</li>
+<li><a href="write.html">記事を書く</a>を開き、タイトルと本文を入力します。</li>
+<li>段落の種類・太字・斜体・箇条書き・リンクを選べます。「プレビュー」で読み手に表示される内容を確認します。</li>
+<li>下書きは使っているブラウザーに自動保存されます。「下書き」から以前の原稿を選べます。別の端末へ移す場合は、「記事の設定」からHTMLやMarkdownを書き出します。</li>
+<li>「共有リンク」でURLを作ると、受け取った人がブラウザーで全文を開けます。本文はURLに含まれ、サイトの投稿一覧には追加されません。</li>
 </ol>
-<p>このプロジェクトのGitHubリポジトリは公開されています。ブランチやPRの内容も閲覧できます。機密の下書きは公開リポジトリに保存しないでください。</p>
+<h3 id="mp-リポジトリに原稿を追加する">リポジトリに原稿を追加する</h3>
+<p><a href="manage.html">サイト管理</a>の「リポジトリから原稿を作る」を開き、GitHub Actionsで種類・タイトル・URL名・本文を入力します。本文の改行は <code>\n</code>、段落の区切りは <code>\n\n</code> と入力します。本文はUTF-8で16,000バイトまでです。公開候補として確認する場合は <code>ready</code> を選び、実行結果のSummaryからPRを作成します。</p>
+<p>このプロジェクトのGitHubリポジトリは公開されています。機密の原稿はブラウザーの下書きに留めてください。</p>
 <h2 id="mp-投稿一覧を検索">投稿一覧を検索</h2>
 <ol>
 <li><a href="manage.html#inventory">サイト管理</a>の「投稿・固定ページを検索」を開きます。</li>
@@ -119,4 +121,4 @@
 <h2 id="mp-自分のリポジトリで使う">自分のリポジトリで使う</h2>
 <p>このリポジトリの構成を引き継ぎ、<code>site/site.json</code> の <code>base_url</code> と <code>pages_admin.repository</code> を自分のサイトに合わせます。GitHub Pagesを <code>gh-pages</code> ブランチのルートから公開する設定にして、最初の Publish Pages を実行します。編集対象は <code>main</code> の <code>site/</code> です。</p>
 <p><a href="https://github.com/furukawa1020/MoonPress/blob/main/docs/deployment.md">GitHub Pagesの設定と検証</a></p>
-</main><footer><span>MoonBit native · No JavaScript / TypeScript</span><a href="font-license.txt">フォントライセンス</a><a href="https://github.com/furukawa1020/MoonPress/issues">Issue ↗</a></footer></body></html>
+</main><footer><span>MoonBit native</span><a href="font-license.txt">フォントライセンス</a><a href="https://github.com/furukawa1020/MoonPress/issues">Issue ↗</a></footer></body></html>
