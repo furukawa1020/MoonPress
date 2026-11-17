@@ -16,11 +16,11 @@ function loadBlockEngine() {
   return engineLoad;
 }
 
-async function insertBlock(nodes) {
+async function insertBlock(nodes, after = selectedBlock) {
   await loadBlockEngine();
   if (!engine || !blockEditor) return null;
   const rows = blocks();
-  const index = engine.insertion_index(rows.length, rows.indexOf(selectedBlock));
+  const index = engine.insertion_index(rows.length, rows.indexOf(after));
   const row = makeBlock(nodes);
   rememberBlocks();
   body.insertBefore(row, rows[index] ?? null);
@@ -69,6 +69,9 @@ function makeBlock(nodes) {
     editor.append(code);
   }
   row.append(editor);
+  const direct = button("＋ この下に追加", () => openInserter(row));
+  direct.className = "block-insert";
+  row.append(direct);
   row.addEventListener("focusin", () => selectBlock(row));
   return row;
 }
@@ -102,6 +105,7 @@ function setupBlocks() {
     const wasDirty = dirty;
     blockEditor = !blockEditor;
     selectBlock(null);
+    insertTarget = null;
     body.replaceChildren();
     body.classList.toggle("with-blocks", blockEditor);
     body.contentEditable = String(!blockEditor);
@@ -122,19 +126,30 @@ document.addEventListener("DOMContentLoaded", setupBlocks);
 function registerBlock(tag, label, create = () => [{tag, children:[]}]) {
   blockTypes.set(tag, {label, create});
 }
+let blockChoice;
+let insertTarget;
+function openInserter(row) {
+  selectBlock(row);
+  insertTarget = row;
+  blockChoice.focus();
+}
+
 function appendBlockMenu() {
   const dock = element("div");
   dock.className = "block-dock";
   const choices = element("select");
   choices.setAttribute("aria-label", "追加するブロック");
+  blockChoice = choices;
   for (const [tag, {label}] of blockTypes) {
     const option = element("option", label);
     option.value = tag;
     choices.append(option);
   }
   dock.append(choices, button("＋ 追加", async () => {
+    const target = insertTarget ?? selectedBlock;
+    insertTarget = null;
     const source = await blockTypes.get(choices.value).create();
-    if (source) await insertBlock(source);
+    if (source) await insertBlock(source, target);
   }));
   body.before(dock);
   blockMounted.push(() => { dock.hidden = !blockEditor; });

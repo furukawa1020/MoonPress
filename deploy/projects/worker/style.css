@@ -168,3 +168,6 @@ dialog::backdrop { background: #080f24b0; }
 .block-commands { display: flex; gap: .4rem; flex-wrap: wrap; margin-block: .5rem; }
 .block-outline { margin-block: .5rem; }
 .block-outline button { margin-block: .15rem; }
+.block-insert { visibility: hidden; margin: .25rem 0; box-shadow: none; font-size: .82rem; }
+.editor-block:is(:hover, :focus-within, .is-active) .block-insert { visibility: visible; }
+@media (pointer: coarse) { .block-insert { visibility: visible; } }
