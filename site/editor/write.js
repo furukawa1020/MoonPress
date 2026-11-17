@@ -449,6 +449,12 @@ function startEditor() {
   for (const button of document.querySelectorAll("[data-close]")) {
     button.onclick = () => $(button.dataset.close).close();
   }
+  window.addEventListener("keydown", event => {
+    if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === "s") {
+      event.preventDefault();
+      if (save()) status("このブラウザーに保存済み");
+    }
+  });
   window.addEventListener("pagehide", save);
 }
 
