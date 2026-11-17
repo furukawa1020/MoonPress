@@ -39,3 +39,18 @@
 .writer-block textarea { width: 100%; min-height: 6rem; font: 1rem/1.55 monospace; }
 .writer-paper img { max-width: 100%; height: auto; }
 .writer-paper pre { white-space: pre-wrap; }
+
+#block-choices { display:grid;grid-template-columns:repeat(auto-fit,minmax(7rem,1fr));gap:.45rem;margin-bottom:1rem }
+#block-choices button { text-align:start }
+.writer-outline { font-size:.92rem;margin:1rem 0 }
+.writer-outline summary { cursor:pointer }
+.writer-outline ol { padding-inline-start:1.5rem }
+.writer-outline button { margin-block:.15rem;text-align:start }
+.writer-paper table { border-collapse:collapse; width:100%;table-layout:fixed }
+.writer-paper :is(th,td) { border:1px solid #ae885c;padding:.3rem .5rem;text-align:start;vertical-align:top }
+.writer-paper th { background:#ead9ba }
+.writer-paper li:has(> input[type=checkbox]) { list-style:none }
+.writer-paper li > input[type=checkbox] { margin-inline-end:.5rem }
+.writer-paper li > input + [contenteditable] { display:inline-block;min-width:10ch;vertical-align:middle }
+.writer-paper .writer-block-actions button,.writer-paper .writer-inserter button,.writer-paper .writer-outline button { background:#eee1c7;color:#342944 }
+.writer-paper button:disabled { cursor:default }
