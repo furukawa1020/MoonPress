@@ -10,7 +10,7 @@ const lastKey = keyPrefix + "current";
 const maxBody = 160_000;
 const maxShare = 18_000;
 const allowed = new Set(["P", "DIV", "H2", "H3", "BLOCKQUOTE", "B", "STRONG",
-  "I", "EM", "UL", "OL", "LI", "BR", "A", "HR", "PRE", "IMG", "TABLE", "THEAD", "TBODY", "TR", "TH", "TD", "SPAN"]);
+  "I", "EM", "UL", "OL", "LI", "BR", "A", "HR", "PRE", "IMG", "TABLE", "THEAD", "TBODY", "TR", "TH", "TD", "SPAN", "FIGURE", "FIGCAPTION"]);
 let id = crypto.randomUUID();
 let selection;
 let blocks;
@@ -224,6 +224,8 @@ function markdown(root) {
       case "P": case "DIV": return content().trim() + "\n\n";
       case "H2": case "H3": return "#".repeat(Number(node.tagName[1])) + " " + content().trim() + "\n\n";
       case "BLOCKQUOTE": return content().trim().split("\n").map((line) => "> " + line).join("\n") + "\n\n";
+      case "FIGURE": return content().trim() + "\n\n";
+      case "FIGCAPTION": return content().trim() + "\n\n";
       case "HR": return "\n---\n\n";
       case "IMG": return "![" + escapeMarkdown(node.alt) + "](" + node.src + ")\n\n";
       case "PRE": {
