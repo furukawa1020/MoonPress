@@ -21,7 +21,11 @@
     <button type="button" data-command="italic" aria-label="斜体" aria-pressed="false"><i>I</i></button>
     <button type="button" data-command="insertUnorderedList" aria-label="箇条書き" aria-pressed="false">• リスト</button>
     <button type="button" data-command="insertOrderedList" aria-label="番号付きリスト" aria-pressed="false">1. リスト</button>
+    <button type="button" data-command="strikeThrough" aria-pressed="false">取り消し線</button>
+    <button type="button" id="inline-code">インラインコード</button>
+    <button type="button" data-command="removeFormat">装飾を解除</button>
     <button type="button" id="insert-link">リンク</button>
+    <button type="button" data-command="unlink">リンクを解除</button>
     <button type="button" data-command="undo" aria-label="元に戻す">↶</button>
     <button type="button" data-command="redo" aria-label="やり直す">↷</button>
   </div>
@@ -31,11 +35,14 @@
     <div class="writer-inserter"><button type="button" id="block-add">＋ ブロックを追加</button><button type="button" id="block-undo" disabled>ブロック操作を元に戻す</button><button type="button" id="block-redo" disabled>ブロック操作をやり直す</button></div>
     <details class="writer-outline"><summary>ブロック一覧</summary><ol id="block-outline"></ol></details>
     <div id="body" aria-label="記事のブロック"></div>
+    <p id="document-count" class="document-count"></p>
   </section>
   <article id="preview" class="writer-paper" aria-label="プレビュー" hidden><h1 id="preview-title"></h1><div id="preview-body"></div></article>
   <details class="writer-options"><summary>記事の設定</summary>
     <label>種類 <select id="kind"><option value="post">投稿</option><option value="page">固定ページ</option></select></label>
     <label>URL名 <input id="slug" maxlength="64" autocomplete="off" placeholder="省略時はタイトルから作成"></label>
+    <button id="import-backup" type="button">原稿JSONを読み込む</button>
+    <button id="backup" type="button">原稿JSONを書き出す</button>
     <button id="download" type="button">Markdownを書き出す</button>
     <button id="export" type="button">HTMLを書き出す</button>
   </details>
@@ -45,6 +52,11 @@
   <label>ブロックを検索 <input type="search" id="block-search" autocomplete="off" autofocus></label>
   <div id="block-choices"></div><p id="block-empty" role="status" hidden>一致するブロックがありません。</p>
   <div class="dialog-buttons"><button type="submit">閉じる</button></div>
+</form></dialog>
+<dialog id="import-dialog" aria-labelledby="import-label"><form id="import-form">
+  <h2 id="import-label">原稿JSONを読み込む</h2>
+  <label>原稿JSON <textarea id="import-json" rows="10" required maxlength="1100000"></textarea></label>
+  <p id="import-error" role="alert"></p><div class="dialog-buttons"><button type="button" data-close="import-dialog">閉じる</button><button>新しい下書きとして読み込む</button></div>
 </form></dialog>
 <dialog id="image-dialog"><form>
   <h2>画像を追加</h2><label>HTTPS画像URL <input name="src" type="url" pattern="https://.+" required></label>

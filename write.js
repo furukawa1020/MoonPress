@@ -10,7 +10,7 @@ const lastKey = keyPrefix + "current";
 const maxBody = 160_000;
 const maxShare = 18_000;
 const allowed = new Set(["P", "DIV", "H2", "H3", "BLOCKQUOTE", "B", "STRONG",
-  "I", "EM", "UL", "OL", "LI", "BR", "A", "HR", "PRE", "IMG", "TABLE", "THEAD", "TBODY", "TR", "TH", "TD", "SPAN"]);
+  "I", "EM", "UL", "OL", "LI", "BR", "A", "HR", "PRE", "IMG", "TABLE", "THEAD", "TBODY", "TR", "TH", "TD", "SPAN", "FIGURE", "FIGCAPTION", "S", "STRIKE", "DEL", "CODE"]);
 let id = crypto.randomUUID();
 let selection;
 let blocks;
@@ -113,7 +113,15 @@ function save() {
   }
 }
 
+function updateCount() {
+  const fragment = blocks.read();
+  const text = fragment.textContent.replace(/\s/g, "");
+  $("document-count").textContent = Array.from(text).length.toLocaleString("ja") + "文字 · " +
+    editor.children.length + "ブロック";
+}
+
 function changed() {
+  updateCount();
   dirty = true;
   status("保存中…");
   clearTimeout(timer);
@@ -129,6 +137,7 @@ function restore(key, record) {
   kind.value = record.kind;
   blocks.reset(parse(record.body));
   setPreview(false);
+  updateCount();
   status(record.updated ? "このブラウザーに保存済み" : "新しい原稿");
   try { localStorage.setItem(lastKey, id); } catch { /* editing still works */ }
 }
@@ -224,8 +233,18 @@ function markdown(root) {
       case "P": case "DIV": return content().trim() + "\n\n";
       case "H2": case "H3": return "#".repeat(Number(node.tagName[1])) + " " + content().trim() + "\n\n";
       case "BLOCKQUOTE": return content().trim().split("\n").map((line) => "> " + line).join("\n") + "\n\n";
+      case "FIGURE": return content().trim() + "\n\n";
+      case "FIGCAPTION": return content().trim() + "\n\n";
+      case "S": case "STRIKE": case "DEL": return "~~" + content() + "~~";
       case "HR": return "\n---\n\n";
       case "IMG": return "![" + escapeMarkdown(node.alt) + "](" + node.src + ")\n\n";
+      case "CODE": {
+        const text = node.textContent;
+        const longest = (text.match(/`+/g) ?? []).reduce((max, run) => Math.max(max, run.length), 0);
+        const fence = "`".repeat(longest + 1);
+        const pad = /^[` ]|[` ]$/.test(text) ? " " : "";
+        return fence + pad + text + pad + fence;
+      }
       case "PRE": {
         const text = node.textContent;
         const longest = (text.match(/`+/g) ?? []).reduce((max, run) => Math.max(max, run.length), 2);
@@ -244,7 +263,8 @@ function markdown(root) {
         if (!columns) return "";
         const cells = row => Array.from(row.cells, cell => render(cell).trim().replace(/\s*\n+\s*/g, " "));
         const line = values => "| " + values.join(" | ") + " |";
-        const header = line(cells(rows.shift()));
+        const hasHeading = Array.from(rows[0].cells).some(cell => cell.nodeName === "TH");
+        const header = line(hasHeading ? cells(rows.shift()) : Array(columns).fill(""));
         return [header, line(Array(columns).fill("---")), ...rows.map(row => line(cells(row)))].join("\n") + "\n\n";
       }
       case "UL": case "OL": {
@@ -273,7 +293,10 @@ function download(extension) {
   const name = filename(record.slug || titleText);
   let data;
   let type;
-  if (extension === "md") {
+  if (extension === "json") {
+    data = JSON.stringify({format:"moonpress-draft",version:1,document:checked(record)}, null, 2);
+    type = "application/json;charset=utf-8";
+  } else if (extension === "md") {
     data = "---\n" + JSON.stringify({title: titleText, kind: record.kind, slug: name}) + "\n---\n" + markdown(parse(record.body));
     type = "text/markdown;charset=utf-8";
   } else {
@@ -358,6 +381,7 @@ async function readShared(encoded) {
 function startEditor() {
   blocks = makeBlocks(editor, changed, linkURL);
   blocks.reset(document.createDocumentFragment());
+  updateCount();
   $("workspace").hidden = false;
   try {
     const last = localStorage.getItem(lastKey);
@@ -387,6 +411,15 @@ function startEditor() {
     button.onclick = () => format(button.dataset.command);
   }
   $("paragraph").onchange = (event) => format("formatBlock", event.target.value);
+  $("inline-code").onclick = () => {
+    if (!selection || selection.collapsed || !editor.contains(selection.commonAncestorContainer)) {
+      status("コードにする文字を選択してください。");
+      return;
+    }
+    const code = document.createElement("code");
+    code.textContent = selection.toString();
+    format("insertHTML", code.outerHTML);
+  };
   $("insert-link").onclick = () => {
     $("link-error").textContent = "";
     $("link-url").value = "";
@@ -425,11 +458,48 @@ function startEditor() {
       $("share-error").textContent = "選択したURLをコピーしてください。";
     }
   };
+  $("import-backup").onclick = () => {
+    $("import-json").value = "";
+    $("import-error").textContent = "";
+    $("import-dialog").showModal();
+  };
+  $("import-form").onsubmit = event => {
+    event.preventDefault();
+    try {
+      const raw = $("import-json").value;
+      if (raw.length > 1100000) throw new Error("原稿JSONが長すぎます。");
+      const backup = JSON.parse(raw);
+      if (backup.format !== "moonpress-draft" || backup.version !== 1) {
+        throw new Error("MoonPressの原稿JSONを入力してください。");
+      }
+      const document = checked(backup.document);
+      // Sanitize imported markup before creating the new draft.
+      const clean = {...document, body:sanitizeHTML(parse(document.body))};
+      if (!save()) return;
+      restore(crypto.randomUUID(), clean);
+      dirty = true;
+      if (!save()) {
+        $("import-error").textContent = "読み込みましたが保存できません。書き出して保管してください。";
+      } else {
+        $("import-dialog").close();
+        title.focus();
+      }
+    } catch (error) {
+      $("import-error").textContent = error.message || "原稿JSONを確認してください。";
+    }
+  };
+  $("backup").onclick = () => download("json");
   $("download").onclick = () => download("md");
   $("export").onclick = () => download("html");
   for (const button of document.querySelectorAll("[data-close]")) {
     button.onclick = () => $(button.dataset.close).close();
   }
+  window.addEventListener("keydown", event => {
+    if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === "s") {
+      event.preventDefault();
+      if (save()) status("このブラウザーに保存済み");
+    }
+  });
   window.addEventListener("pagehide", save);
 }
 

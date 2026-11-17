@@ -99,7 +99,7 @@ export function makeBlocks(body, notify, imageURL) {
     if (!outline.parentElement.open) return;
     outline.replaceChildren(...rows().map((row, index) => {
       const node = row.read()[0];
-      const kind = taskList(node) ? "tasks" : (node?.nodeName.toLowerCase() ?? "");
+      const kind = taskList(node) ? "tasks" : node?.nodeName === "FIGURE" ? "img" : (node?.nodeName.toLowerCase() ?? "");
       const preview = (node?.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 42);
       const label = (index + 1) + ". " + (kinds.get(kind) ?? "本文");
       const item = document.createElement("li");
@@ -157,10 +157,53 @@ export function makeBlocks(body, notify, imageURL) {
       content.append(code);
     } else {
       content.append(...nodes);
-      if (tag === "table") {
+      if (tag === "figure" && node.querySelector("img")) {
+        const caption = node.querySelector("figcaption") ?? node.appendChild(document.createElement("figcaption"));
+        editable(caption, "画像の説明");
+      } else if (tag === "table") {
         const setupCells = tableRow => Array.from(tableRow.cells).forEach((cell, index) =>
           editable(cell, (cell.nodeName === "TH" ? "表の見出し " : "セル ") + (index + 1)));
         Array.from(node.rows).forEach(setupCells);
+        function selectedCell() {
+          const cell = focused?.closest("th,td");
+          return cell && node.contains(cell) ? cell : node.rows[0]?.cells[0];
+        }
+        actions.append(button("選択行を削除", () => {
+          const cell = selectedCell();
+          if (!cell || node.rows.length < 2) return;
+          remember(row);
+          cell.parentElement.remove();
+          focus(row);
+          changed();
+        }));
+        actions.append(button("選択列を削除", () => {
+          const cell = selectedCell();
+          if (!cell || Array.from(node.rows).some(tableRow => tableRow.cells.length < 2)) return;
+          const index = cell.cellIndex;
+          remember(row);
+          for (const tableRow of node.rows) {
+            if (tableRow.cells[index]) tableRow.deleteCell(index);
+            setupCells(tableRow);
+          }
+          focus(row);
+          changed();
+        }));
+        actions.append(button("先頭行の見出しを切り替え", () => {
+          const first = node.rows[0];
+          if (!first) return;
+          const useHeading = first.cells[0]?.nodeName !== "TH";
+          remember(row);
+          for (const cell of Array.from(first.cells)) {
+            const replacement = document.createElement(useHeading ? "th" : "td");
+            replacement.append(...Array.from(cell.childNodes, child => child.cloneNode(true)));
+            cell.replaceWith(replacement);
+          }
+          if (useHeading) (node.tHead ?? node.createTHead()).append(first);
+          else (node.tBodies[0] ?? node.createTBody()).prepend(first);
+          setupCells(first);
+          focus(row);
+          changed();
+        }));
         actions.append(button("行を追加", () => {
           remember(row);
           const tableRow = (node.tBodies[0] ?? node.createTBody()).insertRow();
@@ -191,6 +234,16 @@ export function makeBlocks(body, notify, imageURL) {
           if (box.nextElementSibling) editable(box.nextElementSibling, "タスクの本文");
         };
         Array.from(node.children).forEach(setupItem);
+        function setAll(checked) {
+          remember(row);
+          for (const box of node.querySelectorAll('input[type="checkbox"]')) {
+            box.checked = checked;
+            box.toggleAttribute("checked", checked);
+          }
+          changed();
+        }
+        actions.append(button("すべて完了", () => setAll(true)), button("すべて未完了", () => setAll(false)));
+
         actions.append(button("項目を追加", () => {
           remember(row);
           const item = taskItem();
@@ -205,6 +258,76 @@ export function makeBlocks(body, notify, imageURL) {
       }
     }
 
+    if (nodes.length === 1 && inlineBlocks.has(tag)) {
+      const selector = document.createElement("select");
+      selector.setAttribute("aria-label", "ブロックの種類");
+      for (const value of ["p", "h2", "h3", "blockquote"]) selector.add(new Option(kinds.get(value), value));
+      if (!Array.from(selector.options).some(option => option.value === tag)) {
+        selector.add(new Option(kinds.get(tag), tag));
+      }
+      selector.value = tag;
+      selector.onchange = () => {
+        const replacement = document.createElement(selector.value);
+        replacement.append(...Array.from(node.childNodes, child => child.cloneNode(true)));
+        remember();
+        const changedRow = wrap([replacement]);
+        row.replaceWith(changedRow);
+        focus(changedRow);
+        changed();
+      };
+      actions.prepend(selector);
+    }
+
+    if (nodes.length === 1 && ["ul", "ol"].includes(tag) && !taskList(node)) {
+      actions.append(button(tag === "ul" ? "番号付きに変更" : "箇条書きに変更", () => {
+        const replacement = document.createElement(tag === "ul" ? "ol" : "ul");
+        replacement.append(...Array.from(node.childNodes, child => child.cloneNode(true)));
+        remember();
+        const changedRow = wrap([replacement]);
+        row.replaceWith(changedRow);
+        focus(changedRow);
+        changed();
+      }));
+    }
+
+    const image = tag === "img" ? node : tag === "figure" ? node.querySelector("img") : null;
+    if (image && tag === "img") {
+      actions.append(button("キャプションを追加", () => {
+        const figure = document.createElement("figure");
+        figure.append(image.cloneNode(true), document.createElement("figcaption"));
+        remember();
+        const replacement = wrap([figure]);
+        row.replaceWith(replacement);
+        setActive(replacement);
+        replacement.querySelector("figcaption").focus();
+        changed();
+      }));
+    }
+    if (image) {
+      actions.append(button("画像を編集", () => {
+        const form = imageDialog.querySelector("form");
+        form.elements.src.value = image.getAttribute("src");
+        form.elements.alt.value = image.alt;
+        form.elements.src.setCustomValidity("");
+        imageDialog.showModal();
+        form.onsubmit = event => {
+          event.preventDefault();
+          const source = imageURL(form.elements.src.value);
+          if (!source) {
+            form.elements.src.setCustomValidity("HTTPSの画像URLを入力してください。");
+            form.elements.src.reportValidity();
+            return;
+          }
+          remember(row);
+          image.src = source;
+          image.alt = form.elements.alt.value.trim();
+          imageDialog.close();
+          focus(row);
+          changed();
+        };
+      }));
+    }
+
     function move(step) {
       const all = rows();
       const position = all.indexOf(row);
@@ -216,12 +339,49 @@ export function makeBlocks(body, notify, imageURL) {
       changed();
     }
 
+    function moveToEdge(first) {
+      const all = rows();
+      if (row === (first ? all[0] : all.at(-1))) return;
+      remember();
+      if (first) body.prepend(row);
+      else body.append(row);
+      focus(row);
+      changed();
+    }
+
+    function duplicate() {
+      remember();
+      const copy = copyRow(row);
+      row.after(copy);
+      focus(copy);
+      changed();
+    }
+
+    function remove() {
+      const all = rows();
+      const position = all.indexOf(row);
+      const next = engine?.selection_after_removal(all.length, position) ?? Math.min(position, all.length - 2);
+      remember();
+      row.remove();
+      setActive(undefined);
+      focus(rows()[next]);
+      changed();
+    }
+
     row.addEventListener("focusin", event => {
       setActive(row);
       if (event.target.matches("[contenteditable]")) focused = event.target;
     });
     row.addEventListener("keydown", event => {
       if (event.isComposing) return;
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.key.toLowerCase() === "d") {
+        event.preventDefault();
+        duplicate();
+      }
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.key === "Backspace") {
+        event.preventDefault();
+        remove();
+      }
       if (event.key === "/" && !event.altKey && !event.ctrlKey && !event.metaKey &&
           event.target.matches("p[contenteditable]") && !event.target.textContent.trim()) {
         event.preventDefault();
@@ -233,22 +393,8 @@ export function makeBlocks(body, notify, imageURL) {
       }
     });
     actions.append(button("＋ この下に追加", () => openPicker(row)), button("上へ", () => move(-1)),
-      button("下へ", () => move(1)), button("複製", () => {
-        remember();
-        const copy = copyRow(row);
-        row.after(copy);
-        focus(copy);
-        changed();
-      }), button("削除", () => {
-        const all = rows();
-        const position = all.indexOf(row);
-        const next = engine?.selection_after_removal(all.length, position) ?? Math.min(position, all.length - 2);
-        remember();
-        row.remove();
-        setActive(undefined);
-        focus(rows()[next]);
-        changed();
-      }));
+      button("下へ", () => move(1)), button("先頭へ", () => moveToEdge(true)),
+      button("末尾へ", () => moveToEdge(false)), button("複製", duplicate), button("削除", remove));
     row.append(content, actions);
     row.read = () => tag === "pre" ? [node] : Array.from(content.childNodes);
     return row;

@@ -54,3 +54,9 @@
 .writer-paper li > input + [contenteditable] { display:inline-block;min-width:10ch;vertical-align:middle }
 .writer-paper .writer-block-actions button,.writer-paper .writer-inserter button,.writer-paper .writer-outline button { background:#eee1c7;color:#342944 }
 .writer-paper button:disabled { cursor:default }
+.writer-paper figure { margin:1rem 0 }
+.writer-paper figcaption { min-height:1.6em;font-size:.9em;color:#625264;margin-top:.4rem }
+.writer-paper figcaption:empty::before { content:"画像の説明を書く";color:#857366 }
+.writer-paper :not(pre) > code { font: .95em monospace;background:#eadfc9;padding:.08rem .25rem }
+.document-count { color:#6c5b55;font-size:.85rem;text-align:right }
+.writer dialog textarea { width:100%;font: .9rem/1.5 monospace;color:inherit;background:#101834;resize:vertical }
