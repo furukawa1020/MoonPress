@@ -99,7 +99,7 @@ export function makeBlocks(body, notify, imageURL) {
     if (!outline.parentElement.open) return;
     outline.replaceChildren(...rows().map((row, index) => {
       const node = row.read()[0];
-      const kind = taskList(node) ? "tasks" : (node?.nodeName.toLowerCase() ?? "");
+      const kind = taskList(node) ? "tasks" : node?.nodeName === "FIGURE" ? "img" : (node?.nodeName.toLowerCase() ?? "");
       const preview = (node?.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 42);
       const label = (index + 1) + ". " + (kinds.get(kind) ?? "本文");
       const item = document.createElement("li");
@@ -157,7 +157,10 @@ export function makeBlocks(body, notify, imageURL) {
       content.append(code);
     } else {
       content.append(...nodes);
-      if (tag === "table") {
+      if (tag === "figure" && node.querySelector("img")) {
+        const caption = node.querySelector("figcaption") ?? node.appendChild(document.createElement("figcaption"));
+        editable(caption, "画像の説明");
+      } else if (tag === "table") {
         const setupCells = tableRow => Array.from(tableRow.cells).forEach((cell, index) =>
           editable(cell, (cell.nodeName === "TH" ? "表の見出し " : "セル ") + (index + 1)));
         Array.from(node.rows).forEach(setupCells);
@@ -278,6 +281,18 @@ export function makeBlocks(body, notify, imageURL) {
     }
 
     const image = tag === "img" ? node : tag === "figure" ? node.querySelector("img") : null;
+    if (image && tag === "img") {
+      actions.append(button("キャプションを追加", () => {
+        const figure = document.createElement("figure");
+        figure.append(image.cloneNode(true), document.createElement("figcaption"));
+        remember();
+        const replacement = wrap([figure]);
+        row.replaceWith(replacement);
+        setActive(replacement);
+        replacement.querySelector("figcaption").focus();
+        changed();
+      }));
+    }
     if (image) {
       actions.append(button("画像を編集", () => {
         const form = imageDialog.querySelector("form");
