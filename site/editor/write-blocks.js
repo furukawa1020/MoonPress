@@ -161,6 +161,18 @@ export function makeBlocks(body, notify, imageURL) {
         const setupCells = tableRow => Array.from(tableRow.cells).forEach((cell, index) =>
           editable(cell, (cell.nodeName === "TH" ? "表の見出し " : "セル ") + (index + 1)));
         Array.from(node.rows).forEach(setupCells);
+        function selectedCell() {
+          const cell = focused?.closest("th,td");
+          return cell && node.contains(cell) ? cell : node.rows[0]?.cells[0];
+        }
+        actions.append(button("選択行を削除", () => {
+          const cell = selectedCell();
+          if (!cell || node.rows.length < 2) return;
+          remember(row);
+          cell.parentElement.remove();
+          focus(row);
+          changed();
+        }));
         actions.append(button("行を追加", () => {
           remember(row);
           const tableRow = (node.tBodies[0] ?? node.createTBody()).insertRow();
