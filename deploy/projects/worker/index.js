@@ -34,7 +34,7 @@ function response(body, status = 200, type = "text/html; charset=utf-8") {
   return new Response(body, {status, headers: {
     "Content-Type": type, "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "same-origin",
-    "Content-Security-Policy": "default-src 'none'; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+    "Content-Security-Policy": "default-src 'none'; style-src 'self'; font-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
   }});
 }
 
@@ -399,6 +399,10 @@ export default {
       }
       if (request.method === "GET" && ["/style.css", "/writer.js"].includes(path)) {
         return response(assets[path.slice(1)], 200, path.endsWith(".css") ? "text/css; charset=utf-8" : "text/javascript; charset=utf-8");
+      }
+      if (request.method === "GET" && path === "/block-engine.wasm") {
+        const bytes = Uint8Array.from(atob(assets["block-engine.wasm"]), char => char.charCodeAt(0));
+        return response(bytes, 200, "application/wasm");
       }
       if (request.method === "GET" && path === "/dotgothic16.woff") {
         return new Response(Uint8Array.from(atob(assets["dotgothic16.woff"]), char => char.charCodeAt(0)), {

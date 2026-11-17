@@ -4,6 +4,28 @@ const blockCommands = new Map();
 const blockMounted = [];
 let selectedBlock = null;
 let blockEditor = false;
+let engine;
+let engineLoad;
+
+function loadBlockEngine() {
+  if (!engineLoad) engineLoad = WebAssembly.instantiateStreaming(fetch("/block-engine.wasm"))
+    .then(({instance}) => { engine = instance.exports; })
+    .catch(() => { say("ブロックの操作を読み込めません。再読み込みしてください。"); });
+  return engineLoad;
+}
+
+async function insertBlock(nodes) {
+  await loadBlockEngine();
+  if (!engine || !blockEditor) return null;
+  const rows = blocks();
+  const index = engine.insertion_index(rows.length, rows.indexOf(selectedBlock));
+  const row = makeBlock(nodes);
+  body.insertBefore(row, rows[index] ?? null);
+  dirty = true;
+  selectBlock(row);
+  content(row).focus();
+  return row;
+}
 
 function element(tag, text) {
   const node = document.createElement(tag);
@@ -57,6 +79,7 @@ function setupBlocks() {
     toggle.textContent = blockEditor ? "通常の編集に戻る" : "ブロックで編集";
     toggle.setAttribute("aria-pressed", String(blockEditor));
     if (blockEditor) {
+      loadBlockEngine();
       const nodes = source.length ? source : [{tag:"p",children:[]}];
       for (const node of nodes) body.append(makeBlock([node]));
     } else fill(body, source);
