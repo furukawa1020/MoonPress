@@ -1,8 +1,11 @@
 registerCommand("削除", row => {
-  const next = row.nextElementSibling ?? row.previousElementSibling;
+  if (!engine) return;
+  const previous = blocks();
+  const selection = engine.selection_after_removal(previous.length, previous.indexOf(row));
   rememberBlocks();
-  selectBlock(next);
   row.remove();
+  const next = blocks()[selection] ?? null;
+  selectBlock(next);
   blocksChanged();
   dirty = true;
   if (next) focusBlock(next);

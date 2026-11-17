@@ -19,3 +19,14 @@ pub fn movement_index(length : Int, selected : Int, step : Int) -> Int {
     -1
   }
 }
+
+///|
+pub fn selection_after_removal(length : Int, removed : Int) -> Int {
+  if length < 2 || removed < 0 || removed >= length {
+    -1
+  } else if removed == length - 1 {
+    removed - 1
+  } else {
+    removed
+  }
+}

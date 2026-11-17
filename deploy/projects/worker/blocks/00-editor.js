@@ -50,13 +50,18 @@ function blockData() { return blocks().flatMap(row => encode(content(row))); }
 function makeBlock(nodes) {
   const row = element("section");
   row.className = "editor-block";
+  row.tabIndex = -1;
   const editor = element("div");
   editor.className = "block-content";
-  editor.contentEditable = "true";
-  editor.setAttribute("role", "textbox");
-  editor.setAttribute("aria-label", "ブロック本文");
-  editor.setAttribute("aria-multiline", "true");
   fill(editor, nodes);
+  const tag = nodes.length === 1 && nodes[0]?.tag;
+  const editable = ["p", "h2", "h3", "blockquote"].includes(tag) ? editor.firstChild : editor;
+  if (!["img", "hr", "pre"].includes(tag)) {
+    editable.contentEditable = "true";
+    editable.setAttribute("role", "textbox");
+    editable.setAttribute("aria-label", "ブロック本文");
+    editable.setAttribute("aria-multiline", "true");
+  }
   if (nodes.length === 1 && nodes[0]?.tag === "pre") {
     editor.contentEditable = "false";
     editor.removeAttribute("role");
@@ -79,8 +84,9 @@ function makeBlock(nodes) {
 function focusBlock(row) {
   const editor = content(row);
   const input = editor.querySelector("textarea, input");
-  (input ?? editor).focus();
-  if (!input && editor.firstChild) {
+  const editable = editor.querySelector('[contenteditable="true"]') ?? editor;
+  (input ?? (editable.isContentEditable ? editable : row)).focus();
+  if (!input && editable.isContentEditable && editor.firstChild) {
     const range = document.createRange();
     range.selectNodeContents(editor.firstChild);
     range.collapse(true);
@@ -92,6 +98,7 @@ function focusBlock(row) {
 
 function selectBlock(row) {
   if (selectedBlock === row) return;
+  selection = undefined;
   selectedBlock?.classList.remove("is-active");
   selectedBlock = row;
   selectedBlock?.classList.add("is-active");
@@ -108,12 +115,13 @@ function setupBlocks() {
     insertTarget = null;
     body.replaceChildren();
     body.classList.toggle("with-blocks", blockEditor);
+    document.querySelector(".toolbar").classList.toggle("block-mode", blockEditor);
     body.contentEditable = String(!blockEditor);
     toggle.textContent = blockEditor ? "通常の編集に戻る" : "ブロックで編集";
     toggle.setAttribute("aria-pressed", String(blockEditor));
     if (blockEditor) {
       loadBlockEngine();
-      const nodes = source.length ? source : [{tag:"p",children:[]}];
+      const nodes = source.length ? source : blockTypes.get("p").create();
       for (const node of nodes) body.append(makeBlock([node]));
     } else fill(body, source);
     for (const callback of blockMounted) callback();

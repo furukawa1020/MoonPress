@@ -6,6 +6,8 @@ pub fn insertion_index(Int, Int) -> Int
 
 pub fn movement_index(Int, Int, Int) -> Int
 
+pub fn selection_after_removal(Int, Int) -> Int
+
 // Errors
 
 // Types and methods
