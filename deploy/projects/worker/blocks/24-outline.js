@@ -20,5 +20,6 @@ function mountOutline() {
   blockObservers.push(refresh);
   outline.hidden = !blockEditor;
   body.before(outline);
+  refresh();
 }
 document.addEventListener("DOMContentLoaded", mountOutline);
