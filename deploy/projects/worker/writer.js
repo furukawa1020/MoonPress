@@ -51,8 +51,12 @@ function fill(parent, nodes) {
 }
 function say(value) { by("status").textContent = value; }
 function format(command, value) {
-  const editor = selection?.commonAncestorContainer.parentElement?.closest(".block-content");
-  (editor ?? body).focus();
+  const anchor = selection?.commonAncestorContainer;
+  const node = anchor?.nodeType === Node.ELEMENT_NODE ? anchor : anchor?.parentElement;
+  const editor = node?.closest('[contenteditable="true"]') ??
+    (blockEditor && selectedBlock ? content(selectedBlock).querySelector('[contenteditable="true"]') ?? content(selectedBlock) : body);
+  if (!editor.isContentEditable) return;
+  editor.focus();
   const current = getSelection();
   if (selection && body.contains(selection.commonAncestorContainer)) {
     current.removeAllRanges();
@@ -76,21 +80,25 @@ function slugFor(value) {
   return value.normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}\p{M}]+/gu, "-")
     .replace(/^-|-$/g, "").slice(0, 60).replace(/-$/, "") || "article";
 }
+function hasContent(node) {
+  if (typeof node === "string") return Boolean(node.trim());
+  return node.tag === "img" || (node.children ?? []).some(hasContent);
+}
 async function save(publish) {
   if (busy) return;
   const title = by("title").value.trim();
   const nodes = snapshot();
-  if (!title || (!body.textContent.trim() && !body.querySelector("img"))) { say("タイトルと本文を入力してください。"); return; }
+  if (!title || !nodes.some(hasContent)) { say("タイトルと本文を入力してください。"); return; }
   const slug = record.slug || slugFor(by("slug").value.trim() || title);
   if (publish && !confirm("「" + title + "」を固定URLで公開しますか？")) return;
-  const snapshot = {title, slug, kind:by("kind").value, body:nodes, excerpt:by("excerpt").value, version:record.version, publish};
+  const payload = {title, slug, kind:by("kind").value, body:nodes, excerpt:by("excerpt").value, version:record.version, publish};
   busy = true;
   by("save").disabled = by("publish").disabled = true;
   say(publish ? "公開中…" : "保存中…");
   dirty = false;
   try {
     const r = await fetch(record.endpoint, {method:"POST", headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(snapshot)});
+      body:JSON.stringify(payload)});
     const result = await r.json();
     if (!r.ok) throw Error(result.error || "保存に失敗しました。");
     record.slug = slug;
