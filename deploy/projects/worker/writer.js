@@ -16,9 +16,9 @@ function href(value) {
 function encode(root) {
   return Array.from(root.childNodes).flatMap(node => {
     if (node.nodeType === Node.TEXT_NODE) return [node.data];
-    if (node.nodeType !== Node.ELEMENT_NODE || ["SCRIPT", "STYLE", "IFRAME"].includes(node.tagName)) return [];
+    if (node.nodeType !== Node.ELEMENT_NODE || node.matches(".block-code") || ["SCRIPT", "STYLE", "IFRAME"].includes(node.tagName)) return [];
     const tag = node.tagName.toLowerCase();
-    const children = tag === "pre" ? [node.innerText] : encode(node);
+    const children = tag === "pre" ? [node.hidden ? node.textContent : node.innerText] : encode(node);
     if (!allowed.has(tag)) return children;
     if (tag === "a") {
       const url = href(node.getAttribute("href"));
@@ -124,6 +124,7 @@ document.querySelector(".toolbar").addEventListener("mousedown", event => {
 for (const button of document.querySelectorAll("[data-format]")) button.onclick = () => format(button.dataset.format);
 by("block").onchange = e => format("formatBlock", e.target.value);
 body.addEventListener("paste", event => {
+  if (event.target.matches("textarea, input")) return;
   event.preventDefault();
   format("insertText", event.clipboardData?.getData("text/plain") || "");
 });
