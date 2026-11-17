@@ -4,6 +4,8 @@ package "furukawa1020/moonpress-block-engine"
 // Values
 pub fn insertion_index(Int, Int) -> Int
 
+pub fn movement_index(Int, Int, Int) -> Int
+
 // Errors
 
 // Types and methods
