@@ -329,12 +329,24 @@ export function makeBlocks(body, notify, imageURL) {
       changed();
     }
 
+    function duplicate() {
+      remember();
+      const copy = copyRow(row);
+      row.after(copy);
+      focus(copy);
+      changed();
+    }
+
     row.addEventListener("focusin", event => {
       setActive(row);
       if (event.target.matches("[contenteditable]")) focused = event.target;
     });
     row.addEventListener("keydown", event => {
       if (event.isComposing) return;
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.key.toLowerCase() === "d") {
+        event.preventDefault();
+        duplicate();
+      }
       if (event.key === "/" && !event.altKey && !event.ctrlKey && !event.metaKey &&
           event.target.matches("p[contenteditable]") && !event.target.textContent.trim()) {
         event.preventDefault();
@@ -346,13 +358,7 @@ export function makeBlocks(body, notify, imageURL) {
       }
     });
     actions.append(button("＋ この下に追加", () => openPicker(row)), button("上へ", () => move(-1)),
-      button("下へ", () => move(1)), button("複製", () => {
-        remember();
-        const copy = copyRow(row);
-        row.after(copy);
-        focus(copy);
-        changed();
-      }), button("削除", () => {
+      button("下へ", () => move(1)), button("複製", duplicate), button("削除", () => {
         const all = rows();
         const position = all.indexOf(row);
         const next = engine?.selection_after_removal(all.length, position) ?? Math.min(position, all.length - 2);
