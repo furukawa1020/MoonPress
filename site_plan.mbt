@@ -387,7 +387,14 @@ fn plan_site(
   let writer = path_kind(input + "/editor") != 0
   if writer {
     require_input_kind(input + "/editor", 2)
-    for name in ["write.html", "write.css", "write.js"] {
+    for
+      name in [
+        "write.html", "write.css", "write.js", "write-blocks.js", "block-engine.wasm",
+      ] {
+      if (name == "write-blocks.js" || name == "block-engine.wasm") &&
+        path_kind(input + "/editor/" + name) == 0 {
+        continue
+      }
       let source = "editor/" + name
       let path = input + "/" + source
       require_input_kind(path, 1)

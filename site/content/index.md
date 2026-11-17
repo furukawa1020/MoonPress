@@ -1,6 +1,6 @@
 ---
 {"title":"MoonPress","layout":"home.html","kind":"page"}
 ---
-# Markdownで、自分のサイトを作る
+# ブロックで、記事を書く
 
-MoonPressは、Markdownの投稿や固定ページをGitHub Pagesに公開するツールです。サイト管理から記事を書き、固定URLで公開できます。
+見出しや画像を追加し、ブラウザーに下書きを保存できます。記事は共有リンクにしたり、公開用のHTMLに書き出したりできます。
