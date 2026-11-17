@@ -2,7 +2,7 @@
 <html lang="ja"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; font-src 'self'; img-src 'self' https:; connect-src 'self'; base-uri 'none'; form-action 'none'">
 <title>記事を書く · MoonPress</title>
 <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="write.css">
 <script type="module" src="write.js"></script>
@@ -10,7 +10,7 @@
 <header class="writer-top">
   <a href="manage.html">← サイト管理</a>
   <span id="draft-status" role="status">新しい原稿</span>
-  <div><button id="new" type="button">新規</button><button id="open" type="button">下書き</button><button id="preview-button" type="button" aria-pressed="false">プレビュー</button><button id="share-button" type="button">共有リンク</button><button id="publish-button" class="accent" type="button" hidden>固定URLで公開</button></div>
+  <div><button id="new" type="button">新規</button><button id="open" type="button">下書き</button><button id="preview-button" type="button" aria-pressed="false">プレビュー</button><button id="share-button" type="button">共有リンク</button><button id="publish-button" class="accent" type="button">公開用HTML</button></div>
 </header>
 <noscript><p>編集画面を使うにはブラウザーでスクリプトを有効にしてください。</p></noscript>
 <main id="workspace" hidden>
@@ -28,7 +28,8 @@
   <section class="writer-paper" aria-label="原稿">
     <label class="visually-hidden" for="title">タイトル</label>
     <input id="title" placeholder="タイトルを入力" maxlength="120" autocomplete="off">
-    <div id="body" contenteditable="true" role="textbox" aria-label="本文" aria-multiline="true" data-placeholder="ここに本文を書く"></div>
+    <div class="writer-inserter"><select id="block-kind" aria-label="追加するブロック"></select><button type="button" id="block-add">＋ ブロックを追加</button></div>
+    <div id="body" aria-label="記事のブロック"></div>
   </section>
   <article id="preview" class="writer-paper" aria-label="プレビュー" hidden><h1 id="preview-title"></h1><div id="preview-body"></div></article>
   <details class="writer-options"><summary>記事の設定</summary>
@@ -38,6 +39,11 @@
     <button id="export" type="button">HTMLを書き出す</button>
   </details>
 </main>
+<dialog id="image-dialog"><form>
+  <h2>画像を追加</h2><label>HTTPS画像URL <input name="src" type="url" pattern="https://.+" required></label>
+  <label>代替テキスト <input name="alt" maxlength="240"></label>
+  <div class="dialog-buttons"><button type="button">閉じる</button><button class="accent">挿入</button></div>
+</form></dialog>
 <dialog id="link-dialog"><form id="link-form">
   <h2>リンクを挿入</h2><label>公開URL <input id="link-url" type="url" placeholder="https://…" required></label>
   <p id="link-error" role="alert"></p><div class="dialog-buttons"><button type="button" data-close="link-dialog">閉じる</button><button class="accent">挿入</button></div>

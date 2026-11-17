@@ -1,3 +1,5 @@
+import {makeBlocks} from "./write-blocks.js";
+
 const $ = (id) => document.getElementById(id);
 const editor = $("body");
 const title = $("title");
@@ -8,9 +10,10 @@ const lastKey = keyPrefix + "current";
 const maxBody = 160_000;
 const maxShare = 18_000;
 const allowed = new Set(["P", "DIV", "H2", "H3", "BLOCKQUOTE", "B", "STRONG",
-  "I", "EM", "UL", "OL", "LI", "BR", "A"]);
+  "I", "EM", "UL", "OL", "LI", "BR", "A", "HR", "PRE", "IMG"]);
 let id = crypto.randomUUID();
 let selection;
+let blocks;
 let timer;
 let dirty = false;
 let previewing = false;
@@ -39,6 +42,13 @@ function cleaned(root) {
     if (allowed.has(tag) && (tag !== "A" || url)) {
       target = document.createElement(tag);
       if (url) target.href = url;
+      if (tag === "IMG") {
+        const src = linkURL(from.getAttribute("src"));
+        if (!src) return;
+        target.referrerPolicy = "no-referrer";
+        target.alt = (from.getAttribute("alt") ?? "").slice(0, 240);
+        target.src = src;
+      }
       to.append(target);
     }
     for (const child of from.childNodes) copy(child, target);
@@ -60,7 +70,7 @@ function sanitizeHTML(root) {
 }
 
 function snapshot() {
-  return {title: title.value.trim(), body: sanitizeHTML(editor), kind: kind.value,
+  return {title: title.value.trim(), body: sanitizeHTML(blocks.read()), kind: kind.value,
     slug: slug.value.trim()};
 }
 
@@ -106,7 +116,7 @@ function restore(key, record) {
   title.value = record.title;
   slug.value = record.slug;
   kind.value = record.kind;
-  editor.replaceChildren(parse(record.body));
+  blocks.reset(parse(record.body));
   setPreview(false);
   status(record.updated ? "このブラウザーに保存済み" : "新しい原稿");
   try { localStorage.setItem(lastKey, id); } catch { /* editing still works */ }
@@ -161,7 +171,7 @@ function setPreview(active) {
   $("preview-button").textContent = active ? "編集に戻る" : "プレビュー";
   if (active) {
     $("preview-title").textContent = title.value.trim() || "無題の原稿";
-    $("preview-body").replaceChildren(cleaned(editor));
+    $("preview-body").replaceChildren(cleaned(blocks.read()));
   }
 }
 
@@ -177,9 +187,11 @@ function retainSelection() {
 }
 
 function format(command, value) {
-  editor.focus();
+  const editable = blocks.current();
+  if (!editable) return;
+  editable.focus();
   const range = window.getSelection();
-  if (selection && editor.contains(selection.commonAncestorContainer)) {
+  if (selection && editable.contains(selection.commonAncestorContainer)) {
     range.removeAllRanges();
     range.addRange(selection);
   }
@@ -201,6 +213,14 @@ function markdown(root) {
       case "P": case "DIV": return content().trim() + "\n\n";
       case "H2": case "H3": return "#".repeat(Number(node.tagName[1])) + " " + content().trim() + "\n\n";
       case "BLOCKQUOTE": return content().trim().split("\n").map((line) => "> " + line).join("\n") + "\n\n";
+      case "HR": return "\n---\n\n";
+      case "IMG": return "![" + escapeMarkdown(node.alt) + "](" + node.src + ")\n\n";
+      case "PRE": {
+        const text = node.textContent;
+        const longest = (text.match(/`+/g) ?? []).reduce((max, run) => Math.max(max, run.length), 2);
+        const fence = "`".repeat(longest + 1);
+        return fence + "\n" + text + (text.endsWith("\n") ? "" : "\n") + fence + "\n\n";
+      }
       case "BR": return "  \n";
       case "STRONG": case "B": case "EM": case "I": {
         const marker = ["B", "STRONG"].includes(node.tagName) ? "**" : "*";
@@ -279,7 +299,8 @@ async function share() {
   $("share-dialog").showModal();
   try {
     const record = checked(snapshot());
-    if (!record.title || !editor.textContent.trim()) throw new Error("タイトルと本文を入力してください。");
+    const article = parse(record.body);
+    if (!record.title || (!article.textContent.trim() && !article.querySelector("img"))) throw new Error("タイトルと本文を入力してください。");
     const encoded = new TextEncoder().encode(JSON.stringify(record));
     const compressed = await translate(encoded, new CompressionStream("gzip"), maxShare);
     const data = btoa(String.fromCharCode(...compressed)).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
@@ -312,28 +333,9 @@ async function readShared(encoded) {
   }
 }
 
-function publishDocument() {
-  const record = snapshot();
-  if (!record.title || !editor.textContent.trim()) {
-    status("公開するタイトルと本文を入力してください。");
-    return;
-  }
-  const body = markdown(parse(record.body));
-  if (new TextEncoder().encode(body).length > 16000) {
-    status("公開できる本文はUTF-8で16,000バイトまでです。");
-    return;
-  }
-  if (!save()) return;
-  const document = {title: record.title, slug: filename(record.slug || record.title),
-    kind: record.kind, markdown: body};
-  const bytes = new TextEncoder().encode(JSON.stringify(document));
-  const encoded = btoa(String.fromCharCode(...bytes)).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
-  const url = "https://moonpress-publisher.f-kotaro-0530.chatgpt.site/#draft=" + encoded;
-  window.open(url, "_blank", "noopener,noreferrer");
-  status("公開先の確認画面を開きました。");
-}
-
 function startEditor() {
+  blocks = makeBlocks(editor, $("block-kind"), $("block-add"), changed, $("image-dialog"), linkURL);
+  blocks.reset(document.createDocumentFragment());
   $("workspace").hidden = false;
   try {
     const last = localStorage.getItem(lastKey);
@@ -347,6 +349,7 @@ function startEditor() {
   editor.addEventListener("paste", (event) => {
     const clipboard = event.clipboardData;
     if (!clipboard) return;
+    if (event.target instanceof HTMLTextAreaElement) return;
     event.preventDefault();
     const rich = clipboard.getData("text/html");
     const box = document.createElement("div");
@@ -387,11 +390,10 @@ function startEditor() {
   $("open").onclick = openDrafts;
   $("preview-button").onclick = () => setPreview(!previewing);
   $("share-button").onclick = share;
-  if (location.origin === "https://furukawa1020.github.io" &&
-      location.pathname === "/MoonPress/write.html") {
-    $("publish-button").hidden = false;
-    $("publish-button").onclick = publishDocument;
-  }
+  $("publish-button").onclick = () => {
+    download("html");
+    status("公開用HTMLを書き出しました。");
+  };
   $("copy").onclick = async () => {
     $("share-url").select();
     try {
