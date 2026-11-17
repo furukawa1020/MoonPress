@@ -166,3 +166,5 @@ dialog::backdrop { background: #080f24b0; }
 .block-code { width: 100%; min-height: 6rem; font: 1rem/1.55 monospace; resize: vertical; }
 .paper img { display: block; max-width: 100%; height: auto; margin-block: .5rem; }
 .block-commands { display: flex; gap: .4rem; flex-wrap: wrap; margin-block: .5rem; }
+.block-outline { margin-block: .5rem; }
+.block-outline button { margin-block: .15rem; }
