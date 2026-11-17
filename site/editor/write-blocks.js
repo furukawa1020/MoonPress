@@ -277,6 +277,32 @@ export function makeBlocks(body, notify, imageURL) {
       }));
     }
 
+    const image = tag === "img" ? node : tag === "figure" ? node.querySelector("img") : null;
+    if (image) {
+      actions.append(button("画像を編集", () => {
+        const form = imageDialog.querySelector("form");
+        form.elements.src.value = image.getAttribute("src");
+        form.elements.alt.value = image.alt;
+        form.elements.src.setCustomValidity("");
+        imageDialog.showModal();
+        form.onsubmit = event => {
+          event.preventDefault();
+          const source = imageURL(form.elements.src.value);
+          if (!source) {
+            form.elements.src.setCustomValidity("HTTPSの画像URLを入力してください。");
+            form.elements.src.reportValidity();
+            return;
+          }
+          remember(row);
+          image.src = source;
+          image.alt = form.elements.alt.value.trim();
+          imageDialog.close();
+          focus(row);
+          changed();
+        };
+      }));
+    }
+
     function move(step) {
       const all = rows();
       const position = all.indexOf(row);
