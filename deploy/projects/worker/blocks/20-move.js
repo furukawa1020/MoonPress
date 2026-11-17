@@ -5,8 +5,10 @@ function moveBlock(row, step) {
   const current = items.indexOf(row);
   const destination = engine.movement_index(items.length, current, step);
   if (destination === -1) return;
+  rememberBlocks();
   body.insertBefore(row, step === 1 ? items[destination].nextSibling : items[destination]);
   dirty = true;
+  blocksChanged();
   selectBlock(row);
   focusBlock(row);
 }
