@@ -2,6 +2,8 @@
 const blockTypes = new Map();
 const blockCommands = new Map();
 const blockMounted = [];
+const blockObservers = [];
+function blocksChanged() { for (const update of blockObservers) update(); }
 let selectedBlock = null;
 let blockEditor = false;
 let engine;
@@ -20,7 +22,9 @@ async function insertBlock(nodes) {
   const rows = blocks();
   const index = engine.insertion_index(rows.length, rows.indexOf(selectedBlock));
   const row = makeBlock(nodes);
+  rememberBlocks();
   body.insertBefore(row, rows[index] ?? null);
+  blocksChanged();
   dirty = true;
   selectBlock(row);
   focusBlock(row);
