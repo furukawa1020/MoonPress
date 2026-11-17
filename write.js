@@ -10,7 +10,7 @@ const lastKey = keyPrefix + "current";
 const maxBody = 160_000;
 const maxShare = 18_000;
 const allowed = new Set(["P", "DIV", "H2", "H3", "BLOCKQUOTE", "B", "STRONG",
-  "I", "EM", "UL", "OL", "LI", "BR", "A", "HR", "PRE", "IMG"]);
+  "I", "EM", "UL", "OL", "LI", "BR", "A", "HR", "PRE", "IMG", "TABLE", "THEAD", "TBODY", "TR", "TH", "TD", "SPAN"]);
 let id = crypto.randomUUID();
 let selection;
 let blocks;
@@ -36,6 +36,17 @@ function cleaned(root) {
       return;
     }
     if (from.nodeType !== Node.ELEMENT_NODE || ["SCRIPT", "STYLE", "IFRAME", "TEMPLATE"].includes(from.tagName)) return;
+    if (from.tagName === "INPUT") {
+      if (from.getAttribute("type") === "checkbox" && from.parentElement?.tagName === "LI" &&
+          from === from.parentElement.firstElementChild) {
+        const box = document.createElement("input");
+        box.type = "checkbox";
+        box.disabled = true;
+        box.toggleAttribute("checked", from.hasAttribute("checked"));
+        to.append(box);
+      }
+      return;
+    }
     const url = from.tagName === "A" && linkURL(from.getAttribute("href"));
     const tag = from.tagName === "H1" ? "H2" : from.tagName;
     let target = to;
@@ -227,11 +238,22 @@ function markdown(root) {
         return content().replace(/\S(?:.*\S)?/g, (text) => marker + text + marker);
       }
       case "A": return "[" + content().trim() + "](" + node.href + ")";
+      case "TABLE": {
+        const rows = Array.from(node.rows);
+        const columns = rows[0]?.cells.length ?? 0;
+        if (!columns) return "";
+        const cells = row => Array.from(row.cells, cell => render(cell).trim().replace(/\s*\n+\s*/g, " "));
+        const line = values => "| " + values.join(" | ") + " |";
+        const header = line(cells(rows.shift()));
+        return [header, line(Array(columns).fill("---")), ...rows.map(row => line(cells(row)))].join("\n") + "\n\n";
+      }
       case "UL": case "OL": {
         const items = Array.from(node.children).filter((item) => item.tagName === "LI");
         return items.map((item, index) => {
           const prefix = node.tagName === "UL" ? "- " : `${index + 1}. `;
-          return prefix + render(item).trim().replaceAll("\n", "\n" + " ".repeat(prefix.length));
+          const box = item.firstElementChild;
+          const marker = box?.matches('input[type="checkbox"]') ? (box.hasAttribute("checked") ? "[x] " : "[ ] ") : "";
+          return prefix + marker + render(item).trim().replaceAll("\n", "\n" + " ".repeat(prefix.length));
         }).join("\n") + "\n\n";
       }
       default: return content();
@@ -261,7 +283,7 @@ function download(extension) {
     label.textContent = titleText;
     data = '<!doctype html><html lang="ja"><head><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width,initial-scale=1">' + label.outerHTML +
-      '<style>body{width:min(46rem,calc(100% - 2rem));margin:3rem auto;font:1.05rem/1.7 system-ui,sans-serif;overflow-wrap:anywhere}blockquote{border-inline-start:.2rem solid #666;padding-inline-start:1rem}</style>' +
+      '<style>body{width:min(46rem,calc(100% - 2rem));margin:3rem auto;font:1.05rem/1.7 system-ui,sans-serif;overflow-wrap:anywhere}blockquote{border-inline-start:.2rem solid #666;padding-inline-start:1rem}table{border-collapse:collapse;width:100%}th,td{border:1px solid #aaa;padding:.35rem;text-align:start}li:has(>input[type=checkbox]){list-style:none}</style>' +
       '</head><body><main>' + heading.outerHTML + record.body + '</main></body></html>';
     type = "text/html;charset=utf-8";
   }
@@ -334,7 +356,7 @@ async function readShared(encoded) {
 }
 
 function startEditor() {
-  blocks = makeBlocks(editor, $("block-kind"), $("block-add"), changed, $("image-dialog"), linkURL);
+  blocks = makeBlocks(editor, changed, linkURL);
   blocks.reset(document.createDocumentFragment());
   $("workspace").hidden = false;
   try {
