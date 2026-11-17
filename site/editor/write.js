@@ -292,7 +292,10 @@ function download(extension) {
   const name = filename(record.slug || titleText);
   let data;
   let type;
-  if (extension === "md") {
+  if (extension === "json") {
+    data = JSON.stringify({format:"moonpress-draft",version:1,document:checked(record)}, null, 2);
+    type = "application/json;charset=utf-8";
+  } else if (extension === "md") {
     data = "---\n" + JSON.stringify({title: titleText, kind: record.kind, slug: name}) + "\n---\n" + markdown(parse(record.body));
     type = "text/markdown;charset=utf-8";
   } else {
@@ -454,6 +457,7 @@ function startEditor() {
       $("share-error").textContent = "選択したURLをコピーしてください。";
     }
   };
+  $("backup").onclick = () => download("json");
   $("download").onclick = () => download("md");
   $("export").onclick = () => download("html");
   for (const button of document.querySelectorAll("[data-close]")) {
