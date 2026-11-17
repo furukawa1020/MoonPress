@@ -10,7 +10,7 @@ const lastKey = keyPrefix + "current";
 const maxBody = 160_000;
 const maxShare = 18_000;
 const allowed = new Set(["P", "DIV", "H2", "H3", "BLOCKQUOTE", "B", "STRONG",
-  "I", "EM", "UL", "OL", "LI", "BR", "A", "HR", "PRE", "IMG", "TABLE", "THEAD", "TBODY", "TR", "TH", "TD", "SPAN", "FIGURE", "FIGCAPTION", "S", "STRIKE", "DEL"]);
+  "I", "EM", "UL", "OL", "LI", "BR", "A", "HR", "PRE", "IMG", "TABLE", "THEAD", "TBODY", "TR", "TH", "TD", "SPAN", "FIGURE", "FIGCAPTION", "S", "STRIKE", "DEL", "CODE"]);
 let id = crypto.randomUUID();
 let selection;
 let blocks;
@@ -229,6 +229,13 @@ function markdown(root) {
       case "S": case "STRIKE": case "DEL": return "~~" + content() + "~~";
       case "HR": return "\n---\n\n";
       case "IMG": return "![" + escapeMarkdown(node.alt) + "](" + node.src + ")\n\n";
+      case "CODE": {
+        const text = node.textContent;
+        const longest = (text.match(/`+/g) ?? []).reduce((max, run) => Math.max(max, run.length), 0);
+        const fence = "`".repeat(longest + 1);
+        const pad = /^[` ]|[` ]$/.test(text) ? " " : "";
+        return fence + pad + text + pad + fence;
+      }
       case "PRE": {
         const text = node.textContent;
         const longest = (text.match(/`+/g) ?? []).reduce((max, run) => Math.max(max, run.length), 2);
@@ -390,6 +397,15 @@ function startEditor() {
     button.onclick = () => format(button.dataset.command);
   }
   $("paragraph").onchange = (event) => format("formatBlock", event.target.value);
+  $("inline-code").onclick = () => {
+    if (!selection || selection.collapsed || !editor.contains(selection.commonAncestorContainer)) {
+      status("コードにする文字を選択してください。");
+      return;
+    }
+    const code = document.createElement("code");
+    code.textContent = selection.toString();
+    format("insertHTML", code.outerHTML);
+  };
   $("insert-link").onclick = () => {
     $("link-error").textContent = "";
     $("link-url").value = "";
