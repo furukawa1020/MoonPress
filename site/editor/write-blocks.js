@@ -185,6 +185,22 @@ export function makeBlocks(body, notify, imageURL) {
           focus(row);
           changed();
         }));
+        actions.append(button("先頭行の見出しを切り替え", () => {
+          const first = node.rows[0];
+          if (!first) return;
+          const useHeading = first.cells[0]?.nodeName !== "TH";
+          remember(row);
+          for (const cell of Array.from(first.cells)) {
+            const replacement = document.createElement(useHeading ? "th" : "td");
+            replacement.append(...Array.from(cell.childNodes, child => child.cloneNode(true)));
+            cell.replaceWith(replacement);
+          }
+          if (useHeading) (node.tHead ?? node.createTHead()).append(first);
+          else (node.tBodies[0] ?? node.createTBody()).prepend(first);
+          setupCells(first);
+          focus(row);
+          changed();
+        }));
         actions.append(button("行を追加", () => {
           remember(row);
           const tableRow = (node.tBodies[0] ?? node.createTBody()).insertRow();
