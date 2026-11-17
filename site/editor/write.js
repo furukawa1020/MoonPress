@@ -113,7 +113,15 @@ function save() {
   }
 }
 
+function updateCount() {
+  const fragment = blocks.read();
+  const text = fragment.textContent.replace(/\s/g, "");
+  $("document-count").textContent = Array.from(text).length.toLocaleString("ja") + "文字 · " +
+    editor.children.length + "ブロック";
+}
+
 function changed() {
+  updateCount();
   dirty = true;
   status("保存中…");
   clearTimeout(timer);
@@ -129,6 +137,7 @@ function restore(key, record) {
   kind.value = record.kind;
   blocks.reset(parse(record.body));
   setPreview(false);
+  updateCount();
   status(record.updated ? "このブラウザーに保存済み" : "新しい原稿");
   try { localStorage.setItem(lastKey, id); } catch { /* editing still works */ }
 }
@@ -368,6 +377,7 @@ async function readShared(encoded) {
 function startEditor() {
   blocks = makeBlocks(editor, changed, linkURL);
   blocks.reset(document.createDocumentFragment());
+  updateCount();
   $("workspace").hidden = false;
   try {
     const last = localStorage.getItem(lastKey);
