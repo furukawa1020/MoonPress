@@ -457,6 +457,36 @@ function startEditor() {
       $("share-error").textContent = "選択したURLをコピーしてください。";
     }
   };
+  $("import-backup").onclick = () => {
+    $("import-json").value = "";
+    $("import-error").textContent = "";
+    $("import-dialog").showModal();
+  };
+  $("import-form").onsubmit = event => {
+    event.preventDefault();
+    try {
+      const raw = $("import-json").value;
+      if (raw.length > 1100000) throw new Error("原稿JSONが長すぎます。");
+      const backup = JSON.parse(raw);
+      if (backup.format !== "moonpress-draft" || backup.version !== 1) {
+        throw new Error("MoonPressの原稿JSONを入力してください。");
+      }
+      const document = checked(backup.document);
+      // Sanitize imported markup before creating the new draft.
+      const clean = {...document, body:sanitizeHTML(parse(document.body))};
+      if (!save()) return;
+      restore(crypto.randomUUID(), clean);
+      dirty = true;
+      if (!save()) {
+        $("import-error").textContent = "読み込みましたが保存できません。書き出して保管してください。";
+      } else {
+        $("import-dialog").close();
+        title.focus();
+      }
+    } catch (error) {
+      $("import-error").textContent = error.message || "原稿JSONを確認してください。";
+    }
+  };
   $("backup").onclick = () => download("json");
   $("download").onclick = () => download("md");
   $("export").onclick = () => download("html");

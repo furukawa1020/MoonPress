@@ -1,5 +1,6 @@
 """Exercise the public Pages editor and reader in an actual browser."""
 
+import json
 import runpy
 from pathlib import Path
 import shutil
@@ -110,6 +111,25 @@ with tempfile.TemporaryDirectory() as directory:
         wait(markdown.is_file)
         assert '| 見出し |' in markdown.read_text()
         assert '- [x] 原稿を読む' in markdown.read_text()
+        click('#backup')
+        backup_path = downloads / 'ブロックの原稿.json'
+        wait(backup_path.is_file)
+        backup = json.loads(backup_path.read_text())
+        assert backup['format'] == 'moonpress-draft' and backup['version'] == 1
+        assert '<table>' in backup['document']['body']
+        assert 'contenteditable' not in backup['document']['body']
+        backup['document']['title'] = '復元した原稿'
+        click('#import-backup')
+        browser.fill('#import-json', json.dumps(backup, ensure_ascii=False))
+        click('#import-form button:not([type=button])')
+        wait(lambda: not evaluate('return document.querySelector("#import-dialog").open'))
+        browser.go(base + 'write.html')
+        assert evaluate('return document.querySelector("#title").value') == '復元した原稿'
+        assert browser.text('#body table td') == '本文'
+        assert evaluate('return document.querySelector("#body li input").checked')
+        click('#open')
+        assert '復元した原稿' in browser.text('#draft-list')
+        assert 'ブロックの原稿' in browser.text('#draft-list')
         print('Pages editor: Word-style formatting, preview, two drafts, storage, document exports and public reader.')
     finally:
         if reader:
