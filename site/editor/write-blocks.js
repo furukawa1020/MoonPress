@@ -173,6 +173,18 @@ export function makeBlocks(body, notify, imageURL) {
           focus(row);
           changed();
         }));
+        actions.append(button("選択列を削除", () => {
+          const cell = selectedCell();
+          if (!cell || Array.from(node.rows).some(tableRow => tableRow.cells.length < 2)) return;
+          const index = cell.cellIndex;
+          remember(row);
+          for (const tableRow of node.rows) {
+            if (tableRow.cells[index]) tableRow.deleteCell(index);
+            setupCells(tableRow);
+          }
+          focus(row);
+          changed();
+        }));
         actions.append(button("行を追加", () => {
           remember(row);
           const tableRow = (node.tBodies[0] ?? node.createTBody()).insertRow();
