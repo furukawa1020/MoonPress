@@ -205,6 +205,26 @@ export function makeBlocks(body, notify, imageURL) {
       }
     }
 
+    if (nodes.length === 1 && inlineBlocks.has(tag)) {
+      const selector = document.createElement("select");
+      selector.setAttribute("aria-label", "ブロックの種類");
+      for (const value of ["p", "h2", "h3"]) selector.add(new Option(kinds.get(value), value));
+      if (!Array.from(selector.options).some(option => option.value === tag)) {
+        selector.add(new Option(kinds.get(tag), tag));
+      }
+      selector.value = tag;
+      selector.onchange = () => {
+        const replacement = document.createElement(selector.value);
+        replacement.append(...Array.from(node.childNodes, child => child.cloneNode(true)));
+        remember();
+        const changedRow = wrap([replacement]);
+        row.replaceWith(changedRow);
+        focus(changedRow);
+        changed();
+      };
+      actions.prepend(selector);
+    }
+
     function move(step) {
       const all = rows();
       const position = all.indexOf(row);
