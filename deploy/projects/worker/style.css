@@ -164,3 +164,4 @@ dialog::backdrop { background: #080f24b0; }
 .with-blocks:empty::before { content: none; }
 .block-dock { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; margin: .75rem 0; }
 .block-code { width: 100%; min-height: 6rem; font: 1rem/1.55 monospace; resize: vertical; }
+.paper img { display: block; max-width: 100%; height: auto; margin-block: .5rem; }

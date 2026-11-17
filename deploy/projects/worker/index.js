@@ -1,6 +1,6 @@
 const asciiSlug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const documentSlug = /^[\p{L}\p{N}](?:[\p{L}\p{N}\p{M}-]*[\p{L}\p{N}\p{M}])?$/u;
-const tags = new Set(["p", "div", "h2", "h3", "blockquote", "strong", "em", "b", "i", "ul", "ol", "li", "br", "hr", "pre", "a"]);
+const tags = new Set(["p", "div", "h2", "h3", "blockquote", "strong", "em", "b", "i", "ul", "ol", "li", "br", "hr", "pre", "a", "img"]);
 
 function escape(value) {
   return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
@@ -13,6 +13,14 @@ function render(nodes, depth = 0) {
     if (typeof node === "string") return escape(node);
     if (!node || !tags.has(node.tag)) throw new Error("未対応の書式です。");
     if (node.tag === "br" || node.tag === "hr") return "<" + node.tag + ">";
+    if (node.tag === "img") {
+      const src = new URL(node.src);
+      if (src.protocol !== "https:" || src.username || src.password ||
+          typeof node.alt !== "string" || node.alt.length > 240) {
+        throw new Error("画像URLと代替テキストを確認してください。");
+      }
+      return '<img src="' + escape(src.href) + '" alt="' + escape(node.alt) + '" referrerpolicy="no-referrer" loading="lazy">';
+    }
     if (node.tag === "pre" && !node.children?.every(child => typeof child === "string")) throw new Error("コードにはテキストを入力してください。");
     let attrs = "";
     if (node.tag === "a") {
@@ -34,7 +42,7 @@ function response(body, status = 200, type = "text/html; charset=utf-8") {
   return new Response(body, {status, headers: {
     "Content-Type": type, "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "same-origin",
-    "Content-Security-Policy": "default-src 'none'; style-src 'self'; font-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+    "Content-Security-Policy": "default-src 'none'; style-src 'self'; font-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; img-src https:; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
   }});
 }
 
@@ -284,6 +292,10 @@ function writer(project, row, kind = "post") {
     '</aside></div><dialog id="code-dialog" aria-labelledby="code-label"><form id="code-form" method="dialog">' +
     '<label id="code-label" for="code-text">コードを入力</label><textarea id="code-text" rows="8" required></textarea>' +
     '<div class="actions"><button>挿入</button><button type="button" id="cancel-code">キャンセル</button></div></form></dialog>' +
+    '<dialog id="image-dialog" aria-labelledby="image-label"><form id="image-form" method="dialog">' +
+    '<h2 id="image-label">画像を追加</h2><label>HTTPS画像URL <input name="src" type="url" required maxlength="2048"></label>' +
+    '<label>代替テキスト <input name="alt" maxlength="240"></label>' +
+    '<div class="actions"><button>挿入</button><button type="button" id="cancel-image">キャンセル</button></div></form></dialog>' +
     '<script id="record" type="application/json">' + data + '</script><script src="/writer.js" defer></script>', {project, section}));
 }
 

@@ -1,7 +1,7 @@
 const by = id => document.getElementById(id);
 const record = JSON.parse(by("record").textContent);
 const body = by("body");
-const allowed = new Set(["p", "div", "h2", "h3", "blockquote", "strong", "em", "b", "i", "ul", "ol", "li", "br", "hr", "pre", "a"]);
+const allowed = new Set(["p", "div", "h2", "h3", "blockquote", "strong", "em", "b", "i", "ul", "ol", "li", "br", "hr", "pre", "a", "img"]);
 let selection;
 let busy = false;
 let dirty = false;
@@ -20,6 +20,10 @@ function encode(root) {
     const tag = node.tagName.toLowerCase();
     const children = tag === "pre" ? [node.hidden ? node.textContent : node.innerText] : encode(node);
     if (!allowed.has(tag)) return children;
+    if (tag === "img") {
+      const src = href(node.getAttribute("src"));
+      return src ? [{tag, src, alt:node.alt, children:[]}] : [];
+    }
     if (tag === "a") {
       const url = href(node.getAttribute("href"));
       return url ? [{tag, href:url, children}] : children;
@@ -32,6 +36,14 @@ function fill(parent, nodes) {
     if (typeof node === "string") { parent.append(node); continue; }
     if (!allowed.has(node.tag)) continue;
     const element = document.createElement(node.tag);
+    if (node.tag === "img") {
+      const src = href(node.src);
+      if (!src) continue;
+      element.referrerPolicy = "no-referrer";
+      element.loading = "lazy";
+      element.alt = node.alt ?? "";
+      element.src = src;
+    }
     if (node.tag === "a") element.href = href(node.href);
     fill(element, node.children || []);
     parent.append(element);
@@ -67,10 +79,11 @@ function slugFor(value) {
 async function save(publish) {
   if (busy) return;
   const title = by("title").value.trim();
-  if (!title || !body.textContent.trim()) { say("タイトルと本文を入力してください。"); return; }
+  const nodes = snapshot();
+  if (!title || (!body.textContent.trim() && !body.querySelector("img"))) { say("タイトルと本文を入力してください。"); return; }
   const slug = record.slug || slugFor(by("slug").value.trim() || title);
   if (publish && !confirm("「" + title + "」を固定URLで公開しますか？")) return;
-  const snapshot = {title, slug, kind:by("kind").value, body:snapshot(), excerpt:by("excerpt").value, version:record.version, publish};
+  const snapshot = {title, slug, kind:by("kind").value, body:nodes, excerpt:by("excerpt").value, version:record.version, publish};
   busy = true;
   by("save").disabled = by("publish").disabled = true;
   say(publish ? "公開中…" : "保存中…");
