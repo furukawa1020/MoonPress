@@ -208,7 +208,7 @@ export function makeBlocks(body, notify, imageURL) {
     if (nodes.length === 1 && inlineBlocks.has(tag)) {
       const selector = document.createElement("select");
       selector.setAttribute("aria-label", "ブロックの種類");
-      for (const value of ["p", "h2", "h3"]) selector.add(new Option(kinds.get(value), value));
+      for (const value of ["p", "h2", "h3", "blockquote"]) selector.add(new Option(kinds.get(value), value));
       if (!Array.from(selector.options).some(option => option.value === tag)) {
         selector.add(new Option(kinds.get(tag), tag));
       }
