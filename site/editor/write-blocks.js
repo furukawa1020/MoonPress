@@ -337,6 +337,17 @@ export function makeBlocks(body, notify, imageURL) {
       changed();
     }
 
+    function remove() {
+      const all = rows();
+      const position = all.indexOf(row);
+      const next = engine?.selection_after_removal(all.length, position) ?? Math.min(position, all.length - 2);
+      remember();
+      row.remove();
+      setActive(undefined);
+      focus(rows()[next]);
+      changed();
+    }
+
     row.addEventListener("focusin", event => {
       setActive(row);
       if (event.target.matches("[contenteditable]")) focused = event.target;
@@ -346,6 +357,10 @@ export function makeBlocks(body, notify, imageURL) {
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.key.toLowerCase() === "d") {
         event.preventDefault();
         duplicate();
+      }
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.key === "Backspace") {
+        event.preventDefault();
+        remove();
       }
       if (event.key === "/" && !event.altKey && !event.ctrlKey && !event.metaKey &&
           event.target.matches("p[contenteditable]") && !event.target.textContent.trim()) {
@@ -358,16 +373,7 @@ export function makeBlocks(body, notify, imageURL) {
       }
     });
     actions.append(button("＋ この下に追加", () => openPicker(row)), button("上へ", () => move(-1)),
-      button("下へ", () => move(1)), button("複製", duplicate), button("削除", () => {
-        const all = rows();
-        const position = all.indexOf(row);
-        const next = engine?.selection_after_removal(all.length, position) ?? Math.min(position, all.length - 2);
-        remember();
-        row.remove();
-        setActive(undefined);
-        focus(rows()[next]);
-        changed();
-      }));
+      button("下へ", () => move(1)), button("複製", duplicate), button("削除", remove));
     row.append(content, actions);
     row.read = () => tag === "pre" ? [node] : Array.from(content.childNodes);
     return row;
