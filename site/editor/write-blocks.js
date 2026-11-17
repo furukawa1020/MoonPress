@@ -329,6 +329,16 @@ export function makeBlocks(body, notify, imageURL) {
       changed();
     }
 
+    function moveToEdge(first) {
+      const all = rows();
+      if (row === (first ? all[0] : all.at(-1))) return;
+      remember();
+      if (first) body.prepend(row);
+      else body.append(row);
+      focus(row);
+      changed();
+    }
+
     function duplicate() {
       remember();
       const copy = copyRow(row);
@@ -373,7 +383,8 @@ export function makeBlocks(body, notify, imageURL) {
       }
     });
     actions.append(button("＋ この下に追加", () => openPicker(row)), button("上へ", () => move(-1)),
-      button("下へ", () => move(1)), button("複製", duplicate), button("削除", remove));
+      button("下へ", () => move(1)), button("先頭へ", () => moveToEdge(true)),
+      button("末尾へ", () => moveToEdge(false)), button("複製", duplicate), button("削除", remove));
     row.append(content, actions);
     row.read = () => tag === "pre" ? [node] : Array.from(content.childNodes);
     return row;
