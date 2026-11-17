@@ -157,3 +157,8 @@ form input, .editor-settings :is(input, select) { display: block; width: min(24r
 dialog { background: var(--panel); color: var(--text); border: 1px solid var(--gold); width: min(32rem, calc(100% - 2rem)); }
 dialog textarea { display: block; width: 100%; font-family: monospace; margin-block: .5rem; }
 dialog::backdrop { background: #080f24b0; }
+
+.editor-block { margin-block: .5rem; padding: .25rem .6rem; border-inline-start: 2px solid #c2ac87; }
+.editor-block.is-active { border-color: #493878; }
+.block-content { min-height: 1.65em; }
+.with-blocks:empty::before { content: none; }
