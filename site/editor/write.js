@@ -263,7 +263,8 @@ function markdown(root) {
         if (!columns) return "";
         const cells = row => Array.from(row.cells, cell => render(cell).trim().replace(/\s*\n+\s*/g, " "));
         const line = values => "| " + values.join(" | ") + " |";
-        const header = line(cells(rows.shift()));
+        const hasHeading = Array.from(rows[0].cells).some(cell => cell.nodeName === "TH");
+        const header = line(hasHeading ? cells(rows.shift()) : Array(columns).fill(""));
         return [header, line(Array(columns).fill("---")), ...rows.map(row => line(cells(row)))].join("\n") + "\n\n";
       }
       case "UL": case "OL": {
