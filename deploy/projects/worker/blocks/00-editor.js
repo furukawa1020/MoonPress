@@ -89,3 +89,26 @@ function setupBlocks() {
 }
 
 document.addEventListener("DOMContentLoaded", setupBlocks);
+
+function registerBlock(tag, label, create = () => [{tag, children:[]}]) {
+  blockTypes.set(tag, {label, create});
+}
+function appendBlockMenu() {
+  const dock = element("div");
+  dock.className = "block-dock";
+  const choices = element("select");
+  choices.setAttribute("aria-label", "追加するブロック");
+  for (const [tag, {label}] of blockTypes) {
+    const option = element("option", label);
+    option.value = tag;
+    choices.append(option);
+  }
+  dock.append(choices, button("＋ 追加", async () => {
+    const source = await blockTypes.get(choices.value).create();
+    if (source) await insertBlock(source);
+  }));
+  body.before(dock);
+  blockMounted.push(() => { dock.hidden = !blockEditor; });
+  dock.hidden = !blockEditor;
+}
+document.addEventListener("DOMContentLoaded", appendBlockMenu);
