@@ -407,7 +407,7 @@ export default {
     const path = url.pathname;
     try {
       if (request.method === "GET" && path === "/") {
-        return response(page("MoonPress", '<section class="entry"><div class="entry-copy"><h1>自分のサイトを<br>つくる。</h1><p>ブログや固定ページを、ブラウザーから公開できます。</p><div class="actions"><a class="button" href="/admin/new">自分のサイトを作る</a><a href="/admin">サイト管理へ</a></div></div><div class="night" aria-hidden="true"><span class="night-moon"></span><span class="sand"></span><span class="palace"></span></div></section>', {landing: true}));
+        return response(page("MoonPress", '<section class="entry"><div class="entry-copy"><h1>自分のサイトを<br>つくる。</h1><p>見出しや画像などのブロックを組み合わせて、記事や固定ページを公開できます。</p><div class="actions"><a class="button" href="/admin/new">自分のサイトを作る</a><a href="/admin">サイト管理へ</a></div></div><div class="night" aria-hidden="true"><span class="night-moon"></span><span class="sand"></span><span class="palace"></span></div></section>', {landing: true}));
       }
       if (request.method === "GET" && ["/style.css", "/writer.js"].includes(path)) {
         return response(assets[path.slice(1)], 200, path.endsWith(".css") ? "text/css; charset=utf-8" : "text/javascript; charset=utf-8");

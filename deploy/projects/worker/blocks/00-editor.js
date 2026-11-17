@@ -107,7 +107,7 @@ function snapshot() { return blockEditor ? blockData() : encode(body); }
 
 function setupBlocks() {
   const toggle = by("block-editor");
-  toggle.addEventListener("click", () => {
+  const changeMode = () => {
     const source = snapshot();
     const wasDirty = dirty;
     blockEditor = !blockEditor;
@@ -117,6 +117,15 @@ function setupBlocks() {
     body.classList.toggle("with-blocks", blockEditor);
     document.querySelector(".toolbar").classList.toggle("block-mode", blockEditor);
     body.contentEditable = String(!blockEditor);
+    if (blockEditor) {
+      body.removeAttribute("role");
+      body.removeAttribute("aria-label");
+      body.removeAttribute("aria-multiline");
+    } else {
+      body.setAttribute("role", "textbox");
+      body.setAttribute("aria-label", "本文");
+      body.setAttribute("aria-multiline", "true");
+    }
     toggle.textContent = blockEditor ? "通常の編集に戻る" : "ブロックで編集";
     toggle.setAttribute("aria-pressed", String(blockEditor));
     if (blockEditor) {
@@ -126,7 +135,9 @@ function setupBlocks() {
     } else fill(body, source);
     for (const callback of blockMounted) callback();
     dirty = wasDirty;
-  });
+  };
+  toggle.addEventListener("click", changeMode);
+  changeMode();
 }
 
 document.addEventListener("DOMContentLoaded", setupBlocks);
