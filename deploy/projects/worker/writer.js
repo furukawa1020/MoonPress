@@ -39,7 +39,8 @@ function fill(parent, nodes) {
 }
 function say(value) { by("status").textContent = value; }
 function format(command, value) {
-  body.focus();
+  const editor = selection?.commonAncestorContainer.parentElement?.closest(".block-content");
+  (editor ?? body).focus();
   const current = getSelection();
   if (selection && body.contains(selection.commonAncestorContainer)) {
     current.removeAllRanges();
@@ -57,7 +58,7 @@ function preview() {
   const title = document.createElement("h1");
   title.textContent = by("title").value.trim();
   panel.replaceChildren(title);
-  fill(panel, encode(body));
+  fill(panel, snapshot());
 }
 function slugFor(value) {
   return value.normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}\p{M}]+/gu, "-")
@@ -69,7 +70,7 @@ async function save(publish) {
   if (!title || !body.textContent.trim()) { say("タイトルと本文を入力してください。"); return; }
   const slug = record.slug || slugFor(by("slug").value.trim() || title);
   if (publish && !confirm("「" + title + "」を固定URLで公開しますか？")) return;
-  const snapshot = {title, slug, kind:by("kind").value, body:encode(body), excerpt:by("excerpt").value, version:record.version, publish};
+  const snapshot = {title, slug, kind:by("kind").value, body:snapshot(), excerpt:by("excerpt").value, version:record.version, publish};
   busy = true;
   by("save").disabled = by("publish").disabled = true;
   say(publish ? "公開中…" : "保存中…");

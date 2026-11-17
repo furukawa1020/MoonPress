@@ -267,7 +267,7 @@ function writer(project, row, kind = "post") {
   const section = record.kind === "page" ? "pages" : "posts";
   const heading = row ? "編集" : section === "pages" ? "固定ページを追加" : "新規投稿";
   return response(page(heading, '<h1>' + heading + '</h1><div class="editor-grid"><div class="editor-main">' +
-    '<div class="toolbar" aria-label="文字の書式"><select id="block" aria-label="段落の種類"><option value="p">本文</option><option value="h2">見出し</option><option value="h3">小見出し</option><option value="blockquote">引用</option></select>' +
+    '<div class="toolbar" aria-label="文字の書式"><button type="button" id="block-editor" aria-pressed="false">ブロックで編集</button><select id="block" aria-label="段落の種類"><option value="p">本文</option><option value="h2">見出し</option><option value="h3">小見出し</option><option value="blockquote">引用</option></select>' +
     '<button type="button" data-format="bold" aria-label="太字"><b>B</b></button><button type="button" data-format="italic" aria-label="斜体"><i>I</i></button>' +
     '<button type="button" data-format="insertUnorderedList">箇条書き</button><button type="button" data-format="insertOrderedList">番号付き</button>' +
     '<button type="button" id="insert-link">リンク</button><button type="button" data-format="insertHorizontalRule">横線</button>' +
