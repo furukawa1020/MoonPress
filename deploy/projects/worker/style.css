@@ -162,3 +162,4 @@ dialog::backdrop { background: #080f24b0; }
 .editor-block.is-active { border-color: #493878; }
 .block-content { min-height: 1.65em; }
 .with-blocks:empty::before { content: none; }
+.block-dock { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; margin: .75rem 0; }
