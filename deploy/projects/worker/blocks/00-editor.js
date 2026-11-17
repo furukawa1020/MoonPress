@@ -23,7 +23,7 @@ async function insertBlock(nodes) {
   body.insertBefore(row, rows[index] ?? null);
   dirty = true;
   selectBlock(row);
-  content(row).focus();
+  focusBlock(row);
   return row;
 }
 
@@ -53,9 +53,34 @@ function makeBlock(nodes) {
   editor.setAttribute("aria-label", "ブロック本文");
   editor.setAttribute("aria-multiline", "true");
   fill(editor, nodes);
+  if (nodes.length === 1 && nodes[0]?.tag === "pre") {
+    editor.contentEditable = "false";
+    editor.removeAttribute("role");
+    const code = element("textarea");
+    code.className = "block-code";
+    code.setAttribute("aria-label", "コードブロック");
+    code.value = nodes[0].children.join("");
+    editor.firstChild.hidden = true;
+    code.addEventListener("input", () => { editor.firstChild.textContent = code.value; });
+    editor.append(code);
+  }
   row.append(editor);
   row.addEventListener("focusin", () => selectBlock(row));
   return row;
+}
+
+function focusBlock(row) {
+  const editor = content(row);
+  const input = editor.querySelector("textarea, input");
+  (input ?? editor).focus();
+  if (!input && editor.firstChild) {
+    const range = document.createRange();
+    range.selectNodeContents(editor.firstChild);
+    range.collapse(true);
+    const cursor = getSelection();
+    cursor.removeAllRanges();
+    cursor.addRange(range);
+  }
 }
 
 function selectBlock(row) {
