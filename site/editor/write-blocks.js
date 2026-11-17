@@ -225,6 +225,18 @@ export function makeBlocks(body, notify, imageURL) {
       actions.prepend(selector);
     }
 
+    if (nodes.length === 1 && ["ul", "ol"].includes(tag) && !taskList(node)) {
+      actions.append(button(tag === "ul" ? "番号付きに変更" : "箇条書きに変更", () => {
+        const replacement = document.createElement(tag === "ul" ? "ol" : "ul");
+        replacement.append(...Array.from(node.childNodes, child => child.cloneNode(true)));
+        remember();
+        const changedRow = wrap([replacement]);
+        row.replaceWith(changedRow);
+        focus(changedRow);
+        changed();
+      }));
+    }
+
     function move(step) {
       const all = rows();
       const position = all.indexOf(row);
