@@ -234,6 +234,16 @@ export function makeBlocks(body, notify, imageURL) {
           if (box.nextElementSibling) editable(box.nextElementSibling, "タスクの本文");
         };
         Array.from(node.children).forEach(setupItem);
+        function setAll(checked) {
+          remember(row);
+          for (const box of node.querySelectorAll('input[type="checkbox"]')) {
+            box.checked = checked;
+            box.toggleAttribute("checked", checked);
+          }
+          changed();
+        }
+        actions.append(button("すべて完了", () => setAll(true)), button("すべて未完了", () => setAll(false)));
+
         actions.append(button("項目を追加", () => {
           remember(row);
           const item = taskItem();
