@@ -30,3 +30,12 @@
 .writer .draft-row button:first-child{flex:1;text-align:start;overflow-wrap:anywhere}
 .writer.reader .writer-top button,.writer.reader #draft-status{display:none}
 #reader-error{margin:1rem;text-align:center}
+
+.writer-inserter, .writer-block-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-block: .45rem; }
+.writer-block { padding: .4rem .6rem; margin-block: .55rem; border-inline-start: 2px solid #82708b; }
+.writer-block:is(.active-block, :focus-within) { border-color: #e6bb7a; }
+.writer-block [contenteditable], .writer-block-content { min-height: 1.6em; }
+.writer-block-actions button { margin: 0; font-size: .85em; }
+.writer-block textarea { width: 100%; min-height: 6rem; font: 1rem/1.55 monospace; }
+.writer-paper img { max-width: 100%; height: auto; }
+.writer-paper pre { white-space: pre-wrap; }

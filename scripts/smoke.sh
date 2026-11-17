@@ -8,7 +8,7 @@ trap 'rm -rf "$tmp"' EXIT
 "$cli" build site "$tmp/first"
 "$cli" build site "$tmp/second"
 diff -r "$tmp/first" "$tmp/second"
-grep -Eq '<h1[^>]*>Markdownで、自分のサイトを作る</h1>' "$tmp/first/index.html"
+grep -Eq '<h1[^>]*>ブロックで、記事を書く</h1>' "$tmp/first/index.html"
 grep -q 'href="style.css"' "$tmp/first/index.html"
 test -s "$tmp/first/style.css"
 expect_failure() {
@@ -31,6 +31,8 @@ fi
 grep -Fx '<script type="module" src="write.js"></script>' "$tmp/first/write.html"
 test "$(grep -Eic '<script|javascript:|on(click|load|error)=' "$tmp/first/write.html")" -eq 1
 test -s "$tmp/first/write.js"
+test -s "$tmp/first/write-blocks.js"
+cmp site/editor/block-engine.wasm "$tmp/first/block-engine.wasm"
 printf 'Native binary bytes: '
 wc -c < "$cli"
 echo 'Smoke tests passed: deterministic output, error handling, script confined to the opt-in document editor.'
