@@ -104,7 +104,7 @@ with tempfile.TemporaryDirectory() as directory:
         browser.go(base + 'write.html')
         assert evaluate('return document.querySelector("#body li input").checked')
         click('.writer-outline summary')
-        assert 'タスクリスト' in browser.text('#block-outline')
+        wait(lambda: 'タスクリスト' in browser.text('#block-outline'))
         click('.writer-options summary')
         click('#download')
         markdown = downloads / 'ブロックの原稿.md'
